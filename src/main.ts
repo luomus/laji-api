@@ -19,7 +19,14 @@ async function bootstrap() {
 		.setTitle("API documentation")
 		.setDescription(description)
 		.setVersion("0")
-		.build());
+		.build(),
+	{
+		operationIdFactory: (
+			controllerKey: string,
+			methodKey: string
+		) => methodKey
+	}
+	);
 	SwaggerModule.setup("explorer", app, document);
 
 	app.setGlobalPrefix("v0", { exclude: ["explorer"] });

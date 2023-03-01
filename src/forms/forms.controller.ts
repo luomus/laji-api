@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, Query } from '@nestjs/common';
 import { FormsService } from './forms.service';
-import { Form } from './dto/form.dto';
-import {ApiTags} from '@nestjs/swagger';
+import { Form, Format, GetDto, Lang, QueryWithPersonTokenDto } from './dto/form.dto';
+import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('forms')
-@Controller('forms')
+@ApiTags("forms")
+@Controller("forms")
 export class FormsController {
 	constructor(private readonly formsService: FormsService) {}
 
@@ -12,8 +12,8 @@ export class FormsController {
 	 * Create a new form
 	 */
 	@Post()
-	create(@Body() form: Form) {
-		return this.formsService.create(form);
+	create(@Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
+		return this.formsService.create(form, personToken);
 	}
 
 	/*
@@ -28,31 +28,31 @@ export class FormsController {
 	 * Get a form by id
 	 */
 	@Get(":id")
-	findOne(@Param("id") id: string) {
-		return this.formsService.findOne(id);
+	findOne(@Param("id") id: string, @Query() {format = Format.schema, lang = Lang.en, expand = true}: GetDto) {
+		return this.formsService.findOne(id, format, lang, expand);
 	}
 
 	/*
 	 * Update an existing form
 	 */
 	@Put(":id")
-	update(@Param("id") id: string, @Body() form: Form) {
-		return this.formsService.update(id, form);
+	update(@Param("id") id: string, @Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
+		return this.formsService.update(id, form, personToken);
 	}
 
 	/*
 	 * Delete a form
 	 */
 	@Delete(":id")
-	remove(@Param("id") id: string) {
-		return this.formsService.remove(id);
+	remove(@Param("id") id: string, @Query() {personToken}: QueryWithPersonTokenDto) {
+		return this.formsService.remove(id, personToken);
 	}
 
 	/*
 	 * Delete a form
 	 */
 	@Post(":id")
-	transform(@Body() form: Form) {
-		return this.formsService.transform(form);
+	transform(@Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
+		return this.formsService.transform(form, personToken);
 	}
 }

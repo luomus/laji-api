@@ -28,7 +28,6 @@ export class ProxyToOldApiService {
 				oldApiRequest$ = this.httpService[method](oldApiRequestUrl, body, oldApiRequestOptions);
 			}
 			const apiResponse = await firstValueFrom(oldApiRequest$);
-			// response = mutablyCopyHeaders(apiResponse, response);
 			this.httpAdapterHost.httpAdapter.reply(response, apiResponse.data, apiResponse.status);
 		} catch (e) {
 			if (e instanceof AxiosError) {
@@ -38,17 +37,4 @@ export class ProxyToOldApiService {
 			}
 		}
 	}
-}
-
-
-// Do mutably in order to prevent copying the request.
-function mutablyCopyHeaders(from: AxiosResponse, to: Response) {
-	// const keys = Object.keys(from.headers);
-	const keys = ["content-type"];
-	for (const key of keys) {
-		// console.log(key, from.headers[key]);
-		console.log("set", key, from.headers[key]);
-		to = to.header(key, from.headers[key]);
-	}
-	return to
 }
