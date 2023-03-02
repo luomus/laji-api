@@ -15,6 +15,14 @@ async function bootstrap() {
 		target: "http://localhost:3003",
 	}));
 
+	// Backward compatible redirect from old api with version (v0) path prefix.
+	app.use("/v0", proxy.createProxyMiddleware({
+		target: "http://localhost:3004",
+		pathRewrite: {
+			"^/v0": "/"
+		}
+	}));
+
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("API documentation")
 		.setDescription(description)
@@ -28,8 +36,6 @@ async function bootstrap() {
 	}
 	);
 	SwaggerModule.setup("explorer", app, document);
-
-	app.setGlobalPrefix("v0", { exclude: ["explorer"] });
 
 	await app.listen(3004);
 }
