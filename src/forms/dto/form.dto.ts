@@ -1,3 +1,6 @@
+import { Type } from "class-transformer";
+import { IsInt } from "class-validator";
+
 export enum Lang {
 	fi = "fi",
 	sv = "sv",
@@ -8,7 +11,6 @@ export enum Format {
 	schema = "schema",
 	json = "json"
 }
-
 
 export class Form {
 	id?: string;
@@ -31,9 +33,33 @@ export class GetDto {
 	expand?: boolean = true;
 }
 
+export class PagedDto {
+	@Type(() => Number)
+	@IsInt()
+	page?: number = 1;
+
+	@Type(() => Number)
+	@IsInt()
+	pageSize?: number = 20;
+}
+
+export class GetAllDto extends PagedDto {
+	lang?: Lang = Lang.en;
+}
+
 export class QueryWithPersonTokenDto {
 	/*
 	 * Person's authentication token
 	 */
 	personToken: string;
+}
+
+export class PaginatedDto<T> {
+	currentPage: number;
+	pageSize: number;
+	total: number;
+	last: number;
+	prevPage?: number;
+	nextPage?: number;
+	results: T[];
 }

@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, Query } from '@nestjs/common';
 import { FormsService } from './forms.service';
-import { Form, Format, GetDto, Lang, QueryWithPersonTokenDto } from './dto/form.dto';
+import { Form, Format, GetAllDto, GetDto, Lang, QueryWithPersonTokenDto } from './dto/form.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags("forms")
@@ -20,8 +20,8 @@ export class FormsController {
 	 * Get all forms
 	 */
 	@Get()
-	findAll() {
-		return this.formsService.findAll();
+	findAll(@Query() {lang = Lang.en, page, pageSize}: GetAllDto) {
+		return this.formsService.findAll(lang, page, pageSize);
 	}
 
 	/*

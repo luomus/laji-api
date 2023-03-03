@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as  proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
@@ -22,6 +23,8 @@ async function bootstrap() {
 			"^/v0": "/"
 		}
 	}));
+
+	app.useGlobalPipes(new ValidationPipe({transform: true}));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("API documentation")

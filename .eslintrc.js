@@ -22,7 +22,14 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
 		"indent": [
 			"error",
-			"tab"
+			"tab",
+			{
+				"ignoredNodes": [
+					`FunctionExpression > .params[decorators.length > 0]`,
+					`FunctionExpression > .params > :matches(Decorator, :not(:first-child))`,
+					`ClassBody.body > PropertyDefinition[decorators.length > 0] > .key`,
+				],
+			}
 		]
   },
 };
