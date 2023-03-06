@@ -1,12 +1,12 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import {firstValueFrom, Observable} from "rxjs";
 import { AxiosError, AxiosResponse } from "axios";
 import * as rawBody from "raw-body";
 import { Request, Response } from "express";
 
-const OLD_API = "http://localhost:3003";
+const OLD_API = "http://localhost:3003/v0";
 
 @Injectable()
 export class ProxyToOldApiService {

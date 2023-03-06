@@ -1,7 +1,7 @@
-import { ProxyToOldApiFilter } from './proxy-to-old-api.filter';
+import { ProxyToOldApiFilter } from "./proxy-to-old-api.filter";
 
-describe('ProxyToOldApiFilter', () => {
-	it('should be defined', () => {
+describe("ProxyToOldApiFilter", () => {
+	it("should be defined", () => {
 		expect(new ProxyToOldApiFilter()).toBeDefined();
 	});
 });

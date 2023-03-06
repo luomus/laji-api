@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ProxyToOldApiService } from './proxy-to-old-api.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ProxyToOldApiService } from "./proxy-to-old-api.service";
 
-describe('ProxyToOldApiService', () => {
-  let service: ProxyToOldApiService;
+describe("ProxyToOldApiService", () => {
+	let service: ProxyToOldApiService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ProxyToOldApiService],
-    }).compile();
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [ProxyToOldApiService],
+		}).compile();
 
-    service = module.get<ProxyToOldApiService>(ProxyToOldApiService);
-  });
+		service = module.get<ProxyToOldApiService>(ProxyToOldApiService);
+	});
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+	it("should be defined", () => {
+		expect(service).toBeDefined();
+	});
 });

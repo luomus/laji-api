@@ -1,10 +1,10 @@
-import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication }  from '@nestjs/platform-express';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+import { NestFactory } from "@nestjs/core";
+import { NestExpressApplication }  from "@nestjs/platform-express";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { AppModule } from "./app.module";
 import * as  proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
@@ -30,6 +30,7 @@ async function bootstrap() {
 		.setTitle("API documentation")
 		.setDescription(description)
 		.setVersion("0")
+		.addApiKey({type: "apiKey", name: "access_token", in: "query"}, "access_token")
 		.build(),
 	{
 		operationIdFactory: (
@@ -38,7 +39,10 @@ async function bootstrap() {
 		) => methodKey
 	}
 	);
-	SwaggerModule.setup("explorer", app, document);
+	SwaggerModule.setup("explorer", app, document, {
+		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
+		customJs: "/swagger-front-auth.js"
+	});
 
 	await app.listen(3004);
 }

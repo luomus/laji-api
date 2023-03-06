@@ -1,8 +1,8 @@
 import { ArgumentsHost, Catch, ExceptionFilter, NotFoundException } from "@nestjs/common";
 import { Request, Response } from "express";
-import {ProxyToOldApiService} from "./proxy-to-old-api.service";
+import { ProxyToOldApiService } from "./proxy-to-old-api.service";
 
-@Catch()
+@Catch(NotFoundException)
 export class ProxyToOldApiFilter implements ExceptionFilter {
 	constructor(
 		private readonly proxyToOldApiService: ProxyToOldApiService) {

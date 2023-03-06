@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Query } from '@nestjs/common';
-import { FormsService } from './forms.service';
-import { Form, Format, GetAllDto, GetDto, Lang, QueryWithPersonTokenDto } from './dto/form.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, Delete, Put, Query } from "@nestjs/common";
+import { FormsService } from "./forms.service";
+import { Form, Format, GetAllDto, GetDto, Lang, QueryWithPersonTokenDto } from "./dto/form.dto";
+import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("forms")
 @Controller("forms")
