@@ -1,0 +1,13 @@
+.topbar {
+	background-color: #3498DB !important;
+	color: white;
+	font-size: 22px;
+	font-weight: bold;
+}
+
+.topbar-wrapper a img {
+	display:none
+}
+.topbar-wrapper:before {
+	content: "API.LAJI.FI"
+}

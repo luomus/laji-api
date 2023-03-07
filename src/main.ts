@@ -24,6 +24,8 @@ async function bootstrap() {
 		}
 	}));
 
+	app.useStaticAssets("static");
+
 	app.useGlobalPipes(new ValidationPipe({transform: true}));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
@@ -41,6 +43,7 @@ async function bootstrap() {
 	);
 	SwaggerModule.setup("explorer", app, document, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
+		customCssUrl: "/swagger.css"
 	});
 
 	await app.listen(3004);
