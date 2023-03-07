@@ -41,7 +41,6 @@ async function bootstrap() {
 	);
 	SwaggerModule.setup("explorer", app, document, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
-		customJs: "/swagger-front-auth.js"
 	});
 
 	await app.listen(3004);
