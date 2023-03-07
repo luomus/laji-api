@@ -43,7 +43,10 @@ async function bootstrap() {
 	);
 	SwaggerModule.setup("explorer", app, document, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
-		customCssUrl: "/swagger.css"
+		customCssUrl: "/swagger.css",
+		swaggerOptions: {
+			persistAuthorization: true
+		}
 	});
 
 	await app.listen(3004);
