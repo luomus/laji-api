@@ -52,7 +52,7 @@ export class FormsController {
 	/*
 	 * Delete a form
 	 */
-	@Post(":id")
+	@Post("transform")
 	transform(@Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
 		return this.formsService.transform(form, personToken);
 	}
