@@ -1,8 +1,9 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, Query } from "@nestjs/common";
 import { FormsService } from "./forms.service";
 import { Form, Format, GetAllDto, GetDto, Lang, QueryWithPersonTokenDto } from "./dto/form.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiSecurity, ApiTags } from "@nestjs/swagger";
 
+@ApiSecurity("access_token")
 @ApiTags("forms")
 @Controller("forms")
 export class FormsController {
