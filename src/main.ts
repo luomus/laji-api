@@ -6,7 +6,7 @@ import * as  proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 
-async function bootstrap() {
+export async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
 
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -50,6 +50,7 @@ async function bootstrap() {
 	});
 
 	await app.listen(3004);
+	return app;
 }
 bootstrap();
 
