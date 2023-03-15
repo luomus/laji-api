@@ -19,10 +19,12 @@ export class PersonsService {
 			return of(ImporterPerson);
 		}
 		return this.personTokenService.getInfo(personToken).pipe(
-			switchMap((response) =>  {
-				const { personId } = response;
-				return this.storeClient.get<Person>(`person/${personId}`).pipe(rethrowHttpException(), map(exposePerson))
-			})
+			switchMap(({ personId }) =>  
+				this.storeClient.get<Person>(`person/${personId}`).pipe(
+					rethrowHttpException(),
+					map(exposePerson)
+				)
+			)
 		);
 	}
 
@@ -49,8 +51,6 @@ const ImporterPerson: Person = {
 	fullName: "Importer",
 	emailAddress: ""
 };
-
-// class ExposedPerson extends OmitType(Person, ["inheritedName", "preferredName", "address", "lintuvaaraLoginName"]) {}
 
 function exposePerson(person: Person) {
 	if (person.inheritedName && person.preferredName) {

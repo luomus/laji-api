@@ -1,9 +1,9 @@
-import { DynamicModule, FactoryProvider, Module } from "@nestjs/common";
+import { FactoryProvider, Module } from "@nestjs/common";
 import { FormsService } from "./forms.service";
 import { FormsController } from "./forms.controller";
 import { HttpModule, HttpService } from "@nestjs/axios";
 import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { Form } from "./dto/form.dto";
 import { PersonsModule } from "src/persons/persons.module";
 

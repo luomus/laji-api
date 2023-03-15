@@ -37,7 +37,9 @@ export class FormsService {
 	}
 
 	findAll(lang: Lang, page?: number, pageSize?: number) {
-		return this.formClient.get<{forms: Form[]}>("", { params: { lang } }).pipe(map(r => pageResult(r.forms, page, pageSize)));
+		return this.formClient.get<{forms: Form[]}>("", { params: { lang } }).pipe(
+			map(r => pageResult(r.forms, page, pageSize))
+		);
 	}
 
 	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
