@@ -34,6 +34,10 @@ module.exports = {
 		"quotes": [
 			"error",
 			"double"
+		],
+		"object-curly-spacing": [
+			"error",
+			"always"
 		]
   },
 };

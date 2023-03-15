@@ -1,5 +1,5 @@
 import { Controller, Get, Res } from "@nestjs/common";
-import {ApiExcludeController} from "@nestjs/swagger";
+import { ApiExcludeController } from "@nestjs/swagger";
 import { Response } from "express";
 import { BypassAccessTokenAuth } from "./access-token/access-token.guard";
 

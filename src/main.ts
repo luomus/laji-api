@@ -26,13 +26,13 @@ export async function bootstrap() {
 
 	app.useStaticAssets("static");
 
-	app.useGlobalPipes(new ValidationPipe({transform: true}));
+	app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("API documentation")
 		.setDescription(description)
 		.setVersion("0")
-		.addApiKey({type: "apiKey", name: "access_token", in: "query"}, "access_token")
+		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")
 		.build(),
 	{
 		operationIdFactory: (

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Query } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards } from "@nestjs/common";
 import { FormsService } from "./forms.service";
 import { Form, Format, GetAllDto, GetDto, Lang, QueryWithPersonTokenDto } from "./dto/form.dto";
-import { ApiBearerAuth, ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 
 @ApiSecurity("access_token")
 @ApiTags("forms")
@@ -9,19 +10,11 @@ import { ApiBearerAuth, ApiSecurity, ApiTags } from "@nestjs/swagger";
 export class FormsController {
 	constructor(private readonly formsService: FormsService) {}
 
-	/* 
-	 * Create a new form
-	 */
-	@Post()
-	create(@Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
-		return this.formsService.create(form, personToken);
-	}
-
 	/*
 	 * Get all forms
 	 */
 	@Get()
-	findAll(@Query() {lang = Lang.en, page, pageSize}: GetAllDto) {
+	findAll(@Query() { lang = Lang.en, page, pageSize }: GetAllDto) {
 		return this.formsService.findAll(lang, page, pageSize);
 	}
 
@@ -29,15 +22,25 @@ export class FormsController {
 	 * Get a form by id
 	 */
 	@Get(":id")
-	findOne(@Param("id") id: string, @Query() {format = Format.schema, lang = Lang.en, expand = true}: GetDto) {
+	findOne(@Param("id") id: string, @Query() { format = Format.schema, lang = Lang.en, expand = true }: GetDto) {
 		return this.formsService.findOne(id, format, lang, expand);
+	}
+
+	/* 
+	 * Create a new form
+	 */
+	@Post()
+	@UseGuards(IctAdminGuard)
+	create(@Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
+		return this.formsService.create(form, personToken);
 	}
 
 	/*
 	 * Update an existing form
 	 */
 	@Put(":id")
-	update(@Param("id") id: string, @Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
+	@UseGuards(IctAdminGuard)
+	update(@Param("id") id: string, @Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.update(id, form, personToken);
 	}
 
@@ -45,15 +48,17 @@ export class FormsController {
 	 * Delete a form
 	 */
 	@Delete(":id")
-	remove(@Param("id") id: string, @Query() {personToken}: QueryWithPersonTokenDto) {
+	@UseGuards(IctAdminGuard)
+	remove(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.remove(id, personToken);
 	}
 
 	/*
-	 * Delete a form
+	 * Get preview of form transformed from json format to schema format
 	 */
 	@Post("transform")
-	transform(@Body() form: Form, @Query() {personToken}: QueryWithPersonTokenDto) {
+	@UseGuards(IctAdminGuard)
+	transform(@Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.transform(form, personToken);
 	}
 }

@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import {APP_GUARD} from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AccessToken } from "./access-token.entity";
-import {AccessTokenGuard} from "./access-token.guard";
+import { AccessTokenGuard } from "./access-token.guard";
 import { AccessTokenService } from "./access-token.service";
 
 @Module({

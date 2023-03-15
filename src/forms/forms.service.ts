@@ -1,8 +1,7 @@
-import {HttpService} from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { map } from "rxjs";
 import { Form, Format, Lang, PaginatedDto } from "./dto/form.dto";
-import { ConfigService } from "@nestjs/config";
+import { RestClientService } from "src/rest-client/rest-client.service";
 
 const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
 	if (page <= 0) {
@@ -27,35 +26,33 @@ const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
 	return result;
 }
 
+//TODO cache
+//TODO user role check for form manipulation
 @Injectable()
 export class FormsService {
-	constructor(private readonly httpService: HttpService,
-	private readonly configService: ConfigService) {}
-
-	private readonly path = this.configService.get("FORM_PATH")
-	private readonly auth = this.configService.get("FORM_AUTH")
+	constructor(@Inject("FORM_REST_CLIENT") private formClient: RestClientService<Form>) {}
 
 	create(form: Form, personToken: string) {
-		return this.httpService.post<Form>(this.path, form, {params: {personToken}, headers: {Authorization: this.auth}}).pipe(map(r => r.data));
+		return this.formClient.post("", form, { params: { personToken } });
 	}
 
 	findAll(lang: Lang, page?: number, pageSize?: number) {
-		return this.httpService.get<{forms: Form[]}>(this.path, {params: {lang}, headers: {Authorization: this.auth}}).pipe(map(r => pageResult(r.data.forms, page, pageSize)));
+		return this.formClient.get<{forms: Form[]}>("", { params: { lang } }).pipe(map(r => pageResult(r.forms, page, pageSize)));
 	}
 
 	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
-		return this.httpService.get<Form>(this.path + id, {params: {format, lang, expand}, headers: {Authorization: this.auth}}).pipe(map(r => r.data));
+		return this.formClient.get(id, { params: { format, lang, expand } });
 	}
 
 	update(id: string, form: Form, personToken: string) {
-		return this.httpService.put<Form>(this.path + id, form, {params: {personToken}, headers: {Authorization: this.auth}}).pipe(map(r => r.data));
+		return this.formClient.put(id, form, { params: { personToken } });
 	}
 
 	remove(id: string, personToken: string) {
-		return this.httpService.delete(this.path + id, {params: {personToken}, headers: {Authorization: this.auth}}).pipe(map(r => r.data));
+		return this.formClient.delete(id, { params: { personToken } });
 	}
 
 	transform(form: Form, personToken: string) {
-		return this.httpService.post<Form>(this.path + "/transform", form, {params: {personToken}, headers: {Authorization: this.auth}}).pipe(map(r => r.data));
+		return this.formClient.post("transform", form, { params: { personToken } });
 	}
 }
