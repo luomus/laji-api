@@ -14,7 +14,9 @@ import { PersonsModule } from "./persons/persons.module";
 import { LajiAuthClientService } from "./laji-auth-client/laji-auth-client.service";
 import { LajiAuthClientModule } from "./laji-auth-client/laji-auth-client.module";
 import { PersonTokenModule } from "./person-token/person-token.module";
-import { TriplestoreClientModule } from "./triplestore-client/triplestore-client.module";
+import { TriplestoreModule } from "./triplestore/triplestore.module";
+import { ProfileModule } from "./profile/profile.module";
+import { StoreClientModule } from "./store-client/store-client.module";
 
 @Module({
 	imports: [
@@ -39,7 +41,9 @@ import { TriplestoreClientModule } from "./triplestore-client/triplestore-client
 		PersonsModule,
 		LajiAuthClientModule,
 		PersonTokenModule,
-		TriplestoreClientModule
+		TriplestoreModule,
+		ProfileModule,
+		StoreClientModule
 	],
 	controllers: [AppController],
 	providers: [

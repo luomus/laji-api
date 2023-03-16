@@ -17,11 +17,10 @@ export class PersonsController {
 		return this.personsService.findByToken(personToken);
 	}
 
-
-	// @Get(":personToken/profile") 
-	// getProfile(@Param("personToken") personToken: string) {
-	// 	return this.personsService.findOne(personToken);
-	// }
+	@Get(":personToken/profile") 
+	getProfile(@Param("personToken") personToken: string) {
+		return this.personsService.findProfileByPersonToken(personToken);
+	}
 
 	// @Post(":personToken/friends/:profileKey") 
 	// addFriendRequest(@Param("personToken") personToken: string, @Param("userId") userId: string) {

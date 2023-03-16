@@ -1,8 +1,10 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { map, of, switchMap } from "rxjs";
+import { map, of, switchMap, tap } from "rxjs";
 import { PersonTokenService } from "src/person-token/person-token.service";
+import {ProfileService} from "src/profile/profile.service";
 import { RestClientService, rethrowHttpException } from "src/rest-client/rest-client.service";
+import {TriplestoreService} from "src/triplestore/triplestore.service";
 import { Person } from "./person.dto";
 
 @Injectable()
@@ -10,7 +12,9 @@ export class PersonsService {
 	constructor(
 		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 		private configService: ConfigService,
-		private personTokenService: PersonTokenService
+		private personTokenService: PersonTokenService,
+		private profileService: ProfileService,
+		private triplestoreService: TriplestoreService
 	) {}
 
 	// TODOD cache
@@ -20,11 +24,22 @@ export class PersonsService {
 		}
 		return this.personTokenService.getInfo(personToken).pipe(
 			switchMap(({ personId }) =>  
-				this.storeClient.get<Person>(`person/${personId}`).pipe(
+				// TODO should get from triplestore
+				this.triplestoreService.get(personId).pipe(
 					rethrowHttpException(),
 					map(exposePerson)
 				)
+				// this.storeClient.get<Person>(`person/${personId}`).pipe(
+				// 	rethrowHttpException(),
+				// 	map(exposePerson)
+				// )
 			)
+		);
+	}
+
+	findProfileByPersonToken(personToken: string) {
+		return this.personTokenService.getInfo(personToken).pipe(switchMap(({ personId }) =>
+			this.profileService.getProfileByPersonId(personId))
 		);
 	}
 
