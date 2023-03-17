@@ -37,4 +37,4 @@ lerna-debug.log*
 
 *.env
 
-.integration-test/config.json
+integration-test/config.json
