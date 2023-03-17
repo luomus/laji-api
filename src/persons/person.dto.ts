@@ -1,5 +1,9 @@
 import { Exclude } from "class-transformer";
 
+export enum Role {
+	Admin = "MA.admin"
+}
+
 export class Person {
 	id: string;
 	fullName: string;
@@ -12,4 +16,5 @@ export class Person {
 	address?: string;
 	@Exclude()
 	lintuvaaraLoginName?: string
+	role?: Role[];
 }

@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { StoreClientModule } from "src/store-client/store-client.module";
+import { StoreModule } from "src/store/store.module";
 import { ProfileService } from "./profile.service";
 
 @Module({
 	providers: [ProfileService],
-	imports: [StoreClientModule],
+	imports: [StoreModule],
 	exports: [ProfileService]
 
 })

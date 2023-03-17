@@ -13,9 +13,9 @@ const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig> = {
 };
 
 const lajiAuthRestClientProvider: FactoryProvider<RestClientService<any>> = {
-	provide: "STORE_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig) =>
-		new RestClientService(httpService, formClientConfig),
+	provide: "LAJI_AUTH_REST_CLIENT",
+	useFactory: (httpService: HttpService, lajiAuthClientConfig: RestClientConfig) =>
+		new RestClientService(httpService, lajiAuthClientConfig),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }],
 };
 

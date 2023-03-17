@@ -1,16 +1,15 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { map, of, switchMap, tap } from "rxjs";
+import { map, of, switchMap } from "rxjs";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { ProfileService } from "src/profile/profile.service";
-import { RestClientService, rethrowHttpException } from "src/rest-client/rest-client.service";
+import { rethrowHttpException } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { Person } from "./person.dto";
+import { Person, Role } from "./person.dto";
 
 @Injectable()
 export class PersonsService {
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 		private configService: ConfigService,
 		private personTokenService: PersonTokenService,
 		private profileService: ProfileService,
@@ -28,10 +27,6 @@ export class PersonsService {
 					rethrowHttpException(),
 					map(exposePerson)
 				)
-				// this.storeClient.get<Person>(`person/${personId}`).pipe(
-				// 	rethrowHttpException(),
-				// 	map(exposePerson)
-				// )
 			)
 		);
 	}
@@ -42,9 +37,8 @@ export class PersonsService {
 		);
 	}
 
-	// TODO
 	isICTAdmin(personToken: string) {
-		return true;
+		return this.findByToken(personToken).pipe(map(person => person.role?.includes(Role.Admin) || false));
 	}
 
 	// TODO
@@ -67,10 +61,8 @@ const ImporterPerson: Person = {
 };
 
 function exposePerson(person: Person) {
-	if (person.inheritedName && person.preferredName) {
-		if (!person.fullName) {
-			person.fullName = [person.preferredName, person.inheritedName].join(" ");
-		}
-		return person;
+	if (person.inheritedName && person.preferredName && !person.fullName) {
+		person.fullName = [person.preferredName, person.inheritedName].join(" ");
 	}
+	return person;
 }

@@ -17,6 +17,7 @@ import { PersonTokenModule } from "./person-token/person-token.module";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { ProfileModule } from "./profile/profile.module";
 import { StoreClientModule } from "./store-client/store-client.module";
+import { StoreModule } from "./store/store.module";
 
 @Module({
 	imports: [
@@ -43,7 +44,8 @@ import { StoreClientModule } from "./store-client/store-client.module";
 		PersonTokenModule,
 		TriplestoreModule,
 		ProfileModule,
-		StoreClientModule
+		StoreClientModule,
+		StoreModule
 	],
 	controllers: [AppController],
 	providers: [
