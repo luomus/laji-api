@@ -1,8 +1,8 @@
-import {HttpModule, HttpService} from "@nestjs/axios";
+import { HttpModule, HttpService } from "@nestjs/axios";
 import { FactoryProvider, Module } from "@nestjs/common";
-import {ConfigService} from "@nestjs/config";
-import {RestClientConfig, RestClientService} from "src/rest-client/rest-client.service";
-import {TriplestoreService} from "./triplestore.service";
+import { ConfigService } from "@nestjs/config";
+import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
+import { TriplestoreService } from "./triplestore.service";
 
 const triplestoreClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",

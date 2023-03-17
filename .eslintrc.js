@@ -45,6 +45,13 @@ module.exports = {
 				code: 120,
 				ignoreComments: true
 			}
+		],
+		"@typescript-eslint/no-unused-vars": [
+			"error",
+			{
+				"ignoreRestSiblings": true
+			}
 		]
+
   },
 };
