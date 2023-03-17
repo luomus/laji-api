@@ -88,7 +88,7 @@ describe("/autocomplete", function() {
 			});
 	});
 
-	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if isn"t scientific name", function(done) {
+	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if isn't scientific name", function(done) {
 		var query = basePath + "/taxon" +
 			"?includePayload=true&access_token=" + config["access_token"];
 		request(app)
@@ -465,7 +465,7 @@ describe("/autocomplete", function() {
 			});
 	});
 
-	it("returns the query taxon name as taxon if trip report unit includeNonMatching is true and exact match wasn"t found", function(done) {
+	it("returns the query taxon name as taxon if trip report unit includeNonMatching is true and exact match wasn't found", function(done) {
 		let name = "paarus maajor";
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 		const _params =  Object.keys(params).map(param => params[param]);

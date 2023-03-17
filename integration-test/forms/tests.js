@@ -15,9 +15,11 @@ describe("/forms", function() {
 	});
 
 	it("returns 401 when no access token specified", function(done) {
+		console.log(should);
 		request(app)
 			.get(basePath)
 			.end(function(err, res) {
+				console.log(res.constructor);
 				res.should.have.status(401);
 				done();
 			});
@@ -47,10 +49,10 @@ describe("/forms", function() {
 				if (res.status !== 200) {
 					this.skip();
 				}
-				testFormJSON = res;
+				testFormJSON = res.body;
 				request(app)
 					.put(query)
-					.send(res)
+					.send(res.body)
 					.end(function(err, res) {
 						res.should.have.status(403);
 						done();

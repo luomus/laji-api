@@ -1,6 +1,7 @@
 // const _app = require('../dist/main');
 const chai = require('chai'),
 	expect = chai.expect,
+	should = chai.should(),
 	chaiHttp = require('chai-http');
 chai.use(chaiHttp);
 const { Test } = require("@nestjs/testing");

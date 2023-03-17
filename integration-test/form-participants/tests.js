@@ -1,6 +1,5 @@
 var config = require("../config.json");
 var helpers = require("../helpers");
-const moment = require("moment");
 const expect = require("chai").expect;
 const { request } = require("chai");
 

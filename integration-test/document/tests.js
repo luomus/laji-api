@@ -1182,7 +1182,7 @@ describe("/documents", function() {
 		});
 	});
 
-	it("doesn't return other user"s single document for form with option MHL.documentsViewableForAll if doesn't have access to form", function(done) {
+	it("doesn't return other user's single document for form with option MHL.documentsViewableForAll if doesn't have access to form", function(done) {
 		var query = basePath + "/" + config.id.document_others_feature_documents_viewable_for_all +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token; // Doesn"t have access.
 		request(app)
@@ -1193,7 +1193,7 @@ describe("/documents", function() {
 			});
 	});
 
-	it("returns other user"s single document for form with option MHL.documentsViewableForAll", function(done) {
+	it("returns other user's single document for form with option MHL.documentsViewableForAll", function(done) {
 		var query = basePath + "/" + config.id.document_others_feature_documents_viewable_for_all +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend2_token; // Has access.
 		request(app)
@@ -1342,7 +1342,7 @@ describe("/documents", function() {
 			});
 	});
 
-	it("doesn't return other users" documents for form with MHL.documentsViewableForAll option if no permission to form", function(done) {
+	it("doesn't return other users' documents for form with MHL.documentsViewableForAll option if no permission to form", function(done) {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token + // Doesn"t have form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
@@ -1358,7 +1358,7 @@ describe("/documents", function() {
 	});
 
 
-	it("doesn't return other users" documents for form with MHL.documentsViewableForAll option if no permission to form when searching from ES index", function(done) {
+	it("doesn't return other users' documents for form with MHL.documentsViewableForAll option if no permission to form when searching from ES index", function(done) {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token + // Doesn"t have form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
@@ -1372,7 +1372,7 @@ describe("/documents", function() {
 			});
 	});
 
-	it("returns other users" documents for form with MHL.documentsViewableForAll option", function(done) {
+	it("returns other users' documents for form with MHL.documentsViewableForAll option", function(done) {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend2_token + // Has form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
