@@ -31,7 +31,7 @@ export class PersonsService {
 		return this.triplestoreService.get(personId).pipe(
 			rethrowHttpException(),
 			// map(exposePerson)
-			map(serializeInto(Person, {excludeExtraneousValues: true}))
+			map(serializeInto(Person, { excludeExtraneousValues: true }))
 		)
 	}
 

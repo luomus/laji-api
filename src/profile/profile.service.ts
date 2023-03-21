@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { of, switchMap } from "rxjs";
-import {PersonTokenService} from "src/person-token/person-token.service";
+import { PersonTokenService } from "src/person-token/person-token.service";
 import { rethrowHttpException } from "src/rest-client/rest-client.service";
 import { StoreService } from "src/store/store.service";
 

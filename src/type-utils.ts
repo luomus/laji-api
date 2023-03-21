@@ -1,4 +1,4 @@
-import {classToPlain, ClassTransformOptions, plainToClass} from "class-transformer";
+import { classToPlain, ClassTransformOptions, plainToClass } from "class-transformer";
 
 export const isObject = (any: any): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;

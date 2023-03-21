@@ -1,4 +1,4 @@
-import {PickType} from "@nestjs/swagger";
+import { PickType } from "@nestjs/swagger";
 import { Exclude, Expose } from "class-transformer";
 
 export enum Role {

@@ -1,9 +1,9 @@
-import { ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, Put, UseInterceptors } from "@nestjs/common";
+import { Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import {map, Observable, tap} from "rxjs";
-import {ProfileService} from "src/profile/profile.service";
-import {serializeInto} from "src/type-utils";
-import { Person, PublicPerson } from "./person.dto";
+import { map } from "rxjs";
+import { ProfileService } from "src/profile/profile.service";
+import { serializeInto } from "src/type-utils";
+import { PublicPerson } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
 @ApiSecurity("access_token")
@@ -32,7 +32,7 @@ export class PersonsController {
 	findPersonByPersonId(@Param("personId") personId: string) {
 		// return this.personsService.findByPersonId(personId).pipe(map(makePublic));
 		return this.personsService.findByPersonId(personId).pipe(
-			map(serializeInto(PublicPerson, {excludeExtraneousValues: true})),
+			map(serializeInto(PublicPerson, { excludeExtraneousValues: true })),
 		);
 	}
 
