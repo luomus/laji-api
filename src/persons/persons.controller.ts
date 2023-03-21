@@ -1,25 +1,44 @@
-import { Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, Put, UseInterceptors } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { Person } from "./person.dto";
+import {map, Observable, tap} from "rxjs";
+import {ProfileService} from "src/profile/profile.service";
+import {serializeInto} from "src/type-utils";
+import { Person, PublicPerson } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
 @ApiSecurity("access_token")
 @ApiTags("person")
 @Controller("persons")
 export class PersonsController {
-	constructor(private readonly personsService: PersonsService) {}
+	constructor(
+		private readonly personsService: PersonsService,
+		private readonly profileService: ProfileService
+	) {}
 
 	/*
 	 * Find person by person token
 	 */
 	@Get(":personToken") 
-	findByToken(@Param("personToken") personToken: string) {
+	findPersonByToken(@Param("personToken") personToken: string) {
 		return this.personsService.findByToken(personToken);
 	}
 
 	@Get(":personToken/profile") 
-	getProfile(@Param("personToken") personToken: string) {
-		return this.personsService.findProfileByPersonToken(personToken);
+	getProfileByPersonToken(@Param("personToken") personToken: string) {
+		return this.profileService.findProfileByPersonToken(personToken);
+	}
+
+	@Get("by-id/:personId") 
+	findPersonByPersonId(@Param("personId") personId: string) {
+		// return this.personsService.findByPersonId(personId).pipe(map(makePublic));
+		return this.personsService.findByPersonId(personId).pipe(
+			map(serializeInto(PublicPerson, {excludeExtraneousValues: true})),
+		);
+	}
+
+	@Get("by-id/:personId/profile") 
+	getProfileByPersonId(@Param("personId") personId: string) {
+		return this.profileService.findProfileByPersonId(personId);
 	}
 
 	// @Post(":personToken/friends/:profileKey") 
@@ -37,3 +56,5 @@ export class PersonsController {
 	// 	return this.personsService.removeFriend(personToken, userId);
 	// }
 }
+
+// const makePublic = (person: Person) => new PublicPerson(person);

@@ -1,18 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { map, of, switchMap } from "rxjs";
+import { map, Observable, of, switchMap } from "rxjs";
 import { PersonTokenService } from "src/person-token/person-token.service";
-import { ProfileService } from "src/profile/profile.service";
 import { rethrowHttpException } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { Person, Role } from "./person.dto";
+import { serializeInto } from "../type-utils";
 
 @Injectable()
 export class PersonsService {
 	constructor(
 		private configService: ConfigService,
 		private personTokenService: PersonTokenService,
-		private profileService: ProfileService,
 		private triplestoreService: TriplestoreService
 	) {}
 
@@ -23,18 +22,17 @@ export class PersonsService {
 		}
 		return this.personTokenService.getInfo(personToken).pipe(
 			switchMap(({ personId }) =>  
-				this.triplestoreService.get(personId).pipe(
-					rethrowHttpException(),
-					map(exposePerson)
-				)
+				this.findByPersonId(personId)
 			)
 		);
 	}
 
-	findProfileByPersonToken(personToken: string) {
-		return this.personTokenService.getInfo(personToken).pipe(switchMap(({ personId }) =>
-			this.profileService.getProfileByPersonId(personId))
-		);
+	findByPersonId(personId: string) {
+		return this.triplestoreService.get(personId).pipe(
+			rethrowHttpException(),
+			// map(exposePerson)
+			map(serializeInto(Person, {excludeExtraneousValues: true}))
+		)
 	}
 
 	isICTAdmin(personToken: string) {
@@ -57,7 +55,8 @@ export class PersonsService {
 const ImporterPerson: Person = {
 	id: "",
 	fullName: "Importer",
-	emailAddress: ""
+	emailAddress: "",
+	"@context": ""
 };
 
 function exposePerson(person: Person) {

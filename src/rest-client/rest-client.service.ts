@@ -1,7 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
-import { ObservableInput } from "rxjs";
+import { Observable, ObservableInput } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
 export interface RestClientConfig {
@@ -38,12 +38,10 @@ export class RestClientService<T = any> {
 		if (path === undefined) {
 			return this.path;
 		}
-		console.log( `${this.path}/${path}`);
 		return `${this.path}/${path}`;
 	}
 
 	get<S = T>(path?: string, options?: AxiosRequestConfig) {
-		console.log("GET", path);
 		return this.httpService.get<S>(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data));
 	}
 
@@ -64,7 +62,7 @@ export class RestClientService<T = any> {
  * Catches AxiosErrors where the request fails due to a error response, and rethrow it as an HttpException.
  * If the error isn't a AxiosError with a response, just rethrows.
  */
-export const rethrowHttpException = <T, O extends ObservableInput<any>>() => catchError<T, O>(e => {
+export const rethrowHttpException = <T>() => catchError<T, Observable<T>>(e => {
 	if (e instanceof HttpException || !e.response) {
 		throw e;
 	}

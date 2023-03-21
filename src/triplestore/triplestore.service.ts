@@ -1,5 +1,5 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { map, switchMap } from "rxjs";
+import { map, Observable, switchMap } from "rxjs";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
@@ -35,14 +35,14 @@ export class TriplestoreService {
 	}
 
 	// TODO returned items @context is different than old lajiapi
-	get(resource: string) {
+	get<T>(resource: string) {
 		return this.triplestoreClient.get(resource, { params: { format: "rdf/xml" } }).pipe(
 			switchMap(this.triplestoreToJsonLd),
 			map(this.resolveResources),
 			switchMap(this.adhereToSchema),
 			map(this.dropPrefixes),
 			map(this.rmIdAndType)
-		);
+		) as Observable<T>;
 	}
 
 	triplestoreToJsonLd(rdf: string) {
@@ -141,6 +141,9 @@ export class TriplestoreService {
 
 	private rmIdAndType(data: JSONObject) {
 		const { "@type": type, "@id": id, ...d } = data;
+		if (typeof id === "string") {
+			d.id = id.replace(baseUrl, "");
+		}
 		return d;
 	}
 

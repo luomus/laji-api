@@ -1,10 +1,10 @@
-import { NestFactory } from "@nestjs/core";
+import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import * as  proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
-import { ValidationPipe } from "@nestjs/common";
+import { ClassSerializerInterceptor, ValidationPipe } from "@nestjs/common";
 
 export async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
@@ -27,6 +27,8 @@ export async function bootstrap() {
 	app.useStaticAssets("static");
 
 	app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+	app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("API documentation")
