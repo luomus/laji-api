@@ -11,35 +11,16 @@ export class HasContext {
 }
 
 export class Person extends HasContext {
-	@Expose() 
-	id: string;
-
-	@Expose() 
-	emailAddress: string;
-
-	@Expose() 
-	inheritedName?: string;
-
-	@Expose() 
-	preferredName?: string;
-
-	@Expose() 
-	role?: Role[];
-
-	@Expose() 
-	group?: string;
-
-	@Expose() 
-	organisation?: string[];
-
-	@Expose() 
-	organisationAdmin?: string[];
-
-	@Expose()
-	securePortalUserRoleExpires?: string;
-
-	@Exclude()
-	private _fullName?: string;
+	@Expose() id: string;
+	@Expose() emailAddress: string;
+	@Expose() inheritedName?: string;
+	@Expose() preferredName?: string;
+	@Expose() role?: Role[];
+	@Expose() group?: string;
+	@Expose() organisation?: string[];
+	@Expose() organisationAdmin?: string[];
+	@Expose() securePortalUserRoleExpires?: string;
+	@Exclude() private _fullName?: string;
 
 	set fullName(fullName: string) {
 		this._fullName = fullName;

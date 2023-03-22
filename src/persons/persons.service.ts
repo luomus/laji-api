@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { map, Observable, of, switchMap } from "rxjs";
+import { map, of, switchMap } from "rxjs";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { rethrowHttpException } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
@@ -21,16 +21,18 @@ export class PersonsService {
 			return of(ImporterPerson);
 		}
 		return this.personTokenService.getInfo(personToken).pipe(
-			switchMap(({ personId }) =>  
-				this.findByPersonId(personId)
-			)
+			switchMap(({ personId }) => {
+				if (personId === null) {
+					throw new HttpException("No personId found for personToken", 404);
+				}
+				return this.findByPersonId(personId);
+			})
 		);
 	}
 
 	findByPersonId(personId: string) {
 		return this.triplestoreService.get(personId).pipe(
 			rethrowHttpException(),
-			// map(exposePerson)
 			map(serializeInto(Person, { excludeExtraneousValues: true }))
 		)
 	}
@@ -58,10 +60,3 @@ const ImporterPerson: Person = {
 	emailAddress: "",
 	"@context": ""
 };
-
-function exposePerson(person: Person) {
-	if (person.inheritedName && person.preferredName && !person.fullName) {
-		person.fullName = [person.preferredName, person.inheritedName].join(" ");
-	}
-	return person;
-}

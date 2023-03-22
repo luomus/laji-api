@@ -7,7 +7,7 @@ export interface LajiAuthPersonGet {
 }
 
 export interface PersonTokenInfo {
-	personId: string;
+	personId: string | null;
 	next: string;
 	target: string;
 }

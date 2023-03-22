@@ -1,6 +1,7 @@
-import { Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { map } from "rxjs";
+import { map, switchMap } from "rxjs";
+import { Profile, PublicProfile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { serializeInto } from "src/type-utils";
 import { PublicPerson } from "./person.dto";
@@ -25,20 +26,37 @@ export class PersonsController {
 
 	@Get(":personToken/profile") 
 	getProfileByPersonToken(@Param("personToken") personToken: string) {
-		return this.profileService.findProfileByPersonToken(personToken);
+		return this.profileService.getByPersonToken(personToken);
 	}
 
+	/*
+	 * Find person by user id (this will not include email);
+	 */
 	@Get("by-id/:personId") 
 	findPersonByPersonId(@Param("personId") personId: string) {
-		// return this.personsService.findByPersonId(personId).pipe(map(makePublic));
 		return this.personsService.findByPersonId(personId).pipe(
 			map(serializeInto(PublicPerson, { excludeExtraneousValues: true })),
 		);
 	}
 
+	/*
+	 * Find profile by user id (this will only return small subset of the full profile);
+	 */
 	@Get("by-id/:personId/profile") 
 	getProfileByPersonId(@Param("personId") personId: string) {
-		return this.profileService.findProfileByPersonId(personId);
+		return this.profileService.getByPersonId(personId).pipe(
+			map(serializeInto(PublicProfile, { excludeExtraneousValues: true })),
+		);
+	}
+
+	/*
+	 * Create profile
+	 */
+	@Post(":personToken/profile") 
+	createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
+		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) => 
+			this.profileService.createWithPersonId(id, profile)
+		));
 	}
 
 	// @Post(":personToken/friends/:profileKey") 
