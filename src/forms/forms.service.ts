@@ -27,7 +27,6 @@ const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
 }
 
 //TODO cache
-//TODO user role check for form manipulation
 @Injectable()
 export class FormsService {
 	constructor(@Inject("FORM_REST_CLIENT") private formClient: RestClientService<Form>) {}

@@ -9,7 +9,7 @@ import { PersonsService } from "./persons.service";
 
 @ApiSecurity("access_token")
 @ApiTags("person")
-@Controller("persons")
+@Controller("person")
 export class PersonsController {
 	constructor(
 		private readonly personsService: PersonsService,
@@ -56,6 +56,16 @@ export class PersonsController {
 	createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
 		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) => 
 			this.profileService.createWithPersonId(id, profile)
+		));
+	}
+
+	/*
+	 * Update profile
+	 */
+	@Put(":personToken/profile") 
+	updateProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
+		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) => 
+			this.profileService.updateWithPersonId(id, profile)
 		));
 	}
 

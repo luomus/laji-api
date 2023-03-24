@@ -18,7 +18,10 @@ export class StoreService {
 	}
 
 	create<T>(resource: string, item: Partial<T>) {
-		return of(item as T);
-		// return this.storeClient.post<Partial<T>>(resource, item) as Observable<T>;
+		return this.storeClient.post<Partial<T>>(resource, item) as Observable<T>;
+	}
+
+	update<T>(resource: string, item: T) {
+		return this.storeClient.put<T>(resource, item);
 	}
 }

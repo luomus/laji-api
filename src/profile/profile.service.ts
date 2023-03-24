@@ -47,14 +47,34 @@ export class ProfileService {
 				if (existingProfile) {
 					throw new HttpException("User already has a profile", 422);
 				}
-				profile.userID = personId;
-				profile.profileKey = crypto.randomUUID().substr(0, 6);
 				return this.create(personId, profile);
 			})
 		);
 	}
 
-	private create(personId: string,profile: Partial<Profile>) {
+	updateWithPersonId(personId: string, profile: Profile): Observable<Profile> {
+		return this.findByPersonId(personId).pipe(
+			rethrowHttpException(),
+			switchMap((existingProfile?: Profile) => 
+				existingProfile
+					? this.create(personId, profile)
+					: of(profile)
+			),
+			switchMap((existingProfile: Profile) => {
+				const copyProps: (keyof Profile)[] = ["friends","friendRequests", "userID", "profileKey"];
+				const _profile = copyProps.reduce((profile, prop) => {
+					if (profile[prop] === undefined) {
+						(profile[prop] as any) = existingProfile[prop];
+					}
+					return profile;
+				}, profile);
+
+				return this.storeService.update("profile", _profile);
+			})
+		);
+	}
+
+	private create(personId: string, profile: Partial<Profile>) {
 		profile.userID = personId;
 		profile.profileKey = crypto.randomUUID().substr(0, 6);
 		return this.storeService.create("profile", profile);
