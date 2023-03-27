@@ -23,7 +23,7 @@ export class ProfileService {
 		));
 	}
 
-	getByPersonToken(personToken: string) {
+	findByPersonToken(personToken: string) {
 		return this.personTokenService.getInfo(personToken).pipe(switchMap(({ personId }) => {
 			if (personId === null) {
 				throw new HttpException("No personId found for personToken", 404);
@@ -69,6 +69,7 @@ export class ProfileService {
 					return profile;
 				}, profile);
 
+				return of(_profile);
 				return this.storeService.update("profile", _profile);
 			})
 		);

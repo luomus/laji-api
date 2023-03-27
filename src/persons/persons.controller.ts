@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { map, switchMap } from "rxjs";
-import { Profile, PublicProfile } from "src/profile/profile.dto";
+import { map, switchMap, tap } from "rxjs";
+import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { serializeInto } from "src/type-utils";
-import { PublicPerson } from "./person.dto";
+import { Person } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
 @ApiSecurity("access_token")
@@ -19,42 +19,42 @@ export class PersonsController {
 	/*
 	 * Find person by person token
 	 */
-	@Get(":personToken") 
+	@Get(":personToken")
 	findPersonByToken(@Param("personToken") personToken: string) {
 		return this.personsService.findByToken(personToken);
 	}
 
-	@Get(":personToken/profile") 
-	getProfileByPersonToken(@Param("personToken") personToken: string) {
-		return this.profileService.getByPersonToken(personToken);
+	@Get(":personToken/profile")
+	findProfileByPersonToken(@Param("personToken") personToken: string) {
+		return this.profileService.findByPersonToken(personToken);
 	}
 
 	/*
 	 * Find person by user id (this will not include email);
 	 */
-	@Get("by-id/:personId") 
+	@Get("by-id/:personId")
 	findPersonByPersonId(@Param("personId") personId: string) {
 		return this.personsService.findByPersonId(personId).pipe(
-			map(serializeInto(PublicPerson, { excludeExtraneousValues: true })),
+			map(serializeInto(Person, {whitelist: ["id", "fullName", "group", "@context"]}))
 		);
 	}
 
 	/*
 	 * Find profile by user id (this will only return small subset of the full profile);
 	 */
-	@Get("by-id/:personId/profile") 
+	@Get("by-id/:personId/profile")
 	getProfileByPersonId(@Param("personId") personId: string) {
 		return this.profileService.getByPersonId(personId).pipe(
-			map(serializeInto(PublicProfile, { excludeExtraneousValues: true })),
+			map(serializeInto(Profile, {whitelist: ["userID", "profileKey", "image", "profileDescription"]}))
 		);
 	}
 
 	/*
 	 * Create profile
 	 */
-	@Post(":personToken/profile") 
+	@Post(":personToken/profile")
 	createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
-		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) => 
+		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) =>
 			this.profileService.createWithPersonId(id, profile)
 		));
 	}
@@ -62,9 +62,10 @@ export class PersonsController {
 	/*
 	 * Update profile
 	 */
-	@Put(":personToken/profile") 
+	@Put(":personToken/profile")
 	updateProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
-		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) => 
+		console.log('up', profile);
+		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) =>
 			this.profileService.updateWithPersonId(id, profile)
 		));
 	}

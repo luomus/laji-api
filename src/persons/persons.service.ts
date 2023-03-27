@@ -4,7 +4,7 @@ import { map, of, switchMap } from "rxjs";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { rethrowHttpException } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { Person, Role } from "./person.dto";
+import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "../type-utils";
 
 @Injectable()
@@ -33,7 +33,8 @@ export class PersonsService {
 	findByPersonId(personId: string) {
 		return this.triplestoreService.get(personId).pipe(
 			rethrowHttpException(),
-			map(serializeInto(Person, { excludeExtraneousValues: true }))
+			map(serializeInto(Person)),
+			map(decoratePerson)
 		)
 	}
 
