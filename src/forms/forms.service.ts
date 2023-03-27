@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { map } from "rxjs";
 import { Form, Format, Lang, PaginatedDto } from "./dto/form.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 
@@ -35,10 +34,12 @@ export class FormsService {
 		return this.formClient.post("", form, { params: { personToken } });
 	}
 
-	findAll(lang: Lang, page?: number, pageSize?: number) {
-		return this.formClient.get<{forms: Form[]}>("", { params: { lang } }).pipe(
-			map(r => pageResult(r.forms, page, pageSize))
-		);
+	async findAll(lang: Lang, page?: number, pageSize?: number) {
+		return pageResult(
+			(await this.formClient.get<{forms: Form[]}>("", { params: { lang } })).forms,
+			page,
+			pageSize
+		)
 	}
 
 	findOne(id: string, format: Format, lang: Lang, expand: boolean) {

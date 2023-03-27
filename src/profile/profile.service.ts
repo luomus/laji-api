@@ -1,10 +1,9 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import { catchError, map, Observable, of, switchMap } from "rxjs";
 import { PersonTokenService } from "src/person-token/person-token.service";
-import { rethrowHttpException } from "src/rest-client/rest-client.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import * as crypto from "crypto";
+import {clientErrorToHttpException} from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class ProfileService {
@@ -15,64 +14,54 @@ export class ProfileService {
 	/*
 	 * Get a profile or creates one if person doesn't have a profile yet.
 	 */
-	getByPersonId(personId: string): Observable<Profile> {
-		return this.findByPersonId(personId).pipe(switchMap(profile =>
-			profile
-				? of(profile)
-				: this.create(personId, {})
-		));
+	async getByPersonId(personId: string) {
+		const profile = await this.findByPersonId(personId);
+		return profile || this.create(personId, {})
 	}
 
-	findByPersonToken(personToken: string) {
-		return this.personTokenService.getInfo(personToken).pipe(switchMap(({ personId }) => {
-			if (personId === null) {
-				throw new HttpException("No personId found for personToken", 404);
-			}
-			return this.getByPersonId(personId);
-		}));
+	async findByPersonToken(personToken: string) {
+		const { personId } = await this.personTokenService.getInfo(personToken);
+		if (personId === null) {
+			throw new HttpException("No personId found for personToken", 404);
+		}
+		return this.getByPersonId(personId);
 	}
 
 	/*
 	 * Create new profile, if person has no profile.
 	 */
-	createWithPersonId(personId: string, profile: Partial<Profile>): Observable<Profile> {
-		return this.findByPersonId(personId).pipe(
-			catchError(e => {
-				if (e.response?.status === 404) {
-					return of(undefined);
-				}
+	async createWithPersonId(personId: string, profile: Partial<Profile>): Promise<Profile> {
+		let existingProfile: Profile | undefined;
+		try {
+			existingProfile = await this.findByPersonId(personId);
+		} catch (e) {
+			if (e.response?.status !== 404) {
 				throw e;
-			}),
-			switchMap((existingProfile?: Profile) => {
-				if (existingProfile) {
-					throw new HttpException("User already has a profile", 422);
-				}
-				return this.create(personId, profile);
-			})
-		);
+			}
+		}
+
+		if (existingProfile) {
+			throw new HttpException("User already has a profile", 422);
+		}
+		return this.create(personId, profile);
 	}
 
-	updateWithPersonId(personId: string, profile: Profile): Observable<Profile> {
-		return this.findByPersonId(personId).pipe(
-			rethrowHttpException(),
-			switchMap((existingProfile?: Profile) => 
-				existingProfile
-					? this.create(personId, profile)
-					: of(profile)
-			),
-			switchMap((existingProfile: Profile) => {
-				const copyProps: (keyof Profile)[] = ["friends","friendRequests", "userID", "profileKey"];
-				const _profile = copyProps.reduce((profile, prop) => {
-					if (profile[prop] === undefined) {
-						(profile[prop] as any) = existingProfile[prop];
-					}
-					return profile;
-				}, profile);
+	async updateWithPersonId(personId: string, profile: Profile) {
+		let existingProfile = await this.findByPersonId(personId);
+		if (!existingProfile) {
+			existingProfile = await this.create(personId, profile);
+		}
 
-				return of(_profile);
-				return this.storeService.update("profile", _profile);
-			})
-		);
+		const copyProps: (keyof Profile)[] = ["friends","friendRequests", "userID", "profileKey"];
+		const _profile = copyProps.reduce((profile, prop) => {
+			if (profile[prop] === undefined) {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				(profile[prop] as any) = existingProfile![prop];
+			}
+			return profile;
+		}, profile);
+
+		return this.storeService.update("profile", _profile);
 	}
 
 	private create(personId: string, profile: Partial<Profile>) {
@@ -81,10 +70,8 @@ export class ProfileService {
 		return this.storeService.create("profile", profile);
 	}
 
-	private findByPersonId(personId: string): Observable<Profile | undefined> {
-		return this.storeService.query<Profile>("profile", `userID:"${personId}"`).pipe(
-			map(({ member }) => member[0]),
-			rethrowHttpException()
-		);
+	private async findByPersonId(personId: string) {
+		const { member } = await this.storeService.query<Profile>("profile", `userID:"${personId}"`);
+		return member[0];
 	}
 }

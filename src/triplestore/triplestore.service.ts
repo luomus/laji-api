@@ -1,10 +1,10 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { map, Observable, switchMap } from "rxjs";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSON, JSONObject } from "../type-utils";
 import { JsonLd, JsonLdObj } from "jsonld/jsonld-spec";
+import {promisePipe} from "src/utils";
 
 const baseUrl = "http://tun.fi/";
 
@@ -36,13 +36,14 @@ export class TriplestoreService {
 
 	// TODO returned items @context is different than old lajiapi
 	get<T>(resource: string) {
-		return this.triplestoreClient.get(resource, { params: { format: "rdf/xml" } }).pipe(
-			switchMap(this.triplestoreToJsonLd),
-			map(this.resolveResources),
-			switchMap(this.adhereToSchema),
-			map(this.dropPrefixes),
-			map(this.rmIdAndType)
-		) as Observable<T>;
+		return promisePipe(
+			this.triplestoreClient.get(resource, { params: { format: "rdf/xml" } }),
+			this.triplestoreToJsonLd,
+			this.resolveResources,
+			this.adhereToSchema,
+			this.dropPrefixes,
+			this.rmIdAndType
+		) as Promise<T>;
 	}
 
 	triplestoreToJsonLd(rdf: string) {
@@ -112,22 +113,21 @@ export class TriplestoreService {
 	 * makes the output to adhere to schema - for example map a property with 
 	 * maxOccurs: unbounded" to be an array always.
 	 */
-	private adhereToSchema(data: JSONObject) {
+	private async adhereToSchema(data: JSONObject) {
 		const context = data["@type"];
 		if (typeof context !== "string") {
 			throw new Error("Couldn't get context for triplestore data");
 		}
-		return this.getPropertiesForContext(context).pipe(map(properties => {
-			return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
-				const property = properties[k];
-				if (property?.maxOccurs === "unbounded" && !Array.isArray(data[k])) {
-					d[k] = [data[k]];
-				} else {
-					d[k] = data[k];
-				}
-				return d;
-			}, {});
-		}))
+		const properties = await this.getPropertiesForContext(context);
+		return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
+			const property = properties[k];
+			if (property?.maxOccurs === "unbounded" && !Array.isArray(data[k])) {
+				d[k] = [data[k]];
+			} else {
+				d[k] = data[k];
+			}
+			return d;
+		}, {});
 	}
 
 	private dropPrefixes(data: JSONObject) {
@@ -154,29 +154,27 @@ export class TriplestoreService {
 		return this.triplestoreClient.get<Property[]>("schema/property");
 	}
 
-
 	/*
 	 * Get a mapping between contexts' and their properties.
 	 */
-	private getContexts() {
-		return this.getProperties().pipe(
-			map(properties => properties.reduce<Contexts>((contextMap, property) => {
-				const { domain } = property;
-				if (!domain) {
-					return contextMap;
-				}
-				domain.forEach(d => {
-					contextMap[d] = contextMap[d] || {};
-					contextMap[d][property.property] = property;
-				});
+	private async getContexts() {
+		return (await this.getProperties()).reduce<Contexts>((contextMap, property) => {
+			const { domain } = property;
+			if (!domain) {
 				return contextMap;
-			}, {})));
+			}
+			domain.forEach(d => {
+				contextMap[d] = contextMap[d] || {};
+				contextMap[d][property.property] = property;
+			});
+			return contextMap;
+		}, {})
 	}
 
 	/*
 	 * Get a property map for a context.
 	 */
-	private getPropertiesForContext(context: string) {
-		return this.getContexts().pipe(map(contexts => contexts[context]));
+	private async getPropertiesForContext(context: string) {
+		return (await this.getContexts())[context];
 	}
 }

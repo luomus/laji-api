@@ -1,7 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Observable, of } from "rxjs";
 import { RestClientService }  from "src/rest-client/rest-client.service";
-import { JSONObject } from "src/type-utils";
 
 type StoreQueryResult<T> = {
 	member: T[];
@@ -18,7 +16,7 @@ export class StoreService {
 	}
 
 	create<T>(resource: string, item: Partial<T>) {
-		return this.storeClient.post<Partial<T>>(resource, item) as Observable<T>;
+		return this.storeClient.post<Partial<T>>(resource, item) as Promise<T>;
 	}
 
 	update<T>(resource: string, item: T) {

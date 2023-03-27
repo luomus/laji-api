@@ -1,7 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
-import { Observable, ObservableInput } from "rxjs";
+import { firstValueFrom, Observable } from "rxjs";
 import { catchError, map } from "rxjs/operators";
 
 export interface RestClientConfig {
@@ -42,19 +42,27 @@ export class RestClientService<T = any> {
 	}
 
 	get<S = T>(path?: string, options?: AxiosRequestConfig) {
-		return this.httpService.get<S>(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data));
+		return firstValueFrom(
+			this.httpService.get<S>(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data))
+		);
 	}
 
 	post<S = T>(path?: string, body?: S, options?: AxiosRequestConfig) {
-		return this.httpService.post<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data));
+		return firstValueFrom(
+			this.httpService.post<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
+		);
 	}
 
 	put<S = T>(path?: string, body?: S, options?: AxiosRequestConfig) {
-		return this.httpService.put<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data));
+		return firstValueFrom(
+			this.httpService.put<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
+		);
 	}
 
 	delete(path?: string, options?: AxiosRequestConfig) {
-		return this.httpService.delete(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data));
+		return firstValueFrom(
+			this.httpService.delete(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data))
+		);
 	}
 }
 
@@ -62,7 +70,7 @@ export class RestClientService<T = any> {
  * Catches AxiosErrors where the request fails due to a error response, and rethrow it as an HttpException.
  * If the error isn't a AxiosError with a response, just rethrows.
  */
-export const rethrowHttpException = <T>() => catchError<T, Observable<T>>(e => {
+export const clientErrorToHttpException = (e: any) => {
 	if (e instanceof HttpException || !e.response) {
 		throw e;
 	}
@@ -70,4 +78,4 @@ export const rethrowHttpException = <T>() => catchError<T, Observable<T>>(e => {
 		throw e;
 	}
 	throw new HttpException(e.response?.data, e.response?.status || 500)
-});
+};

@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { map, switchMap, tap } from "rxjs";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
-import { serializeInto } from "src/type-utils";
+import { serialize } from "src/type-utils";
+import {promisePipe} from "src/utils";
 import { Person } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
@@ -33,9 +33,11 @@ export class PersonsController {
 	 * Find person by user id (this will not include email);
 	 */
 	@Get("by-id/:personId")
-	findPersonByPersonId(@Param("personId") personId: string) {
-		return this.personsService.findByPersonId(personId).pipe(
-			map(serializeInto(Person, {whitelist: ["id", "fullName", "group", "@context"]}))
+	async findPersonByPersonId(@Param("personId") personId: string) {
+		return serialize(
+			await this.personsService.findByPersonId(personId),
+			Person,
+			{whitelist: ["id", "fullName", "group", "@context"]}
 		);
 	}
 
@@ -43,9 +45,11 @@ export class PersonsController {
 	 * Find profile by user id (this will only return small subset of the full profile);
 	 */
 	@Get("by-id/:personId/profile")
-	getProfileByPersonId(@Param("personId") personId: string) {
-		return this.profileService.getByPersonId(personId).pipe(
-			map(serializeInto(Profile, {whitelist: ["userID", "profileKey", "image", "profileDescription"]}))
+	async getProfileByPersonId(@Param("personId") personId: string) {
+		return serialize(
+			await this.profileService.getByPersonId(personId),
+			Profile,
+			{whitelist: ["userID", "profileKey", "image", "profileDescription"]}
 		);
 	}
 
@@ -53,21 +57,18 @@ export class PersonsController {
 	 * Create profile
 	 */
 	@Post(":personToken/profile")
-	createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
-		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) =>
-			this.profileService.createWithPersonId(id, profile)
-		));
+	async createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
+		const { id } = await this.personsService.findByToken(personToken);
+		return this.profileService.createWithPersonId(id, profile);
 	}
 
 	/*
 	 * Update profile
 	 */
 	@Put(":personToken/profile")
-	updateProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
-		console.log('up', profile);
-		return this.personsService.findByToken(personToken).pipe(switchMap(({ id }) =>
-			this.profileService.updateWithPersonId(id, profile)
-		));
+	async updateProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
+		const { id } =  await this.personsService.findByToken(personToken);
+		return this.profileService.updateWithPersonId(id, profile);
 	}
 
 	// @Post(":personToken/friends/:profileKey") 

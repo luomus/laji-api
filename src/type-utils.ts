@@ -1,4 +1,4 @@
-import { classToPlain, ClassTransformOptions, instanceToPlain, plainToClass } from "class-transformer";
+import { classToPlain, plainToClass } from "class-transformer";
 import "reflect-metadata";
 
 export const isObject = (any: any): any is Record<string, unknown> =>
@@ -58,3 +58,6 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	});
 	return instance;
 };
+
+export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOptions) =>
+	serializeInto(Class, options)(item);
