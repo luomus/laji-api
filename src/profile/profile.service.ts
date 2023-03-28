@@ -3,7 +3,7 @@ import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import * as crypto from "crypto";
-import {clientErrorToHttpException} from "src/rest-client/rest-client.service";
+import { clientErrorToHttpException } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class ProfileService {

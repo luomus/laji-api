@@ -4,7 +4,7 @@ import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSON, JSONObject } from "../type-utils";
 import { JsonLd, JsonLdObj } from "jsonld/jsonld-spec";
-import {promisePipe} from "src/utils";
+import { promisePipe } from "src/utils";
 
 const baseUrl = "http://tun.fi/";
 

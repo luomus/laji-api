@@ -3,7 +3,7 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { serialize } from "src/type-utils";
-import {promisePipe} from "src/utils";
+import { promisePipe } from "src/utils";
 import { Person } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
@@ -37,7 +37,7 @@ export class PersonsController {
 		return serialize(
 			await this.personsService.findByPersonId(personId),
 			Person,
-			{whitelist: ["id", "fullName", "group", "@context"]}
+			{ whitelist: ["id", "fullName", "group", "@context"] }
 		);
 	}
 
@@ -49,7 +49,7 @@ export class PersonsController {
 		return serialize(
 			await this.profileService.getByPersonId(personId),
 			Profile,
-			{whitelist: ["userID", "profileKey", "image", "profileDescription"]}
+			{ whitelist: ["userID", "profileKey", "image", "profileDescription"] }
 		);
 	}
 
