@@ -1,3 +1,5 @@
+import { Exclude } from "src/type-utils";
+
 export enum Role {
 	Admin = "MA.admin"
 }
@@ -9,8 +11,9 @@ export class HasContext {
 export class Person extends HasContext {
 	id: string;
 	emailAddress: string;
-	inheritedName?: string;
-	preferredName?: string;
+	@Exclude() inheritedName?: string;
+	@Exclude() preferredName?: string;
+	@Exclude() lajiAuthLoginName?: string;
 	fullName?: string;
 	role?: Role[];
 	group?: string;

@@ -15,8 +15,6 @@ const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 
 @Injectable()
 export class TriplestoreService {
-	rdfStore = graph();
-
 	constructor(
 		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService,
 		private metadataService: MetadataService
@@ -41,10 +39,11 @@ export class TriplestoreService {
 	}
 
 	triplestoreToJsonLd(rdf: string) {
-		parse(rdf, this.rdfStore, BASE_URL, "application/rdf+xml");
+		const rdfStore = graph();
+		parse(rdf, rdfStore, BASE_URL, "application/rdf+xml");
 
 		return new Promise<NodeObject>((resolve, reject) => {
-			serialize(null, this.rdfStore, BASE_URL, "application/ld+json", async (err, data) => {
+			serialize(null, rdfStore, BASE_URL, "application/ld+json", async (err, data) => {
 				if (err) {
 					return reject(err);
 				}

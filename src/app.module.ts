@@ -1,5 +1,5 @@
-import { Module } from "@nestjs/common";
-import { APP_FILTER } from "@nestjs/core";
+import { Module, ValidationPipe } from "@nestjs/common";
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { HttpModule } from "@nestjs/axios";
 import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter";
 import { ProxyToOldApiService } from "./proxy-to-old-api/proxy-to-old-api.service";
@@ -19,6 +19,9 @@ import { StoreModule } from "./store/store.module";
 import { MetadataModule } from "./metadata/metadata.module";
 import { TriplestoreClientModule } from "./triplestore/client/triplestore-client.module";
 import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/triplestore-readonly-client.module";
+import { SerializingInterceptor } from "./serializing/serializing.interceptor";
+import { HttpClientErrorToHttpExceptionInterceptor }
+	from "./http-client-error-to-http-exception/http-client-error-to-http-exception.interceptor";
 
 @Module({
 	imports: [
@@ -56,6 +59,18 @@ import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/t
 		{
 			provide: APP_FILTER,
 			useClass: ProxyToOldApiFilter
+		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: SerializingInterceptor
+		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: HttpClientErrorToHttpExceptionInterceptor
+		},
+		{
+			provide: APP_PIPE,
+			useValue: new ValidationPipe({ transform: true })
 		},
 		LajiAuthClientService
 	],

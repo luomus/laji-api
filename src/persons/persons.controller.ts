@@ -20,6 +20,7 @@ export class PersonsController {
 	 */
 	@Get(":personToken")
 	findPersonByToken(@Param("personToken") personToken: string) {
+		console.log("find");
 		return this.personsService.findByToken(personToken);
 	}
 

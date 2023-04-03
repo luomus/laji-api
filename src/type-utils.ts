@@ -31,7 +31,6 @@ const dictionarify = (arr: string[]) =>
  */ 
 export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) => (item: any) => {
 	const {
-		includeOnlyTyped = false,
 		excludePrefix = "_",
 		whitelist
 	} = options || {};
@@ -41,16 +40,11 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 		: classToPlain(item);
 	const instance = plainToClass(Class, plainItem);
 	const knownKeys = dictionarify(Object.getOwnPropertyNames(instance));
-	if (includeOnlyTyped || excludePrefix) {
-		Object.keys(instance as any).forEach(k => {
-			if (includeOnlyTyped && !knownKeys[k]) {
-				delete (instance as any)[k];
-			}
-			if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {
-				delete (instance as any)[k];
-			}
-		})
-	}
+	excludePrefix && Object.keys(instance as any).forEach(k => {
+		if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {
+			delete (instance as any)[k];
+		}
+	});
 	whitelist && Object.keys(knownKeys).forEach(prop => {
 		if (!whitelist.includes(prop)) {
 			delete (instance as any)[prop];
@@ -58,6 +52,32 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	});
 	return instance;
 };
+
+export const excludeDecoratedProps = (item: any) => {
+	if (!isObject(item) || item.construct === Object) {
+		return item;
+	}
+	Object.keys(item as any).forEach(k => {
+		const excludedByDecorator = getExcludeDecorator(item, k)
+		if (excludedByDecorator) {
+			delete (item as any)[k];
+		}
+	});
+	return item;
+}
+
+const excludeMetadataKey = Symbol("Exclude");
+
+/*
+ * Mark a poperty to excluded when serialized by SerializingInterceptor
+ */
+export function Exclude() {
+	  return Reflect.metadata(excludeMetadataKey, "EXCLUDED");
+}
+
+function getExcludeDecorator(target: any, propertyKey: string) {
+	  return Reflect.getMetadata(excludeMetadataKey, target, propertyKey);
+}
 
 export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOptions) =>
 	serializeInto(Class, options)(item);

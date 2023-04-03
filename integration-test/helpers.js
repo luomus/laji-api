@@ -53,15 +53,6 @@ module.exports = {
 			data[params.pageSize].should.be.equal(pageSize);
 		}
 	},
-	server: () => {
-		before(function (done) {
-			console.log('before');
-			server = app.listen(done);
-		});
-		after(function (done) {
-			server.close(done);
-		});
-	},
 	serverWithClasses: () => {
 		before(function(done) {
 			// Need to give time to fetch model data from the triplestore
