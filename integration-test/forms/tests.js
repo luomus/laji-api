@@ -15,11 +15,9 @@ describe("/forms", function() {
 	});
 
 	it("returns 401 when no access token specified", function(done) {
-		console.log(should);
 		request(app)
 			.get(basePath)
 			.end(function(err, res) {
-				console.log(res.constructor);
 				res.should.have.status(401);
 				done();
 			});

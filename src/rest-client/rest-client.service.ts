@@ -1,8 +1,8 @@
 import { HttpService } from "@nestjs/axios";
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
-import { firstValueFrom, Observable } from "rxjs";
-import { catchError, map } from "rxjs/operators";
+import { firstValueFrom } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface RestClientConfig {
 	path: string;
@@ -65,17 +65,3 @@ export class RestClientService<T = any> {
 		);
 	}
 }
-
-/*
- * Catches AxiosErrors where the request fails due to a error response, and rethrow it as an HttpException.
- * If the error isn't a AxiosError with a response, just rethrows.
- */
-export const clientErrorToHttpException = (e: any) => {
-	if (e instanceof HttpException || !e.response) {
-		throw e;
-	}
-	if (!e.response) {
-		throw e;
-	}
-	throw new HttpException(e.response?.data, e.response?.status || 500)
-};

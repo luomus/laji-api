@@ -10,13 +10,15 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AccessToken } from "./access-token/access-token.entity";
 import { AccessTokenModule } from "./access-token/access-token.module";
 import { PersonsModule } from "./persons/persons.module";
-// import { RestClientService } from "./rest-client/rest-client.service";
 import { LajiAuthClientService } from "./laji-auth-client/laji-auth-client.service";
 import { LajiAuthClientModule } from "./laji-auth-client/laji-auth-client.module";
 import { PersonTokenModule } from "./person-token/person-token.module";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { ProfileModule } from "./profile/profile.module";
 import { StoreModule } from "./store/store.module";
+import { MetadataModule } from "./metadata/metadata.module";
+import { TriplestoreClientModule } from "./triplestore/client/triplestore-client.module";
+import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/triplestore-readonly-client.module";
 
 @Module({
 	imports: [
@@ -42,8 +44,11 @@ import { StoreModule } from "./store/store.module";
 		LajiAuthClientModule,
 		PersonTokenModule,
 		TriplestoreModule,
+		TriplestoreClientModule,
+		TriplestoreReadonlyClientModule,
 		ProfileModule,
-		StoreModule
+		StoreModule,
+		MetadataModule
 	],
 	controllers: [AppController],
 	providers: [
@@ -52,8 +57,7 @@ import { StoreModule } from "./store/store.module";
 			provide: APP_FILTER,
 			useClass: ProxyToOldApiFilter
 		},
-		LajiAuthClientService,
-		// RestClientService
+		LajiAuthClientService
 	],
 })
 export class AppModule {}

@@ -3,7 +3,6 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { serialize } from "src/type-utils";
-import { promisePipe } from "src/utils";
 import { Person } from "./person.dto";
 import { PersonsService } from "./persons.service";
 

@@ -5,6 +5,8 @@ import { AppModule } from "./app.module";
 import * as  proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
+import { HttpClientErrorToHttpExceptionInterceptor }
+	from "./http-client-error-to-http-exception/http-client-error-to-http-exception.interceptor";
 
 export async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
@@ -27,6 +29,7 @@ export async function bootstrap() {
 	app.useStaticAssets("static");
 
 	app.useGlobalPipes(new ValidationPipe({ transform: true }));
+	app.useGlobalInterceptors(new HttpClientErrorToHttpExceptionInterceptor());
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("API documentation")

@@ -52,6 +52,5 @@ module.exports = {
 				"ignoreRestSiblings": true
 			}
 		]
-
   },
 };

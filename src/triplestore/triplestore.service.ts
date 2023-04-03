@@ -5,17 +5,9 @@ import { compact, NodeObject } from "jsonld";
 import { isObject, JSON, JSONObject } from "../type-utils";
 import { JsonLd, JsonLdObj } from "jsonld/jsonld-spec";
 import { promisePipe } from "src/utils";
+import { MetadataService } from "src/metadata/metadata.service";
 
-const baseUrl = "http://tun.fi/";
-
-type Property = {
-	domain: string[];
-	maxOccurs: string;
-	property: string;
-}
-
-type ContextToProperties = Record<string, Property>;
-type Contexts = Record<string, ContextToProperties>;
+const BASE_URL = "http://tun.fi/";
 
 type ResourceIdentifierObj = { "@id": string };
 const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
@@ -26,7 +18,9 @@ export class TriplestoreService {
 	rdfStore = graph();
 
 	constructor(
-		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService) {
+		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService,
+		private metadataService: MetadataService
+	) {
 		this.triplestoreToJsonLd = this.triplestoreToJsonLd.bind(this);
 		this.resolveResources = this.resolveResources.bind(this);
 		this.adhereToSchema = this.adhereToSchema.bind(this);
@@ -47,10 +41,10 @@ export class TriplestoreService {
 	}
 
 	triplestoreToJsonLd(rdf: string) {
-		parse(rdf, this.rdfStore, baseUrl, "application/rdf+xml");
+		parse(rdf, this.rdfStore, BASE_URL, "application/rdf+xml");
 
 		return new Promise<NodeObject>((resolve, reject) => {
-			serialize(null, this.rdfStore, baseUrl, "application/ld+json", async (err, data) => {
+			serialize(null, this.rdfStore, BASE_URL, "application/ld+json", async (err, data) => {
 				if (err) {
 					return reject(err);
 				}
@@ -87,7 +81,7 @@ export class TriplestoreService {
 				return data.map(resolve);
 			} else if (isObject(data)) {
 				if (isResourceIdentifier(data)) {
-					return data["@id"].replace(baseUrl, "");
+					return data["@id"].replace(BASE_URL, "");
 				}
 				return (Object.keys(data) as (keyof JsonLdObj)[]).reduce<JSONObject>((d, k) => {
 					const value = data[k];
@@ -118,7 +112,7 @@ export class TriplestoreService {
 		if (typeof context !== "string") {
 			throw new Error("Couldn't get context for triplestore data");
 		}
-		const properties = await this.getPropertiesForContext(context);
+		const properties = await this.metadataService.getPropertiesForContext(context);
 		return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
 			const property = properties[k];
 			if (property?.maxOccurs === "unbounded" && !Array.isArray(data[k])) {
@@ -142,39 +136,8 @@ export class TriplestoreService {
 	private rmIdAndType(data: JSONObject) {
 		const { "@type": type, "@id": id, ...d } = data;
 		if (typeof id === "string") {
-			d.id = id.replace(baseUrl, "");
+			d.id = id.replace(BASE_URL, "");
 		}
 		return d;
-	}
-
-	/*
-	 * Get all properties.
-	 */
-	private getProperties() {
-		return this.triplestoreClient.get<Property[]>("schema/property");
-	}
-
-	/*
-	 * Get a mapping between contexts' and their properties.
-	 */
-	private async getContexts() {
-		return (await this.getProperties()).reduce<Contexts>((contextMap, property) => {
-			const { domain } = property;
-			if (!domain) {
-				return contextMap;
-			}
-			domain.forEach(d => {
-				contextMap[d] = contextMap[d] || {};
-				contextMap[d][property.property] = property;
-			});
-			return contextMap;
-		}, {})
-	}
-
-	/*
-	 * Get a property map for a context.
-	 */
-	private async getPropertiesForContext(context: string) {
-		return (await this.getContexts())[context];
 	}
 }

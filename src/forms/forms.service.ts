@@ -42,8 +42,9 @@ export class FormsService {
 		)
 	}
 
-	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
-		return this.formClient.get(id, { params: { format, lang, expand } });
+	async findOne(id: string, format: Format, lang: Lang, expand: boolean) {
+		const form = await this.formClient.get(id, { params: { format, lang, expand } });
+		return form;
 	}
 
 	update(id: string, form: Form, personToken: string) {
