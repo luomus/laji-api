@@ -19,7 +19,7 @@ export class StoreService {
 		return this.storeClient.post<Partial<T>>(resource, item) as Promise<T>;
 	}
 
-	update<T>(resource: string, item: T) {
-		return this.storeClient.put<T>(resource, item);
+	update<T extends {id: string}>(resource: string, item: T) {
+		return this.storeClient.put<T>(`${resource}/${item.id}`, item);
 	}
 }

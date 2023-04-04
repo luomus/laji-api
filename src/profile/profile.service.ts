@@ -3,12 +3,14 @@ import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import * as crypto from "crypto";
+import { NotificationsService } from "src/notifications/notifications.service";
 
 @Injectable()
 export class ProfileService {
 	constructor(
 		private storeService: StoreService,
-		private personTokenService: PersonTokenService) {}
+		private personTokenService: PersonTokenService,
+		private notificationsService: NotificationsService) {}
 
 	/*
 	 * Get a profile or creates one if person doesn't have a profile yet.
@@ -63,14 +65,41 @@ export class ProfileService {
 		return this.storeService.update("profile", _profile);
 	}
 
+	async addFriendRequest(personToken: string, profileKey: string) {
+		const { personId } =  await this.personTokenService.getInfo(personToken);
+		if (!personId) {
+			throw new HttpException("No personId found for personToken", 404);
+		}
+
+		const profile = await this.findByProfileKey(profileKey);
+		const { friendRequests, blocked, friends, userID: friendID } = profile;
+		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
+			throw new HttpException("Friend request already sent", 422);
+		}
+
+		const updated = await this.update(personId, { ...profile, friendRequests: [...friendRequests, personId] });
+		this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
+		return updated;
+
+	}
+
 	private create(personId: string, profile: Partial<Profile>) {
 		profile.userID = personId;
 		profile.profileKey = crypto.randomUUID().substr(0, 6);
 		return this.storeService.create("profile", profile);
 	}
 
+	private update(personId: string, profile: Profile) {
+		return this.storeService.update("profile", profile);
+	}
+
 	private async findByPersonId(personId: string) {
 		const { member } = await this.storeService.query<Profile>("profile", `userID:"${personId}"`);
+		return member[0];
+	}
+
+	private async findByProfileKey(profileKey: string) {
+		const { member } = await this.storeService.query<Profile>("profile", `profileKey:"${profileKey}"`);
 		return member[0];
 	}
 }

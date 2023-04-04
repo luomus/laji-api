@@ -20,6 +20,7 @@ import { MetadataModule } from "./metadata/metadata.module";
 import { TriplestoreClientModule } from "./triplestore/client/triplestore-client.module";
 import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/triplestore-readonly-client.module";
 import { SerializingInterceptor } from "./serializing/serializing.interceptor";
+import { NotificationsModule } from "./notifications/notifications.module";
 import { HttpClientErrorToHttpExceptionInterceptor }
 	from "./http-client-error-to-http-exception/http-client-error-to-http-exception.interceptor";
 
@@ -51,7 +52,8 @@ import { HttpClientErrorToHttpExceptionInterceptor }
 		TriplestoreReadonlyClientModule,
 		ProfileModule,
 		StoreModule,
-		MetadataModule
+		MetadataModule,
+		NotificationsModule
 	],
 	controllers: [AppController],
 	providers: [

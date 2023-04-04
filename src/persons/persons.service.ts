@@ -41,10 +41,6 @@ export class PersonsService {
 	}
 
 	// TODO
-	addFriendRequest(personToken: string, userId: string) {
-	}
-
-	// TODO
 	acceptFriendRequest(personToken: string, userId: string) {
 	}
 

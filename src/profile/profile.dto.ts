@@ -1,6 +1,7 @@
 import { JSONObject } from ".././type-utils";
 
 export class Profile {
+	id: string;
 	profileKey: string;
 	userID: string;
 	profileDescription: string;
