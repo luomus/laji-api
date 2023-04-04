@@ -54,7 +54,7 @@ export class ProfileService {
 		}
 
 		const copyProps: (keyof Profile)[] = ["friends","friendRequests", "userID", "profileKey"];
-		const _profile = copyProps.reduce((profile, prop) => {
+		const updatedProfile = copyProps.reduce((profile, prop) => {
 			if (profile[prop] === undefined) {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				(profile[prop] as any) = existingProfile![prop];
@@ -62,7 +62,7 @@ export class ProfileService {
 			return profile;
 		}, profile);
 
-		return this.storeService.update("profile", _profile);
+		return this.update(updatedProfile);
 	}
 
 	async addFriendRequest(personToken: string, profileKey: string) {
@@ -77,10 +77,28 @@ export class ProfileService {
 			throw new HttpException("Friend request already sent", 422);
 		}
 
-		const updated = await this.update(personId, { ...profile, friendRequests: [...friendRequests, personId] });
+		const updated = await this.update({ ...profile, friendRequests: [...friendRequests, personId] });
 		this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
 		return updated;
+	}
 
+	async acceptFriendRequest(personToken: string, friendPersonId: string) {
+		const { personId } =  await this.personTokenService.getInfo(personToken);
+		if (!personId) {
+			throw new HttpException("No personId found for personToken", 404);
+		}
+
+		const profile = await this.findByProfileKey(personId);
+		const { friendRequests, friends } = profile;
+		const idx = friendRequests.indexOf(personId);
+		if (idx === -1) {
+			throw new HttpException("No friend request found", 422);
+		}
+		friendRequests.splice(idx, 1);
+		!friends.includes(friendPersonId) && friends.push(friendPersonId);
+		const updated = await this.update({ ...profile, friendRequests, friends });
+		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
+		return updated;
 	}
 
 	private create(personId: string, profile: Partial<Profile>) {
@@ -89,7 +107,7 @@ export class ProfileService {
 		return this.storeService.create("profile", profile);
 	}
 
-	private update(personId: string, profile: Profile) {
+	private update(profile: Profile) {
 		return this.storeService.update("profile", profile);
 	}
 

@@ -76,11 +76,11 @@ export class PersonsController {
 		return this.profileService.addFriendRequest(personToken, profileKey);
 	}
 
-	// @Put(":personToken/friends/:profileKey") 
-	// acceptFriendRequest(@Param("personToken") personToken: string, @Param("userId") userId: string) {
-	// 	return this.personsService.acceptFriendRequest(personToken, userId);
-	// }
-	//
+	@Put(":personToken/friends/:profileKey") 
+	acceptFriendRequest(@Param("personToken") personToken: string, @Param("userId") userId: string) {
+		return this.profileService.acceptFriendRequest(personToken, userId);
+	}
+
 	// @Delete(":personToken/friends/:profileKey") 
 	// removeFriend(@Param("personToken") personToken: string, @Param("userId") userId: string) {
 	// 	return this.personsService.removeFriend(personToken, userId);

@@ -39,14 +39,6 @@ export class PersonsService {
 		const person = await this.findByToken(personToken);
 		return person.role?.includes(Role.Admin) || false;
 	}
-
-	// TODO
-	acceptFriendRequest(personToken: string, userId: string) {
-	}
-
-	// TODO
-	removeFriend(personToken: string, userId: string) {
-	}
 }
 
 const ImporterPerson: Person = {

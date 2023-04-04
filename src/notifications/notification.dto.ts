@@ -4,4 +4,5 @@ export class Notification {
 	created: string;
 	toPerson: string;
 	friendRequest?: string;
+	friendRequestAccepted?: string;
 }
