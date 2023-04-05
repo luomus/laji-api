@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { LajiAuthPersonGet, PersonTokenInfo } from "./person-token.dto";
 
@@ -14,6 +14,14 @@ export class PersonTokenService {
 			target: info.target,
 			next: info.next,
 		}
+	}
+
+	async getPersonIdFromToken(personToken: string): Promise<string> {
+		const { personId } = await this.getInfo(personToken)
+		if (!personId) {
+			throw new HttpException("No personId found for personToken", 404);
+		}
+		return personId;
 	}
 
 	async delete(personToken: string) {

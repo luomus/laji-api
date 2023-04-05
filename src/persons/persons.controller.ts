@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { serialize } from "src/type-utils";
-import { Person } from "./person.dto";
+import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
 @ApiSecurity("access_token")
@@ -81,10 +81,12 @@ export class PersonsController {
 		return this.profileService.acceptFriendRequest(personToken, userId);
 	}
 
-	// @Delete(":personToken/friends/:profileKey") 
-	// removeFriend(@Param("personToken") personToken: string, @Param("userId") userId: string) {
-	// 	return this.personsService.removeFriend(personToken, userId);
-	// }
+	@Delete(":personToken/friends/:profileKey") 
+	removeFriend(
+		@Param("personToken") personToken: string,
+		@Param("userId") userId: string,
+		@Query() { block }: RemoveFriendDto
+	) {
+		return this.profileService.removeFriend(personToken, userId, block);
+	}
 }
-
-// const makePublic = (person: Person) => new PublicPerson(person);

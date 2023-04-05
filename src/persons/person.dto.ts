@@ -1,3 +1,5 @@
+import { Type } from "class-transformer";
+import { IsBoolean } from "class-validator";
 import { Exclude } from "src/type-utils";
 
 export enum Role {
@@ -27,4 +29,11 @@ export const decoratePerson = (person: Person): Person => {
 		person.fullName = `${(person.inheritedName || "")} ${(person.preferredName || "")}`;
 	}
 	return person;
+}
+
+export class RemoveFriendDto {
+	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
+	@Type(() => Boolean)
+	@IsBoolean()
+	block: boolean = false;
 }

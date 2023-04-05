@@ -21,10 +21,7 @@ export class ProfileService {
 	}
 
 	async findByPersonToken(personToken: string) {
-		const { personId } = await this.personTokenService.getInfo(personToken);
-		if (personId === null) {
-			throw new HttpException("No personId found for personToken", 404);
-		}
+		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
 		return this.getByPersonId(personId);
 	}
 
@@ -66,11 +63,7 @@ export class ProfileService {
 	}
 
 	async addFriendRequest(personToken: string, profileKey: string) {
-		const { personId } =  await this.personTokenService.getInfo(personToken);
-		if (!personId) {
-			throw new HttpException("No personId found for personToken", 404);
-		}
-
+		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
 		const profile = await this.findByProfileKey(profileKey);
 		const { friendRequests, blocked, friends, userID: friendID } = profile;
 		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
@@ -83,12 +76,8 @@ export class ProfileService {
 	}
 
 	async acceptFriendRequest(personToken: string, friendPersonId: string) {
-		const { personId } =  await this.personTokenService.getInfo(personToken);
-		if (!personId) {
-			throw new HttpException("No personId found for personToken", 404);
-		}
-
-		const profile = await this.findByProfileKey(personId);
+		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
+		const profile = await this.findByPersonId(personId);
 		const { friendRequests, friends } = profile;
 		const idx = friendRequests.indexOf(personId);
 		if (idx === -1) {
@@ -100,6 +89,26 @@ export class ProfileService {
 		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
 		return updated;
 	}
+
+	async removeFriend(personToken: string, removePersonId: string, block: boolean) {
+		await this.getByPersonId(removePersonId); // Validate that person exists.
+		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
+		const profile = await this.findByPersonId(personId);
+		const { friendRequests, friends, blocked } = profile;
+		const friendIdx = friends.indexOf(removePersonId);
+		const requestIdx = friendRequests.indexOf(removePersonId);
+		if (requestIdx > -1) {
+			friendRequests.splice(requestIdx, 1);
+		}
+		if (friendIdx > -1) {
+			friends.splice(friendIdx, 1);
+		}
+		if (block && blocked.indexOf(removePersonId) === -1) {
+			blocked.push(removePersonId);
+		}
+		return this.update({ ...profile, friendRequests, friends, blocked });
+	}
+
 
 	private create(personId: string, profile: Partial<Profile>) {
 		profile.userID = personId;
