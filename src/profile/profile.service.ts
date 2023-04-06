@@ -4,6 +4,7 @@ import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import * as crypto from "crypto";
 import { NotificationsService } from "src/notifications/notifications.service";
+import equals from "deep-equal";
 
 @Injectable()
 export class ProfileService {
@@ -15,14 +16,14 @@ export class ProfileService {
 	/*
 	 * Get a profile or creates one if person doesn't have a profile yet.
 	 */
-	async getByPersonId(personId: string) {
+	async getByPersonIdOrCreate(personId: string) {
 		const profile = await this.findByPersonId(personId);
 		return profile || this.create(personId, {})
 	}
 
-	async findByPersonToken(personToken: string) {
+	async getByPersonTokenOrCreate(personToken: string) {
 		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
-		return this.getByPersonId(personId);
+		return this.getByPersonIdOrCreate(personId);
 	}
 
 	/*
@@ -44,27 +45,28 @@ export class ProfileService {
 		return this.create(personId, profile);
 	}
 
-	async updateWithPersonId(personId: string, profile: Profile) {
-		let existingProfile = await this.findByPersonId(personId);
+	async updateWithPersonId(personId: string, profile: Partial<Profile>) {
+		const existingProfile = await this.findByPersonId(personId);
 		if (!existingProfile) {
-			existingProfile = await this.create(personId, profile);
+			throw new HttpException("Can't update profile that doesn't exist", 422);
 		}
-
-		const copyProps: (keyof Profile)[] = ["friends","friendRequests", "userID", "profileKey"];
-		const updatedProfile = copyProps.reduce((profile, prop) => {
-			if (profile[prop] === undefined) {
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				(profile[prop] as any) = existingProfile![prop];
+		const nextProfile = { ...existingProfile, ...profile };
+		const protectedKeys: (keyof Profile)[] = ["userID", "profileKey", "friendRequests"];
+		protectedKeys.forEach((key: keyof Profile) => {
+			if (!equals(nextProfile[key], existingProfile[key])) {
+				throw new HttpException(`${key} cannot be updated by this method`, 422);
 			}
-			return profile;
-		}, profile);
+		});
 
-		return this.update(updatedProfile);
+		return this.update(nextProfile);
 	}
 
 	async addFriendRequest(personToken: string, profileKey: string) {
 		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
 		const profile = await this.findByProfileKey(profileKey);
+		if (!profile) {
+			throw new HttpException("Profile not found", 404);
+		}
 		const { friendRequests, blocked, friends, userID: friendID } = profile;
 		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
 			throw new HttpException("Friend request already sent", 422);
@@ -76,8 +78,10 @@ export class ProfileService {
 	}
 
 	async acceptFriendRequest(personToken: string, friendPersonId: string) {
-		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
-		const profile = await this.findByPersonId(personId);
+		await this.getByPersonId(friendPersonId);
+		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
+		const profile = await this.getByPersonIdOrCreate(personId);
+
 		const { friendRequests, friends } = profile;
 		const idx = friendRequests.indexOf(personId);
 		if (idx === -1) {
@@ -85,28 +89,29 @@ export class ProfileService {
 		}
 		friendRequests.splice(idx, 1);
 		!friends.includes(friendPersonId) && friends.push(friendPersonId);
+
 		const updated = await this.update({ ...profile, friendRequests, friends });
 		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
 		return updated;
 	}
 
-	async removeFriend(personToken: string, removePersonId: string, block: boolean) {
-		await this.getByPersonId(removePersonId); // Validate that person exists.
-		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
-		const profile = await this.findByPersonId(personId);
-		const { friendRequests, friends, blocked } = profile;
-		const friendIdx = friends.indexOf(removePersonId);
-		const requestIdx = friendRequests.indexOf(removePersonId);
-		if (requestIdx > -1) {
-			friendRequests.splice(requestIdx, 1);
+	async removeFriend(personToken: string, friendPersonId: string, block: boolean) {
+		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
+		const profile = await this.getByPersonIdOrCreate(personId);
+		const friendProfile = await this.getByPersonId(friendPersonId)
+
+		await this.update(removeFriend(friendProfile, personId, false));
+		return this.update(removeFriend(profile, friendPersonId, block));
+
+		function removeFriend(profile: Profile, removePersonId: string, block: boolean) {
+			const removeFriendFilter = (f: string) => f !== removePersonId;
+			return {
+				...profile,
+				friends: profile.friends.filter(removeFriendFilter),
+				friendRequests: profile.friends.filter(removeFriendFilter),
+				blocked: block ? [...profile.blocked,  removePersonId] : profile.blocked
+			};
 		}
-		if (friendIdx > -1) {
-			friends.splice(friendIdx, 1);
-		}
-		if (block && blocked.indexOf(removePersonId) === -1) {
-			blocked.push(removePersonId);
-		}
-		return this.update({ ...profile, friendRequests, friends, blocked });
 	}
 
 
@@ -120,12 +125,20 @@ export class ProfileService {
 		return this.storeService.update("profile", profile);
 	}
 
-	private async findByPersonId(personId: string) {
+	private async getByPersonId(personId: string) {
+		const person = await this.findByPersonId(personId);
+		if (!person) {
+			throw new HttpException(`Person ${personId} not found`, 404);
+		}
+		return person;
+	}
+
+	private async findByPersonId(personId: string): Promise<Profile | undefined> {
 		const { member } = await this.storeService.query<Profile>("profile", `userID:"${personId}"`);
 		return member[0];
 	}
 
-	private async findByProfileKey(profileKey: string) {
+	private async findByProfileKey(profileKey: string): Promise<Profile | undefined> {
 		const { member } = await this.storeService.query<Profile>("profile", `profileKey:"${profileKey}"`);
 		return member[0];
 	}

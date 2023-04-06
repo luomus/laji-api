@@ -20,13 +20,12 @@ export class PersonsController {
 	 */
 	@Get(":personToken")
 	findPersonByToken(@Param("personToken") personToken: string) {
-		console.log("find");
 		return this.personsService.findByToken(personToken);
 	}
 
 	@Get(":personToken/profile")
 	findProfileByPersonToken(@Param("personToken") personToken: string) {
-		return this.profileService.findByPersonToken(personToken);
+		return this.profileService.getByPersonTokenOrCreate(personToken);
 	}
 
 	/*
@@ -47,7 +46,7 @@ export class PersonsController {
 	@Get("by-id/:personId/profile")
 	async getProfileByPersonId(@Param("personId") personId: string) {
 		return serialize(
-			await this.profileService.getByPersonId(personId),
+			await this.profileService.getByPersonIdOrCreate(personId),
 			Profile,
 			{ whitelist: ["userID", "profileKey", "image", "profileDescription"] }
 		);
