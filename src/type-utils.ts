@@ -11,7 +11,7 @@ export const isJSONObject = (json?: JSON): json is JSONObject => isObject(json);
 
 export const isJSONObjectOrUndefined = (v?: JSON): v is (undefined | JSON) => v === undefined || isJSONObject(v);
 
-type Newable<T> = { new (...args: any[]): T; };
+export type Newable<T> = { new (...args: any[]): T; };
 
 type SerializeOptions = {
 	includeOnlyTyped?: boolean;
@@ -68,7 +68,7 @@ export const excludeDecoratedProps = (item: any) => {
 
 const excludeMetadataKey = Symbol("Exclude");
 
-/*
+/**
  * Mark a poperty to excluded when serialized by SerializingInterceptor
  */
 export function Exclude() {

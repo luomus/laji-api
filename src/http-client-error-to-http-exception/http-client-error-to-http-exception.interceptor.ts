@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, HttpException, Injectable, NestInterceptor } from "@nestjs/common";
 import { catchError, Observable, throwError } from "rxjs";
 
-/*
+/**
  * Catches AxiosErrors where the request fails due to a error response, and rethrow it as an HttpException.
  */
 @Injectable()

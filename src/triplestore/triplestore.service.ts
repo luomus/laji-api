@@ -70,7 +70,7 @@ export class TriplestoreService {
 		return jsonLd["@type"];
 	}
 
-	/*
+	/**
 	 * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
 	 * This function resolves those resources into values like "MOS.500".
 	 */
@@ -101,7 +101,7 @@ export class TriplestoreService {
 		return resolve(data);
 	}
 
-	/*
+	/**
 	 * RDF doesn't know about our properties' schema info. This function
 	 * makes the output to adhere to schema - for example map a property with 
 	 * maxOccurs: unbounded" to be an array always.

@@ -16,14 +16,14 @@ export class MetadataService {
 	constructor(
 		@Inject("TRIPLESTORE_READONLY_REST_CLIENT") private triplestoreClient: RestClientService) {}
 
-	/*
+	/**
 	 * Get all properties.
 	 */
 	private getProperties() {
 		return this.triplestoreClient.get<Property[]>("schema/property");
 	}
 
-	/*
+	/**
 	 * Get a mapping between contexts' and their properties.
 	 */
 	private async getContexts() {
@@ -37,7 +37,7 @@ export class MetadataService {
 		}, {})
 	}
 
-	/*
+	/**
 	 * Get a property map for a context.
 	 */
 	async getPropertiesForContext(context: string) {

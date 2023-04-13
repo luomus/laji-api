@@ -4,16 +4,21 @@ import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import * as crypto from "crypto";
 import { NotificationsService } from "src/notifications/notifications.service";
-import equals from "deep-equal";
+import { serializeInto } from "src/type-utils";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const equals = require("deep-equal");
 
 @Injectable()
 export class ProfileService {
+	private storeProfileService = this.storeService.forResource<Profile>("profile", { serializeInto: Profile })
+
 	constructor(
 		private storeService: StoreService,
 		private personTokenService: PersonTokenService,
-		private notificationsService: NotificationsService) {}
+		private notificationsService: NotificationsService) {
+	}
 
-	/*
+	/**
 	 * Get a profile or creates one if person doesn't have a profile yet.
 	 */
 	async getByPersonIdOrCreate(personId: string) {
@@ -26,7 +31,7 @@ export class ProfileService {
 		return this.getByPersonIdOrCreate(personId);
 	}
 
-	/*
+	/**
 	 * Create new profile, if person has no profile.
 	 */
 	async createWithPersonId(personId: string, profile: Partial<Profile>): Promise<Profile> {
@@ -50,7 +55,7 @@ export class ProfileService {
 		if (!existingProfile) {
 			throw new HttpException("Can't update profile that doesn't exist", 422);
 		}
-		const nextProfile = { ...existingProfile, ...profile };
+		const nextProfile = serializeInto(Profile)({ ...existingProfile, ...profile });
 		const protectedKeys: (keyof Profile)[] = ["userID", "profileKey", "friendRequests"];
 		protectedKeys.forEach((key: keyof Profile) => {
 			if (!equals(nextProfile[key], existingProfile[key])) {
@@ -58,7 +63,7 @@ export class ProfileService {
 			}
 		});
 
-		return this.update(nextProfile);
+		return this.storeProfileService.update(nextProfile);
 	}
 
 	async addFriendRequest(personToken: string, profileKey: string) {
@@ -72,7 +77,9 @@ export class ProfileService {
 			throw new HttpException("Friend request already sent", 422);
 		}
 
-		const updated = await this.update({ ...profile, friendRequests: [...friendRequests, personId] });
+		const updated = await this.storeProfileService.update({
+			...profile, friendRequests: [...friendRequests, personId]
+		});
 		this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
 		return updated;
 	}
@@ -90,7 +97,7 @@ export class ProfileService {
 		friendRequests.splice(idx, 1);
 		!friends.includes(friendPersonId) && friends.push(friendPersonId);
 
-		const updated = await this.update({ ...profile, friendRequests, friends });
+		const updated = await this.storeProfileService.update({ ...profile, friendRequests, friends });
 		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
 		return updated;
 	}
@@ -100,8 +107,8 @@ export class ProfileService {
 		const profile = await this.getByPersonIdOrCreate(personId);
 		const friendProfile = await this.getByPersonId(friendPersonId)
 
-		await this.update(removeFriend(friendProfile, personId, false));
-		return this.update(removeFriend(profile, friendPersonId, block));
+		await this.storeProfileService.update(removeFriend(friendProfile, personId, false));
+		return this.storeProfileService.update(removeFriend(profile, friendPersonId, block));
 
 		function removeFriend(profile: Profile, removePersonId: string, block: boolean) {
 			const removeFriendFilter = (f: string) => f !== removePersonId;
@@ -114,32 +121,25 @@ export class ProfileService {
 		}
 	}
 
-
 	private create(personId: string, profile: Partial<Profile>) {
 		profile.userID = personId;
 		profile.profileKey = crypto.randomUUID().substr(0, 6);
-		return this.storeService.create("profile", profile);
-	}
-
-	private update(profile: Profile) {
-		return this.storeService.update("profile", profile);
+		return this.storeProfileService.create(profile);
 	}
 
 	private async getByPersonId(personId: string) {
-		const person = await this.findByPersonId(personId);
-		if (!person) {
+		const profile = await this.findByPersonId(personId);
+		if (!profile) {
 			throw new HttpException(`Person ${personId} not found`, 404);
 		}
-		return person;
+		return profile;
 	}
 
 	private async findByPersonId(personId: string): Promise<Profile | undefined> {
-		const { member } = await this.storeService.query<Profile>("profile", `userID:"${personId}"`);
-		return member[0];
+		return this.storeProfileService.findOne(`userID:"${personId}"`);
 	}
 
 	private async findByProfileKey(profileKey: string): Promise<Profile | undefined> {
-		const { member } = await this.storeService.query<Profile>("profile", `profileKey:"${profileKey}"`);
-		return member[0];
+		return this.storeProfileService.findOne(`profileKey:"${profileKey}"`);
 	}
 }

@@ -23,11 +23,11 @@ export class Form {
 
 export class GetDto {
 	format?: Format = Format.schema;
-	/*
+	/**
 	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will contain language objects. Defaults to 'en'
 	 */
 	lang?: Lang = Lang.en;
-	/*
+	/**
 	 * Expand response
 	 */
 	expand?: boolean = true;
@@ -48,7 +48,7 @@ export class GetAllDto extends PagedDto {
 }
 
 export class QueryWithPersonTokenDto {
-	/*
+	/**
 	 * Person's authentication token
 	 */
 	personToken: string;
