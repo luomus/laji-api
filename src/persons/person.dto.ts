@@ -1,6 +1,5 @@
-import { Type } from "class-transformer";
 import { IsBoolean } from "class-validator";
-import { Exclude } from "src/type-utils";
+import { Exclude, ParseOptionalBoolean } from "src/type-utils";
 
 export enum Role {
 	Admin = "MA.admin"
@@ -33,7 +32,7 @@ export const decoratePerson = (person: Person): Person => {
 
 export class RemoveFriendDto {
 	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-	@Type(() => Boolean)
+	@ParseOptionalBoolean()
 	@IsBoolean()
 	block: boolean = false;
 }

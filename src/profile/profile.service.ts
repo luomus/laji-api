@@ -56,7 +56,7 @@ export class ProfileService {
 			throw new HttpException("Can't update profile that doesn't exist", 422);
 		}
 		const nextProfile = serializeInto(Profile)({ ...existingProfile, ...profile });
-		const protectedKeys: (keyof Profile)[] = ["userID", "profileKey", "friendRequests"];
+		const protectedKeys: (keyof Profile)[] = ["id", "userID", "profileKey", "friendRequests", "friends"];
 		protectedKeys.forEach((key: keyof Profile) => {
 			if (!equals(nextProfile[key], existingProfile[key])) {
 				throw new HttpException(`${key} cannot be updated by this method`, 422);
@@ -87,19 +87,24 @@ export class ProfileService {
 	async acceptFriendRequest(personToken: string, friendPersonId: string) {
 		await this.getByPersonId(friendPersonId);
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
+		const friendProfile = await this.getByPersonId(friendPersonId);
 		const profile = await this.getByPersonIdOrCreate(personId);
 
-		const { friendRequests, friends } = profile;
-		const idx = friendRequests.indexOf(personId);
-		if (idx === -1) {
+		if (!profile.friendRequests.includes(friendPersonId)) {
 			throw new HttpException("No friend request found", 422);
 		}
-		friendRequests.splice(idx, 1);
-		!friends.includes(friendPersonId) && friends.push(friendPersonId);
-
-		const updated = await this.storeProfileService.update({ ...profile, friendRequests, friends });
+		await this.storeProfileService.update(addFriend(friendProfile, personId));
+		const updated = await this.storeProfileService.update(addFriend(profile, friendPersonId));
 		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
 		return updated;
+
+		function addFriend(profile: Profile, friendPersonId: string) {
+			return {
+				...profile,
+				friends: [...profile.friends, friendPersonId],
+				friendRequests: profile.friendRequests.filter((id: string) => id !== friendPersonId)
+			}
+		}
 	}
 
 	async removeFriend(personToken: string, friendPersonId: string, block: boolean) {
@@ -115,7 +120,7 @@ export class ProfileService {
 			return {
 				...profile,
 				friends: profile.friends.filter(removeFriendFilter),
-				friendRequests: profile.friends.filter(removeFriendFilter),
+				friendRequests: profile.friendRequests.filter(removeFriendFilter),
 				blocked: block ? [...profile.blocked,  removePersonId] : profile.blocked
 			};
 		}

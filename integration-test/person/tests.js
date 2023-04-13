@@ -1,5 +1,4 @@
-var config = require("../config.json");
-var helpers = require("../helpers");
+var config = require("../config.json"); var helpers = require("../helpers");
 const { request } = require("chai");
 
 describe("/person", function() {
@@ -122,8 +121,7 @@ describe("/person", function() {
 				.send(profile)
 				.end(function(err, res) {
 					res.should.have.status(422);
-					res.body.should.have.property("error");
-					res.body.error.should.have.property("message").eql("UserID cannot be changed");
+					res.body.should.have.property("message").eql("userID cannot be updated by this method");
 					done();
 				});
 		});
@@ -164,8 +162,7 @@ describe("/person", function() {
 				.send(profile)
 				.end(function(err, res) {
 					res.should.have.status(422);
-					res.body.should.have.property("error");
-					res.body.error.should.have.property("message").eql("Profile id cannot be changed");
+					res.body.should.have.property("message").eql("id cannot be updated by this method");
 					done();
 				});
 		});
@@ -181,8 +178,7 @@ describe("/person", function() {
 				.send(profile)
 				.end(function(err, res) {
 					res.should.have.status(422);
-					res.body.should.have.property("error");
-					res.body.error.should.have.property("message").eql("friends cannot be updated in this way");
+					res.body.should.have.property("message").eql("friends cannot be updated by this method");
 					done();
 				});
 		});
@@ -198,8 +194,7 @@ describe("/person", function() {
 				.send(profile)
 				.end(function(err, res) {
 					res.should.have.status(422);
-					res.body.should.have.property("error");
-					res.body.error.should.have.property("message").eql("friendRequests cannot be updated in this way");
+					res.body.should.have.property("message").eql("friendRequests cannot be updated by this method");
 					done();
 				});
 		});
@@ -283,14 +278,14 @@ describe("/person", function() {
 				.post(query)
 				.end(function(err, res) {
 					if (err) return done(err);
-					res.should.have.status(204);
-					res.body.should.not.have.property("id");
-					res.body.should.not.have.property("userID");
-					res.body.should.not.have.property("profileKey");
-					res.body.should.not.have.property("friends");
-					res.body.should.not.have.property("blocked");
-					res.body.should.not.have.property("friendRequests");
-					res.body.should.not.have.property("settings");
+					res.should.have.status(201);
+					res.body.should.have.property("id");
+					res.body.should.have.property("userID");
+					res.body.should.have.property("profileKey");
+					res.body.should.have.property("friends");
+					res.body.should.have.property("blocked");
+					res.body.should.have.property("friendRequests");
+					res.body.should.have.property("settings");
 					done();
 				});
 
@@ -386,7 +381,7 @@ describe("/person", function() {
 				.post(query)
 				.end(function(err, res) {
 					if (err) return done(err);
-					res.should.have.status(204);
+					res.should.have.status(201);
 					done();
 				});
 		});
@@ -401,6 +396,7 @@ describe("/person", function() {
 				.put(query)
 				.end(function(err, res) {
 					if (err) return done(err);
+					console.log(res.body.message);
 					res.should.have.status(200);
 					done();
 				});

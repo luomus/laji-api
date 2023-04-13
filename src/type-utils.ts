@@ -1,4 +1,4 @@
-import { classToPlain, plainToClass } from "class-transformer";
+import { classToPlain, plainToClass, Transform } from "class-transformer";
 import "reflect-metadata";
 
 export const isObject = (any: any): any is Record<string, unknown> =>
@@ -83,3 +83,14 @@ export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOp
 	serializeInto(Class, options)(item);
 
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+const optionalBooleanMapper = new Map([
+	  ["true", true],
+	  ["false", false],
+]);
+
+/**
+ * https://github.com/typestack/class-transformer/issues/676
+ */
+export const ParseOptionalBoolean = () =>
+	  Transform(({ value }) => optionalBooleanMapper.get(value));
