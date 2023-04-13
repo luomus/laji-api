@@ -42,7 +42,8 @@ export async function bootstrap() {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
 		customCssUrl: "/swagger.css",
 		swaggerOptions: {
-			persistAuthorization: true
+			persistAuthorization: true,
+			docExpansion: "none"
 		}
 	});
 
