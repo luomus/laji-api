@@ -2,7 +2,6 @@ import { Controller, Delete, Get, Param } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { PersonTokenService } from "./person-token.service";
 
-//TODO cache
 @ApiSecurity("access_token")
 @Controller("person-token")
 @ApiTags("person-token")

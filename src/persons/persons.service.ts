@@ -6,6 +6,8 @@ import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "../type-utils";
 import { promisePipe } from "src/utils";
 
+const CACHE_5_MIN = 1000 * 60 * 5;
+
 @Injectable()
 export class PersonsService {
 	constructor(
@@ -14,7 +16,6 @@ export class PersonsService {
 		private triplestoreService: TriplestoreService
 	) {}
 
-	// TODOD cache
 	async findByToken(personToken: string) {
 		if (personToken === this.configService.get("IMPORTER_TOKEN")) {
 			return ImporterPerson;
@@ -29,7 +30,7 @@ export class PersonsService {
 
 	async findByPersonId(personId: string) {
 		return promisePipe(
-			this.triplestoreService.get(personId),
+			this.triplestoreService.find(personId, { cache: CACHE_5_MIN }),
 			serializeInto(Person),
 			decoratePerson
 		)

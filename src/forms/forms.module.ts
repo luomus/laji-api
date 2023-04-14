@@ -6,6 +6,8 @@ import { RestClientConfig, RestClientService } from "src/rest-client/rest-client
 import { ConfigService } from "@nestjs/config";
 import { Form } from "./dto/form.dto";
 import { PersonsModule } from "src/persons/persons.module";
+import { CACHE_MANAGER } from "@nestjs/common";
+import { Cache } from "cache-manager";
 
 const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",
@@ -18,9 +20,9 @@ const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 
 const formRestClientProvider: FactoryProvider<RestClientService<Form>> = {
 	provide: "FORM_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig) =>
-		new RestClientService(httpService, formClientConfig),
-	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }],
+	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig, cache: Cache) =>
+		new RestClientService(httpService, formClientConfig, cache),
+	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };
 
 @Module({

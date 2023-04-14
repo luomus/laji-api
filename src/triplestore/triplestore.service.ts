@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, CACHE_MANAGER } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
@@ -6,6 +6,7 @@ import { isObject, JSON, JSONObject } from "../type-utils";
 import { JsonLd, JsonLdObj } from "jsonld/jsonld-spec";
 import { promisePipe } from "src/utils";
 import { MetadataService } from "src/metadata/metadata.service";
+import { Cache } from "cache-manager";
 
 const BASE_URL = "http://tun.fi/";
 
@@ -17,7 +18,8 @@ const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 export class TriplestoreService {
 	constructor(
 		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService,
-		private metadataService: MetadataService
+		private metadataService: MetadataService,
+		@Inject(CACHE_MANAGER) private cache: Cache
 	) {
 		this.triplestoreToJsonLd = this.triplestoreToJsonLd.bind(this);
 		this.resolveResources = this.resolveResources.bind(this);
@@ -27,16 +29,34 @@ export class TriplestoreService {
 	}
 
 	// TODO returned items @context is different than old lajiapi
-	get<T>(resource: string) {
+	/**
+	 * Find a resource from triplestore.
+	 * @param resource The resource identifier to get 
+	 * @param options Cache options
+	 */
+	async find<T>(resource: string, options?: {cache?: number | true}) {
+		const { cache } = options || {};
+		if (cache) {
+			const cached = await this.cache.get(resource);
+			if (cached) {
+				return cached;
+			}
+		}
 		return promisePipe(
 			this.triplestoreClient.get(resource, { params: { format: "rdf/xml" } }),
 			this.triplestoreToJsonLd,
 			this.resolveResources,
 			this.adhereToSchema,
 			this.dropPrefixes,
-			this.rmIdAndType
+			this.rmIdAndType,
+			this.cacheResult(resource, cache)
 		) as Promise<T>;
 	}
+
+	private cacheResult<T>(resource: string, ttl?: number | true) { return async (item: T) => {
+		ttl && await this.cache.set(resource, item, ttl === true ? undefined : ttl);
+		return item;
+	}}
 
 	triplestoreToJsonLd(rdf: string) {
 		const rdfStore = graph();

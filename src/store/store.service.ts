@@ -45,8 +45,8 @@ export class StoreService {
 	}
 
 	/**
-	 * Creates a service for using a specific store endpoint, applying the given options to each method, allowing
-	 * serialization - Expect for `query()` method, since the whole result shouldn't be serialized. Use `findOne()`
+	 * Creates a service for using a specific store endpoint, applying the given options to each method, allowing caching
+	 * and serialization - Expect for * `query()` method, since the whole result shouldn't be serialized. Use `findOne()`
 	 * to serialize the result.
 	 */	
 	forResource = <T extends {id: string}>(resource: string, options?: LajiApiOptions<T>)

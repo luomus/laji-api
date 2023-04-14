@@ -2,6 +2,8 @@ import { Inject, Injectable } from "@nestjs/common";
 import { Form, Format, Lang, PaginatedDto } from "./dto/form.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 
+const CACHE_1_MIN = 1000 * 60;
+
 const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
 	if (page <= 0) {
 		page = 1;
@@ -25,7 +27,6 @@ const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
 	return result;
 }
 
-//TODO cache
 @Injectable()
 export class FormsService {
 	constructor(@Inject("FORM_REST_CLIENT") private formClient: RestClientService<Form>) {}
@@ -36,14 +37,14 @@ export class FormsService {
 
 	async findAll(lang: Lang, page?: number, pageSize?: number) {
 		return pageResult(
-			(await this.formClient.get<{forms: Form[]}>("", { params: { lang } })).forms,
+			(await this.formClient.get<{forms: Form[]}>("", { params: { lang } }, { cache: CACHE_1_MIN })).forms,
 			page,
 			pageSize
 		)
 	}
 
 	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
-		return this.formClient.get(id, { params: { format, lang, expand } });
+		return this.formClient.get(id, { params: { format, lang, expand } }, { cache: CACHE_1_MIN });
 	}
 
 	update(id: string, form: Form, personToken: string) {

@@ -8,7 +8,7 @@ export class PersonTokenService {
 	constructor(@Inject("LAJI_AUTH_REST_CLIENT") private lajiAuthClient: RestClientService<LajiAuthPersonGet>) {}
 
 	async getInfo(personToken: string): Promise<PersonTokenInfo> {
-		const info = await this.lajiAuthClient.get(`token/${personToken}`);
+		const info = await this.lajiAuthClient.get(`token/${personToken}`, undefined, { cache: 10000 });
 		return {
 			personId: info.user.qname,
 			target: info.target,
