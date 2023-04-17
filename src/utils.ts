@@ -1,3 +1,5 @@
+export const CACHE_1_MIN = 1000 * 60;
+
 type Reducer<T, R>  = {
 	(value: T): R | Promise<R>;
 }
@@ -34,4 +36,44 @@ function promisePipe<T>(initialValue: T | Promise<T>, ...operations: Reducer<any
 	)
 	, isPromise(initialValue) ? initialValue : Promise.resolve(initialValue));
 }
+
 export { promisePipe };
+
+export class PaginatedDto<T> {
+	currentPage: number;
+	pageSize: number;
+	total: number;
+	last: number;
+	prevPage?: number;
+	nextPage?: number;
+	results: T[];
+}
+
+export const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
+	if (page <= 0) {
+		page = 1;
+	}
+
+	const total = data.length;
+	const last = Math.ceil(total / pageSize);
+	const  result: PaginatedDto<T> = {
+		total,
+		results: data.slice((page - 1) * pageSize, page * pageSize),
+		currentPage: page,
+		pageSize,
+		last
+	};
+	return addPrevAndNextPage(result);
+}
+
+export const addPrevAndNextPage = <T extends { currentPage: number; last: number; }>(data: T)
+	: T & { prevPage?: number; nextPage?: number; } => {
+	const result: T & { prevPage?: number; nextPage?: number; } = { ...data };
+	if (result.currentPage > 1) {
+		result.prevPage = result.currentPage - 1;
+	}
+	if (result.last > result.currentPage) {
+		result.nextPage = result.currentPage + 1;
+	}
+	return result;
+}

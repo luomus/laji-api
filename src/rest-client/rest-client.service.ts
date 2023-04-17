@@ -71,8 +71,11 @@ export class RestClientService<T = any> {
 		// We cache a map where keys are the path without query params, and the keys are the full uri with path and query params.
 		// This way we can bust the cache by just the path.
 		//
-		// Example, where this.path = "https://foo.bar/path", path = "path":
-		// { "https://foo.bar/path?param1=foo": "cached 1", "https://foo.bar/path?param2=bar": "cached 2", }
+		// Example for cachedByPath, where this.path = "https://foo.bar/path", path = "path":
+		// { "https://foo.bar/path": {
+		// "https://foo.bar/path?param1=foo": "cached 1",
+		// "https://foo.bar/path?param2=bar": "cached 2",
+		// } }
 		let cachedByPath: Record<string, S>;
 		if (lajiApiOptions?.cache) {
 			cachedByPath = await this.cache.get<Record<string, S>>(this.path + path)
