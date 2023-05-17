@@ -22,7 +22,7 @@ export class FindOneDto  {
 	langFallback?: boolean = true;
 }
 
-export class FindChildrenDto extends PagedDto {
+export class FindCollectionsDto extends PagedDto {
 	lang?: Lang = Lang.en;
 	@ParseOptionalBoolean()
 	@IsBoolean()

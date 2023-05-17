@@ -45,6 +45,13 @@ export class CollectionsService {
 		return pageResult(children, page, pageSize);
 	}
 
+	async findRoots(lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
+		const children = (await this.getCollections(undefined, lang, langFallback)).filter(collection => 
+			!collection.isPartOf
+		);
+		return pageResult(children, page, pageSize);
+	}
+
 	private async getCollections<T extends (string | MultiLang)>(ids?: string[], lang?: Lang, langFallback?: boolean)
 		: Promise<Collection<T>[]> {
 		const collections = []
