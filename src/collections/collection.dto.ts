@@ -22,6 +22,13 @@ export class FindOneDto  {
 	langFallback?: boolean = true;
 }
 
+export class FindChildrenDto extends PagedDto {
+	lang?: Lang = Lang.en;
+	@ParseOptionalBoolean()
+	@IsBoolean()
+	langFallback?: boolean = true;
+}
+
 export enum MetadataStatus {
 	Hidden = "MY.metadataStatusHidden"
 }

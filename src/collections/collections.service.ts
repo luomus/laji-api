@@ -38,6 +38,13 @@ export class CollectionsService {
 		return this.prepareCollection(collection, lang, langFallback);
 	}
 
+	async findChildren(id: string, lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
+		const children = (await this.getCollections(undefined, lang, langFallback)).filter(collection => 
+			collection.isPartOf === id
+		);
+		return pageResult(children, page, pageSize);
+	}
+
 	private async getCollections<T extends (string | MultiLang)>(ids?: string[], lang?: Lang, langFallback?: boolean)
 		: Promise<Collection<T>[]> {
 		const collections = []

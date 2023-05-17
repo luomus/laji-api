@@ -1,3 +1,5 @@
+import { isObject } from "./type-utils";
+
 export const CACHE_1_MIN = 1000 * 60;
 
 type Reducer<T, R>  = {
@@ -48,6 +50,10 @@ export class PaginatedDto<T> {
 	nextPage?: number;
 	results: T[];
 }
+
+export const isPaginatedDto = <T,>(maybePaginated: any): maybePaginated is PaginatedDto<T> => 
+	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "last"]
+		.every(k => k in maybePaginated);
 
 export const pageResult = <T>(data: T[], page = 1, pageSize = 20): PaginatedDto<T> => {
 	if (page <= 0) {

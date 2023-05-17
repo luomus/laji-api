@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
-import { FindOneDto, GetPageDto } from "./collection.dto";
+import { FindChildrenDto, FindOneDto, GetPageDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 
 @ApiSecurity("access_token")
@@ -27,4 +27,11 @@ export class CollectionsController {
 		return this.collectionsService.findOne(id, lang, langFallback);
 	}
 
+	/*
+	 * Get child collections
+	 */
+	@Get(":id/children")
+	findChildren(@Param("id") id: string, @Query() { page, pageSize, lang, langFallback }: FindChildrenDto) {
+		return this.collectionsService.findChildren(id, lang, langFallback, page, pageSize);
+	}
 }
