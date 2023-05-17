@@ -17,7 +17,8 @@ export class FormsService {
 		return pageResult(
 			(await this.formClient.get<{forms: Form[]}>("", { params: { lang } }, { cache: CACHE_1_MIN })).forms,
 			page,
-			pageSize
+			pageSize,
+			lang
 		)
 	}
 

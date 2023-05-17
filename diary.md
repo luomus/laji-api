@@ -1,4 +1,4 @@
-# Breaking changes
+# Breaking changes against the old api
 
 ## Return codes
 
@@ -12,8 +12,8 @@ Errors signature will change from:
 {
 	"error": {
 		"statusCode": 422,
-			"name": "Error",
-			"message": "UserID cannot be changed"
+		"name": "Error",
+		"message": "UserID cannot be changed"
 	}
 }
 ```
@@ -29,16 +29,24 @@ to:
 
 Error messages might change.
 
-## JSON LD @context path
+## JSON-LD
+
+###  @context path
 
 Will be changed like so:
 
 ```
--  "@context": "http://tun.fi/MA.person"
-+  "@context": "http://schema.laji.fi/context/person-en.jsonld"
++  "@context": "http://tun.fi/MA.person"
+-  "@context": "http://schema.laji.fi/context/person-en.jsonld"
 ```
 
-* /person/{personToken}/friends/{personId} returns profile, not `true`
+### Paged result contexts
+
+In old api most paged results have `@context` in the root. Pre-paged results being an exception. New API doesn't make exceptions in this - all paged results have `@context` in the root and the items don't have `@context` proeprty.
+
+## Person friend return value
+
+/person/{personToken}/friends/{personId} returns profile, not `true`
 
 ## Page sizes
 
@@ -48,7 +56,7 @@ Default page size for all queries is 20. I didn't investigate it the page size c
 
 Old api treats these multilang props as non-multilang, returning them always as a string, using the "en" lang value. If the hack isn't recreated here, querying in other languages than "en" will not include these props.
 
-Backward compatibility could be reached also by setting them as non multilang in schema.
+Backward compatibility could be reached also by setting them as non multilang in schema (confirmed by Mikko that we could do so).
 
 *	temporalCoverage
 * taxonomicCoverage

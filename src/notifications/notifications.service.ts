@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Optional } from "src/type-utils";
-import { addPrevAndNextPage, CACHE_1_MIN } from "src/utils";
+import { CACHE_1_MIN, paginateAlreadyPaged } from "src/utils";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 
@@ -17,7 +17,7 @@ export class NotificationsService {
 		private personTokenService: PersonTokenService
 	) {}
 
-	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize?: number) {
+	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize = 20) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
 		let query = `toPerson:"${personId}"`;
 		if (onlyUnseen) {
@@ -25,7 +25,7 @@ export class NotificationsService {
 		}
 		const pagedResult = await this.storeNotificationsService.query(query, page, pageSize);
 		const { totalItems, member, currentPage, lastPage } = pagedResult;
-		return addPrevAndNextPage({ results: member, total: totalItems, pageSize, currentPage, last: lastPage });
+		return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage, last: lastPage });
 	}
 
 

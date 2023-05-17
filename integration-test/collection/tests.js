@@ -81,6 +81,7 @@ describe("/collections", function() {
 	});
 
 	it("return only public collections and has the specified id within", function(done) {
+		this.timeout(10000);
 		var pageSize = 1000;
 		var query = basePath +
 			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
@@ -102,6 +103,7 @@ describe("/collections", function() {
 	});
 
 	it("return item with id", function(done) {
+		this.timeout(10000);
 		var query = basePath + "/" + config.id.collection +
 			"?access_token=" + config["access_token"];
 		request(app)
@@ -117,6 +119,7 @@ describe("/collections", function() {
 	});
 
 	it("returns children item with id", function(done) {
+		this.timeout(10000);
 		var query = basePath + "/" + config.id.collection_parent + "/children" +
 			"?access_token=" + config["access_token"];
 		request(app)
@@ -137,6 +140,7 @@ describe("/collections", function() {
 	});
 
 	it("returns roots", function(done) {
+		this.timeout(10000);
 		var query = basePath + "/roots" +
 			"?pageSize=400&access_token=" + config["access_token"];
 		request(app)

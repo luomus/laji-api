@@ -27,7 +27,7 @@ export class CollectionsService {
 
 	async getPage(ids?: string[], lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
 		const collections = await this.getCollections(ids, lang, langFallback);
-		return pageResult(collections, page, pageSize);
+		return pageResult(collections, page, pageSize, lang);
 	}
 
 	async findOne(id: string, lang: Lang = Lang.en, langFallback = true) {
@@ -42,14 +42,14 @@ export class CollectionsService {
 		const children = (await this.getCollections(undefined, lang, langFallback)).filter(collection => 
 			collection.isPartOf === id
 		);
-		return pageResult(children, page, pageSize);
+		return pageResult(children, page, pageSize, lang);
 	}
 
 	async findRoots(lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
 		const children = (await this.getCollections(undefined, lang, langFallback)).filter(collection => 
 			!collection.isPartOf
 		);
-		return pageResult(children, page, pageSize);
+		return pageResult(children, page, pageSize, lang);
 	}
 
 	private async getCollections<T extends (string | MultiLang)>(ids?: string[], lang?: Lang, langFallback?: boolean)
