@@ -1,12 +1,9 @@
 import { IsBoolean } from "class-validator";
+import { HasContext } from "src/common.dto";
 import { Exclude, ParseOptionalBoolean } from "src/type-utils";
 
 export enum Role {
 	Admin = "MA.admin"
-}
-
-export class HasContext {
-	"@context": string;
 }
 
 export class Person extends HasContext {

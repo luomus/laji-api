@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { Form, Format, GetAllDto, GetDto, Lang } from "./dto/form.dto";
+import { Form, Format, GetAllDto, GetDto } from "./dto/form.dto";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
-import { QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
 
 @ApiSecurity("access_token")
 @ApiTags("forms")

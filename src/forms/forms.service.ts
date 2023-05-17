@@ -1,7 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Form, Format, Lang } from "./dto/form.dto";
+import { Form, Format } from "./dto/form.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_1_MIN, pageResult } from "src/utils";
+import { Lang } from "src/common.dto";
 
 
 @Injectable()

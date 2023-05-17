@@ -3,16 +3,34 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSON, JSONObject } from "../type-utils";
-import { JsonLd, JsonLdObj } from "jsonld/jsonld-spec";
 import { promisePipe } from "src/utils";
-import { MetadataService } from "src/metadata/metadata.service";
+import { MetadataService, Property } from "src/metadata/metadata.service";
 import { Cache } from "cache-manager";
+import { MultiLang } from "src/common.dto";
 
 const BASE_URL = "http://tun.fi/";
 
 type ResourceIdentifierObj = { "@id": string };
 const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 	isObject(data) && Object.keys(data).length === 1 && "@id" in data;
+
+type MultiLangResource = { "@language": string; "@value": string };
+const isMultiLangResource = (data: any): data is MultiLangResource =>
+	isObject(data) && "@language" in data;
+
+type TriplestoreSearchQuery = {
+	type?: string;
+	predicate?: string;
+	objectresource?: string;
+	limit?: number;
+	offset?: string;
+	object?: string;
+	subject?: string;
+}
+
+type TriplestoreQueryOptions = {
+	cache?: number | true;
+}
 
 @Injectable()
 export class TriplestoreService {
@@ -23,9 +41,16 @@ export class TriplestoreService {
 	) {
 		this.triplestoreToJsonLd = this.triplestoreToJsonLd.bind(this);
 		this.resolveResources = this.resolveResources.bind(this);
+		this.resolveLangResources = this.resolveLangResources.bind(this);
 		this.adhereToSchema = this.adhereToSchema.bind(this);
 		this.dropPrefixes = this.dropPrefixes.bind(this);
 		this.rmIdAndType = this.rmIdAndType.bind(this);
+		this.compactJsonLd = this.compactJsonLd.bind(this);
+		this.formatJsonLd = this.formatJsonLd.bind(this);
+	}
+	
+	private getBaseQuery() {
+		return { format: "rdf/xml" };
 	}
 
 	// TODO returned items @context is different than old lajiapi
@@ -34,31 +59,82 @@ export class TriplestoreService {
 	 * @param resource The resource identifier to get 
 	 * @param options Cache options
 	 */
-	async find<T>(resource: string, options?: {cache?: number | true}) {
+	async findOne<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
 		const { cache } = options || {};
 		if (cache) {
-			const cached = await this.cache.get(resource);
+			const cached = await this.cache.get<T>(resource);
 			if (cached) {
 				return cached;
 			}
 		}
-		return promisePipe(
-			this.triplestoreClient.get(resource, { params: { format: "rdf/xml" } }),
-			this.triplestoreToJsonLd,
-			this.resolveResources,
-			this.adhereToSchema,
-			this.dropPrefixes,
-			this.rmIdAndType,
-			this.cacheResult(resource, cache)
-		) as Promise<T>;
+		return this.rdfToJsonLd<T>(
+			this.triplestoreClient.get(resource, { params: this.getBaseQuery() }),
+			this.getCacheKey(resource),
+			options
+		);
 	}
 
-	private cacheResult<T>(resource: string, ttl?: number | true) { return async (item: T) => {
-		ttl && await this.cache.set(resource, item, ttl === true ? undefined : ttl);
+	/**
+	 * Find multple resources from triplestore.
+	 * @param query Query options
+	 * @param options Cache options
+	 */
+	async find<T>(query: TriplestoreSearchQuery = {}, options?: {cache?: number | true}): Promise<T[]> {
+		const _query = { ...this.getBaseQuery(), ...query };
+		const { cache } = options || {};
+		if (cache) {
+			const cached = await this.cache.get<T[]>(this.getCacheKey("search", _query));
+			if (cached) {
+				return cached;
+			}
+		}
+		return this.rdfToJsonLd<T[]>(
+			this.triplestoreClient.get("search", { params: _query }),
+			this.getCacheKey("search", _query),
+			options
+		);
+	}
+
+	private async rdfToJsonLd<T>(
+		rdf: JSON | Promise<JSON>,
+		cacheKey: string,
+		options?: TriplestoreQueryOptions
+	): Promise<T> {
+		const jsonld = await promisePipe(
+			rdf,
+			this.triplestoreToJsonLd
+		);
+		const isArrayResult = jsonld["@graph"] && Array.isArray(jsonld["@graph"]);
+
+		const formatted = isArrayResult
+			? await Promise.all((jsonld["@graph"] as any).map(this.formatJsonLd))
+			: await this.formatJsonLd(jsonld);
+
+		return this.cacheResult(cacheKey, options)(formatted) as Promise<T>;
+	}
+
+	private formatJsonLd(jsonld: any) {
+		return promisePipe(
+			jsonld,
+			this.compactJsonLd,
+			this.resolveResources,
+			this.adhereToSchema,
+			this.resolveLangResources,
+			this.dropPrefixes,
+			this.rmIdAndType
+		);
+	}
+
+	private getCacheKey(resource: string, query?: TriplestoreSearchQuery) {
+		return resource + JSON.stringify(query || {});
+	}
+
+	private cacheResult<T>(cacheKey: string, options?: TriplestoreQueryOptions) { return async (item: T) => {
+		options?.cache && await this.cache.set(cacheKey, item, options.cache === true ? undefined : options.cache);
 		return item;
 	}}
 
-	triplestoreToJsonLd(rdf: string) {
+	triplestoreToJsonLd(rdf: string): Promise<NodeObject> {
 		const rdfStore = graph();
 		parse(rdf, rdfStore, BASE_URL, "application/rdf+xml");
 
@@ -72,75 +148,116 @@ export class TriplestoreService {
 				}
 
 				const jsonld = JSON.parse(data);
-				const context = this.getContextFromJsonLd(jsonld);
-				try {
-					const json: JsonLdObj = await compact(jsonld, context);
-					if (json["@graph"]) {
-						return resolve(json["@graph"] as NodeObject);
-					}
-					resolve(json);
-				} catch (err) {
-					reject(err);
-				}
+				resolve(jsonld);
 			});
 		});
 	}
 
-	private getContextFromJsonLd(jsonLd: JsonLdObj): any {
-		return jsonLd["@type"];
+	compactJsonLd(jsonld: any) {
+		return compact(jsonld, jsonld["@type"]) as unknown as JSON;
+	}
+
+	private traverseJsonLd(data: JSONObject, op: (jsonLd: JSONObject | JSON[]) => (JSON | undefined)): JSONObject {
+		const traverse = (data: JSON | JSON[]): JSON => {
+			if (Array.isArray(data)) {
+				const operated = op(data);
+				if (operated !== undefined) {
+					return operated;
+				}
+				return data.map(traverse);
+			} else if (isObject(data)) {
+				const operated = op(data);
+				if (operated !== undefined) {
+					return operated;
+				}
+				return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
+					const value = data[k];
+					// Should never happen, but doesn't matter if it does.
+					// Undefined values have no semantic difference to missing keys.
+					// We want the result to be JSON, and JSON doesn't have 'undefined'.
+					if (value === undefined) {
+						return d;
+					}
+					d[k] = traverse(value);
+					return d;
+				}, {});
+			}
+			return data;
+		};
+
+		return traverse(data) as JSONObject;
 	}
 
 	/**
 	 * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
 	 * This function resolves those resources into values like "MOS.500".
 	 */
-	private resolveResources(data: JsonLdObj): JSON {
-		const resolve = (data: JsonLd): JSON => {
-			if (Array.isArray(data)) {
-				return data.map(resolve);
-			} else if (isObject(data)) {
-				if (isResourceIdentifier(data)) {
-					return data["@id"].replace(BASE_URL, "");
-				}
-				return (Object.keys(data) as (keyof JsonLdObj)[]).reduce<JSONObject>((d, k) => {
-					const value = data[k];
-					// Should never happen, but doesn't matter if it does.
-					// Undefined values have no semantic difference to missing keys.
-					if (value === undefined) {
-						return d;
-					}
-					// 'any' because in reality the value is JsonLd, but it's hard
-					// to type that here because we are reducing nito a JSONObject.
-					d[k] = resolve(value as any);
-					return d;
-				}, {});
+	private resolveResources(data: JSONObject): JSONObject {
+		return this.traverseJsonLd(data, (value: JSONObject | JSON[]) => {
+			if (isResourceIdentifier(value)) {
+				return value["@id"].replace(BASE_URL, "");
 			}
-			return data;
-		}
+		});
+	}
 
-		return resolve(data);
+	private resolveLangResources(data: JSONObject): JSONObject {
+		return this.traverseJsonLd(data, (value: JSONObject | JSON[]) => {
+			if (Array.isArray(value) && isMultiLangResource(value[0])) {
+				return value.reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => ({
+					...langObj,
+					[resource["@language"]]: resource["@value"]
+				}), {});
+			}
+		});
 	}
 
 	/**
-	 * RDF doesn't know about our properties' schema info. This function
-	 * makes the output to adhere to schema - for example map a property with 
-	 * maxOccurs: unbounded" to be an array always.
+	 * RDF doesn't know about our properties' schema info. This function makes the output to adhere to schema.
 	 */
-	private async adhereToSchema(data: JSONObject) {
-		const context = data["@type"];
-		if (typeof context !== "string") {
-			throw new Error("Couldn't get context for triplestore data");
-		}
-		const properties = await this.metadataService.getPropertiesForContext(context);
-		return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
-			const property = properties[k];
-			if (property?.maxOccurs === "unbounded" && !Array.isArray(data[k])) {
-				d[k] = [data[k]];
-			} else {
-				d[k] = data[k];
+	private async adhereToSchema(data: JSONObject | JSONObject[]) {
+		function asArray(value: any, property: Property) {
+			if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
+				return [value];
 			}
-			return d;
-		}, {});
+		}
+		function multiLangAsArr(value: any, property: Property) {
+			if (property.multiLanguage && value && !Array.isArray(value)) {
+				return [value];
+			}
+		}
+
+		const adhereObjectToSchema = async (data: JSONObject) => {
+			const context = data["@type"];
+			if (typeof context !== "string") {
+				throw new Error("Couldn't get context for triplestore data");
+			}
+
+			const transformations: ((value: any, property: Property) => any | undefined)[] =
+				[asArray, multiLangAsArr];
+			const properties = await this.metadataService.getPropertiesForContext(context);
+
+			return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
+				const property = properties[k];
+				let value = data[k];
+				if (!property) {
+					d[k] = value;
+					return d;
+				}
+				for (const transform of transformations) {
+					const transformed = transform(value, property);
+					if (transformed !== undefined) {
+						value = transformed;
+					}
+				}
+
+				d[k] = value;
+				return d;
+			}, {});
+		}
+
+		return Array.isArray(data)
+			? data.map(adhereObjectToSchema)
+			: adhereObjectToSchema(data);
 	}
 
 	private dropPrefixes(data: JSONObject) {

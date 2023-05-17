@@ -25,6 +25,8 @@ import { StoreModule } from "./store/store.module";
 import { TriplestoreClientModule } from "./triplestore/client/triplestore-client.module";
 import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/triplestore-readonly-client.module";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
+import { CollectionsModule } from "./collections/collections.module";
+import { LangModule } from "./lang/lang.module";
 
 @Module({
 	imports: [
@@ -62,7 +64,9 @@ import { TriplestoreModule } from "./triplestore/triplestore.module";
 		ProfileModule,
 		StoreModule,
 		MetadataModule,
-		NotificationsModule
+		NotificationsModule,
+		CollectionsModule,
+		LangModule
 	],
 	controllers: [AppController],
 	providers: [

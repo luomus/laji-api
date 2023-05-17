@@ -7,12 +7,15 @@ import { catchError, Observable, throwError } from "rxjs";
 @Injectable()
 export class HttpClientErrorToHttpExceptionInterceptor implements NestInterceptor {
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		return next.handle().pipe(catchError(e => 
-			throwError(() => 
-				(!(e instanceof HttpException) && e.response?.status)
-					? new HttpException(e.response?.data as any ?? "LajiApi generic message - External request failed",
+		return next.handle().pipe(catchError(e => {
+			return throwError(() =>  {
+				return (!(e instanceof HttpException) && e.response?.status)
+					? new HttpException(e.response?.data as any ?? "LajiApi generic error - External request failed",
 						e.response?.status)
-					: e)
+					: e
+			}
+			);
+		}
 		));
 	}
 }

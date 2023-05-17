@@ -1,11 +1,4 @@
-import { PagedDto } from "src/common.dto";
-
-export enum Lang {
-	fi = "fi",
-	sv = "sv",
-	en = "en",
-	multi = "multi",
-}
+import { Lang, PagedDto } from "src/common.dto";
 export enum Format {
 	schema = "schema",
 	json = "json"

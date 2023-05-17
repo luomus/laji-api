@@ -29,7 +29,6 @@ to:
 
 Error messages might change.
 
-
 ## JSON LD @context path
 
 Will be changed like so:
@@ -39,5 +38,28 @@ Will be changed like so:
 +  "@context": "http://schema.laji.fi/context/person-en.jsonld"
 ```
 
-
 * /person/{personToken}/friends/{personId} returns profile, not `true`
+
+## Page sizes
+
+Default page size for all queries is 20. I didn't investigate it the page size changes per endpoint in the old API.
+
+## Collection props lang hack
+
+Old api treats these multilang props as non-multilang, returning them always as a string, using the "en" lang value. If the hack isn't recreated here, querying in other languages than "en" will not include these props.
+
+Backward compatibility could be reached also by setting them as non multilang in schema.
+
+*	temporalCoverage
+* taxonomicCoverage
+* collectionLocation
+* dataLocation
+* methods
+* coverageBasis
+* geographicCoverage
+
+# Minor changes
+
+## Collection long name
+
+Might be somewhat different now, the old logic was illogical and clunky to reproduce. It's simpler now.

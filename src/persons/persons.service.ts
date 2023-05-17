@@ -30,7 +30,7 @@ export class PersonsService {
 
 	async findByPersonId(personId: string) {
 		return promisePipe(
-			this.triplestoreService.find(personId, { cache: CACHE_5_MIN }),
+			this.triplestoreService.findOne(personId, { cache: CACHE_5_MIN }),
 			serializeInto(Person),
 			decoratePerson
 		)
