@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { CACHE_MANAGER, HttpException, Inject, Injectable } from "@nestjs/common";
 import { Lang, LANGS, MultiLang } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
@@ -6,6 +6,7 @@ import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { serializeInto } from "src/type-utils";
 import { pageResult, promisePipe } from "src/utils";
 import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection } from "./collection.dto";
+import { Cache } from "cache-manager";
 
 const CACHE_10_MIN = 1000 * 60 * 10;
 const GBIF_DATASET_PARENT = "HR.3777";
@@ -14,15 +15,11 @@ const GBIF_DATASET_PARENT = "HR.3777";
 @Injectable()
 export class CollectionsService {
 
-	/**
-	 * Not to be used directly, use getIdToCollection() instead.
-	 */
-	private idToCollection: Record<string, Collection<MultiLang>>;
-
 	constructor(
 		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService,
 		private triplestoreService: TriplestoreService,
-		private langService: LangService
+		private langService: LangService,
+		@Inject(CACHE_MANAGER) private cache: Cache
 	) {}
 
 	async getPage(ids?: string[], lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
@@ -73,14 +70,17 @@ export class CollectionsService {
 	}
 
 	private async getIdToCollection(): Promise<Record<string, Collection<MultiLang>>> {
-		if (this.idToCollection) {
-			return this.idToCollection;
+		const cached = await this.cache.get<Record<string, Collection<MultiLang>>>("idToCollection");
+		if (cached) {
+			return cached;
 		}
-		this.idToCollection = (await this.getAll()).reduce((idToCollection, c) => {
+
+		const idToCollection = (await this.getAll()).reduce((idToCollection, c) => {
 			idToCollection[c.id] = c;
 			return idToCollection;
-		}, {} as Record<string, Collection<MultiLang>>);
-		return this.idToCollection;
+		}, {} as Record<string, Collection<MultiLang>>)
+		this.cache.set("idToCollection", idToCollection);
+		return idToCollection;
 	}
 
 	private async getAll(): Promise<Collection<MultiLang>[]> {
