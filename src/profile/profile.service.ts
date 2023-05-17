@@ -5,8 +5,7 @@ import { Profile } from "./profile.dto";
 import * as crypto from "crypto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/type-utils";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const equals = require("deep-equal");
+import * as equals from "fast-deep-equal";
 
 @Injectable()
 export class ProfileService {

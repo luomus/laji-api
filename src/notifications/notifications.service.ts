@@ -5,7 +5,7 @@ import { StoreService } from "src/store/store.service";
 import { Optional } from "src/type-utils";
 import { addPrevAndNextPage, CACHE_1_MIN } from "src/utils";
 import { Notification } from "./notification.dto";
-const equals = require("deep-equal");
+import * as equals from "fast-deep-equal";
 
 @Injectable()
 export class NotificationsService {
