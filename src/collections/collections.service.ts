@@ -51,7 +51,7 @@ export class CollectionsService {
 
 	private async getCollections<T extends (string | MultiLang)>(ids?: string[], lang?: Lang, langFallback?: boolean)
 		: Promise<Collection<T>[]> {
-		const collections = []
+		const collections = [];
 		for (const collection of await this.getAll()) {
 			if (ids?.length && !ids.includes(collection.id)) {
 				continue;
