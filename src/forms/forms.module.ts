@@ -1,4 +1,4 @@
-import { FactoryProvider, Module } from "@nestjs/common";
+import { FactoryProvider, forwardRef, Module } from "@nestjs/common";
 import { FormsService } from "./forms.service";
 import { FormsController } from "./forms.controller";
 import { HttpModule, HttpService } from "@nestjs/axios";
@@ -8,6 +8,7 @@ import { Form } from "./dto/form.dto";
 import { PersonsModule } from "src/persons/persons.module";
 import { CACHE_MANAGER } from "@nestjs/common";
 import { Cache } from "cache-manager";
+import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 
 const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",
@@ -26,8 +27,9 @@ const formRestClientProvider: FactoryProvider<RestClientService<Form>> = {
 };
 
 @Module({
-	imports: [HttpModule, PersonsModule],
+	imports: [HttpModule, PersonsModule, forwardRef(() => FormPermissionsModule)],
 	controllers: [FormsController],
-	providers: [FormsService, formRestClientProvider, formClientConfigProvider]
+	providers: [FormsService, formRestClientProvider, formClientConfigProvider],
+	exports: [FormsService]
 })
 export class FormsModule {}

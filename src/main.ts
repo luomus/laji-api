@@ -23,6 +23,14 @@ export async function bootstrap() {
 		}
 	}));
 
+	// Backward compatibity to old API signature of form permissions.
+	app.use("/formPermissions", proxy.createProxyMiddleware({
+		target: "http://localhost:3004",
+		pathRewrite: {
+			"^/formPermissions": "/forms/permissions"
+		}
+	}));
+
 	app.useStaticAssets("static");
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()

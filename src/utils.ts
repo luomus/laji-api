@@ -64,12 +64,7 @@ function pipe<T, A, B, C, D, E, F, G>(initialValue: T, op1: Reducer<T, A>, op2: 
 function pipe<T, A, B, C, D, E, F, G, H>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>): H;
 function pipe<T, A, B, C, D, E, F, G, H, I>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>, op9: Reducer<H, I>): I;
 function pipe<T>(initialValue: T, ...operations: Reducer<any, any>[]): any {
-	return operations.reduce((promise, fn) => promise.then(
-		value => isPromise(fn)
-			? fn(value)
-			: Promise.resolve(fn(value))
-	)
-	, isPromise(initialValue) ? initialValue : Promise.resolve(initialValue));
+	return operations.reduce((value, fn) => fn(value), initialValue);
 }
 
 
@@ -86,7 +81,7 @@ export class PaginatedDto<T> {
 	"@context": string;
 }
 
-export const isPaginatedDto = <T,>(maybePaginated: any): maybePaginated is PaginatedDto<T> => 
+export const isPaginatedDto = <T>(maybePaginated: any): maybePaginated is PaginatedDto<T> => 
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "last"]
 		.every(k => k in maybePaginated);
 
@@ -129,8 +124,48 @@ const addContext = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "@contex
 	const context = (paged.results[0] as any)?.["@context"]
 	const results = context
 		? paged.results.map(i => {
-			delete (i as any)["@context"];
-			return i;
+			const _i = { ...i };
+			delete (_i as any)["@context"];
+			return _i;
 		}) : paged.results
 	return { ...paged, results, "@context": context || `http://schema.laji.fi/context/generic-${lang}.jsonld` };
 };
+
+export const getAllFromPagedResource = async <T>(
+	getPage: (page: number) => Promise<Pick<PaginatedDto<T>, "results" | "last" | "currentPage">>
+): Promise<T[]> => {
+	let res = await getPage(1);
+	let items = res.results;
+	while (res.currentPage < res.last) {
+		res = await getPage(res.currentPage + 1);
+		items = items.concat(res.results);
+	}
+	return items;
+}
+
+type ApplyResult = {
+	<T, R>(result: T, fn: (r: T) => R): Promise<R>
+	<T, R>(result: T[], fn: (r: T) => R): Promise<R[]>
+	<T, R>(result: PaginatedDto<T>, fn: (r: T) => R): Promise<PaginatedDto<R>>
+	<T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T ) => R): Promise<R | R[] | PaginatedDto<R>>
+}
+
+const applyToResult: ApplyResult =  async <T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T) => R)
+	: Promise<R | R[] | PaginatedDto<R>> => {
+	if (isPaginatedDto(result)) {
+		const mappedResults = [];
+		for (const r of result.results) {
+			mappedResults.push(await fn(r));
+		}
+		return { ...result, results: mappedResults };
+	} else if (Array.isArray(result)) {
+		const mapped = [];
+		for (const r of result) {
+			mapped.push(await fn(r));
+		}
+		return mapped;
+	}
+	return fn(result);
+};
+
+export { applyToResult };

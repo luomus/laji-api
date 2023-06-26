@@ -1,14 +1,9 @@
 import { IsBoolean } from "class-validator";
 import { Exclude, ParseOptionalBoolean } from "../type-utils";
-import { PagedDto, Lang, MultiLang, HasContext } from "../common.dto";
-import { OmitType } from "@nestjs/swagger";
+import { PagedDto, Lang, MultiLang, HasContext, LangQueryDto } from "../common.dto";
+import { IntersectionType, OmitType } from "@nestjs/swagger";
 
-export class GetPageDto extends PagedDto {
-	lang?: Lang = Lang.en;
-	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-	@ParseOptionalBoolean()
-	@IsBoolean()
-	langFallback?: boolean = true;
+export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
 	/**
 	 * Comma separated ids
 	 */

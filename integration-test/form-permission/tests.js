@@ -52,7 +52,7 @@ describe("/formPermissions", function() {
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.body.permissionRequests.should.include(userId);
-				res.should.have.status(200);
+				res.should.have.status(201);
 				done();
 			});
 	});

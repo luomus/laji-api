@@ -1,76 +1,82 @@
-import { CACHE_MANAGER, HttpException, Inject, Injectable } from "@nestjs/common";
-import { Lang, LANGS, MultiLang } from "src/common.dto";
-import { LangService } from "src/lang/lang.service";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { LANGS, MultiLang } from "src/common.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { serializeInto } from "src/type-utils";
-import { pageResult, promisePipe } from "src/utils";
 import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection } from "./collection.dto";
-import { Cache } from "cache-manager";
+import { Interval } from "@nestjs/schedule";
 
 const CACHE_10_MIN = 1000 * 60 * 10;
 const GBIF_DATASET_PARENT = "HR.3777";
 
-// TODO update collections every 10min
 @Injectable()
 export class CollectionsService {
 
 	constructor(
 		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService,
-		private triplestoreService: TriplestoreService,
-		private langService: LangService,
-		@Inject(CACHE_MANAGER) private cache: Cache
-	) {}
-
-	async getPage(ids?: string[], lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
-		const collections = await this.getCollections(ids, lang, langFallback);
-		return pageResult(collections, page, pageSize, lang);
+		private triplestoreService: TriplestoreService
+	) {
+		this.update();
 	}
 
-	async findOne(id: string, lang: Lang = Lang.en, langFallback = true) {
+	private collections: Collection[] | undefined;
+	private idToCollection: Record<string, Collection> | undefined;
+	private idToChildren: Record<string, Collection[]> | undefined;
+
+	@Interval(CACHE_10_MIN)
+	async update() {
+		this.collections = undefined;
+		this.idToCollection = undefined;
+		this.idToChildren = undefined;
+		await this.getIdToChildren();
+	}
+
+	async findOne(id: string) {
 		const collection = (await this.getIdToCollection())[id];
 		if (!collection) {
 			throw new HttpException("Not found", 404);
 		}
-		return this.prepareCollection(collection, lang, langFallback);
+		return collection;
 	}
 
-	async findChildren(id: string, lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
-		const children = (await this.getCollections(undefined, lang, langFallback)).filter(collection => 
-			collection.isPartOf === id
-		);
-		return pageResult(children, page, pageSize, lang);
+	async findChildren(id: string) {
+		return (await this.getIdToChildren())[id] || [];
 	}
 
-	async findRoots(lang?: Lang, langFallback?: boolean, page?: number, pageSize?: number) {
-		const children = (await this.getCollections(undefined, lang, langFallback)).filter(collection => 
+	async findRoots() {
+		return (await this.getCollections()).filter(collection => 
 			!collection.isPartOf
 		);
-		return pageResult(children, page, pageSize, lang);
 	}
 
-	private async getCollections<T extends (string | MultiLang)>(ids?: string[], lang?: Lang, langFallback?: boolean)
-		: Promise<Collection<T>[]> {
+	async getParents(id: string): Promise<Collection[]> {
+		const idToCollection = await this.getIdToCollection();
+		const parents = [];
+		let collection = idToCollection[id];
+		while (collection.isPartOf) {
+			collection = idToCollection[collection.isPartOf];
+			parents.push(collection)
+		}
+		return parents;
+	}
+
+	async getCollections(ids?: string[])
+		: Promise<Collection[]> {
 		const collections = [];
-		for (const collection of await this.getAll()) {
+		const all = await this.getAll();
+		if (!ids) {
+			return all;
+		}
+		for (const collection of all) {
 			if (ids?.length && !ids.includes(collection.id)) {
 				continue;
 			}
-			collections.push(await this.prepareCollection<T>(collection, lang, langFallback));
+			collections.push(collection);
 		}
 		return collections;
 	}
 
-	private prepareCollection<T extends (string | MultiLang)>
-	(collection: Collection<MultiLang>, lang?: Lang, fallbackLang?: boolean) {
-		return promisePipe(collection,
-			this.langService.translateWith(lang, fallbackLang, ["longName"]),
-			serializeInto(Collection)
-		) as Promise<Collection<T>>;
-	}
-
 	private async getIdToCollection(): Promise<Record<string, Collection<MultiLang>>> {
-		const cached = await this.cache.get<Record<string, Collection<MultiLang>>>("idToCollection");
+		const cached = this.idToCollection;
 		if (cached) {
 			return cached;
 		}
@@ -79,12 +85,30 @@ export class CollectionsService {
 			idToCollection[c.id] = c;
 			return idToCollection;
 		}, {} as Record<string, Collection<MultiLang>>)
-		this.cache.set("idToCollection", idToCollection);
+		this.idToCollection = idToCollection;
 		return idToCollection;
 	}
 
+	private async getIdToChildren() {
+		const cached = this.idToChildren;
+		if (cached) {
+			return cached;
+		}
+		this.idToChildren = {};
+		const collections = await this.getCollections();
+		for (const c of collections) {
+			this.idToChildren[c.id] = collections.filter(collection => collection.isPartOf === c.id);
+		}
+		return this.idToChildren;
+	}
+
 	private async getAll(): Promise<Collection<MultiLang>[]> {
-		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
+		const cached = this.collections;
+		if (cached) {
+			return cached;
+		}
+		this.collections = (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
+		return this.collections
 	}
 
 	private async getTriplestoreCollections(): Promise<Collection<MultiLang>[]> {

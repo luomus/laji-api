@@ -27,6 +27,7 @@ import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/t
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
 	imports: [
@@ -53,6 +54,7 @@ import { LangModule } from "./lang/lang.module";
 			}),
 			isGlobal: true
 		}),
+		ScheduleModule.forRoot(),
 		FormsModule,
 		AccessTokenModule,
 		PersonsModule,

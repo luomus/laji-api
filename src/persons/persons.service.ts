@@ -16,7 +16,7 @@ export class PersonsService {
 		private triplestoreService: TriplestoreService
 	) {}
 
-	async findByToken(personToken: string) {
+	async getByToken(personToken: string) {
 		if (personToken === this.configService.get("IMPORTER_TOKEN")) {
 			return ImporterPerson;
 		}
@@ -37,7 +37,7 @@ export class PersonsService {
 	}
 
 	async isICTAdmin(personToken: string) {
-		const person = await this.findByToken(personToken);
+		const person = await this.getByToken(personToken);
 		return person.role?.includes(Role.Admin) || false;
 	}
 }

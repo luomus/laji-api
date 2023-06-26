@@ -62,7 +62,7 @@ export class TriplestoreService {
 	async findOne<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
 		const { cache } = options || {};
 		if (cache) {
-			const cached = await this.cache.get<T>(resource);
+			const cached = await this.cache.get<T>(this.getCacheKey(resource));
 			if (cached) {
 				return cached;
 			}
@@ -106,11 +106,12 @@ export class TriplestoreService {
 		);
 		const isArrayResult = jsonld["@graph"] && Array.isArray(jsonld["@graph"]);
 
-		const formatted = isArrayResult
+		const formatted = (isArrayResult
 			? await Promise.all((jsonld["@graph"] as any).map(this.formatJsonLd))
-			: await this.formatJsonLd(jsonld);
+			: await this.formatJsonLd(jsonld)
+		) as T;
 
-		return this.cacheResult(cacheKey, options)(formatted) as Promise<T>;
+		return this.cacheResult(formatted, cacheKey, options);
 	}
 
 	private formatJsonLd(jsonld: any) {
@@ -129,10 +130,10 @@ export class TriplestoreService {
 		return resource + JSON.stringify(query || {});
 	}
 
-	private cacheResult<T>(cacheKey: string, options?: TriplestoreQueryOptions) { return async (item: T) => {
+	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
 		options?.cache && await this.cache.set(cacheKey, item, options.cache === true ? undefined : options.cache);
 		return item;
-	}}
+	}
 
 	triplestoreToJsonLd(rdf: string): Promise<NodeObject> {
 		const rdfStore = graph();

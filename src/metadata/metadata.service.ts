@@ -1,4 +1,5 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { CACHE_MANAGER, Inject, Injectable } from "@nestjs/common";
+import { Cache } from "cache-manager";
 import { RestClientService } from "src/rest-client/rest-client.service";
 
 export type Property = {
@@ -17,27 +18,34 @@ const CACHE_30_MIN = 1000 * 60 * 30;
 @Injectable()
 export class MetadataService {
 	constructor(
-		@Inject("TRIPLESTORE_READONLY_REST_CLIENT") private triplestoreRestClient: RestClientService) {}
+		@Inject("TRIPLESTORE_READONLY_REST_CLIENT") private triplestoreRestClient: RestClientService,
+		@Inject(CACHE_MANAGER) private cache: Cache) {}
 
 	/**
 	 * Get all properties.
 	 */
 	private getProperties() {
-		return this.triplestoreRestClient.get<Property[]>("schema/property", undefined, { cache: CACHE_30_MIN });
+		return this.triplestoreRestClient.get<Property[]>("schema/property", undefined);
 	}
 
 	/**
 	 * Get a mapping between contexts' and their properties.
 	 */
 	private async getContexts() {
-		return (await this.getProperties()).reduce<Contexts>((contextMap, property) => {
+		const cached = await this.cache.get<Contexts>("properties");
+		if (cached) {
+			return cached;
+		}
+		const contexts = (await this.getProperties()).reduce<Contexts>((contextMap, property) => {
 			const { domain } = property;
 			domain?.forEach(d => {
 				contextMap[d] = contextMap[d] || {};
 				contextMap[d][property.property] = property;
 			});
 			return contextMap;
-		}, {})
+		}, {});
+		await this.cache.set("properties", contexts, CACHE_30_MIN); 
+		return contexts;
 	}
 
 	/**
@@ -53,5 +61,4 @@ export class MetadataService {
 		}
 		return context;
 	}
-	
 }

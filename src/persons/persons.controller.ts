@@ -20,7 +20,7 @@ export class PersonsController {
 	 */
 	@Get(":personToken")
 	findPersonByToken(@Param("personToken") personToken: string) {
-		return this.personsService.findByToken(personToken);
+		return this.personsService.getByToken(personToken);
 	}
 
 	@Get(":personToken/profile")
@@ -57,7 +57,7 @@ export class PersonsController {
 	 */
 	@Post(":personToken/profile")
 	async createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
-		const { id } = await this.personsService.findByToken(personToken);
+		const { id } = await this.personsService.getByToken(personToken);
 		return this.profileService.createWithPersonId(id, profile);
 	}
 
@@ -66,7 +66,7 @@ export class PersonsController {
 	 */
 	@Put(":personToken/profile")
 	async updateProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
-		const { id } =  await this.personsService.findByToken(personToken);
+		const { id } =  await this.personsService.getByToken(personToken);
 		return this.profileService.updateWithPersonId(id, profile);
 	}
 

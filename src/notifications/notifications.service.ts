@@ -23,7 +23,7 @@ export class NotificationsService {
 		if (onlyUnseen) {
 			query += " AND seen: \"false\"";
 		}
-		const pagedResult = await this.storeNotificationsService.query(query, page, pageSize);
+		const pagedResult = await this.storeNotificationsService.getPage(query, page, pageSize);
 		const { totalItems, member, currentPage, lastPage } = pagedResult;
 		return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage, last: lastPage });
 	}

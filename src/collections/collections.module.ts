@@ -26,6 +26,7 @@ const gbifRestClientProvider: FactoryProvider<RestClientService> = {
 @Module({
 	imports: [HttpModule, TriplestoreModule, LangModule],
 	controllers: [CollectionsController],
-	providers: [CollectionsService, gbifRestClientProvider, gbifClientConfigProvider]
+	providers: [CollectionsService, gbifRestClientProvider, gbifClientConfigProvider],
+	exports: [CollectionsService]
 })
 export class CollectionsModule {}

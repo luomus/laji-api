@@ -7,26 +7,44 @@ const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 @Injectable()
 export class LangService {
 
+	private multiLangKeyCache: Record<string, string[]> = {};
+
 	constructor(private metadataService: MetadataService) {}
 
-	async translate<T extends HasContext, R extends HasContext>
-	(collection: T, lang: Lang = Lang.en, langFallback = true, extraMultiLangKeys?: (keyof T)[]): Promise<R> {
-	 const contextProperties = await this.metadataService.getPropertiesForContext(collection["@context"]);
-	 const multiLangKeys = Object.keys(contextProperties).reduce((keys, propertyKey) => {
-		 const property = contextProperties[propertyKey];
-		 if (property.multiLanguage) {
-			 keys.push(property.shortName);
-		 }
-		 return keys;
-	 }, (extraMultiLangKeys || []) as string[]);
-	 const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
-		 (acc as any)[prop] = getLangValue(((collection as any)[prop] as (MultiLang | undefined)), lang, langFallback);
-		 return acc;
-	 }, {})
-	 return {
-		 ...collection,
-		 ...multiLangValuesTranslated
-	 } as unknown as R;
+	translateWithContext<T, R = T>(context: string) { 
+		return async (item: T, lang: Lang = Lang.en, langFallback = true, extraMultiLangKeys: (keyof T)[] = [])
+			: Promise<R> => {
+			const multiLangKeys = [...extraMultiLangKeys, ...(await this.getMultiLangKeys(context))];
+			const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
+				(acc as any)[prop] = getLangValue(((item as any)[prop] as (MultiLang | undefined)), lang, langFallback);
+				return acc;
+			}, {})
+			return {
+				...item,
+				...multiLangValuesTranslated
+			} as unknown as R;
+		}
+	}
+
+	translate<T extends HasContext, R extends HasContext>
+	(item: T, lang?: Lang, langFallback?: boolean, extraMultiLangKeys?: (keyof T)[]) {
+		return this.translateWithContext<T, R>(item["@context"])(item, lang, langFallback, extraMultiLangKeys)
+	}
+
+	async getMultiLangKeys(context: string) {
+		if (this.multiLangKeyCache[context]) {
+			return this.multiLangKeyCache[context];
+		}
+		const contextProperties = await this.metadataService.getPropertiesForContext(context);
+		const keys = Object.keys(contextProperties).reduce((keys, propertyKey) => {
+			const property = contextProperties[propertyKey];
+			if (property.multiLanguage) {
+				keys.push(property.shortName);
+			}
+			return keys;
+		}, [] as string[]);
+		this.multiLangKeyCache[context] = keys;
+		return keys;
 	}
 
 	translateWith<T extends HasContext, R extends HasContext>(
@@ -38,7 +56,6 @@ export class LangService {
 	}
 }
 
-
 const getLangValueWithFallback = (multiLangValue?: MultiLang, fallbackLang = true): string | undefined => {
 	if (fallbackLang && multiLangValue) {
 		const langIdx = LANG_FALLBACKS.findIndex(lang => multiLangValue[lang]);
@@ -49,7 +66,7 @@ const getLangValueWithFallback = (multiLangValue?: MultiLang, fallbackLang = tru
 	}
 }
 
-const getMultiLangWithFallback = (multiLangValue?: MultiLang, langFallback = true): CompleteMultiLang => {
+const getMultiLangValueWithFallback = (multiLangValue?: MultiLang, langFallback = true): CompleteMultiLang => {
 	return LANGS.reduce((multiLangValueFilled: CompleteMultiLang, lang) => {
 		const value = multiLangValue?.[lang];
 		multiLangValueFilled[lang] = value === undefined
@@ -68,7 +85,7 @@ function getLangValue(multiLangValue?: MultiLang, lang?: Lang, langFallback?: bo
 function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en, langFallback = true)
 	: CompleteMultiLang | string | undefined {
 	if (lang === Lang.multi) {
-		return getMultiLangWithFallback(multiLangValue, langFallback);
+		return getMultiLangValueWithFallback(multiLangValue, langFallback);
 	}
 	if (!multiLangValue) {
 		return undefined;

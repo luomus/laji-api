@@ -63,7 +63,7 @@ export class RestClientService<T = any> {
 	}
 
 	private getCacheKey(path?: string, options?: AxiosRequestConfig) {
-		return this.path + path + JSON.stringify(options?.params)
+		return this.getPath(path) + JSON.stringify(options?.params)
 	}
 
 	private async getWithCache<S>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>)
@@ -78,7 +78,7 @@ export class RestClientService<T = any> {
 		// } }
 		let cachedByPath: Record<string, S>;
 		if (lajiApiOptions?.cache) {
-			cachedByPath = await this.cache.get<Record<string, S>>(this.path + path)
+			cachedByPath = await this.cache.get<Record<string, S>>(this.getPath(path))
 				|| {} as Record<string, S>;
 			const cached = this.getCacheKey(path, options) in cachedByPath
 				? cachedByPath[this.getCacheKey(path, options)]
@@ -93,7 +93,7 @@ export class RestClientService<T = any> {
 		if (lajiApiOptions?.cache) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
 			cachedByPath![this.getCacheKey(path, options)] = result;
-			await this.cache.set(this.path + path,
+			await this.cache.set(this.getPath(path),
 				cachedByPath!,
 				lajiApiOptions.cache === "cache" ? undefined : lajiApiOptions.cache);
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
@@ -109,7 +109,7 @@ export class RestClientService<T = any> {
 		body?: S, options?: AxiosRequestConfig,
 		lajiApiOptions?: LajiApiOptions<S>
 	) {
-		await this.cache.del(this.path + path);
+		await this.cache.del(this.getPath(path));
 		return RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.post<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
 		), lajiApiOptions);
@@ -121,14 +121,14 @@ export class RestClientService<T = any> {
 		options?: AxiosRequestConfig,
 		lajiApiOptions?: LajiApiOptions<S>
 	) {
-		await this.cache.del(this.path + path);
+		await this.cache.del(this.getPath(path));
 		return RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.put<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
 		), lajiApiOptions);
 	}
 
 	async delete(path?: string, options?: AxiosRequestConfig) {
-		await this.cache.del(this.path + path);
+		await this.cache.del(this.getPath(path));
 		return firstValueFrom(
 			this.httpService.delete(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data))
 		);

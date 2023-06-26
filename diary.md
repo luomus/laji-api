@@ -58,7 +58,7 @@ Old api treats these multilang props as non-multilang, returning them always as 
 
 Backward compatibility could be reached also by setting them as non multilang in schema (confirmed by Mikko that we could do so).
 
-*	temporalCoverage
+* temporalCoverage
 * taxonomicCoverage
 * collectionLocation
 * dataLocation
@@ -71,3 +71,7 @@ Backward compatibility could be reached also by setting them as non multilang in
 ## Collection long name
 
 Might be somewhat different now, the old logic was illogical and clunky to reproduce. It's simpler now.
+
+## Form permission endpoint
+
+Moved from "/formPermission" to "/form/permissions". Backward compatibility is kept.

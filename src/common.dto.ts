@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
-import { IsInt } from "class-validator";
+import { IsBoolean, IsInt, isObject } from "class-validator";
+import { ParseOptionalBoolean } from "./type-utils";
 
 export class PagedDto {
 	@Type(() => Number)
@@ -9,7 +10,23 @@ export class PagedDto {
 	@Type(() => Number)
 	@IsInt()
 	pageSize?: number = 20;
+	lang?: Lang = Lang.en;
 }
+
+export const isPagedQueryDto = (maybePagedQuery: any): maybePagedQuery is PagedDto => 
+	isObject(maybePagedQuery) && ["page", "pageSize"] .every(k => k in maybePagedQuery);
+
+export class LangQueryDto {
+	lang?: Lang = Lang.en;
+	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
+	@ParseOptionalBoolean()
+	@IsBoolean()
+	langFallback?: boolean = true;
+}
+
+export const isLangQueryDto = (maybeLangQuery: any): maybeLangQuery is LangQueryDto => 
+	isObject(maybeLangQuery) && ["lang", "langFallback"] .every(k => k in maybeLangQuery);
+
 
 export class QueryWithPersonTokenDto {
 	/**

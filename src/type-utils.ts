@@ -13,7 +13,7 @@ export const isJSONObjectOrUndefined = (v?: JSON): v is (undefined | JSON) => v 
 
 export type Newable<T> = { new (...args: any[]): T; };
 
-type SerializeOptions = {
+export type SerializeOptions = {
 	includeOnlyTyped?: boolean;
 	excludePrefix?: string;
 	whitelist?: string[]
@@ -57,13 +57,14 @@ export const excludeDecoratedProps = (item: any) => {
 	if (!isObject(item) || item.construct === Object) {
 		return item;
 	}
-	Object.keys(item as any).forEach(k => {
-		const excludedByDecorator = getExcludeDecorator(item, k)
+	return Object.keys(item as any).reduce((excludedItem: any, k: string) => {
+		const excludedByDecorator = getExcludeDecorator(item, k);
 		if (excludedByDecorator) {
-			delete (item as any)[k];
+			return excludedItem;
 		}
-	});
-	return item;
+		excludedItem[k] = item[k];
+		return excludedItem;
+	}, {});
 }
 
 const excludeMetadataKey = Symbol("Exclude");

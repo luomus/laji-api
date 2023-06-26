@@ -1,22 +1,82 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { Form, Format, GetAllDto, GetDto } from "./dto/form.dto";
+import { AcceptAccessDto, Form, Format, GetAllDto, GetDto, RevokeAccessDto } from "./dto/form.dto";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
+import { FormPermissionsService } from "./form-permissions/form-permissions.service";
+import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 
 @ApiSecurity("access_token")
 @ApiTags("forms")
 @Controller("forms")
 export class FormsController {
-	constructor(private readonly formsService: FormsService) {}
+	constructor(
+		private readonly formsService: FormsService,
+		private readonly formPermissionsService: FormPermissionsService
+	) {}
+
+	/*
+	 * Get form permissions for a person
+	 */
+	@Get("permissions")
+	getPermissions(@Query() { personToken }: QueryWithPersonTokenDto) {
+		return this.formPermissionsService.getByPersonToken(personToken);
+	}
+
+	/*
+	 * Get form permissions for a person
+	 */
+	@Get("permissions/:collectionID")
+	getPermissionsByCollectionID(
+		@Param("collectionID") collectionID: string,
+		@Query() { personToken }: QueryWithPersonTokenDto
+	) {
+		return this.formPermissionsService.getByCollectionIdAndPersonToken(collectionID, personToken);
+	}
+
+	/*
+	 * Request access to form
+	 */
+	@Post("permissions/:collectionID")
+	requestAccess(
+		@Param("collectionID") collectionID: string,
+		@Query() { personToken }: QueryWithPersonTokenDto
+	) {
+		return this.formPermissionsService.requestAccess(collectionID, personToken);
+	}
+
+	/*
+	 * Accept access to form
+	 */
+	@Put("permissions/:collectionID/:personID")
+	acceptAccess(
+		@Param("collectionID") collectionID: string,
+		@Param("personID") personID: string,
+		@Query() { personToken, type }: AcceptAccessDto
+	) {
+		return this.formPermissionsService.acceptAccess(collectionID, personID, type, personToken);
+	}
+
+	/*
+	 * Remove access to form
+	 */
+	@Delete("permissions/:collectionID/:personID")
+	revokeAccess(
+		@Param("collectionID") collectionID: string,
+		@Param("personID") personID: string,
+		@Query() { personToken }: RevokeAccessDto
+	) {
+		return this.formPermissionsService.revokeAccess(collectionID, personID, personToken);
+	}
 
 	/*
 	 * Get all forms
 	 */
 	@Get()
-	findAll(@Query() { lang = Lang.en, page, pageSize }: GetAllDto) {
-		return this.formsService.getPage(lang, page, pageSize);
+	@UseInterceptors(createQueryParamsInterceptor(GetAllDto))
+	getPage(@Query() { lang }: GetAllDto) {
+		return this.formsService.getAll(lang);
 	}
 
 	/*

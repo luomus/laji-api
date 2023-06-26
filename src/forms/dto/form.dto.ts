@@ -3,14 +3,17 @@ export enum Format {
 	schema = "schema",
 	json = "json"
 }
+import { Form as FormI } from "laji-schema";
+import { OmitType } from "@nestjs/swagger";
 
-export class Form {
+export class Form implements FormI {
 	id?: string;
 	name?: string;	
 	fields?: any;	
 	uiSchema?: any;	
-	options?: any;	
+	options: any;	
 	translations?: any;	
+	collectionID?: any;	
 }
 
 export class GetDto {
@@ -28,3 +31,24 @@ export class GetDto {
 export class GetAllDto extends PagedDto {
 	lang?: Lang = Lang.en;
 }
+
+export class QueryWithCollectionID {
+	/**
+	 * Collection id
+	 */
+	collectionID: string;
+}
+
+export class AcceptAccessDto {
+	/**
+	 * 	Person token who is authorised to accept requests
+	 */
+	personToken: string;
+
+	/**
+	 * Access type
+	 */
+	type: "editor" | "admin" = "editor";
+}
+
+export class RevokeAccessDto extends OmitType(AcceptAccessDto, ["type"]) {}
