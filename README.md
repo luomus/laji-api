@@ -46,4 +46,4 @@ You can contact us by sending feedback from [laji.fi](https://laji.fi).
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+[MIT](LICENSE).
