@@ -4,6 +4,8 @@ The new FinBIF API, that FinBIF will slowly migrate to.
 
 ## Development
 
+### Stack
+
 [Nest](https://github.com/nestjs/nest)
 
 ### Installation
