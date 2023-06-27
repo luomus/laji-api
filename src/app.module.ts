@@ -28,7 +28,7 @@ import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
 import { ScheduleModule } from "@nestjs/schedule";
-import { MailModule } from './mail/mail.module';
+import { MailModule } from "./mail/mail.module";
 
 @Module({
 	imports: [

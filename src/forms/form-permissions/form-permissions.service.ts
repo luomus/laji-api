@@ -1,8 +1,8 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import {Collection} from "src/collections/collection.dto";
+import { Collection } from "src/collections/collection.dto";
 import { CollectionsService } from "src/collections/collections.service";
-import {CompleteMultiLang, Lang, MultiLang} from "src/common.dto";
-import {LangService} from "src/lang/lang.service";
+import { CompleteMultiLang, Lang, MultiLang } from "src/common.dto";
+import { LangService } from "src/lang/lang.service";
 import { MailService } from "src/mail/mail.service";
 import { Person, Role } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -43,7 +43,8 @@ export class FormPermissionsService {
 		return formPermissions;
 	}
 
-	private async getByCollectionId(collectionID: string): Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
+	private async getByCollectionId(collectionID: string)
+	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
 		return entitiesToPermissionLists(
 			await this.storeFormPermissionService.getAll(`collectionID:"${collectionID}"`),
 			"userID"
@@ -206,7 +207,7 @@ export class FormPermissionsService {
 			return;
 		}
 
-		const {admins} = await this.getByCollectionId(collectionID);
+		const { admins } = await this.getByCollectionId(collectionID);
 		for (const adminID of admins) {
 			const admin = await this.personsService.findByPersonId(adminID);
 			this.mailService.sendFormPermissionRequestReceived(admin, { formTitle, person: admin, formID: form.id });
@@ -234,7 +235,11 @@ export class FormPermissionsService {
 
 	private async getFormTitleForLang(collectionID: string, form: Form | undefined, lang: Lang): Promise<string> {
 		if (form?.options.shortTitleFromCollectionName && collectionID) {
-			const collection = await this.langService.translate<Collection<MultiLang>, Collection<string>>(await this.collectionsService.findOne(collectionID), lang, true);
+			const collection = await this.langService.translate<Collection<MultiLang>, Collection<string>>(
+				await this.collectionsService.findOne(collectionID),
+				lang,
+				true
+			);
 			if (collection.collectionName) {
 				return collection.collectionName;
 			}
