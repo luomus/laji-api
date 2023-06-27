@@ -1,9 +1,13 @@
 import { HttpException, Injectable } from "@nestjs/common";
+import {Collection} from "src/collections/collection.dto";
 import { CollectionsService } from "src/collections/collections.service";
+import {CompleteMultiLang, Lang, MultiLang} from "src/common.dto";
+import {LangService} from "src/lang/lang.service";
+import { MailService } from "src/mail/mail.service";
 import { Person, Role } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { StoreService } from "src/store/store.service";
-import { Form } from "../dto/form.dto";
+import { Form, Format } from "../dto/form.dto";
 import { FormsService } from "../forms.service";
 import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto
 } from "./dto/form-permission.dto";
@@ -16,7 +20,9 @@ export class FormPermissionsService {
 		private personsService: PersonsService,
 		private storeService: StoreService,
 		private formService: FormsService,
-		private collectionsService: CollectionsService
+		private collectionsService: CollectionsService,
+		private mailService: MailService,
+		private langService: LangService
 	) {}
 
 	async getByPersonToken(personToken: string): Promise<FormPermissionPersonDto> {
@@ -37,8 +43,11 @@ export class FormPermissionsService {
 		return formPermissions;
 	}
 
-	private getByCollectionId(collectionID: string): Promise<FormPermissionEntity[]> {
-		return this.storeFormPermissionService.getAll(`collectionID:"${collectionID}"`);
+	private async getByCollectionId(collectionID: string): Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
+		return entitiesToPermissionLists(
+			await this.storeFormPermissionService.getAll(`collectionID:"${collectionID}"`),
+			"userID"
+		);
 	}
 
 	async getByCollectionIdAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
@@ -49,15 +58,11 @@ export class FormPermissionsService {
 	private async getByCollectionIdAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
-		if (!formWithPermissionFeature) {
+		if (!formWithPermissionFeature?.collectionID) {
 			throw new HttpException("Form does not have restrict feature enabled", 404);
 		}
 
-		const permissions: Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests"> =
-			entitiesToPermissionLists(
-				await this.getByCollectionId(formWithPermissionFeature.collectionID),
-				"userID"
-			);
+		const permissions = await this.getByCollectionId(formWithPermissionFeature.collectionID);
 		const isAdmin = await this.isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
@@ -95,7 +100,6 @@ export class FormPermissionsService {
 		return permissions.permissionRequests.includes(person.id);
 	}
 
-	//TODO send email
 	async requestAccess(collectionID: string, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		const permissions = await this.getByCollectionIdAndPerson(collectionID, person);
@@ -113,10 +117,12 @@ export class FormPermissionsService {
 			type: FormPermissionEntityType.request,
 			userID: person.id
 		});
+
+		this.sendFormPermissionRequested(person, collectionID);
+
 		return this.getByCollectionIdAndPerson(collectionID, person);
 	}
 
-	//TODO send email
 	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", personToken: string) {
 		const author = await this.personsService.getByToken(personToken);
 		const customer = await this.personsService.findByPersonId(personID);
@@ -145,6 +151,8 @@ export class FormPermissionsService {
 			});
 		}
 
+		this.sendFormPermissionAccepted(customer, collectionID);
+
 		return this.getByCollectionIdAndPerson(collectionID, author);
 	}
 
@@ -163,7 +171,6 @@ export class FormPermissionsService {
 		return existing;
 	}
 
-	//TODO send email
 	async revokeAccess(collectionID: string, personID: string, personToken: string) {
 		const author = await this.personsService.getByToken(personToken);
 		const customer = await this.personsService.findByPersonId(personID);
@@ -184,8 +191,62 @@ export class FormPermissionsService {
 			throw new HttpException("User did not have a permission to delete", 404);
 		}
 
+		this.sendFormPermissionRevoked(customer, collectionID);
+
 		await this.storeFormPermissionService.delete(existing.id);
 		return this.getByCollectionIdAndPerson(collectionID, author);
+	}
+
+	private async sendFormPermissionRequested(person: Person, collectionID: string) {
+		const formTitle = await this.getFormTitle(collectionID);
+		this.mailService.sendFormPermissionRequested(person, { formTitle });
+
+		const form = await this.findFormWithPermissionFeature(collectionID);
+		if (!form) {
+			return;
+		}
+
+		const {admins} = await this.getByCollectionId(collectionID);
+		for (const adminID of admins) {
+			const admin = await this.personsService.findByPersonId(adminID);
+			this.mailService.sendFormPermissionRequestReceived(admin, { formTitle, person: admin, formID: form.id });
+		}
+	}
+
+	private async sendFormPermissionAccepted(person: Person, collectionID: string) {
+		const formTitle = await this.getFormTitle(collectionID);
+		this.mailService.sendFormPermissionAccepted(person, { formTitle });
+	}
+
+	private async sendFormPermissionRevoked(person: Person, collectionID: string) {
+		const formTitle = await this.getFormTitle(collectionID);
+		this.mailService.sendFormPermissionRevoked(person, { formTitle });
+	}
+
+	private async getFormTitle(collectionID: string): Promise<CompleteMultiLang> {
+		const form = await this.findFormWithPermissionFeature(collectionID);
+		
+		const fi = await this.getFormTitleForLang(collectionID, form, Lang.fi);
+		const sv = await this.getFormTitleForLang(collectionID, form, Lang.sv);
+		const en = await this.getFormTitleForLang(collectionID, form, Lang.en);
+		return { fi, sv, en };
+	}
+
+	private async getFormTitleForLang(collectionID: string, form: Form | undefined, lang: Lang): Promise<string> {
+		if (form?.options.shortTitleFromCollectionName && collectionID) {
+			const collection = await this.langService.translate<Collection<MultiLang>, Collection<string>>(await this.collectionsService.findOne(collectionID), lang, true);
+			if (collection.collectionName) {
+				return collection.collectionName;
+			}
+		}
+		if (form) {
+			const translatedForm = await this.formService.findOne(form.id, Format.json, lang, true);
+			const titleFromForm = translatedForm.shortTitle || translatedForm.title
+			if ( titleFromForm) {
+				return titleFromForm;
+			}
+		}
+		return collectionID;
 	}
 }
 

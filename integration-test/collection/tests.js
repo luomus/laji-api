@@ -106,13 +106,10 @@ describe("/collections", function() {
 		this.timeout(10000);
 		var query = basePath + "/" + config.id.collection +
 			"?access_token=" + config["access_token"];
-		console.log('query', query);
 		request(app)
 			.get(query)
 			.end(function(err, res) {
-				console.log('?', !!err);
 				if (err) return done(err);
-				console.log(res.body);
 				res.should.have.status(200);
 				helpers.toHaveOnlyKeys(res.body, itemProperties);
 				res.body.should.have.any.keys("@context");

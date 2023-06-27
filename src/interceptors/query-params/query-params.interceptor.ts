@@ -14,7 +14,7 @@ import { plainToClass } from "class-transformer";
  * @param serializeOptions Options for serialization.
  */
 export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & Partial<PagedDto>)>
-	(QueryDto: Newable<T>, serializeInto?: Newable<any>, serializeOptions?: SerializeOptions)
+(QueryDto: Newable<T>, serializeInto?: Newable<any>, serializeOptions?: SerializeOptions)
 	: ClassDecorator {
 	@Injectable()
 	class QueryParamsInterceptor implements NestInterceptor {

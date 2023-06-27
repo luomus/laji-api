@@ -9,6 +9,7 @@
 			"options": {
 				"introspectComments": true
 			}
-		}]
+		}],
+		"assets": ["mail/templates/**/*"]
   }
 }

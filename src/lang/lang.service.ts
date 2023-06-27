@@ -26,7 +26,7 @@ export class LangService {
 		}
 	}
 
-	translate<T extends HasContext, R extends HasContext>
+	translate<T extends HasContext, R extends HasContext = T>
 	(item: T, lang?: Lang, langFallback?: boolean, extraMultiLangKeys?: (keyof T)[]) {
 		return this.translateWithContext<T, R>(item["@context"])(item, lang, langFallback, extraMultiLangKeys)
 	}

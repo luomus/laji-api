@@ -6,15 +6,10 @@ export enum Format {
 import { Form as FormI } from "laji-schema";
 import { OmitType } from "@nestjs/swagger";
 
-export class Form implements FormI {
-	id?: string;
-	name?: string;	
-	fields?: any;	
-	uiSchema?: any;	
-	options: any;	
-	translations?: any;	
-	collectionID?: any;	
-}
+export type Form = FormI & {
+	id: string;
+	options: NonNullable<FormI["options"]>
+};	
 
 export class GetDto {
 	format?: Format = Format.schema;
