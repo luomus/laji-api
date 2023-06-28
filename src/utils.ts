@@ -105,7 +105,7 @@ export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en
 export const paginateAlreadyPaged = <T>(pagedResult: Omit<PaginatedDto<T>, "@context" | "prevPage" | "nextPage">, lang = Lang.en) => pipe(
 	pagedResult,
 	addPrevAndNextPage,
-	addContext(lang)
+	addContextToPaged(lang)
 );
 
 export const addPrevAndNextPage = <T extends { currentPage: number; last: number; }>(data: T)
@@ -120,7 +120,7 @@ export const addPrevAndNextPage = <T extends { currentPage: number; last: number
 	return result;
 };
 
-const addContext = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "@context">): PaginatedDto<T> => {
+const addContextToPaged = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "@context">): PaginatedDto<T> => {
 	const context = (paged.results[0] as any)?.["@context"]
 	const results = context
 		? paged.results.map(i => {
@@ -150,6 +150,9 @@ type ApplyResult = {
 	<T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T ) => R): Promise<R | R[] | PaginatedDto<R>>
 }
 
+/**
+ * Map a given function to all items of a "result" - "result" being either a page, an array or a single object.
+ */
 const applyToResult: ApplyResult =  async <T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T) => R)
 	: Promise<R | R[] | PaginatedDto<R>> => {
 	if (isPaginatedDto(result)) {

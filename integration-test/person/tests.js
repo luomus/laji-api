@@ -396,7 +396,6 @@ describe("/person", function() {
 				.put(query)
 				.end(function(err, res) {
 					if (err) return done(err);
-					console.log(res.body.message);
 					res.should.have.status(200);
 					done();
 				});
