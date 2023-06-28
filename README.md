@@ -14,6 +14,8 @@ The new FinBIF API, that FinBIF will slowly migrate to.
 $ npm install
 ```
 
+Fill in `.env` file, using `.env.example` as as template.
+
 ### Running the app
 
 ```bash
@@ -38,6 +40,9 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+
+# Old api e2e tests (fill in integration-test/config.json first)
+$ npm run test:e2e-old
 ```
 
 ## Contact
