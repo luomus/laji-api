@@ -73,8 +73,8 @@ export class RestClientService<T = any> {
 		//
 		// Example for cachedByPath, where this.path = "https://foo.bar/path", path = "path":
 		// { "https://foo.bar/path": {
-		// "https://foo.bar/path?param1=foo": "cached 1",
-		// "https://foo.bar/path?param2=bar": "cached 2",
+		// "https://foo.bar/path?param1=foo": "cached example value 1",
+		// "https://foo.bar/path?param2=bar": "cached example value 2",
 		// } }
 		let cachedByPath: Record<string, S>;
 		if (lajiApiOptions?.cache) {

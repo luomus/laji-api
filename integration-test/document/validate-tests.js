@@ -21,7 +21,7 @@ describe('/documents/validate', function() {
   const waterbirdPairForm = 'MHL.66';
 
   it('returns 401 when no access token specified', function(done) {
-    helpers.request
+    request(this.server)
       .get(basePath)
       .end(function(err, res) {
         res.should.have.status(401);
@@ -47,7 +47,7 @@ describe('/documents/validate', function() {
         }
       ]
     };
-    helpers.request
+    request(this.server)
       .post(query)
       .send(document)
       .end(function (err, res) {
@@ -74,7 +74,7 @@ describe('/documents/validate', function() {
         }
       ]
     };
-    helpers.request
+    request(this.server)
       .post(query)
       .send(document)
       .end(function (err, res) {
@@ -119,7 +119,7 @@ describe('/documents/validate', function() {
         }
       ]
     };
-    helpers.request
+    request(this.server)
       .post(query)
       .send(document)
       .end(function (err, res) {
@@ -146,7 +146,7 @@ describe('/documents/validate', function() {
         }
       ]
     };
-    helpers.request
+    request(this.server)
       .post(query)
       .send(document)
       .end(function (err, res) {
@@ -175,7 +175,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
       .post(query)
       .send(document)
       .end(function (err, res) {
@@ -202,7 +202,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
       .post(query)
       .send(document)
       .end(function (err, res) {
@@ -254,7 +254,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -285,7 +285,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -338,7 +338,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -392,7 +392,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -424,7 +424,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -483,7 +483,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -518,7 +518,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -583,7 +583,7 @@ describe('/documents/validate', function() {
           }
         ]
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -629,7 +629,7 @@ describe('/documents/validate', function() {
           coordinates: [34.365, 60.248]
         }
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {
@@ -649,7 +649,7 @@ describe('/documents/validate', function() {
           coordinates: [34.001, 32.001]
         }
       };
-      helpers.request
+      request(this.server)
         .post(query)
         .send(document)
         .end(function (err, res) {

@@ -4,18 +4,9 @@ const { request } = require("chai");
 
 describe("/area", function() {
 	var basePath = config["urls"]["area"];
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -24,7 +15,7 @@ describe("/area", function() {
 	});
 
 	it("returns 401 when no access token specified for id", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath + "/" + config["id"]["area_country"])
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -37,7 +28,7 @@ describe("/area", function() {
 		var pageSize = 248;
 		var query = basePath +
 			"?type=country&pageSize="+ pageSize+"&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -57,7 +48,7 @@ describe("/area", function() {
 		var testId = config["id"]["area_municipality"];
 		var query = basePath +
 			"?type=municipality&idIn=" + testId + "," + config["id"]["country"] + "&pageSize="+ pageSize+"&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -80,7 +71,7 @@ describe("/area", function() {
 		];
 		var query = basePath +
 			"?idIn=" + ids.join(",") + "&pageSize="+ ids.length +"&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -98,7 +89,7 @@ describe("/area", function() {
 		var testId = config["id"]["area_iucn"];
 		var query = basePath + "/" + testId +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);

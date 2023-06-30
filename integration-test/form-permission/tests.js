@@ -1,29 +1,19 @@
 var config = require("../config.json");
-var helpers = require("../helpers");
 const { request } = require("chai");
 
 const userId = config["user"]["friend_id"];
 const adminToken = config["user"]["friend2_token"];
 
 describe("/formPermissions", function() {
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
 	const basePath = `${config["urls"]["form-permission"]}`;
 	const collectionID = "HR.2991";
 
 	it("listing permissions for person works", function(done) {
+		this.timeout(30000); // Collections initial load take a while.
 		const query = basePath
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -35,7 +25,7 @@ describe("/formPermissions", function() {
 		const query = `${basePath}/${collectionID}`
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -47,7 +37,7 @@ describe("/formPermissions", function() {
 		const query = `${basePath}/${collectionID}`
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -61,7 +51,7 @@ describe("/formPermissions", function() {
 		const query = `${basePath}/${collectionID}`
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.end(function(err, res) {
 				res.should.have.status(406);
@@ -74,7 +64,7 @@ describe("/formPermissions", function() {
 			+ "/" + userId
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + adminToken;
-		request(app)
+		request(this.server)
 			.put(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -91,7 +81,7 @@ describe("/formPermissions", function() {
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + adminToken
 			+ "&type=admin";
-		request(app)
+		request(this.server)
 			.put(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -107,7 +97,7 @@ describe("/formPermissions", function() {
 		const query = `${basePath}/${collectionID}`
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.end(function(err, res) {
 				res.should.have.status(406);
@@ -120,7 +110,7 @@ describe("/formPermissions", function() {
 			+ "/" + userId
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + adminToken;
-		request(app)
+		request(this.server)
 			.delete(query)
 			.end(function(err, res) {
 				if (err) return done(err);

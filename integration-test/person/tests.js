@@ -4,19 +4,10 @@ const { request } = require("chai");
 describe("/person", function() {
 	var basePath = config["urls"]["person"];
 	var profileKey;
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 401 when fetching with id and no access token specified", function(done) {
 		var query = basePath + "/by-id/" + config["user"]["model"]["id"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -26,7 +17,7 @@ describe("/person", function() {
 
 	it("returns 401 when fetching with token and no access token specified", function(done) {
 		var query = basePath + "/by-id/" + config["user"]["model"]["id"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -36,7 +27,7 @@ describe("/person", function() {
 
 	it("returns user object without sensitive data when accessing with id", function(done) {
 		var query = basePath + "/by-id/" + config["user"]["model"]["id"] + "?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -51,7 +42,7 @@ describe("/person", function() {
 
 	it("returns full user object when accessing with token", function(done) {
 		var query = basePath + "/" + config["user"]["token"] + "?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -63,7 +54,7 @@ describe("/person", function() {
 
 	it("returns fullname for user that only has inherited and preferred names", function(done) {
 		var query = basePath + "/by-id/" + config.user.missing_fullname + "?access_token=" + config.access_token;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -77,7 +68,7 @@ describe("/person", function() {
 
 	it("returns 404 when asking with non existing id", function(done) {
 		var query = basePath + "/by-id/MA.FOOBAR?access_token=" + config.access_token;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(404);
@@ -92,13 +83,13 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.token + "/friends/" + config.user.friend_id
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.delete(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					var query = basePath + "/" + config.user.friend_token + "/friends/" + config.user.model.id
 						+ "?access_token=" + config.access_token;
-					request(app)
+					request(this.server)
 						.delete(query)
 						.end(function(err, res) {
 							res.should.have.status(200);
@@ -116,7 +107,7 @@ describe("/person", function() {
 			var profile = {
 				userID: "MA.9009"
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(profile)
 				.end(function(err, res) {
@@ -134,7 +125,7 @@ describe("/person", function() {
 					search: "none"
 				}
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(profile)
 				.end(function(err, res) {
@@ -157,7 +148,7 @@ describe("/person", function() {
 			var profile = {
 				id: "JX.0"
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(profile)
 				.end(function(err, res) {
@@ -173,7 +164,7 @@ describe("/person", function() {
 			var profile = {
 				friends: ["MA.97"]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(profile)
 				.end(function(err, res) {
@@ -189,7 +180,7 @@ describe("/person", function() {
 			var profile = {
 				friendRequests: ["MA.007"]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(profile)
 				.end(function(err, res) {
@@ -208,7 +199,7 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.token + "/friends/" + config.user.friend_id
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					done();
@@ -218,7 +209,7 @@ describe("/person", function() {
 		it("returns 404 when no correct user token given", function(done) {
 			var query = basePath + "/foobar/profile"
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(400);
@@ -229,7 +220,7 @@ describe("/person", function() {
 		it("returns users public profile", function(done) {
 			var query = basePath + "/by-id/" + config.user.model.id + "/profile"
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -248,7 +239,7 @@ describe("/person", function() {
 		it("returns users full profile", function(done) {
 			var query = basePath + "/" + config.user.token + "/profile"
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -274,7 +265,7 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.post(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -297,7 +288,7 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.post(query)
 				.end(function(err, res) {
 					res.should.have.status(422);
@@ -311,7 +302,7 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.token + "/friends/" + config.user.friend_id
 				+ "?access_token=" + config.access_token + "&block=true";
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -328,13 +319,13 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.post(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(422);
 					query = basePath + "/" + config.user.token + "/profile"
 						+ "?access_token=" + config.access_token;
-					request(app)
+					request(this.server)
 						.get(query)
 						.end(function (err, res) {
 							if (err) return done(err);
@@ -359,7 +350,7 @@ describe("/person", function() {
 			var profile = {
 				blocked: []
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(profile)
 				.end(function(err, res) {
@@ -377,7 +368,7 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.post(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -392,7 +383,7 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.token + "/friends/" + config.user.friend_id
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.put(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -407,16 +398,16 @@ describe("/person", function() {
 			}
 			var query = basePath + "/" + config.user.token + "/profile/"
 				+ "?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					if (err) return done(err);
 					res.should.have.status(200);
 					res.body.should.have.property("friends");
 					res.body.friends.should.contain(config.user.friend_id);
 					var query = basePath + "/" + config.user.friend_token + "/profile/"
 						+ "?access_token=" + config.access_token;
-					request(app)
+					request(this.server)
 						.get(query)
 						.end(function(err, res) {
 							if (err) return done(err);

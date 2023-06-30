@@ -4,18 +4,9 @@ const { request } = require("chai");
 
 describe("/autocomplete", function() {
 	var basePath = config["urls"]["autocomplete"];
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath + "/taxon")
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -28,7 +19,7 @@ describe("/autocomplete", function() {
 		var searchWord = "käki";
 		var query = basePath + "/taxon" +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&q=" + searchWord)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -45,7 +36,7 @@ describe("/autocomplete", function() {
 	it("returns taxons with payload", function(done) {
 		var query = basePath + "/taxon" +
 			"?includePayload=true&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&q=VAn%20Van")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -61,7 +52,7 @@ describe("/autocomplete", function() {
 	it("returns taxons with sp suffix for taxon ranks higher than genum if observationMode is true", function(done) {
 		var query = basePath + "/taxon" +
 			"?includePayload=true&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&q=parus&observationMode=true")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -76,7 +67,7 @@ describe("/autocomplete", function() {
 	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if observationMode is false", function(done) {
 		var query = basePath + "/taxon" +
 			"?includePayload=true&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&q=parus")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -91,7 +82,7 @@ describe("/autocomplete", function() {
 	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if isn't scientific name", function(done) {
 		var query = basePath + "/taxon" +
 			"?includePayload=true&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&q=varpus")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -110,7 +101,7 @@ describe("/autocomplete", function() {
 		var friend = config["user"]["friend"];
 		var query = basePath + "/friends" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -131,7 +122,7 @@ describe("/autocomplete", function() {
 		var friend = config["user"]["friend"];
 		var query = basePath + "/friends" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&q=" + friend.substring(0,3))
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -153,7 +144,7 @@ describe("/autocomplete", function() {
 		var friendGroup = config["user"]["friend_group"];
 		var query = basePath + "/friends" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"] + "&includePayload=true";
-		request(app)
+		request(this.server)
 			.get(query + "&q=" + friend.substring(0,3))
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -170,7 +161,7 @@ describe("/autocomplete", function() {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=llx")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -187,7 +178,7 @@ describe("/autocomplete", function() {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=loxiax")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -204,7 +195,7 @@ describe("/autocomplete", function() {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=loxsp.x")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -221,7 +212,7 @@ describe("/autocomplete", function() {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=loxspx")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -237,7 +228,7 @@ describe("/autocomplete", function() {
 	it("O type number is not parsed like pair in line transect unit taxon", function(done) {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=tt13O")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -254,7 +245,7 @@ describe("/autocomplete", function() {
 	it("O type number is not parsed like pair in line transect unit taxon with taxa that is counted in 5", function(done) {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=PASDOM17o")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -271,7 +262,7 @@ describe("/autocomplete", function() {
 	it("PARI type multiplier is always 2", function(done) {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=tt7PARI")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -288,7 +279,7 @@ describe("/autocomplete", function() {
 	it("PARI type multiplier is always 2 even when species is normally multiplied by 5", function(done) {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&formID=MHL.1&q=PASDOM7PARI")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -338,7 +329,7 @@ describe("/autocomplete", function() {
 	it("return unit payload with taxon data", function(done) {
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -357,7 +348,7 @@ describe("/autocomplete", function() {
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -374,7 +365,7 @@ describe("/autocomplete", function() {
 		const params = {count: undefined, name, maleIndividualCount, femaleIndividualCount};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -391,7 +382,7 @@ describe("/autocomplete", function() {
 		const params = {count, name: undefined, maleIndividualCount, femaleIndividualCount};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -408,7 +399,7 @@ describe("/autocomplete", function() {
 		const params = {count, name, maleIndividualCount, femaleIndividualCount: undefined};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -424,7 +415,7 @@ describe("/autocomplete", function() {
 		const params = {count, name, maleIndividualCount: undefined, femaleIndividualCount: undefined};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -440,7 +431,7 @@ describe("/autocomplete", function() {
 		const params = {count: "many", name, maleIndividualCount: femaleIndividualCount};
 		const _params =  Object.keys({...params, count: undefined, name: `many ${name}`}).map(param => params[param])
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -456,7 +447,7 @@ describe("/autocomplete", function() {
 		const params = {count, name, maleIndividualCount, femaleIndividualCount: "many"};
 		const _params =  Object.keys({...params, femaleIndividualCount: undefined}).map(param => params[param])
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
 			.end(function(err, res) {
 				res.should.have.status(422);
@@ -470,7 +461,7 @@ describe("/autocomplete", function() {
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -495,7 +486,7 @@ describe("/autocomplete", function() {
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -517,7 +508,7 @@ describe("/autocomplete", function() {
 		let name = "Parus major";
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -541,7 +532,7 @@ describe("/autocomplete", function() {
 		let name = "Parus";
 		const params = {count, name, maleIndividualCount, femaleIndividualCount};
 
-		request(app)
+		request(this.server)
 			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true&observationMode=true`)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -600,7 +591,7 @@ describe("/autocomplete", function() {
 		var query = basePath + "/unit" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 
-		request(app)
+		request(this.server)
 			.get(query + "&formID=JX.519&q=susi,kettu,wookie&includePayload=true&list=true")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -622,7 +613,7 @@ describe("/autocomplete", function() {
 	it("return correct pair count for ANAACU", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26382&q=3k2n, kn, 3")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -636,7 +627,7 @@ describe("/autocomplete", function() {
 	it("return correct pair count for ANSANS", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26291&q=3k2n,kn,3,1")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -650,7 +641,7 @@ describe("/autocomplete", function() {
 	it("return correct pair count for GALGAL", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.27666&q=3k2n,kn,n,3,1")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -664,7 +655,7 @@ describe("/autocomplete", function() {
 	it("return correct pair count for CORNIX", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.73566&q=k2n,k2n, 5")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -678,7 +669,7 @@ describe("/autocomplete", function() {
 	it("return correct pair count for CYGOLO", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26277&q=2k, n, 2n, 2, 3, 2kn")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -692,7 +683,7 @@ describe("/autocomplete", function() {
 	it("doesn't return pair count for unknown taxon", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.20000&q=k2n,k2n, 5")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -706,7 +697,7 @@ describe("/autocomplete", function() {
 	it("doesn't return pair count for empty query", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.20000&q=")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -720,7 +711,7 @@ describe("/autocomplete", function() {
 	it("return correct pair count when count is big", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.73566&q=20k2n,101k2n, 5")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -734,7 +725,7 @@ describe("/autocomplete", function() {
 	it("formats waterbird count right", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.73566&q=20n1k4, 5, kk2,3n")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -748,7 +739,7 @@ describe("/autocomplete", function() {
 	it("formats empty waterbird count right", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.73566&q=0,0")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -761,7 +752,7 @@ describe("/autocomplete", function() {
 	it("accepts upper case in waterbird count", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26277&q=2K, n, 2N, 2, 3, 2Kn")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -775,7 +766,7 @@ describe("/autocomplete", function() {
 	it("accepts dots and converts them to commas in waterbird count", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26277&q=2k.n. 3")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -789,7 +780,7 @@ describe("/autocomplete", function() {
 	it("returns correct pair count for singing", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26277&q=3Ä")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -803,7 +794,7 @@ describe("/autocomplete", function() {
 	it("returns correct pair count for uttering", function(done) {
 		var query = basePath + "/pairCount" +
 			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query + "&taxonID=MX.26277&q=3ä")
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -821,7 +812,7 @@ describe("/autocomplete", function() {
 		}
 		var query = basePath + "/organization" +
 			"?personToken=" + config.user.token + "&access_token=" + config.access_token;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);

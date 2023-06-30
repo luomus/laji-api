@@ -28,18 +28,9 @@ describe("/image", function() {
 	var basePath = config.urls.image;
 	var imageTmpId;
 	var imageId;
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -48,7 +39,7 @@ describe("/image", function() {
 	});
 
 	it("returns 401 when no access token specified for id", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath + "/" + config.id.image_others)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -57,7 +48,7 @@ describe("/image", function() {
 	});
 
 	it("returns 400 when no person token specified for post request", function(done) {
-		request(app)
+		request(this.server)
 			.post(basePath + "/" + config.id.image_others + "?access_token=" + config["access_token"])
 			.end(function(err, res) {
 				res.should.have.status(400);
@@ -67,7 +58,7 @@ describe("/image", function() {
 	});
 
 	it("returns 400 when no person token specified for put request", function(done) {
-		request(app)
+		request(this.server)
 			.put(basePath + "/" + config.id.image_others + "?access_token=" + config["access_token"])
 			.send({})
 			.end(function(err, res) {
@@ -78,7 +69,7 @@ describe("/image", function() {
 	});
 
 	it("returns 400 when no person token specified for delete request", function(done) {
-		request(app)
+		request(this.server)
 			.delete(basePath + "/" + config.id.image_others + "?access_token=" + config["access_token"])
 			.end(function(err, res) {
 				res.should.have.status(400);
@@ -88,7 +79,7 @@ describe("/image", function() {
 	});
 
 	it("returns 400 when trying to update others image", function(done) {
-		request(app)
+		request(this.server)
 			.put(basePath + "/" + config.id.image_others + "?access_token=" + config.access_token + "&personToken=" + config.user.token)
 			.send({})
 			.end(function(err, res) {
@@ -99,7 +90,7 @@ describe("/image", function() {
 	});
 
 	it("returns 400 when trying to delete others image", function(done) {
-		request(app)
+		request(this.server)
 			.delete(basePath + "/" + config.id.image_others + "?access_token=" + config.access_token + "&personToken=" + config.user.token)
 			.end(function(err, res) {
 				res.should.have.status(400);
@@ -112,7 +103,7 @@ describe("/image", function() {
 		var pageSize = 100;
 		var query = basePath +
 			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -129,7 +120,7 @@ describe("/image", function() {
 	it("returns a temp id when adding image", function(done) {
 		var query = basePath +
 			"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.post(query)
 			.attach("image", fs.readFileSync(__dirname + "/bird.jpg"), "bird.jpg")
 			.end(function(err, res) {
@@ -151,7 +142,7 @@ describe("/image", function() {
 			this.timeout(10000);
 			var query = basePath + "/" + imageTmpId +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.post(query)
 				.send({})
 				.end(function(err, res) {
@@ -170,7 +161,7 @@ describe("/image", function() {
 			const owner = "Viltsu testaaja";
 			var query = basePath + "/" + imageTmpId +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.post(query)
 				.send({intellectualRights: rights, intellectualOwner: owner})
 				.end(function(err, res) {
@@ -202,7 +193,7 @@ describe("/image", function() {
 				intellectualOwner: "Viltsu",
 				uploadedBy: "MA.97"
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(meta)
 				.end(function(err, res) {
@@ -227,7 +218,7 @@ describe("/image", function() {
 			var meta = {
 				intellectualRights: "FooBar"
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(meta)
 				.end(function(err, res) {
@@ -242,7 +233,7 @@ describe("/image", function() {
 			}
 			var query = basePath + "/" + imageId + "/large.jpg" +
 				"?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -259,7 +250,7 @@ describe("/image", function() {
 			}
 			var query = basePath + "/" + imageId + "/square.jpg" +
 				"?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -275,7 +266,7 @@ describe("/image", function() {
 			}
 			var query = basePath + "/" + imageId + "/thumbnail.jpg" +
 				"?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -292,7 +283,7 @@ describe("/image", function() {
 			this.timeout(5000);
 			var query = basePath + "/" + imageId +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(204);

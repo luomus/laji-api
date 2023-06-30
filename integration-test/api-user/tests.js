@@ -4,19 +4,10 @@ const { request } = require("chai");
 
 describe("/api-user", function() {
 	var basePath = config["urls"]["api-user"];
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("only have the specific remove methods", function(done) {
 		var query = config["urls"]["swagger"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -34,7 +25,7 @@ describe("/api-user", function() {
 	});
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -45,7 +36,7 @@ describe("/api-user", function() {
 	it("returns user info", function(done) {
 		var query = basePath +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -57,7 +48,7 @@ describe("/api-user", function() {
 
 	it("returns error when no email is given", function(done) {
 		var query = basePath + "?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.send({})
 			.end(function(err, res) {

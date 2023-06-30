@@ -28,18 +28,8 @@ describe("/audio", function() {
   var audioTmpId;
   var audioId;
 
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
   it("returns 401 when no access token specified", function(done) {
-    request(app)
+    request(this.server)
       .get(basePath)
       .end(function(err, res) {
         res.should.have.status(401);
@@ -48,7 +38,7 @@ describe("/audio", function() {
   });
 
   it("returns 401 when no access token specified for id", function(done) {
-    request(app)
+    request(this.server)
       .get(basePath + "/" + config.id.audio_others)
       .end(function(err, res) {
         res.should.have.status(401);
@@ -57,7 +47,7 @@ describe("/audio", function() {
   });
 
   it("returns 400 when no person token specified for post request", function(done) {
-    request(app)
+    request(this.server)
       .post(basePath + "/" + config.id.audio_others + "?access_token=" + config["access_token"])
       .end(function(err, res) {
         res.should.have.status(400);
@@ -67,7 +57,7 @@ describe("/audio", function() {
   });
 
   it("returns 400 when no person token specified for put request", function(done) {
-    request(app)
+    request(this.server)
       .put(basePath + "/" + config.id.audio_others + "?access_token=" + config["access_token"])
       .send({})
       .end(function(err, res) {
@@ -78,7 +68,7 @@ describe("/audio", function() {
   });
 
   it("returns 400 when no person token specified for delete request", function(done) {
-    request(app)
+    request(this.server)
       .delete(basePath + "/" + config.id.audio_others + "?access_token=" + config["access_token"])
       .end(function(err, res) {
         res.should.have.status(400);
@@ -88,7 +78,7 @@ describe("/audio", function() {
   });
 
   it("returns 400 when trying to update others audio", function(done) {
-    request(app)
+    request(this.server)
       .put(basePath + "/" + config.id.audio_others + "?access_token=" + config.access_token + "&personToken=" + config.user.token)
       .send({})
       .end(function(err, res) {
@@ -99,7 +89,7 @@ describe("/audio", function() {
   });
 
   it("returns 400 when trying to delete others audio", function(done) {
-    request(app)
+    request(this.server)
       .delete(basePath + "/" + config.id.audio_others + "?access_token=" + config.access_token + "&personToken=" + config.user.token)
       .end(function(err, res) {
         res.should.have.status(400);
@@ -112,7 +102,7 @@ describe("/audio", function() {
     var pageSize = 10;
     var query = basePath +
       "?pageSize="+ pageSize+"&access_token=" + config["access_token"];
-    request(app)
+    request(this.server)
       .get(query)
       .end(function(err, res) {
         if (err) return done(err);
@@ -129,7 +119,7 @@ describe("/audio", function() {
   it("returns a temp id when adding audio", function(done) {
     var query = basePath +
       "?access_token=" + config.access_token + "&personToken=" + config.user.token;
-    request(app)
+    request(this.server)
       .post(query)
       .attach("audio", fs.readFileSync(__dirname + "/bird.wav"), "bird.wav")
       .end(function(err, res) {
@@ -151,7 +141,7 @@ describe("/audio", function() {
       this.timeout(10000);
       var query = basePath + "/" + audioTmpId +
         "?access_token=" + config.access_token + "&personToken=" + config.user.token;
-      request(app)
+      request(this.server)
       .post(query)
       .send({})
       .end(function(err, res) {
@@ -170,7 +160,7 @@ describe("/audio", function() {
       const owner = "Viltsu testaaja";
       var query = basePath + "/" + audioTmpId +
         "?access_token=" + config.access_token + "&personToken=" + config.user.token;
-      request(app)
+      request(this.server)
         .post(query)
         .send({intellectualRights: rights, intellectualOwner: owner})
         .end(function(err, res) {
@@ -202,7 +192,7 @@ describe("/audio", function() {
         intellectualOwner: "Viltsu",
         uploadedBy: "MA.97"
       };
-      request(app)
+      request(this.server)
         .put(query)
         .send(meta)
         .end(function(err, res) {
@@ -227,7 +217,7 @@ describe("/audio", function() {
       var meta = {
         intellectualRights: "FooBar"
       };
-      request(app)
+      request(this.server)
         .put(query)
         .send(meta)
         .end(function(err, res) {
@@ -242,7 +232,7 @@ describe("/audio", function() {
       }
       var query = basePath + "/" + audioId + "/wav" +
         "?access_token=" + config.access_token;
-      request(app)
+      request(this.server)
         .get(query)
         .end(function(err, res) {
           if (err) return done(err);
@@ -259,7 +249,7 @@ describe("/audio", function() {
       }
       var query = basePath + "/" + audioId + "/mp3" +
         "?access_token=" + config.access_token;
-      request(app)
+      request(this.server)
         .get(query)
         .end(function(err, res) {
           if (err) return done(err);
@@ -275,7 +265,7 @@ describe("/audio", function() {
       }
       var query = basePath + "/" + audioId + "/thumbnail.jpg" +
         "?access_token=" + config.access_token;
-      request(app)
+      request(this.server)
         .get(query)
         .end(function(err, res) {
           if (err) return done(err);
@@ -292,7 +282,7 @@ describe("/audio", function() {
       this.timeout(5000);
       var query = basePath + "/" + audioId +
         "?access_token=" + config.access_token + "&personToken=" + config.user.token;
-      request(app)
+      request(this.server)
         .delete(query)
         .end(function(err, res) {
           res.should.have.status(204);

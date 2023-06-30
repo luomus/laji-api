@@ -7,18 +7,9 @@
 // describe("/named-place", function() {
 // 	const basePath = config["urls"]["named-place"];
 // 	let npId;
-// 	let app;
-//
-// 	before(async () => {
-// 		app = await helpers.init();
-// 	});
-//
-// 	after(async () => {
-// 		await helpers.close();
-// 	});
 //
 // 	it("returns 401 when no access token specified", function(done) {
-// 		request(app)
+// 		request(this.server)
 // 			.get(basePath)
 // 			.end(function(err, res) {
 // 				res.should.have.status(401);
@@ -28,7 +19,7 @@
 //
 // 	it("returns list of public namespaces when access token is correct", function(done) {
 // 		const query = basePath + "?access_token=" + config["access_token"];
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function(err, res) {
 // 				if (err) return done(err);
@@ -44,7 +35,7 @@
 // 			name: "test",
 // 			geometry: {type: "Point", coordinates: [30, 60]}
 // 		};
-// 		request(app)
+// 		request(this.server)
 // 			.post(query)
 // 			.send(np)
 // 			.end(function (err, res) {
@@ -61,7 +52,7 @@
 // 			"&collectionID=" + config.objects["named-place"].collectionID +
 // 			"&personToken=" + config.user.friend_token +
 // 			"&pageSize=1000";
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -78,7 +69,7 @@
 // 			"&collectionID=" + config.objects["named-place-private"].collectionID +
 // 			"&personToken=" + config.user.friend_token +
 // 			"&pageSize=1000";
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -94,7 +85,7 @@
 // 			"&collectionID=" + config.objects["named-place"].collectionID +
 // 			"&personToken=" + config.user.friend_token +
 // 			"&pageSize=1000";
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -114,7 +105,7 @@
 // 			"?access_token=" + config["access_token"] +
 // 			"&alternativeIDs=" + config.objects["named-place"].alternativeIDs +
 // 			"&personToken=" + config.user.friend_token;
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -134,7 +125,7 @@
 // 			"&collectionID=" + config.objects["named-place"].collectionID +
 // 			"&alternativeIDs=" + config.objects["named-place"].alternativeIDs +
 // 			"&personToken=" + config.user.friend_token;
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -154,7 +145,7 @@
 // 			"?access_token=" + config["access_token"] +
 // 			"&collectionID=" + config.objects["named-place"].collectionID +
 // 			"&personToken=" + config.user.token;
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -174,7 +165,7 @@
 // 			"?access_token=" + config["access_token"] +
 // 			"&taxonIDs=" + config.objects["named-place-with-taxon-ids"].taxonIDs +
 // 			"&personToken=" + config.user.friend_token;
-// 		request(app)
+// 		request(this.server)
 // 			.get(query)
 // 			.end(function (err, res) {
 // 				res.should.have.status(200);
@@ -194,7 +185,7 @@
 // 			name: "test",
 // 			geometry: {type: "Point", coordinates: [30, 60]}
 // 		};
-// 		request(app)
+// 		request(this.server)
 // 			.post(query)
 // 			.send(np)
 // 			.end(function (err, res) {
@@ -214,7 +205,7 @@
 // 				coordinates: [60, 30]
 // 			}
 // 		};
-// 		request(app)
+// 		request(this.server)
 // 			.post(query)
 // 			.send(document)
 // 			.end(function (err, res) {
@@ -239,7 +230,7 @@
 // 				coordinates: [60, 30]
 // 			}
 // 		};
-// 		request(app)
+// 		request(this.server)
 // 			.post(query)
 // 			.send(document)
 // 			.end(function (err, res) {
@@ -262,7 +253,7 @@
 // 			}
 // 			const query = basePath + "/" + npId +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -276,7 +267,7 @@
 // 			}
 // 			const query = basePath + "/" + npId +
 // 				"?access_token=" + config.access_token;
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(404);
@@ -301,7 +292,7 @@
 // 				},
 // 				public: false
 // 			};
-// 			request(app)
+// 			request(this.server)
 // 				.put(query)
 // 				.send(document)
 // 				.end(function(err, res) {
@@ -321,7 +312,7 @@
 // 				}
 // 				const query = basePath + "/" + npId +
 // 					"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 				request(app)
+// 				request(this.server)
 // 					.get(query)
 // 					.end(function(err, res) {
 // 						res.should.have.status(200);
@@ -336,7 +327,7 @@
 // 				}
 // 				const query = basePath + "/" + npId +
 // 					"?access_token=" + config.access_token;
-// 				request(app)
+// 				request(this.server)
 // 					.get(query)
 // 					.end(function(err, res) {
 // 						res.should.have.status(200);
@@ -360,7 +351,7 @@
 // 					},
 // 					public: false
 // 				};
-// 				request(app)
+// 				request(this.server)
 // 					.put(query)
 // 					.send(document)
 // 					.end(function(err, res) {
@@ -375,7 +366,7 @@
 // 				}
 // 				const query = basePath + "/" + npId +
 // 					"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
-// 				request(app)
+// 				request(this.server)
 // 					.delete(query)
 // 					.end(function(err, res) {
 // 						res.should.have.status(403);
@@ -432,7 +423,7 @@
 // 				const documentQuery = config.urls.document +
 // 					"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 // 				let documentId;
-// 				request(app)
+// 				request(this.server)
 // 					.post(documentQuery)
 // 					.send(document)
 // 					.end(function (err, res) {
@@ -442,14 +433,14 @@
 // 						documentId = res.body.id;
 // 						const query = basePath + "/" + npId +
 // 							"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 						request(app)
+// 						request(this.server)
 // 							.delete(query)
 // 							.end(function(err, res) {
 // 								res.should.have.status(200);
 // 								done();
 //
 // 								// Rm test doc silently.
-// 								request(app)
+// 								request(this.server)
 // 									.delete(config.urls.document + "/" + documentId);
 // 							});
 // 					});
@@ -462,7 +453,7 @@
 // 		it("fails if user doesn't have access to place's collection", function(done) {
 // 			const query = basePath + "/" + config.objects["named-place-not-permitted-for-test-user"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(403);
@@ -473,7 +464,7 @@
 // 		it("fails when 'until' is in the past", function(done) {
 // 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&until=1920-12-02";
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(400);
@@ -485,7 +476,7 @@
 // 			const date = moment().add(13, "months").format("YYYY-MM-DD");
 // 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token + "&until=" + date;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(400);
@@ -498,7 +489,7 @@
 // 			const date = moment().add(2, "months").format("YYYY-MM-DD");
 // 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&until=" + date;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -510,7 +501,7 @@
 // 		it("can be added if user has access to place's collection", function(done) {
 // 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -522,7 +513,7 @@
 // 		it("can't be added if already reserved and not admin", function(done) {
 // 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(400);
@@ -533,7 +524,7 @@
 // 		it("can be removed", function(done) {
 // 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.delete(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -545,14 +536,14 @@
 // 		it("can't be removed if not own and not admin", function(done) {
 // 			let query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
 //
 // 					query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 						"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
-// 					request(app)
+// 					request(this.server)
 // 						.delete(query)
 // 						.end(function(err, res) {
 // 							res.should.have.status(403);
@@ -564,7 +555,7 @@
 // 		it("can be reserved by admin even if reserved already", function(done) {
 // 			let query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -572,7 +563,7 @@
 // 					// Clean reservation for next tests.
 // 					query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 						"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 					request(app)
+// 					request(this.server)
 // 						.delete(query)
 // 						.end(function(err, res) {
 // 							res.should.have.status(200);
@@ -584,7 +575,7 @@
 // 		it("can't be reserved to other users if not admin", function(done) {
 // 			let query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token + "&personID=" + config.user.friend_id;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(403);
@@ -595,7 +586,7 @@
 // 		it("can be reserved to other user by admin", function(done) {
 // 			let query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&personID=" + config.user.friend2_id;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -604,7 +595,7 @@
 // 					// Remove reservation in order to keep reservation status untouched after tests
 // 					const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 // 						"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 					request(app)
+// 					request(this.server)
 // 						.delete(query)
 // 						.end(function(err, res) {
 // 							res.should.have.status(200);
@@ -620,7 +611,7 @@
 // 			const query = basePath + "/" + config.objects["named-place"].id +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 // 			const namedPlace = {...config.objects["named-place"], acceptedDocument: {}};
-// 			request(app)
+// 			request(this.server)
 // 				.put(query)
 // 				.send(namedPlace)
 // 				.end(function(err, res) {
@@ -636,7 +627,7 @@
 // 				...config.objects["named-place-with-feature-adding-public-named-places-allowed-test-user-has-access"],
 // 				acceptedDocument: {gatherings: [{}]}
 // 			};
-// 			request(app)
+// 			request(this.server)
 // 				.put(query)
 // 				.send(namedPlace)
 // 				.end(function (err, res) {
@@ -649,7 +640,7 @@
 // 			const query = basePath + "/" + config.objects["named-place"].id +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 // 			const namedPlace = {...config.objects["named-place"], acceptedDocument: {gatherings: [{units: [{}]}]}};
-// 			request(app)
+// 			request(this.server)
 // 				.put(query)
 // 				.send(namedPlace)
 // 				.end(function(err, res) {
@@ -662,7 +653,7 @@
 // 		it("filters units on fetching single", function(done) {
 // 			const query = basePath + "/" + config.objects["named-place"].id +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -681,7 +672,7 @@
 // 		it("filters units on fetching many", function(done) {
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -707,7 +698,7 @@
 // 		it("filters units on fetching many when using Elastic", function(done) {
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -734,7 +725,7 @@
 // 			const query = basePath + "/" + config.objects["named-place"].id +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 // 				"&includeUnits=true";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -758,7 +749,7 @@
 // 				"&personToken=" + config.user.friend2_token +
 // 				"&collectionID=HR.2049" +
 // 				"&includeUnits=true";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -785,7 +776,7 @@
 // 			const query = basePath + "/" + config.objects["named-place"].id +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 // 				"&includeUnits=true";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -805,7 +796,7 @@
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 // 				"&includeUnits=true";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -834,7 +825,7 @@
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 // 				"&includeUnits=true";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -863,7 +854,7 @@
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 // 				"&selectedFields=name";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -883,7 +874,7 @@
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 // 				"&selectedFields=name";
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -914,7 +905,7 @@
 //
 // 			const query = basePath +
 // 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.send(np)
 // 				.end(function (err, res) {
@@ -929,7 +920,7 @@
 // 					};
 // 					const documentQuery = config.urls.document +
 // 						"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-// 					request(app)
+// 					request(this.server)
 // 						.post(documentQuery)
 // 						.send(doc)
 // 						.end(function (err, res) {
@@ -943,7 +934,7 @@
 // 		it("editor can't delete", function(done) {
 // 			const query = basePath + "/" + npId +
 // 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
-// 			request(app)
+// 			request(this.server)
 // 				.delete(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(403);
@@ -954,7 +945,7 @@
 // 		it("doesn't delete public named place if it has documents", function(done) {
 // 			const query = basePath + "/" + npId +
 // 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.delete(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(422);
@@ -969,18 +960,18 @@
 //
 // 			const documentQuery = config.urls.document + "/" + docId +
 // 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.delete(documentQuery)
 // 				.end(function(err, res) {
 // 					res.should.have.status(204);
 // 					const documentQuery = config.urls.document + "?namedPlace=" + npId +
 // 						"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-// 					request(app)
+// 					request(this.server)
 // 						.get(documentQuery)
 // 						.end(function(err, res) {
 // 							const query = basePath + "/" + npId +
 // 								"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-// 							request(app)
+// 							request(this.server)
 // 								.delete(query)
 // 								.end(function(err, res) {
 // 									res.should.have.status(204);
@@ -1010,7 +1001,7 @@
 // 		it("doesn't allow adding if editor and has not feature", function(done) {
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.send(npForNoFeature)
 // 				.end(function(err, res) {
@@ -1023,25 +1014,25 @@
 // 			// Create the place with admin token for test.
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.send(npForNoFeature)
-// 				.end(function(err, res) {
+// 				.end((err, res) => {
 // 					res.should.have.status(200);
 // 					npId = res.body.id;
 // 					// Try deleting with person token.
 // 					const query = basePath + "/" + npId +
 // 						"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
-// 					request(app)
+// 					request(this.server)
 // 						.delete(query)
-// 						.end(function(err, res) {
+// 						.end((err, res) => {
 // 							res.should.have.status(403);
 // 							done();
 //
 // 							// Silently remove after test.
 // 							const query = basePath + "/" + npId +
 // 								"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 							request(app)
+// 							request(this.server)
 // 								.delete(query)
 // 								.end();
 // 						});
@@ -1053,7 +1044,7 @@
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 // 			const namedPlace = {...config.objects["named-place-with-feature-adding-public-named-places-allowed-test-user-has-access"]};
 // 			delete namedPlace.id;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.send(namedPlace)
 // 				.end(function(err, res) {
@@ -1069,7 +1060,7 @@
 // 			}
 // 			const query = basePath + "/" + npId +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
-// 			request(app)
+// 			request(this.server)
 // 				.delete(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -1094,7 +1085,7 @@
 // 		it("doesn't allow adding", function (done) {
 // 			const query = basePath +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.post(query)
 // 				.send(npForNoFeature)
 // 				.end(function(err, res) {
@@ -1108,7 +1099,7 @@
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 // 			const updatedNP = {...npForNoFeature, id: testExisting}
 // 			delete updatedNP.collectionID;
-// 			request(app)
+// 			request(this.server)
 // 				.put(query)
 // 				.send(updatedNP)
 // 				.end(function(err, res) {
@@ -1120,7 +1111,7 @@
 // 		it("doesn't allow deleting", function (done) {
 // 			const query = basePath + "/" + testExisting +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.delete(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(422);
@@ -1136,7 +1127,7 @@
 // 		before(function (done) {
 // 			const query = basePath + "/" + strictNpId +
 // 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 			request(app)
+// 			request(this.server)
 // 				.get(query)
 // 				.end(function(err, res) {
 // 					res.should.have.status(200);
@@ -1153,7 +1144,7 @@
 //
 // 				const query = basePath + "/" +
 // 					"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 				request(app)
+// 				request(this.server)
 // 					.post(query)
 // 					.send(strictNpWithInvalidPrepopDoc)
 // 					.end(function(err, res) {
@@ -1168,7 +1159,7 @@
 //
 // 				const query = basePath + "/" + strictNpWithInvalidPrepopDoc.id +
 // 					"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 				request(app)
+// 				request(this.server)
 // 					.put(query)
 // 					.send(strictNpWithInvalidPrepopDoc)
 // 					.end(function(err, res) {
@@ -1187,7 +1178,7 @@
 //
 // 				const query = basePath + "/" +
 // 					"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 				request(app)
+// 				request(this.server)
 // 					.post(query)
 // 					.send(np)
 // 					.end(function(err, res) {
@@ -1204,7 +1195,7 @@
 //
 // 				const query = basePath + "/" + np.id +
 // 					"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-// 				request(app)
+// 				request(this.server)
 // 					.put(query)
 // 					.send(strictNp)
 // 					.end(function(err, res) {

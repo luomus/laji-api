@@ -4,18 +4,9 @@ const { request } = require("chai");
 
 describe("/coordinates", function() {
 	var basePath = config.urls.coordinate;
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 404 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(404);

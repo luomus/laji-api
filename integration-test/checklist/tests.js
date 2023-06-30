@@ -13,19 +13,9 @@ const itemProperties = [
 
 describe("/checlist", function() {
 	var basePath = config.urls.checklist;
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -34,7 +24,7 @@ describe("/checlist", function() {
 	});
 
 	it("returns 401 when no access token specified for id", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath + "/" + config["id"]["checklist"])
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -46,7 +36,7 @@ describe("/checlist", function() {
 		var pageSize = 1000;
 		var query = basePath +
 			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -67,7 +57,7 @@ describe("/checlist", function() {
 	it("return item with id", function(done) {
 		var query = basePath + "/" + config.id.checklist +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);

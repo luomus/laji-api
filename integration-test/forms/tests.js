@@ -4,18 +4,9 @@ const { request } = require("chai");
 
 describe("/forms", function() {
 	var basePath = config["urls"]["form"];
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -25,7 +16,7 @@ describe("/forms", function() {
 
 	it("returns list of forms when access token is correct", function(done) {
 		var query = basePath + "?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -41,14 +32,14 @@ describe("/forms", function() {
 		var query = basePath + "/" + id
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["token"];
-		request(app)
+		request(this.server)
 			.get(query)
-			.end(function (err, res) {
+			.end((err, res) => {
 				if (res.status !== 200) {
 					this.skip();
 				}
 				testFormJSON = res.body;
-				request(app)
+				request(this.server)
 					.put(query)
 					.send(res.body)
 					.end(function(err, res) {
@@ -65,7 +56,7 @@ describe("/forms", function() {
 		var query = basePath + "/transform"
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["token"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(testFormJSON)
 			.end(function(err, res) {

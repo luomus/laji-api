@@ -7,16 +7,6 @@ const adminToken = config["user"]["friend2_token"];
 const nonAdminToken = config["user"]["token"];
 
 describe("/form/:id/participants", function() {
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
 	const formID = "MHL.3";
 	const collectionID = "HR.39";
 	const pathForForm = (formID) => `${config["urls"]["form"]}/${formID}/participants`;
@@ -26,7 +16,7 @@ describe("/form/:id/participants", function() {
 		const query = pathForForm("JX.519")
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + nonAdminToken;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(403);
@@ -38,7 +28,7 @@ describe("/form/:id/participants", function() {
 		const query = pathForForm("JX.652")
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + nonAdminToken;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(403);
@@ -50,7 +40,7 @@ describe("/form/:id/participants", function() {
 		const query = basePath
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + nonAdminToken;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(403);
@@ -63,7 +53,7 @@ describe("/form/:id/participants", function() {
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + adminToken
 			+ "&formID=" + formID;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);

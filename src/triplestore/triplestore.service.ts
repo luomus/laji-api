@@ -4,7 +4,7 @@ import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSON, JSONObject } from "../type-utils";
 import { promisePipe } from "src/utils";
-import { MetadataService, Property } from "src/metadata/metadata.service";
+import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { Cache } from "cache-manager";
 import { MultiLang } from "src/common.dto";
 
@@ -42,7 +42,6 @@ export class TriplestoreService {
 		this.triplestoreToJsonLd = this.triplestoreToJsonLd.bind(this);
 		this.resolveResources = this.resolveResources.bind(this);
 		this.resolveLangResources = this.resolveLangResources.bind(this);
-		this.adhereToSchema = this.adhereToSchema.bind(this);
 		this.dropPrefixes = this.dropPrefixes.bind(this);
 		this.rmIdAndType = this.rmIdAndType.bind(this);
 		this.compactJsonLd = this.compactJsonLd.bind(this);
@@ -104,22 +103,31 @@ export class TriplestoreService {
 			rdf,
 			this.triplestoreToJsonLd
 		);
-		const isArrayResult = jsonld["@graph"] && Array.isArray(jsonld["@graph"]);
+		const isArrayResult = Array.isArray(jsonld["@graph"]);
+
+		if (isArrayResult && jsonld.length === 0) {
+			return [] as T;
+		}
+
+		const graphContext = isArrayResult
+			? (jsonld["@graph"] as any)[0]["@type"]
+			: jsonld["@type"];
+		const context = await this.metadataService.getPropertiesForContext(MetadataService.parseContext(graphContext));
 
 		const formatted = (isArrayResult
-			? await Promise.all((jsonld["@graph"] as any).map(this.formatJsonLd))
-			: await this.formatJsonLd(jsonld)
+			? await Promise.all((jsonld["@graph"] as any).map((i: any) => this.formatJsonLd(i, context)))
+			: await this.formatJsonLd(jsonld, context)
 		) as T;
 
 		return this.cacheResult(formatted, cacheKey, options);
 	}
 
-	private formatJsonLd(jsonld: any) {
+	private formatJsonLd(jsonld: any, context: ContextProperties) {
 		return promisePipe(
 			jsonld,
 			this.compactJsonLd,
 			this.resolveResources,
-			this.adhereToSchema,
+			this.adhereToSchema(context),
 			this.resolveLangResources,
 			this.dropPrefixes,
 			this.rmIdAndType
@@ -215,7 +223,7 @@ export class TriplestoreService {
 	/**
 	 * RDF doesn't know about our properties' schema info. This function makes the output to adhere to schema.
 	 */
-	private async adhereToSchema(data: JSONObject | JSONObject[]) {
+	private adhereToSchema = (properties: ContextProperties) => async (data: JSONObject) => {
 		function asArray(value: any, property: Property) {
 			if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
 				return [value];
@@ -227,38 +235,26 @@ export class TriplestoreService {
 			}
 		}
 
-		const adhereObjectToSchema = async (data: JSONObject) => {
-			const context = data["@type"];
-			if (typeof context !== "string") {
-				throw new Error("Couldn't get context for triplestore data");
-			}
+		const transformations: ((value: any, property: Property) => any | undefined)[] =
+			[asArray, multiLangAsArr];
 
-			const transformations: ((value: any, property: Property) => any | undefined)[] =
-				[asArray, multiLangAsArr];
-			const properties = await this.metadataService.getPropertiesForContext(context);
-
-			return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
-				const property = properties[k];
-				let value = data[k];
-				if (!property) {
-					d[k] = value;
-					return d;
-				}
-				for (const transform of transformations) {
-					const transformed = transform(value, property);
-					if (transformed !== undefined) {
-						value = transformed;
-					}
-				}
-
+		return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
+			const property = properties[k];
+			let value = data[k];
+			if (!property) {
 				d[k] = value;
 				return d;
-			}, {});
-		}
+			}
+			for (const transform of transformations) {
+				const transformed = transform(value, property);
+				if (transformed !== undefined) {
+					value = transformed;
+				}
+			}
 
-		return Array.isArray(data)
-			? data.map(adhereObjectToSchema)
-			: adhereObjectToSchema(data);
+			d[k] = value;
+			return d;
+		}, {});
 	}
 
 	private dropPrefixes(data: JSONObject) {

@@ -52,18 +52,9 @@ const itemProperties = [
 
 describe("/collections", function() {
 	var basePath = config.urls.collection;
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
 
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -72,7 +63,7 @@ describe("/collections", function() {
 	});
 
 	it("returns 401 when no access token specified for id", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath + "/" + config.id.collection)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -81,11 +72,11 @@ describe("/collections", function() {
 	});
 
 	it("return only public collections and has the specified id within", function(done) {
-		this.timeout(10000);
+		this.timeout(30000); // Collections initial load take a while.
 		var pageSize = 1000;
 		var query = basePath +
 			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -103,10 +94,9 @@ describe("/collections", function() {
 	});
 
 	it("return item with id", function(done) {
-		this.timeout(10000);
 		var query = basePath + "/" + config.id.collection +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -119,10 +109,9 @@ describe("/collections", function() {
 	});
 
 	it("returns children item with id", function(done) {
-		this.timeout(10000);
 		var query = basePath + "/" + config.id.collection_parent + "/children" +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);
@@ -140,10 +129,9 @@ describe("/collections", function() {
 	});
 
 	it("returns roots", function(done) {
-		this.timeout(10000);
 		var query = basePath + "/roots" +
 			"?pageSize=400&access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				if (err) return done(err);

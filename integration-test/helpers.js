@@ -6,6 +6,7 @@ const chai = require('chai'),
 chai.use(chaiHttp);
 const { Test } = require("@nestjs/testing");
 const { AppModule } = require("../dist/app.module");
+const { request, timeout } = require("chai");
 
 const params = {
 	context: '@context',
@@ -23,17 +24,6 @@ var server = null;
 let app;
 
 module.exports = {
-	init: async () => {
-		const module = await Test.createTestingModule({
-			imports: [AppModule],
-		}).compile();
-		app = module.createNestApplication();
-		await app.init();
-		return app.getHttpServer();
-	},
-	close: async () => {
-		app.close();
-	},
 	params: params,
 	toHaveOnlyKeys(obj, keys) {
 		var objKeys = Object.keys(obj);

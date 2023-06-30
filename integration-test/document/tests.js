@@ -49,18 +49,8 @@ describe("/documents", function() {
 	const documentWithPropertyNotInFormJSONStrictForm = JSON.parse(JSON.stringify(validDocument))
 	documentWithPropertyNotInFormJSONStrictForm.gatherings[0].units[0].identifications[0].taxonID = "MX.123";
 
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -69,7 +59,7 @@ describe("/documents", function() {
 	});
 
 	it("returns 401 when no access token specified for id", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath + "/" + config.id.document)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -80,7 +70,7 @@ describe("/documents", function() {
 	it("returns 400 when no person token specified when using ES index", function(done) {
 		var query = basePath +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(400);
@@ -91,7 +81,7 @@ describe("/documents", function() {
 	it("returns 400 when no person token specified", function(done) {
 		var query = basePath +
 			"?access_token=" + config["access_token"];
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(400);
@@ -102,7 +92,7 @@ describe("/documents", function() {
 	it("returns 404 when accessing others documents when using ES index", function(done) {
 		var query = basePath + "/" + config.id.document_others +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(404);
@@ -113,7 +103,7 @@ describe("/documents", function() {
 	it("returns 404 when accessing others documents", function(done) {
 		var query = basePath + "/" + config.id.document_others +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(404);
@@ -140,7 +130,7 @@ describe("/documents", function() {
 				}
 			]
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -176,7 +166,7 @@ describe("/documents", function() {
 				}
 			]
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -216,7 +206,7 @@ describe("/documents", function() {
 			templateName: "Test template",
 			templateDescription: "Test template description"
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -263,7 +253,7 @@ describe("/documents", function() {
 			],
 			locked: true
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -281,7 +271,7 @@ describe("/documents", function() {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(validDocument));
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -321,7 +311,7 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: config.id.form_with_secondary_copy_feature
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -339,7 +329,7 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: config.id.form_with_secondary_copy_feature
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -358,7 +348,7 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: config.id.form_with_secondary_copy_feature
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -376,7 +366,7 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: validDocument.formID
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -392,7 +382,7 @@ describe("/documents", function() {
 			...validDocument,
 			formID: config.id.form_with_secondary_copy_feature
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -409,7 +399,7 @@ describe("/documents", function() {
 			formID: config.id.form_with_secondary_copy_feature,
 			id: "FOOBAR"
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -426,7 +416,7 @@ describe("/documents", function() {
 			...validDocument,
 			id: "FOOBAR"
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -442,7 +432,7 @@ describe("/documents", function() {
 		const document = {
 			...validDocument
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -455,7 +445,7 @@ describe("/documents", function() {
 	it("validator endpoint validates even if has MZ.publicityRestrictionsPrivate", function (done) {
 		const query = validatePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(privateDocumentInvalidAgainstValidatorsButSchematicallyOK)
 			.end(function (err, res) {
@@ -469,7 +459,7 @@ describe("/documents", function() {
 		delete doc.id;
 		const query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(doc)
 			.end(function (err, res) {
@@ -481,7 +471,7 @@ describe("/documents", function() {
 	it("edit does not allow fields not in form JSON for strict form", function (done) {
 		const query = basePath + "/" + config.id["strict_form_doc_id"] +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.put(query)
 			.send(documentWithPropertyNotInFormJSONStrictForm)
 			.end(function (err, res) {
@@ -493,14 +483,14 @@ describe("/documents", function() {
 	it("edit allows fields not in form JSON for non-strict form", function(done) {
 		const getQuery = basePath + "/" + config.id["non_strict_form_doc_id"] +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.get(getQuery)
 			.end(function (err, res) {
 				res.should.have.status(200);
 				res.body.gatheringEvent.acknowledgeNoUnitsInCensus = true;
 				const query = basePath + "/" + config.id["non_strict_form_doc_id"] +
 					"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-				request(app)
+				request(this.server)
 					.put(query)
 					.send(res.body)
 					.end(function (err, res) {
@@ -513,7 +503,7 @@ describe("/documents", function() {
 	it("validator endpoint does not allow fields not in form JSON", function(done) {
 		const query = validatePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(documentWithPropertyNotInFormJSONStrictForm)
 			.end(function (err, res) {
@@ -529,7 +519,7 @@ describe("/documents", function() {
 			...validDocument,
 			formID: config.id.form_with_secondary_copy_feature
 		};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -541,13 +531,13 @@ describe("/documents", function() {
 	it("document with MZ.publicityRestrictionsPrivate bypasses validators", function (done) {
 		const query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(privateDocumentInvalidAgainstValidatorsButSchematicallyOK)
 			.end(function (err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
-				request(app).delete(query).send(); // Silent cleanup
+				request(this.server).delete(query).send(); // Silent cleanup
 				done();
 			});
 	});
@@ -620,7 +610,7 @@ describe("/documents", function() {
 					}
 				]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -667,7 +657,7 @@ describe("/documents", function() {
 				],
 				locked: true
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -689,7 +679,7 @@ describe("/documents", function() {
 			}
 			var query = basePath + "/" + lockedId +
 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function (err, res) {
 					res.should.have.status(403);
@@ -738,7 +728,7 @@ describe("/documents", function() {
 					}
 				]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -805,7 +795,7 @@ describe("/documents", function() {
 					}
 				]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -855,7 +845,7 @@ describe("/documents", function() {
 					}
 				]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -968,7 +958,7 @@ describe("/documents", function() {
 					}
 				]
 			};
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -1011,7 +1001,7 @@ describe("/documents", function() {
 			}
 			var query = basePath + "/" + documentId +
 				"?access_token=" + config["access_token"];
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(400);
@@ -1025,7 +1015,7 @@ describe("/documents", function() {
 			}
 			var query = basePath + "/" + templateId +
 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(404);
@@ -1040,7 +1030,7 @@ describe("/documents", function() {
 			}
 			var query = basePath + "/" + documentId +
 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -1058,7 +1048,7 @@ describe("/documents", function() {
 			var pageSize = 1;
 			var query = basePath +
 				"?pageSize="+ pageSize+"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -1083,7 +1073,7 @@ describe("/documents", function() {
 			var pageSize = 1;
 			var query = basePath +
 				"?templates=true&pageSize="+ pageSize+"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -1106,7 +1096,7 @@ describe("/documents", function() {
 			}
 			var query = basePath + "/" + documentId +
 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -1125,7 +1115,7 @@ describe("/documents", function() {
 				"?access_token=" + config["access_token"] + "&personToken=" +
 				config.user.friend_token;
 
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(403);
@@ -1141,7 +1131,7 @@ describe("/documents", function() {
 				"?access_token=" + config["access_token"] + "&personToken=" +
 				config.user.token;
 
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(200);
@@ -1157,7 +1147,7 @@ describe("/documents", function() {
 				"?access_token=" + config["access_token"] + "&personToken=" +
 				config.user.friend_token;
 
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(404);
@@ -1173,7 +1163,7 @@ describe("/documents", function() {
 				"?access_token=" + config["access_token"] + "&personToken=" +
 				config.user.token;
 
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(200);
@@ -1185,7 +1175,7 @@ describe("/documents", function() {
 	it("doesn't return other user's single document for form with option MHL.documentsViewableForAll if doesn't have access to form", function(done) {
 		var query = basePath + "/" + config.id.document_others_feature_documents_viewable_for_all +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token; // Doesn"t have access.
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(403);
@@ -1196,7 +1186,7 @@ describe("/documents", function() {
 	it("returns other user's single document for form with option MHL.documentsViewableForAll", function(done) {
 		var query = basePath + "/" + config.id.document_others_feature_documents_viewable_for_all +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend2_token; // Has access.
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -1322,7 +1312,7 @@ describe("/documents", function() {
 			"@context": "http://schema.laji.fi/context/document.jsonld",
 			"_hasChanges": true
 		};
-		request(app)
+		request(this.server)
 			.put(query)
 			.send(document)
 			.end(function (err, res) {
@@ -1334,7 +1324,7 @@ describe("/documents", function() {
 	it("does not allow deleting other users document even with form with MHL.documentsViewableForAll", function(done) {
 		var query = basePath + "/" + config.id.document_others_feature_documents_viewable_for_all +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		request(app)
+		request(this.server)
 			.delete(query)
 			.end(function (err, res) {
 				res.should.have.status(403);
@@ -1347,7 +1337,7 @@ describe("/documents", function() {
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token + // Doesn"t have form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
 
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -1363,7 +1353,7 @@ describe("/documents", function() {
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token + // Doesn"t have form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
 
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				const constainsOnlySelf = res.body.results.every(document => document.editors.includes(config.user.model.id));
@@ -1376,7 +1366,7 @@ describe("/documents", function() {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend2_token + // Has form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -1390,7 +1380,7 @@ describe("/documents", function() {
 		var query = basePath + "/count/byYear" +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend2_token + // Has form permission.
 			"&collectionID=HR.2049" + "&formID=MHL.33";
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -1403,7 +1393,7 @@ describe("/documents", function() {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend2_token + // Has form permission.
 			"&collectionID=HR.1747" + "&formID=MHL.33";
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -1416,7 +1406,7 @@ describe("/documents", function() {
 		var query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token +
 			"&observationYear=null";
-		request(app)
+		request(this.server)
 			.get(query)
 			.end(function(err, res) {
 				res.should.have.status(200);
@@ -1464,7 +1454,7 @@ describe("/documents", function() {
 		it("doesn't allow sending documents", function(done) {
 			var query = basePath +
 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.post(query)
 				.send(document)
 				.end(function (err, res) {
@@ -1478,7 +1468,7 @@ describe("/documents", function() {
 			delete document.formID;
 			var query = basePath + "/" + config.id.disabled_form_doc
 				+ "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.put(query)
 				.send(document)
 				.end(function (err, res) {
@@ -1490,7 +1480,7 @@ describe("/documents", function() {
 		it("doesn't allow deleting documents", function(done) {
 			var query = basePath + "/" + config.id.disabled_form_doc
 				+ "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function (err, res) {
 					res.should.have.status(422);

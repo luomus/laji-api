@@ -6,18 +6,8 @@ describe("/annotation", function() {
 	const basePath = config["urls"]["annotation"];
 	let anId;
 
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
 	it("returns 401 when no access token specified", function(done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function(err, res) {
 				res.should.have.status(401);
@@ -29,7 +19,7 @@ describe("/annotation", function() {
 		const query = basePath +
 			"?access_token=" + config["access_token"];
 		const annotation = {};
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(annotation)
 			.end(function (err, res) {
@@ -43,7 +33,7 @@ describe("/annotation", function() {
 		const query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -72,7 +62,7 @@ describe("/annotation", function() {
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
 		document["addedTags"].push("MMAN.51");
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -88,7 +78,7 @@ describe("/annotation", function() {
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
 		document["addedTags"] = ["MMAN.33"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -103,7 +93,7 @@ describe("/annotation", function() {
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
 		document["removedTags"] = ["MMAN.33"];
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
@@ -118,7 +108,7 @@ describe("/annotation", function() {
 				"?access_token=" + config.access_token +
 				"&personToken=" + config.user.token +
 				"&rootID=" + config.objects.annotation.rootID;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(200);
@@ -133,7 +123,7 @@ describe("/annotation", function() {
 			const query = basePath + "?access_token=" + config.access_token +
 				"&personToken=" + config.user.token +
 				"&rootID=" + config.objects.annotation.rootID;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(200);
@@ -148,7 +138,7 @@ describe("/annotation", function() {
 			const query = basePath + "?access_token=" + config.access_token +
 				"&personToken=" + config.user.token +
 				"&rootID=http://tun.fi/" + config.objects.annotation.rootID;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					if (err) return done(err);
@@ -169,7 +159,7 @@ describe("/annotation", function() {
 			}
 			const query = basePath + "?access_token=" + config.access_token +
 				"&rootID=" + config.objects.annotation.rootID;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(400);
@@ -183,7 +173,7 @@ describe("/annotation", function() {
 			}
 			const query = basePath + "?access_token=" + config.access_token +
 				"&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.get(query)
 				.end(function(err, res) {
 					res.should.have.status(400);
@@ -197,7 +187,7 @@ describe("/annotation", function() {
 			}
 			const query = basePath + "/" + anId +
 				"?access_token=" + config.access_token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(400);
@@ -211,7 +201,7 @@ describe("/annotation", function() {
 			}
 			const query = basePath + "/" + anId +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(403);
@@ -225,7 +215,7 @@ describe("/annotation", function() {
 			}
 			const query = basePath + "/" + anId +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
-			request(app)
+			request(this.server)
 				.delete(query)
 				.end(function(err, res) {
 					res.should.have.status(200);
@@ -242,7 +232,7 @@ describe("/annotation", function() {
 				const query = basePath + "?access_token=" + config.access_token +
 					"&personToken=" + config.user.token +
 					"&rootID=http://tun.fi/" + config.objects.annotation.rootID;
-				request(app)
+				request(this.server)
 					.get(query)
 					.end(function(err, res) {
 						if (err) return done(err);

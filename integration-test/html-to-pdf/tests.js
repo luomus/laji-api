@@ -5,18 +5,8 @@ const { request } = require("chai");
 describe("/html-to-pdf", function() {
 	var basePath = config.urls["html-to-pdf"];
 
-	let app;
-
-	before(async () => {
-		app = await helpers.init();
-	});
-
-	after(async () => {
-		await helpers.close();
-	});
-
 	it("returns 404 when no access token specified", function (done) {
-		request(app)
+		request(this.server)
 			.get(basePath)
 			.end(function (err, res) {
 				res.should.have.status(404);
@@ -29,14 +19,14 @@ describe("/html-to-pdf", function() {
 			"?access_token=" + config["access_token"];
 		const html = "<br/>";
 
-		request(app)
+		request(this.server)
 			.post(query)
 			.send(html)
 			.set("Content-Type", "text/plain")
 			.end(function (err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
-				res.header["content-type"].should.be.equal("application/pdf");
+				res.header["content-type"].should.be.equal("this.application/pdf");
 				done();
 			});
 	});

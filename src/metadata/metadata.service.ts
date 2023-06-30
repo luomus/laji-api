@@ -10,8 +10,8 @@ export type Property = {
 	shortName: string;
 }
 
-type ContextToProperties = Record<string, Property>;
-type Contexts = Record<string, ContextToProperties>;
+export type ContextProperties = Record<string, Property>;
+type Contexts = Record<string, ContextProperties>;
 
 const CACHE_30_MIN = 1000 * 60 * 30;
 
@@ -52,10 +52,10 @@ export class MetadataService {
 	 * Get a property map for a context.
 	 */
 	async getPropertiesForContext(context: string) {
-		return (await this.getContexts())[this.parseContext(context)];
+		return (await this.getContexts())[MetadataService.parseContext(context)];
 	}
 
-	parseContext(context: string) {
+	static parseContext(context: string) {
 		if (context.startsWith("http://tun.fi")) {
 			return context.replace("http://tun.fi/", "");
 		}
