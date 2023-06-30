@@ -11,13 +11,15 @@ export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 	const configService = app.get(ConfigService);
 
+	const port = configService.get("PORT") || 3004;
+
 	configService.get("EXPLORER_PROXY_TO_OLD_API") === "true" && app.use("/explorer", proxy.createProxyMiddleware({
-		target: "http://localhost:3003",
+		target: `http://localhost:${port}`,
 	}));
 
 	// Backward compatible redirect from old api with version (v0) path prefix.
 	app.use("/v0", proxy.createProxyMiddleware({
-		target: "http://localhost:3004",
+		target:  `http://localhost:${port}`,
 		pathRewrite: {
 			"^/v0": "/"
 		}
@@ -25,7 +27,7 @@ export async function bootstrap() {
 
 	// Backward compatibity to old API signature of form permissions.
 	app.use("/formPermissions", proxy.createProxyMiddleware({
-		target: "http://localhost:3004",
+		target: `http://localhost:${port}`,
 		pathRewrite: {
 			"^/formPermissions": "/forms/permissions"
 		}
@@ -55,7 +57,7 @@ export async function bootstrap() {
 		}
 	});
 
-	await app.listen(3004);
+	await app.listen(port);
 	return app;
 }
 bootstrap();
