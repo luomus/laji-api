@@ -1,4 +1,5 @@
 var config = require("../config.json");
+var helpers = require("../helpers");
 const { request } = require("chai");
 
 const userId = config["user"]["friend_id"];
