@@ -17,7 +17,7 @@ export class AccessTokenGuard implements CanActivate {
 			return true;
 		}
 
-		const accessToken = request.query.access_token;
+		const accessToken = request.query.access_token || request.headers.authorization;
 		if (typeof accessToken !== "string") {
 			throw new UnauthorizedException("access_token missing");
 		}
