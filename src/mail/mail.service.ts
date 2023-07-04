@@ -14,7 +14,7 @@ export class MailService {
 
 	private send(options: ISendMailOptions) {
 		const staging = this.configService.get("STAGING");
-		const subject = staging ? `${options.subject} [STAGING]` : options.subject;
+		const subject = staging ? `[STAGING] ${options.subject}` : options.subject;
 		if (this.configService.get("NO_MAIL") === "true") {
 			return;
 		}
