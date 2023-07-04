@@ -25,6 +25,7 @@ export class GetDto {
 
 export class GetAllDto extends PagedDto {
 	lang?: Lang = Lang.en;
+	pageSize?: number = 1000;
 }
 
 export class QueryWithCollectionID {

@@ -52,6 +52,8 @@ In old api most paged results have `@context` in the root. Pre-paged results bei
 
 Default page size for all queries is 20. I didn't investigate it the page size changes per endpoint in the old API.
 
+* `/forms` old API returned all forms with the page size equal to the forms length. New API was made to have page size 1000 by default, so the frontend works the same.
+
 ## Collection props lang hack
 
 Old api treats these multilang props as non-multilang, returning them always as a string, using the "en" lang value. If the hack isn't recreated here, querying in other languages than "en" will not include these props.
