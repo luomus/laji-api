@@ -15,7 +15,7 @@ import { ConfigService } from "@nestjs/config";
 					secure: false
 				},
 				defaults: {
-					from: `noreply@${configService.get("MAIL_BASE")}`,
+					from: `noreply@${configService.get("MAIL_FROM_BASE")}`,
 				},
 				template: {
 					dir: join(__dirname, "templates"),
