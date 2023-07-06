@@ -227,12 +227,15 @@ const getLongName = (
 	const { abbreviation } = collection;
 	const { abbreviation: rootAbbreviation } = rootParent || {};
 	return LANGS.reduce<MultiLang>((multiLang, lang) => {
-		multiLang[lang] =[
-			rootAbbreviation ? `${rootAbbreviation} -` : undefined,
-			collection.collectionName?.[lang],
-			abbreviation ? `(${abbreviation})` : undefined
-		].filter(s => typeof s === "string")
-		 .join(" ");
+		const collectionName = collection.collectionName?.[lang];
+		multiLang[lang] = collectionName
+			? [
+				rootAbbreviation ? `${rootAbbreviation} -` : undefined,
+				collectionName,
+				abbreviation ? `(${abbreviation})` : undefined
+			].filter(s => typeof s === "string")
+			 .join(" ")
+			: "";
 		return multiLang;
 	}, {});
 }
