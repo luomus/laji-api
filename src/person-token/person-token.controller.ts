@@ -3,8 +3,8 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { PersonTokenService } from "./person-token.service";
 
 @ApiSecurity("access_token")
-@Controller("Person token")
-@ApiTags("person-token")
+@Controller("person-token")
+@ApiTags("Person token")
 export class PersonTokenController {
 
 	constructor(private personTokenService: PersonTokenService) {}

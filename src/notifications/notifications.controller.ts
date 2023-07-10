@@ -5,8 +5,8 @@ import { GetPageDto, Notification } from "./notification.dto";
 import { NotificationsService } from "./notifications.service";
 
 @ApiSecurity("access_token")
-@Controller("Notifications")
-@ApiTags("notifications")
+@Controller("notifications")
+@ApiTags("Notifications")
 export class NotificationsController {
 	constructor(private notificationsService: NotificationsService) {}
 	/*
