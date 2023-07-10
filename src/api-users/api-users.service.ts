@@ -18,9 +18,7 @@ export class ApiUsersService {
 	) {}
 
 	async getByAccessToken(accessToken: string): Promise<ApiUser> {
-		console.log("find", accessToken);
 		const token = await this.accessTokenService.findOne(accessToken);
-		console.log("got token", token);
 
 		if (!token) {
 			throw new HttpException("no data found with given token", 404);

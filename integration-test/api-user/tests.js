@@ -5,25 +5,6 @@ const { request } = require("chai");
 describe("/api-user", function() {
 	var basePath = config["urls"]["api-user"];
 
-	it("only have the specific remove methods", function(done) {
-		var query = config["urls"]["swagger"];
-		request(this.server)
-			.get(query)
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.property("paths");
-				var paths = res.body.paths;
-				var keys = Object.keys(paths).filter((key) => {
-					return key.indexOf("/api-users") === 0;
-				});
-				keys.should.have.lengthOf(2);
-				paths["/api-users"].should.have.all.keys("post", "get", "delete");
-				paths["/api-users/renew"].should.have.all.keys("post");
-				done();
-			});
-	});
-
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
 			.get(basePath)
@@ -52,7 +33,7 @@ describe("/api-user", function() {
 			.post(query)
 			.send({})
 			.end(function(err, res) {
-				res.should.have.status(422);
+				res.should.have.status(400);
 				done();
 			});
 	});

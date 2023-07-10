@@ -25,7 +25,7 @@ export class ApiUsersController {
 	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
 		const token = accessToken || this.accessTokenService.getAccessTokenFromRequest(request);
 		if (!token) {
-			throw new HttpException("You must provide a token", 400);
+			throw new HttpException("You must provide a token", 422);
 		}
 		return this.apiUsersService.getByAccessToken(token);
 	}

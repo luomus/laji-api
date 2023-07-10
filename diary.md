@@ -79,6 +79,10 @@ In the new implementation, collections' child/parent info is pulled from the col
 
 * Remove `restrictAccess` & `hasAdmins` from `MHL.27` & `MHL.28`, so they will inherit form permissions from the line transect parent collection.
 
+## Swagger JSON documentation
+
+Old api had /explorer/swagger.json. New API doesn't currently have a similar functionality - probably not used?
+
 # Minor changes
 
 ## Collection long name
