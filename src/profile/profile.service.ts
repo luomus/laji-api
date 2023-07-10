@@ -2,10 +2,10 @@ import { HttpException, Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
-import * as crypto from "crypto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/type-utils";
 import * as equals from "fast-deep-equal";
+import {uuid} from "src/utils";
 
 @Injectable()
 export class ProfileService {
@@ -127,7 +127,7 @@ export class ProfileService {
 
 	private create(personId: string, profile: Partial<Profile>) {
 		profile.userID = personId;
-		profile.profileKey = crypto.randomUUID().substr(0, 6);
+		profile.profileKey = uuid(6);
 		return this.storeProfileService.create(profile);
 	}
 

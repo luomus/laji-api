@@ -1,5 +1,6 @@
 import { Lang } from "./common.dto";
 import { isObject } from "./type-utils";
+import * as crypto from "crypto";
 
 export const CACHE_1_MIN = 1000 * 60;
 
@@ -172,3 +173,5 @@ const applyToResult: ApplyResult =  async <T, R>(result: T | T[] | PaginatedDto<
 };
 
 export { applyToResult };
+
+export const uuid = (length: number) => crypto.randomBytes(length / 2).toString("hex");

@@ -6,6 +6,8 @@ import { CompleteMultiLang } from "src/common.dto";
 
 type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
+type HasEmailAddress = { emailAddress: string };
+
 @Injectable()
 export class MailService {
 	constructor(
@@ -25,7 +27,7 @@ export class MailService {
 		return this.mailerService.sendMail({ ...options, context, subject });
 	}
 
-	async sendFormPermissionRequested(user: Person, context: FormPermissionMailContext) {
+	async sendFormPermissionRequested(user: HasEmailAddress, context: FormPermissionMailContext) {
 		return this.send({
 			to: user.emailAddress,
 			subject: `Pääsypyyntösi lomakkeelle "${context.formTitle.fi}" on vastaanotettu`,
@@ -34,7 +36,7 @@ export class MailService {
 		});
 	}
 
-	async sendFormPermissionAccepted(user: Person, context: FormPermissionMailContext) {
+	async sendFormPermissionAccepted(user: HasEmailAddress, context: FormPermissionMailContext) {
 		return this.send({
 			to: user.emailAddress,
 			subject: `Pääsypyyntösi lomakkeelle "${context.formTitle.fi}" on hyväksytty`,
@@ -43,7 +45,7 @@ export class MailService {
 		});
 	}
 
-	async sendFormPermissionRevoked(user: Person, context: FormPermissionMailContext) {
+	async sendFormPermissionRevoked(user: HasEmailAddress, context: FormPermissionMailContext) {
 		return this.send({
 			to: user.emailAddress,
 			subject: `Pääsypyyntösi lomakkeelle "${context.formTitle.fi}" on hylätty`,
@@ -53,7 +55,7 @@ export class MailService {
 	}
 
 	async sendFormPermissionRequestReceived(
-		user: Person,
+		user: HasEmailAddress,
 		context: FormPermissionMailContext & { person: Person, formID: string }
 	) {
 		return this.send({
@@ -64,4 +66,12 @@ export class MailService {
 		});
 	}
 
+	async sendApiUserCreated(user: HasEmailAddress, token: string) {
+		return this.send({
+			to: user.emailAddress,
+			subject: `Access token for ${this.configService.get("MAIL_BASE")}`,
+			template: "./api-user-created",
+			context: { token }
+		});
+	}
 }

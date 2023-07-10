@@ -5,7 +5,7 @@ import { Collection, FindCollectionsDto, FindOneDto, GetPageDto } from "./collec
 import { CollectionsService } from "./collections.service";
 
 @ApiSecurity("access_token")
-@Controller("collections")
+@Controller("Collection")
 @ApiTags("collections")
 export class CollectionsController {
 	constructor(

@@ -8,7 +8,7 @@ import { FormPermissionsService } from "./form-permissions/form-permissions.serv
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 
 @ApiSecurity("access_token")
-@ApiTags("forms")
+@ApiTags("Form")
 @Controller("forms")
 export class FormsController {
 	constructor(

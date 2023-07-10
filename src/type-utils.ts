@@ -14,9 +14,9 @@ export const isJSONObjectOrUndefined = (v?: JSON): v is (undefined | JSON) => v 
 export type Newable<T> = { new (...args: any[]): T; };
 
 export type SerializeOptions = {
-	includeOnlyTyped?: boolean;
 	excludePrefix?: string;
 	whitelist?: string[]
+	filterNulls?: boolean;
 }
 
 const dictionarify = (arr: string[]) =>
@@ -29,19 +29,24 @@ const dictionarify = (arr: string[]) =>
  * NestJS has it's own implementation for serialization, but it doesn't work when used with the swagger CLI plugin.
  * It for example won't respect the default values of the classes when serializing. So, we have a custom implementation.
  */ 
-export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) => (item: any) => {
+export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) => (item: any): T => {
 	const {
 		excludePrefix = "_",
-		whitelist
+		whitelist,
+		filterNulls,
 	} = options || {};
 
 	const plainItem = item.construct === Object
 		? item
 		: classToPlain(item);
+	item.lol = 2;
 	const instance = plainToClass(Class, plainItem);
 	const knownKeys = dictionarify(Object.getOwnPropertyNames(instance));
-	excludePrefix && Object.keys(instance as any).forEach(k => {
+	(excludePrefix || filterNulls) && Object.keys(instance as any).forEach(k => {
 		if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {
+			delete (instance as any)[k];
+		}
+		if ((instance as any)[k] === null) {
 			delete (instance as any)[k];
 		}
 	});
@@ -70,7 +75,7 @@ export const excludeDecoratedProps = (item: any) => {
 const excludeMetadataKey = Symbol("Exclude");
 
 /**
- * Mark a poperty to excluded when serialized by SerializingInterceptor
+ * Mark a poperty to be excluded when serialized by SerializingInterceptor.
  */
 export function Exclude() {
 	  return Reflect.metadata(excludeMetadataKey, "EXCLUDED");

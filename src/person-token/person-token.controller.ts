@@ -3,7 +3,7 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { PersonTokenService } from "./person-token.service";
 
 @ApiSecurity("access_token")
-@Controller("person-token")
+@Controller("Person token")
 @ApiTags("person-token")
 export class PersonTokenController {
 

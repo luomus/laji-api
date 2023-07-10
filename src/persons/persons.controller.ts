@@ -7,7 +7,7 @@ import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
 
 @ApiSecurity("access_token")
-@ApiTags("person")
+@ApiTags("Person")
 @Controller("person")
 export class PersonsController {
 	constructor(

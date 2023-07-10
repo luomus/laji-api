@@ -29,6 +29,8 @@ import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { MailModule } from "./mail/mail.module";
+import { ApiUsersModule } from "./api-users/api-users.module";
+import { ApiUser } from "./api-users/api-user.entity";
 
 @Module({
 	imports: [
@@ -44,7 +46,8 @@ import { MailModule } from "./mail/mail.module";
 				synchronize: false,
 				retryAttempts: 100,
 				retryDelay: 3000,
-				entities: [AccessToken]
+				entities: [AccessToken, ApiUser]
+				
 			}),
 			inject: [ConfigService]
 		}),
@@ -70,7 +73,8 @@ import { MailModule } from "./mail/mail.module";
 		NotificationsModule,
 		CollectionsModule,
 		LangModule,
-		MailModule
+		MailModule,
+		ApiUsersModule
 	],
 	controllers: [AppController],
 	providers: [

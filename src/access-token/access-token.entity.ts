@@ -1,10 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, CreateDateColumn, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "ACCESSTOKEN" })
 export class AccessToken {
-	@PrimaryGeneratedColumn({ name: "ID" })
+	@PrimaryColumn({ name: "ID" })
 	id: string;
 
 	@Column({ name: "USERID" })
 	userId: number;
+
+	@CreateDateColumn({ name: "CREATED" })
+	created: Date = new Date();
 }

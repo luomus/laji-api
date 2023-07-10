@@ -68,6 +68,17 @@ Backward compatibility could be reached also by setting them as non multilang in
 * coverageBasis
 * geographicCoverage
 
+
+## Form permissions
+
+Old API had a hard coded linking of parent/child collections, so that when requesting a form permission for a child it would return the form permissions of the parent collection.
+
+In the new implementation, collections' child/parent info is pulled from the collections themselves. Requesting a form permission for a collection returns the form permissions for the first collectionID in the collection tree that has the form permissions feature enabled (= has `options.restrictAccess` or `options.hasAdmins`).
+
+> :warning: Production release
+
+* Remove `restrictAccess` & `hasAdmins` from `MHL.27` & `MHL.28`, so they will inherit form permissions from the line transect parent collection.
+
 # Minor changes
 
 ## Collection long name
@@ -77,3 +88,10 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 ## Form permission endpoint
 
 Moved from "/formPermission" to "/form/permissions". Backward compatibility is kept.
+
+
+# Database changes
+
+> :warning: Production release
+
+`APIUSER` `PASSWORD` made `Not null` `false` . Seems that the column isn't used.
