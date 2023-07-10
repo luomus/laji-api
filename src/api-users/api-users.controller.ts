@@ -32,6 +32,11 @@ export class ApiUsersController {
 
 	@Post()
 	register(@Body() user: ApiUserCreateDto) {
-		return this.apiUsersService.createWithEmail(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
+		return this.apiUsersService.create(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
+	}
+
+	@Post("renew")
+	renew(@Body() user: ApiUserCreateDto) {
+		return this.apiUsersService.renew(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
 	}
 }

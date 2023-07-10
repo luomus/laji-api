@@ -3,16 +3,16 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AccessTokenService } from "src/access-token/access-token.service";
 import { ApiUser } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
-import { ConfigService } from "@nestjs/config";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/type-utils";
+import { AccessToken } from "src/access-token/access-token.entity";
 
 @Injectable()
 export class ApiUsersService {
 	constructor(
 		@InjectRepository(ApiUser) private apiUserRepository: Repository<ApiUser>,
+		@InjectRepository(AccessToken) private accesTokenRepository: Repository<AccessToken>,
 		private accessTokenService: AccessTokenService,
-		private configService: ConfigService,
 		private mailService: MailService,
 		private dataSource: DataSource
 	) {}
@@ -35,7 +35,7 @@ export class ApiUsersService {
 		return apiUser;
 	}
 
-	async createWithEmail(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
+	async create(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
 		const apiUser = serializeInto(ApiUser)(apiUserWithEmail);
 		const existing = await this.findByEmail(apiUser.email);
 
@@ -63,6 +63,22 @@ export class ApiUsersService {
 		}
 	}
 
+	async renew(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
+		const apiUser = serializeInto(ApiUser)(apiUserWithEmail);
+		const existing = await this.findByEmail(apiUser.email);
+
+		if (!existing) {
+			// eslint-disable-next-line max-len
+			throw new HttpException("This email hasn't been registered already. Use the create endpoint to create a new access token for your email.", 400);
+		}
+
+		let accessTokenEntity = await this.accessTokenService.findByUserID(existing.id);
+		if (!accessTokenEntity) {
+			accessTokenEntity = await this.accesTokenRepository.save(this.accessTokenService.getNewForUser(existing))
+		}
+
+		this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, accessTokenEntity.id);
+	}
 	private findByEmail(email: string): Promise<ApiUser | null> {
 		return this.apiUserRepository.findOneBy({ email });
 	}
