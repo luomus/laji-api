@@ -1,5 +1,5 @@
-import {PickType} from "@nestjs/swagger"
-import {ApiUser} from "../api-user.entity"
+import { PickType } from "@nestjs/swagger"
+import { ApiUser } from "../api-user.entity"
 
 export class GetApiUserDto {
 	/**

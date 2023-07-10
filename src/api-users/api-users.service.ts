@@ -3,9 +3,9 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AccessTokenService } from "src/access-token/access-token.service";
 import { ApiUser } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
-import {ConfigService} from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { MailService } from "src/mail/mail.service";
-import {serializeInto} from "src/type-utils";
+import { serializeInto } from "src/type-utils";
 
 @Injectable()
 export class ApiUsersService {
@@ -18,7 +18,7 @@ export class ApiUsersService {
 	) {}
 
 	async getByAccessToken(accessToken: string): Promise<ApiUser> {
-		console.log('find', accessToken);
+		console.log("find", accessToken);
 		const token = await this.accessTokenService.findOne(accessToken);
 		console.log("got token", token);
 

@@ -3,9 +3,9 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { AccessToken } from "./access-token.entity";
 import { Request } from "express";
-import {ApiUser} from "src/api-users/api-user.entity";
-import {serializeInto} from "src/type-utils";
-import {uuid} from "src/utils";
+import { ApiUser } from "src/api-users/api-user.entity";
+import { serializeInto } from "src/type-utils";
+import { uuid } from "src/utils";
 
 @Injectable()
 export class AccessTokenService {

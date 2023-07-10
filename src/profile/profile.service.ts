@@ -5,7 +5,7 @@ import { Profile } from "./profile.dto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/type-utils";
 import * as equals from "fast-deep-equal";
-import {uuid} from "src/utils";
+import { uuid } from "src/utils";
 
 @Injectable()
 export class ProfileService {

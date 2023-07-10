@@ -4,8 +4,8 @@ import { ApiUsersController } from "./api-users.controller";
 import { AccessTokenModule } from "src/access-token/access-token.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ApiUser } from "./api-user.entity";
-import {MailModule} from "src/mail/mail.module";
-import {AccessToken} from "src/access-token/access-token.entity";
+import { MailModule } from "src/mail/mail.module";
+import { AccessToken } from "src/access-token/access-token.entity";
 
 @Module({
 	imports: [
