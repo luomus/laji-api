@@ -70,12 +70,26 @@ export class ApiUsersService {
 			throw new HttpException("This email hasn't been registered already. Use the create endpoint to create a new access token for your email.", 400);
 		}
 
-		let accessTokenEntity = await this.accessTokenService.findByUserID(existing.id);
-		if (!accessTokenEntity) {
-			accessTokenEntity = await this.accesTokenRepository.save(this.accessTokenService.getNewForUser(existing))
-		}
+		const accessTokenEntity = await this.accessTokenService.findByUserID(existing.id);
 
-		this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, accessTokenEntity.id);
+		const queryRunner = this.dataSource.createQueryRunner();
+
+		try {
+			await queryRunner.connect();
+			await queryRunner.startTransaction();
+			if (accessTokenEntity) {
+				await queryRunner.manager.remove(accessTokenEntity);
+			}
+			const newAccessTokenEntity = this.accessTokenService.getNewForUser(apiUser);
+			await queryRunner.manager.save(newAccessTokenEntity);
+			await queryRunner.commitTransaction();
+			this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, newAccessTokenEntity.id);
+		} catch (e) {
+			await queryRunner.rollbackTransaction();
+			throw e;
+		} finally {
+			await queryRunner.release();
+		}
 	}
 	private findByEmail(email: string): Promise<ApiUser | null> {
 		return this.apiUserRepository.findOneBy({ email });
