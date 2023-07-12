@@ -68,7 +68,6 @@ Backward compatibility could be reached also by setting them as non multilang in
 * coverageBasis
 * geographicCoverage
 
-
 ## Form permissions
 
 Old API had a hard coded linking of parent/child collections, so that when requesting a form permission for a child it would return the form permissions of the parent collection.
@@ -93,9 +92,13 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
 Moved from "/formPermission" to "/form/permissions". Backward compatibility is kept.
 
+## Access token renewal
+
+Old API checked that the renewal wasn't being spammed. New API doesn't care - the renewal endpoint isn't so particularly special that we should protect it from spamming? Or is it more delicate since it uses a db connection? Anyways a more robust & thorough spam blocking would be better.
 
 # Database changes
 
 > :warning: Production release
 
-`APIUSER` `PASSWORD` made `Not null` `false` . Seems that the column isn't used.
+`APIUSER` `PASSWORD` should be made nullable. Seems that the column isn't used.
+
