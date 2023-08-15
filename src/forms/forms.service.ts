@@ -18,7 +18,12 @@ export class FormsService {
 	}
 
 	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
-		return this.formClient.get(id, { params: { format, lang, expand } }, { cache: CACHE_1_MIN });
+		return this.formClient.get(id, { params: {
+			format,
+			lang: lang === "multi" ? undefined : lang,
+			expand
+		} }, { cache: CACHE_1_MIN }
+		);
 	}
 
 	update(id: string, form: Form, personToken: string) {

@@ -25,6 +25,17 @@ describe("/forms", function() {
 			});
 	});
 
+	it("allows multi lang param", function(done) {
+		var query = basePath + "/JX.519" + "?access_token=" + config["access_token"] + "&lang=multi";
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				if (err) return done(err);
+				res.should.have.status(200);
+				done();
+			});
+	});
+
 	let testFormJSON;
 
 	it("prevents non ict admin from updating form", function(done) {
