@@ -1,4 +1,4 @@
-import { Lang, PagedDto } from "src/common.dto";
+import { Lang, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 export enum Format {
 	schema = "schema",
 	json = "json"
@@ -26,6 +26,13 @@ export class GetDto {
 export class GetAllDto extends PagedDto {
 	lang?: Lang = Lang.en;
 	pageSize?: number = 1000;
+}
+
+export class TransformDto extends QueryWithPersonTokenDto {
+	/**
+	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will contain language objects. Defaults to 'en'
+	 */
+	lang?: Lang = Lang.en;
 }
 
 export class QueryWithCollectionID {

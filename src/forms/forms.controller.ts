@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { AcceptAccessDto, Form, Format, GetAllDto, GetDto, RevokeAccessDto } from "./dto/form.dto";
+import { AcceptAccessDto, Form, Format, GetAllDto, GetDto, RevokeAccessDto, TransformDto } from "./dto/form.dto";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
@@ -119,7 +119,7 @@ export class FormsController {
 	 */
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
-	transform(@Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.formsService.transform(form, personToken);
+	transform(@Body() form: Form, @Query() { personToken, lang = Lang.en }: TransformDto) {
+		return this.formsService.transform(form, lang, personToken);
 	}
 }

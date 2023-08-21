@@ -20,7 +20,7 @@ export class FormsService {
 	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
 		return this.formClient.get(id, { params: {
 			format,
-			lang: lang === "multi" ? undefined : lang,
+			lang: formatLangParam(lang),
 			expand
 		} }, { cache: CACHE_1_MIN }
 		);
@@ -34,7 +34,11 @@ export class FormsService {
 		return this.formClient.delete(id, { params: { personToken } });
 	}
 
-	transform(form: Form, personToken: string) {
-		return this.formClient.post("transform", form, { params: { personToken } });
+	transform(form: Form, lang: Lang, personToken: string) {
+		return this.formClient.post("transform", form, { params: { lang: formatLangParam(lang), personToken } });
 	}
+}
+
+function formatLangParam(lang: Lang) {
+	return lang === "multi" ? undefined : lang
 }
