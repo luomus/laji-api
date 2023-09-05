@@ -9,7 +9,6 @@ export class ProxyToOldApiService {
 	async redirectToOldApi(request: Request, response: Response) {
 		// Taken from https://stackoverflow.com/a/62289124
 		const oldApiRequestUrl = OLD_API + request.path;
-		console.log(request.query);
 		const redirectedRequest = _request({
 			uri: oldApiRequestUrl,
 			method: request.method,
