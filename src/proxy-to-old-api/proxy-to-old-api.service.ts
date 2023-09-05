@@ -1,38 +1,29 @@
-import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
-import { firstValueFrom, Observable } from "rxjs";
-import { AxiosError, AxiosResponse } from "axios";
 import { Request, Response } from "express";
+import * as _request from "request";
 
 const OLD_API = "http://localhost:3003/v0";
 
 @Injectable()
 export class ProxyToOldApiService {
-	constructor(
-		private readonly httpService: HttpService,
-		private readonly httpAdapterHost: HttpAdapterHost) {
-	}
-
 	async redirectToOldApi(request: Request, response: Response) {
+		// Taken from https://stackoverflow.com/a/62289124
 		const method = request.method.toLowerCase();
-		try {
-			let oldApiRequest$!: Observable<AxiosResponse>;
-			const oldApiRequestUrl = OLD_API + request.path;
-			const oldApiRequestOptions =  { headers: request.headers, params: request.query };
-			if (method === "get" || method === "delete") {
-				oldApiRequest$ = this.httpService[method](oldApiRequestUrl, oldApiRequestOptions);
-			} else if (method === "put" || method === "post" || method === "patch") {
-				oldApiRequest$ = this.httpService[method](oldApiRequestUrl, request.body, oldApiRequestOptions);
-			}
-			const apiResponse = await firstValueFrom(oldApiRequest$);
-			this.httpAdapterHost.httpAdapter.reply(response, apiResponse.data, apiResponse.status);
-		} catch (e) {
-			if (e instanceof AxiosError) {
-				this.httpAdapterHost.httpAdapter.reply(response, e.response?.data, e.response?.status || 500);
-			} else {
-				throw e;
-			}
+		const oldApiRequestUrl = OLD_API + request.path;
+		const redirectedRequest = _request({
+			uri: oldApiRequestUrl,
+			qs: request.query,
+			headers: request.header,
+			method: method.toUpperCase(),
+			json: request.readable ? false: true,
+			body: request.readable ? undefined : request.body
+		});
+		if (request.readable) {
+			// Handles all the streamable data (e.g. image uploads)
+			request.pipe(redirectedRequest).pipe(response);
+		} else {
+			// Handles everything else
+			redirectedRequest.pipe(response);
 		}
 	}
 }

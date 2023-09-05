@@ -29,7 +29,7 @@ export class PersonsController {
 	}
 
 	/*
-	 * Find person by user id (this will not include email);
+	 * Find person by user id (this will not include email)
 	 */
 	@Get("by-id/:personId")
 	async findPersonByPersonId(@Param("personId") personId: string) {
@@ -41,7 +41,7 @@ export class PersonsController {
 	}
 
 	/*
-	 * Find profile by user id (this will only return small subset of the full profile);
+	 * Find profile by user id (this will only return small subset of the full profile)
 	 */
 	@Get("by-id/:personId/profile")
 	async getProfileByPersonId(@Param("personId") personId: string) {

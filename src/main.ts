@@ -9,6 +9,7 @@ export async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
 
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
+
 	const configService = app.get(ConfigService);
 
 	const port = configService.get("PORT") || 3004;

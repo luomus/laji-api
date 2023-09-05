@@ -31,7 +31,7 @@ export class ProfileService {
 	}
 
 	/**
-	 * Create new profile, if person has no profile.
+	 * Create a new profile, if person has no profile.
 	 */
 	async createWithPersonId(personId: string, profile: Partial<Profile>): Promise<Profile> {
 		let existingProfile: Profile | undefined;
