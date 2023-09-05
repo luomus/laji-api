@@ -64,7 +64,7 @@ export class FormPermissionsService {
 		}
 
 		const permissions = await this.getByCollectionId(formWithPermissionFeature.collectionID);
-		const isAdmin = await this.isAdminOf(permissions, person);
+		const isAdmin = await isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 			listProps.forEach(prop => {
@@ -87,29 +87,15 @@ export class FormPermissionsService {
 			&& (form.options.restrictAccess || form.options.hasAdmins))
 	}
 
-	private async isAdminOf(permissions: PermissionLists, person: Person) {
-		return person.role?.includes(Role.Admin)
-			|| permissions.admins?.includes(person.id);
-	}
-
-	private async hasEditRights(permissions: FormPermissionDto, person: Person) {
-		return this.isAdminOf(permissions, person)
-			|| permissions.editors.includes(person.id)
-	}
-
-	private async hasRequested(permissions: FormPermissionDto, person: Person) {
-		return permissions.permissionRequests.includes(person.id);
-	}
-
 	async requestAccess(collectionID: string, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		const permissions = await this.getByCollectionIdAndPerson(collectionID, person);
 
-		if (await this.hasEditRights(permissions, person)) {
+		if (hasEditRights(permissions, person)) {
 			throw new HttpException("You already have access to this form", 406);
 		}
 
-		if (await this.hasRequested(permissions, person)) {
+		if (hasRequested(permissions, person)) {
 			throw new HttpException("You already have requested access to this form", 406);
 		}
 
@@ -134,7 +120,7 @@ export class FormPermissionsService {
 
 		const authorPermissions = await this.getByCollectionIdAndPerson(collectionID, author);
 
-		if (!this.isAdminOf(authorPermissions, author)) {
+		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
 		}
 
@@ -182,7 +168,7 @@ export class FormPermissionsService {
 
 		const authorPermissions = await this.getByCollectionIdAndPerson(collectionID, author);
 
-		if (!this.isAdminOf(authorPermissions, author)) {
+		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
 		}
 
@@ -254,6 +240,22 @@ export class FormPermissionsService {
 		return collectionID;
 	}
 }
+
+function isAdminOf(permissions: PermissionLists, person: Person) {
+	return person.role?.includes(Role.Admin)
+		|| permissions.admins?.includes(person.id);
+}
+
+function hasEditRights(permissions: FormPermissionDto, person: Person) {
+	return isAdminOf(permissions, person)
+		|| permissions.editors.includes(person.id)
+}
+
+function hasRequested(permissions: FormPermissionDto, person: Person) {
+	return permissions.permissionRequests.includes(person.id);
+}
+
+
 
 const naturalSort = (a: string, b: string) =>
 	parseInt(a.replace( /^\D+/g, ""), 10) - parseInt(b.replace( /^\D+/g, ""), 10);
