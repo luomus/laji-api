@@ -14,6 +14,7 @@ export class ProxyToOldApiService {
 			uri: oldApiRequestUrl,
 			method: request.method,
 			body: request.readable ? undefined : request.body,
+			headers: request.headers,
 			json: request.readable ? false : true,
 			qs: request.query,
 			// Pass redirect back to the browser
