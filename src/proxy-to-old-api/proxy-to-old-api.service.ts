@@ -12,7 +12,11 @@ export class ProxyToOldApiService {
 		const redirectedRequest = _request({
 			uri: oldApiRequestUrl,
 			method: request.method,
-			body: request.readable ? undefined : request.body,
+			body: request.readable
+				? undefined
+				: typeof request.body == "string" // fix https://github.com/request/request/issues/3343
+					? JSON.parse(request.body)
+					: request.body,
 			headers: request.headers,
 			json: request.readable ? false : true,
 			qs: request.query,
