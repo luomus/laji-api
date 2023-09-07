@@ -1,10 +1,11 @@
 import { HttpService } from "@nestjs/axios";
-import { Inject, Injectable, CACHE_MANAGER } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { Newable, serializeInto } from "src/type-utils";
 import { Cache } from "cache-manager";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 export interface RestClientConfig {
 	path: string;

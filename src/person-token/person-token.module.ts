@@ -6,7 +6,7 @@ import { Person } from "src/persons/person.dto";
 import { HttpModule, HttpService } from "@nestjs/axios";
 import { PersonTokenController } from "./person-token.controller";
 import { Cache } from "cache-manager";
-import { CACHE_MANAGER } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",

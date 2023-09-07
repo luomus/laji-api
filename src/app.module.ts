@@ -47,7 +47,6 @@ import { ApiUser } from "./api-users/api-user.entity";
 				retryAttempts: 100,
 				retryDelay: 3000,
 				entities: [AccessToken, ApiUser]
-				
 			}),
 			inject: [ConfigService]
 		}),
