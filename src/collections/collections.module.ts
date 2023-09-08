@@ -1,4 +1,4 @@
-import { CACHE_MANAGER, FactoryProvider, Module } from "@nestjs/common";
+import { FactoryProvider, Module } from "@nestjs/common";
 import { CollectionsService } from "./collections.service";
 import { CollectionsController } from "./collections.controller";
 import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
@@ -7,6 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { Cache } from "cache-manager";
 import { TriplestoreModule } from "src/triplestore/triplestore.module";
 import { LangModule } from "src/lang/lang.module";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 const gbifClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",
