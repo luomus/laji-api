@@ -1,8 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { Request, Response } from "express";
 import * as _request from "request";
+const { Querystring } = require("request/lib/querystring");
 
 const OLD_API = "http://localhost:3003/v0";
+
+// https://github.com/request/request/issues/3343
+const orig = Querystring.prototype.rfc3986;
+Querystring.prototype.rfc3986 = function (str: any) {
+	if (typeof str !== "string") str = JSON.stringify(str);
+	return orig(str);
+};
 
 @Injectable()
 export class ProxyToOldApiService {
@@ -14,9 +22,7 @@ export class ProxyToOldApiService {
 			method: request.method,
 			body: request.readable
 				? undefined
-				: typeof request.body == "string" // fix https://github.com/request/request/issues/3343
-					? JSON.parse(request.body)
-					: request.body,
+				: request.body,
 			headers: request.headers,
 			json: request.readable ? false : true,
 			qs: request.query,
