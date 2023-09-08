@@ -33,7 +33,7 @@ export class AccessTokenService {
 		return this.getNew({ userId: user.id });
 	}
 
-	private getNew(accessTokenEntity: Omit<AccessToken, "id" | "created">): AccessToken {
+	private getNew(accessTokenEntity: Omit<AccessToken, "id" | "created" | "ttl">): AccessToken {
 		const id = uuid(64);
 		return serializeInto(AccessToken)({ ...accessTokenEntity, id });
 	}

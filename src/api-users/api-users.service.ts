@@ -5,13 +5,11 @@ import { ApiUser } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/type-utils";
-import { AccessToken } from "src/access-token/access-token.entity";
 
 @Injectable()
 export class ApiUsersService {
 	constructor(
 		@InjectRepository(ApiUser) private apiUserRepository: Repository<ApiUser>,
-		@InjectRepository(AccessToken) private accesTokenRepository: Repository<AccessToken>,
 		private accessTokenService: AccessTokenService,
 		private mailService: MailService,
 		private dataSource: DataSource
@@ -49,7 +47,6 @@ export class ApiUsersService {
 			await queryRunner.startTransaction();
 			const createdApiUser = await queryRunner.manager.save(apiUser);
 			const accessTokenEntity = this.accessTokenService.getNewForUser(createdApiUser);
-			console.log(accessTokenEntity);
 			await queryRunner.manager.save(accessTokenEntity);
 			await queryRunner.commitTransaction();
 			this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, accessTokenEntity.id);

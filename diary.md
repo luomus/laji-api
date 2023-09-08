@@ -100,5 +100,7 @@ Old API checked that the renewal wasn't being spammed. New API doesn't care - th
 
 > :warning: Production release
 
-`APIUSER` `PASSWORD` should be made nullable. Seems that the column isn't used.
+`APIUSER` `PASSWORD` should be made nullable. Seems that the column isn't used. Or delete the whole col?
+
+Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
 
