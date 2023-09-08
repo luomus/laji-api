@@ -6,9 +6,9 @@ import { RestClientConfig, RestClientService } from "src/rest-client/rest-client
 import { ConfigService } from "@nestjs/config";
 import { Form } from "./dto/form.dto";
 import { PersonsModule } from "src/persons/persons.module";
+import { CACHE_MANAGER } from "@nestjs/common";
 import { Cache } from "cache-manager";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",

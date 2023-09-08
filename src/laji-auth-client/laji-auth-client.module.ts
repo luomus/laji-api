@@ -4,7 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
 import { LajiAuthClientService } from "./laji-auth-client.service";
 import { Cache } from "cache-manager";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { CACHE_MANAGER } from "@nestjs/common";
 
 const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",

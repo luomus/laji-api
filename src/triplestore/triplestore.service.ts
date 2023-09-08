@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, CACHE_MANAGER } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
@@ -7,7 +7,6 @@ import { promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { Cache } from "cache-manager";
 import { MultiLang } from "src/common.dto";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 const BASE_URL = "http://tun.fi/";
 
