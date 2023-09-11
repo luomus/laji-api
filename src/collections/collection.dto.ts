@@ -1,5 +1,5 @@
 import { IsBoolean } from "class-validator";
-import { Exclude, ParseOptionalBoolean } from "../type-utils";
+import { Private, ParseOptionalBoolean } from "../type-utils";
 import { PagedDto, Lang, MultiLang, HasContext, LangQueryDto } from "../common.dto";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
 
@@ -96,11 +96,11 @@ export class Collection<T extends string | MultiLang = MultiLang> extends OmitTy
 
 	hasChildren?: boolean;
 
-	@Exclude() collectionLocation?: MultiLang;
-	@Exclude() dataLocation?: MultiLang;
-	@Exclude() inMustikka?: boolean;
-	@Exclude() editor?: string;
-	@Exclude() creator?: string;
+	@Private() collectionLocation?: MultiLang;
+	@Private() dataLocation?: MultiLang;
+	@Private() inMustikka?: boolean;
+	@Private() editor?: string;
+	@Private() creator?: string;
 }
 
 type GbifContact = {

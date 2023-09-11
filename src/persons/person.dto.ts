@@ -1,6 +1,6 @@
 import { IsBoolean } from "class-validator";
 import { HasContext } from "src/common.dto";
-import { Exclude, ParseOptionalBoolean } from "src/type-utils";
+import { Private, ParseOptionalBoolean } from "src/type-utils";
 
 export enum Role {
 	Admin = "MA.admin"
@@ -9,9 +9,9 @@ export enum Role {
 export class Person extends HasContext {
 	id: string;
 	emailAddress: string;
-	@Exclude() inheritedName?: string;
-	@Exclude() preferredName?: string;
-	@Exclude() lajiAuthLoginName?: string;
+	@Private() inheritedName?: string;
+	@Private() preferredName?: string;
+	@Private() lajiAuthLoginName?: string;
 	fullName?: string;
 	role?: Role[];
 	group?: string;

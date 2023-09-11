@@ -58,12 +58,12 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	return instance;
 };
 
-export const excludeDecoratedProps = (item: any) => {
+export const excludePrivateProps = (item: any) => {
 	if (!isObject(item) || item.construct === Object) {
 		return item;
 	}
 	return Object.keys(item as any).reduce((excludedItem: any, k: string) => {
-		const excludedByDecorator = getExcludeDecorator(item, k);
+		const excludedByDecorator = getPrivateDecorator(item, k);
 		if (excludedByDecorator) {
 			return excludedItem;
 		}
@@ -72,16 +72,16 @@ export const excludeDecoratedProps = (item: any) => {
 	}, {});
 }
 
-const excludeMetadataKey = Symbol("Exclude");
+const excludeMetadataKey = Symbol("Private");
 
 /**
  * Mark a poperty to be excluded when serialized by SerializingInterceptor.
  */
-export function Exclude() {
-	  return Reflect.metadata(excludeMetadataKey, "EXCLUDED");
+export function Private() {
+	  return Reflect.metadata(excludeMetadataKey, "PRIVATE");
 }
 
-function getExcludeDecorator(target: any, propertyKey: string) {
+function getPrivateDecorator(target: any, propertyKey: string) {
 	  return Reflect.getMetadata(excludeMetadataKey, target, propertyKey);
 }
 

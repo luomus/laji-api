@@ -4,7 +4,7 @@ import { Request } from "express";
 import { isLangQueryDto, isPagedQueryDto, Lang, LangQueryDto, PagedDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { applyToResult, pageResult, promisePipe } from "src/utils";
-import { excludeDecoratedProps, Newable, serializeInto as _serializeInto, SerializeOptions } from "src/type-utils";
+import { excludePrivateProps, Newable, serializeInto as _serializeInto, SerializeOptions } from "src/type-utils";
 import { plainToClass } from "class-transformer";
 
 /**
@@ -62,7 +62,7 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 		}
 
 		serialize(result: any) {
-			return excludeDecoratedProps(serializeInto
+			return excludePrivateProps(serializeInto
 				? _serializeInto(serializeInto, serializeOptions)(result)
 				: result
 			);
