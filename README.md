@@ -16,34 +16,22 @@ $ npm install
 
 Fill in `.env` file, using `.env.example` as as template.
 
-### Running the app
+You need to also install the oracle instantclient. Follow the instructions at https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip
+
+### Run
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+$ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
 ```
 
 ### Test
 
+Currently we rely on the e2e tests from the old api. Fill in `integration-test/config.json` and then you can run the tests:
+
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-
-# Old api e2e tests (fill in integration-test/config.json first)
-$ npm run test:e2e-old
+$ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run test:e2e-old
 ```
+
 
 ## Contact
 
