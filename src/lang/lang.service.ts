@@ -66,15 +66,19 @@ const getLangValueWithFallback = (multiLangValue?: MultiLang, fallbackLang = tru
 	}
 }
 
-const getMultiLangValueWithFallback = (multiLangValue?: MultiLang, langFallback = true): CompleteMultiLang => {
-	return LANGS.reduce((multiLangValueFilled: CompleteMultiLang, lang) => {
-		const value = multiLangValue?.[lang];
-		multiLangValueFilled[lang] = value === undefined
-			? getLangValueWithFallback(multiLangValue, langFallback) ?? ""
-			: value;
-		return multiLangValueFilled;
-	}, {} as CompleteMultiLang);
-}
+const getMultiLangValueWithFallback =
+	(multiLangValue?: MultiLang, langFallback = true): CompleteMultiLang | undefined => {
+		const completeMultiLang = LANGS.reduce((multiLangValueFilled: CompleteMultiLang, lang) => {
+			const value = multiLangValue?.[lang];
+			multiLangValueFilled[lang] = value === undefined
+				? getLangValueWithFallback(multiLangValue, langFallback) ?? ""
+				: value;
+			return multiLangValueFilled;
+		}, {} as CompleteMultiLang);
+		return (Object.keys(completeMultiLang) as (keyof CompleteMultiLang)[]).every(k => completeMultiLang[k] === "")
+			? undefined
+			: completeMultiLang;
+	}
 
 function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi, langFallback?: boolean)
 	: CompleteMultiLang;
