@@ -88,6 +88,7 @@ export class ApiUsersService {
 			await queryRunner.release();
 		}
 	}
+
 	private findByEmail(email: string): Promise<ApiUser | null> {
 		return this.apiUserRepository.findOneBy({ email });
 	}
