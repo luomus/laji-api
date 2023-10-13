@@ -47,7 +47,9 @@ const itemProperties = [
 	"dataQualityDescription",
 	"dataUseTerms",
 	"publisherShortname",
-	"shareToGbif"
+	"shareToGbif",
+	"institutionCode",
+	"collectionCode",
 ];
 
 describe("/collections", function() {
