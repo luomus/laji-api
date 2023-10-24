@@ -13,7 +13,7 @@ Check the [Get started wiki page](https://github.com/luomus/laji-api/wiki/Get-st
 ### Installation
 
 ```bash
-$ npm install
+$ npm ci
 ```
 
 Fill in `.env` file, using `.env.example` as as template.
