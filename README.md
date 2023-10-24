@@ -4,6 +4,8 @@ The new FinBIF API, that FinBIF will slowly migrate to.
 
 ## Development
 
+Check the [Get started wiki page](https://github.com/luomus/laji-api/wiki/Get-started)
+
 ### Stack
 
 [Nest](https://github.com/nestjs/nest)
