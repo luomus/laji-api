@@ -30,9 +30,8 @@ export type StoreServiceForResource<T extends { id: string }> = {
 }
 
 const storePageToPaginatedDto = <T>(page: StoreQueryResult<T>): Pick<PaginatedDto<T>,
-	"results" | "last" | "currentPage"> => ({
+	"results" | "lastPage" | "currentPage"> => ({
 		...page,
-		last: page.lastPage,
 		results: page.member
 	});
 

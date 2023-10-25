@@ -75,7 +75,7 @@ export class PaginatedDto<T> {
 	currentPage: number;
 	pageSize: number;
 	total: number;
-	last: number;
+	lastPage: number;
 	prevPage?: number;
 	nextPage?: number;
 	results: T[];
@@ -83,7 +83,7 @@ export class PaginatedDto<T> {
 }
 
 export const isPaginatedDto = <T>(maybePaginated: any): maybePaginated is PaginatedDto<T> => 
-	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "last"]
+	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
 		.every(k => k in maybePaginated);
 
 export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en): PaginatedDto<T> => {
@@ -92,13 +92,13 @@ export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en
 	}
 
 	const total = data.length;
-	const last = Math.ceil(total / pageSize);
+	const lastPage = Math.ceil(total / pageSize);
 	const  result: Omit<PaginatedDto<T>, "@context"> = {
 		total,
 		results: data.slice((page - 1) * pageSize, page * pageSize),
 		currentPage: page,
 		pageSize,
-		last
+		lastPage
 	};
 	return paginateAlreadyPaged(result, lang);
 };
@@ -109,13 +109,13 @@ export const paginateAlreadyPaged = <T>(pagedResult: Omit<PaginatedDto<T>, "@con
 	addContextToPaged(lang)
 );
 
-export const addPrevAndNextPage = <T extends { currentPage: number; last: number; }>(data: T)
+export const addPrevAndNextPage = <T extends { currentPage: number; lastPage: number; }>(data: T)
 	: T & { prevPage?: number; nextPage?: number; } => {
 	const result: T & { prevPage?: number; nextPage?: number; } = { ...data };
 	if (result.currentPage > 1) {
 		result.prevPage = result.currentPage - 1;
 	}
-	if (result.last > result.currentPage) {
+	if (result.lastPage > result.currentPage) {
 		result.nextPage = result.currentPage + 1;
 	}
 	return result;
@@ -133,11 +133,11 @@ const addContextToPaged = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "
 };
 
 export const getAllFromPagedResource = async <T>(
-	getPage: (page: number) => Promise<Pick<PaginatedDto<T>, "results" | "last" | "currentPage">>
+	getPage: (page: number) => Promise<Pick<PaginatedDto<T>, "results" | "lastPage" | "currentPage">>
 ): Promise<T[]> => {
 	let res = await getPage(1);
 	let items = res.results;
-	while (res.currentPage < res.last) {
+	while (res.currentPage < res.lastPage) {
 		res = await getPage(res.currentPage + 1);
 		items = items.concat(res.results);
 	}
