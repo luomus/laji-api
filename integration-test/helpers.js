@@ -17,7 +17,7 @@ const params = {
 	lastPage: 'lastPage',
 	nextPage: 'nextPage',
 	prevPage: 'prevPage',
-	last: 'last',
+	last: 'lastPage',
 };
 var server = null;
 
