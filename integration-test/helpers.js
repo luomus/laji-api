@@ -17,7 +17,6 @@ const params = {
 	lastPage: 'lastPage',
 	nextPage: 'nextPage',
 	prevPage: 'prevPage',
-	last: 'lastPage',
 };
 var server = null;
 
@@ -32,7 +31,7 @@ module.exports = {
 	},
 	isPagedResult: (data, pageSize, shouldHaveNext)  => {
 		var keys = [params.context, params.results, params.pageSize,
-			params.total, params.currentPage, params.last];
+			params.total, params.currentPage];
 		if (typeof shouldHaveNext !== 'undefined') {
 			keys.push(params.nextPage);
 		}
