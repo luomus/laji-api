@@ -250,8 +250,6 @@ function hasRequested(permissions: FormPermissionDto, person: Person) {
 	return permissions.permissionRequests.includes(person.id);
 }
 
-
-
 const naturalSort = (a: string, b: string) =>
 	parseInt(a.replace( /^\D+/g, ""), 10) - parseInt(b.replace( /^\D+/g, ""), 10);
 
