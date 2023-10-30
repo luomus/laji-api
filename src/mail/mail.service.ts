@@ -45,15 +45,6 @@ export class MailService {
 		});
 	}
 
-	async sendFormPermissionRevoked(user: HasEmailAddress, context: FormPermissionMailContext) {
-		return this.send({
-			to: user.emailAddress,
-			subject: `Pääsypyyntösi lomakkeelle "${context.formTitle.fi}" on hylätty`,
-			template: "./form-permission-revoked",
-			context
-		});
-	}
-
 	async sendFormPermissionRequestReceived(
 		user: HasEmailAddress,
 		context: FormPermissionMailContext & { person: Person, formID: string }

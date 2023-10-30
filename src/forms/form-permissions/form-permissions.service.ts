@@ -138,7 +138,9 @@ export class FormPermissionsService {
 			});
 		}
 
-		this.sendFormPermissionAccepted(customer, collectionID);
+		if (!existing) {
+			this.sendFormPermissionAccepted(customer, collectionID);
+		}
 
 		return this.getByCollectionIdAndPerson(collectionID, author);
 	}
@@ -178,8 +180,6 @@ export class FormPermissionsService {
 			throw new HttpException("User did not have a permission to delete", 404);
 		}
 
-		this.sendFormPermissionRevoked(customer, collectionID);
-
 		await this.storeFormPermissionService.delete(existing.id);
 		return this.getByCollectionIdAndPerson(collectionID, author);
 	}
@@ -203,11 +203,6 @@ export class FormPermissionsService {
 	private async sendFormPermissionAccepted(person: Person, collectionID: string) {
 		const formTitle = await this.getFormTitle(collectionID);
 		this.mailService.sendFormPermissionAccepted(person, { formTitle });
-	}
-
-	private async sendFormPermissionRevoked(person: Person, collectionID: string) {
-		const formTitle = await this.getFormTitle(collectionID);
-		this.mailService.sendFormPermissionRevoked(person, { formTitle });
 	}
 
 	private async getFormTitle(collectionID: string): Promise<CompleteMultiLang> {
