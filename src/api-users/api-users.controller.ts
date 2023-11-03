@@ -7,8 +7,8 @@ import { Request } from "express";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { ApiUser } from "./api-user.entity";
 import { serializeInto } from "src/type-utils";
+import {BypassAccessTokenAuth} from "src/access-token/access-token.guard";
 
-@ApiSecurity("access_token")
 @ApiTags("API user")
 @Controller("api-users")
 export class ApiUsersController {
@@ -18,10 +18,11 @@ export class ApiUsersController {
 	) {}
 
 	/*
-	 * Get form permissions for a person
+	 * Returns info about user based on the access token
 	 */
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(undefined, ApiUser, { filterNulls: true }))
+	@ApiSecurity("access_token")
 	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
 		const token = accessToken || this.accessTokenService.getAccessTokenFromRequest(request);
 		if (!token) {
@@ -30,12 +31,20 @@ export class ApiUsersController {
 		return this.apiUsersService.getByAccessToken(token);
 	}
 
+	/**
+	 * Register as an api user. Access token will be send to your email.
+	 */
 	@Post()
+	@BypassAccessTokenAuth()
 	register(@Body() user: ApiUserCreateDto) {
 		return this.apiUsersService.create(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
 	}
 
+	/**
+	 * Requests new access token (will be send to your email). Please note that this will not delete any existing tokens (use delete for that).
+	 */
 	@Post("renew")
+	@BypassAccessTokenAuth()
 	renew(@Body() user: ApiUserCreateDto) {
 		return this.apiUsersService.renew(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
 	}
