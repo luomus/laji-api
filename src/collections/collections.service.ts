@@ -154,7 +154,12 @@ export class CollectionsService {
 			// 	}
 			// });
 
-			collection.downloadRequestHandler = getCollectionRequestHandler(collection, idToCollection);
+			collection.downloadRequestHandler = getInheritedProperty(
+				"downloadRequestHandler", collection, idToCollection
+			);
+			collection.shareToFEO = getInheritedProperty(
+				"shareToFEO", collection, idToCollection
+			);
 			(collection as Collection<MultiLang>).longName = getLongName(collection, idToCollection);
 			(collection as Collection<MultiLang>).hasChildren = !!collectionIdToChildIds[collection.id]
 				|| collection.id === GBIF_DATASET_PARENT;
@@ -199,14 +204,17 @@ const collectionIsHidden = (
 				: false
 		);
 
-const getCollectionRequestHandler = (
+/** If the property is undefined, attempt to recursively get it from parent collections */
+const getInheritedProperty = <K extends keyof TriplestoreCollection>(
+	property: K,
 	collection: TriplestoreCollection,
 	idToCollection: Record<string, TriplestoreCollection>
-) : string[] | undefined => 
-	collection.downloadRequestHandler
-		|| ((collection.isPartOf && idToCollection[(collection.isPartOf as string)])
-			? getCollectionRequestHandler(idToCollection[collection.isPartOf], idToCollection)
-			: undefined)
+) : TriplestoreCollection[K] | undefined => 
+		collection[property] !== undefined
+			? collection[property]
+			: ((collection.isPartOf && idToCollection[(collection.isPartOf as string)])
+				? getInheritedProperty(property, idToCollection[collection.isPartOf], idToCollection)
+				: undefined)
 
 const getRootParent = (collection: TriplestoreCollection, idToCollection: Record<string, TriplestoreCollection>)
 	: TriplestoreCollection | undefined => {

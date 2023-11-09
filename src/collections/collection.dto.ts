@@ -50,6 +50,7 @@ export class TriplestoreCollection extends HasContext {
 	dataLocation?: MultiLang;
 
 	downloadRequestHandler?: string[];
+	shareToFEO?: boolean;
 	collectionType:
 		| "MY.collectionTypeSpecimens"
 		| "MY.collectionTypeLiving"
