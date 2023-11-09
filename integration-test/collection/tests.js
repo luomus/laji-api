@@ -50,6 +50,7 @@ const itemProperties = [
 	"shareToGbif",
 	"institutionCode",
 	"collectionCode",
+	"shareToFEO",
 ];
 
 describe("/collections", function() {
