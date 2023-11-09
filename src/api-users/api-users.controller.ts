@@ -32,7 +32,7 @@ export class ApiUsersController {
 	}
 
 	/**
-	 * Register as an api user. Access token will be send to your email.
+	 * Register as an api user (access token will be sent to your email)
 	 */
 	@Post()
 	@BypassAccessTokenAuth()
@@ -41,7 +41,7 @@ export class ApiUsersController {
 	}
 
 	/**
-	 * Requests new access token (will be send to your email). Please note that this will not delete any existing tokens (use delete for that).
+	 * Requests new access token (will be sent to your email). Please note that this will not delete any existing tokens.
 	 */
 	@Post("renew")
 	@BypassAccessTokenAuth()
