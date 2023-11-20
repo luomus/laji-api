@@ -22,6 +22,7 @@ export class MailService {
 		}
 		const context = {
 			BASE: this.configService.get("MAIL_BASE"),
+			API_BASE: this.configService.get("MAIL_APIBASE"),
 			...options.context
 		};
 		return this.mailerService.sendMail({ ...options, context, subject });
@@ -60,7 +61,7 @@ export class MailService {
 	async sendApiUserCreated(user: HasEmailAddress, token: string) {
 		return this.send({
 			to: user.emailAddress,
-			subject: `Access token for ${this.configService.get("MAIL_BASE")}`,
+			subject: `Access token for ${this.configService.get("MAIL_API_BASE")}`,
 			template: "./api-user-created",
 			context: { token }
 		});
