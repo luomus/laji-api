@@ -22,7 +22,7 @@ export class MailService {
 		}
 		const context = {
 			BASE: this.configService.get("MAIL_BASE"),
-			API_BASE: this.configService.get("MAIL_APIBASE"),
+			API_BASE: this.configService.get("MAIL_API_BASE"),
 			...options.context
 		};
 		return this.mailerService.sendMail({ ...options, context, subject });
