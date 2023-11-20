@@ -2,7 +2,8 @@ import { Lang } from "./common.dto";
 import { isObject } from "./type-utils";
 import * as crypto from "crypto";
 
-export const CACHE_1_MIN = 1000 * 60;
+export const CACHE_1_SEC = 1000;
+export const CACHE_1_MIN = CACHE_1_SEC * 60;
 
 type PromiseReducer<T, R>  = {
 	(value: T): R | Promise<R>;
@@ -175,3 +176,10 @@ const applyToResult: ApplyResult =  async <T, R>(result: T | T[] | PaginatedDto<
 export { applyToResult };
 
 export const uuid = (length: number) => crypto.randomBytes(length / 2).toString("hex");
+
+export type CacheOptions = {
+	/**
+	 * milliseconds for the cache TTL, true for default TTL.
+	 */
+	cache?: number;
+}

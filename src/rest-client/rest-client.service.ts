@@ -6,6 +6,7 @@ import { map } from "rxjs/operators";
 import { Newable, serializeInto } from "src/type-utils";
 import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { CacheOptions } from "src/utils";
 
 export interface RestClientConfig {
 	path: string;
@@ -13,15 +14,9 @@ export interface RestClientConfig {
 }
 
 export type LajiApiOptions<T> = {
-	/**
-	 * A class that that the result will be serialized into.
-	 */
+	/** A class that that the result will be serialized into. */
 	serializeInto?: Newable<T>;
-	/**
-	 * number for the cache TTL, "cache" for default TTL.
-	 */
-	cache?: number | "cache";
-}
+} & CacheOptions;
 
 /**
  * Abstract wrapper for a service that connects to a remote REST API.
@@ -96,7 +91,7 @@ export class RestClientService<T = any> {
 			cachedByPath![this.getCacheKey(path, options)] = result;
 			await this.cache.set(this.getPath(path),
 				cachedByPath!,
-				lajiApiOptions.cache === "cache" ? undefined : lajiApiOptions.cache);
+				lajiApiOptions.cache);
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
 		}
 		return result;

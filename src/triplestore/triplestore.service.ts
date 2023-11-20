@@ -3,7 +3,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSON, JSONObject } from "../type-utils";
-import { promisePipe } from "src/utils";
+import { CacheOptions, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { Cache } from "cache-manager";
 import { MultiLang } from "src/common.dto";
@@ -29,9 +29,7 @@ type TriplestoreSearchQuery = {
 	subject?: string;
 }
 
-type TriplestoreQueryOptions = {
-	cache?: number | true;
-}
+type TriplestoreQueryOptions = CacheOptions;
 
 @Injectable()
 export class TriplestoreService {
@@ -79,7 +77,7 @@ export class TriplestoreService {
 	 * @param query Query options
 	 * @param options Cache options
 	 */
-	async find<T>(query: TriplestoreSearchQuery = {}, options?: {cache?: number | true}): Promise<T[]> {
+	async find<T>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions): Promise<T[]> {
 		const _query = { ...this.getBaseQuery(), ...query };
 		const { cache } = options || {};
 		if (cache) {
@@ -140,7 +138,7 @@ export class TriplestoreService {
 	}
 
 	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
-		options?.cache && await this.cache.set(cacheKey, item, options.cache === true ? undefined : options.cache);
+		options?.cache && await this.cache.set(cacheKey, item, options.cache);
 		return item;
 	}
 
@@ -221,9 +219,7 @@ export class TriplestoreService {
 		});
 	}
 
-	/**
-	 * RDF doesn't know about our properties' schema info. This function makes the output to adhere to schema.
-	 */
+	/** RDF doesn't know about our properties' schema info. This function makes the output to adhere to schema.  */
 	private adhereToSchema = (properties: ContextProperties) => async (data: JSONObject) => {
 		function asArray(value: any, property: Property) {
 			if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
