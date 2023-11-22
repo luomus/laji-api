@@ -66,10 +66,12 @@ bootstrap();
 const description =
 `
 Access token is needed to use this API. To get a token, send a POST request with your email address to
-/api-users endpoint and one will be send to your. Each endpoint below has more information on how to use this API.
-If you have any questions you can contact us at helpdesk@laji.fi.
+/api-users endpoint and one will be send to your. Include the token to each request either as access_token
+parameter or Authentication header value. 
 
 You can find more documentation [here](https://laji.fi/about/806).
+
+If you have any questions you can contact us at helpdesk@laji.fi.
 
 ## Endpoints
 
