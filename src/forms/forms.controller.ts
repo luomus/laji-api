@@ -6,7 +6,9 @@ import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
+import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
+@SwaggerRemote()
 @ApiSecurity("access_token")
 @ApiTags("Form")
 @Controller("forms")
@@ -62,6 +64,7 @@ export class FormsController {
 
 	/** Get all forms */
 	@Get()
+	@SwaggerRemoteRef({ source: "store", ref: "form" })
 	@UseInterceptors(createQueryParamsInterceptor(GetAllDto))
 	getPage(@Query() { lang }: GetAllDto) {
 		return this.formsService.getAll(lang);
@@ -69,6 +72,7 @@ export class FormsController {
 
 	/** Get a form by id */
 	@Get(":id")
+	@SwaggerRemoteRef({ source: "store", ref: "form" })
 	findOne(@Param("id") id: string, @Query() { format = Format.schema, lang = Lang.en, expand = true }: GetDto) {
 		return this.formsService.findOne(id, format, lang, expand);
 	}
@@ -76,6 +80,7 @@ export class FormsController {
 	/** Create a new form */
 	@Post()
 	@UseGuards(IctAdminGuard)
+	@SwaggerRemoteRef({ source: "store", ref: "form" })
 	create(@Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.create(form, personToken);
 	}
@@ -83,6 +88,7 @@ export class FormsController {
 	/** Update an existing form */
 	@Put(":id")
 	@UseGuards(IctAdminGuard)
+	@SwaggerRemoteRef({ source: "store", ref: "form" })
 	update(@Param("id") id: string, @Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.update(id, form, personToken);
 	}
@@ -97,6 +103,7 @@ export class FormsController {
 	/** Get preview of form transformed from json format to schema format */
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
+	@SwaggerRemoteRef({ source: "store", ref: "form" })
 	transform(@Body() form: Form, @Query() { personToken, lang = Lang.en }: TransformDto) {
 		return this.formsService.transform(form, lang, personToken);
 	}

@@ -1,4 +1,5 @@
-import { PATH_METADATA } from "@nestjs/common/constants";
+import { RequestMethod } from "@nestjs/common";
+import { METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 
 export type SwaggerRemoteRefEntry = {
 	/** The remote source */
@@ -7,7 +8,12 @@ export type SwaggerRemoteRefEntry = {
 	ref: string
 };
 
-export const swaggerRemoteRefs: {[path: string]: {[method: string]: SwaggerRemoteRefEntry}} = {};
+export const swaggerRemoteRefs: {[path: string]:
+	{[method: string]:
+		{ [responseCode: string]: SwaggerRemoteRefEntry
+		}
+	}
+} = {};
 
 const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
 
@@ -37,11 +43,16 @@ export function SwaggerRemote() {
 			if (!metadata) {
 				return;
 			}
-			// The path defined by @Controller() decorator.
-			const path = Reflect.getMetadata(PATH_METADATA, target)
+			// The path defined by `@Controller()` decorator.
+			const path = Reflect.getMetadata(PATH_METADATA, target);
+
+			// The method defined by methods method decorator (`@Get()`, `@Post()`, ...).
+			const method = RequestMethod[Reflect.getMetadata(METHOD_METADATA, target.prototype[propertyKey])];
+			const responseCode = method === "POST"
+				? 201 : 200;
 			swaggerRemoteRefs[path] = {
 				...(swaggerRemoteRefs[path] || {}),
-				[propertyKey]: metadata
+				[propertyKey]: { [responseCode]: metadata }
 			}
 		});
 	}

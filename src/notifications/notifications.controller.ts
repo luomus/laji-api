@@ -3,7 +3,9 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { QueryWithPersonTokenDto } from "src/common.dto";
 import { GetPageDto, Notification } from "./notification.dto";
 import { NotificationsService } from "./notifications.service";
+import {SwaggerRemote, SwaggerRemoteRef} from "src/swagger/swagger-remote.decorator";
 
+@SwaggerRemote()
 @ApiSecurity("access_token")
 @Controller("notifications")
 @ApiTags("Notifications")
@@ -13,7 +15,8 @@ export class NotificationsController {
 	 * Get notifications
 	 */
 	@Get(":personToken")
-	findAll(@Param("personToken") personToken: string, @Query() { page, pageSize, onlyUnSeen }: GetPageDto) {
+	@SwaggerRemoteRef({ source: "store", ref: "notification" })
+	getAll(@Param("personToken") personToken: string, @Query() { page, pageSize, onlyUnSeen }: GetPageDto) {
 		return this.notificationsService.getPage(personToken, onlyUnSeen, page, pageSize);
 	}
 
@@ -21,6 +24,7 @@ export class NotificationsController {
 	 * Update notification
 	 */
 	@Put(":id")
+	@SwaggerRemoteRef({ source: "store", ref: "notification" })
 	update(
 		@Param("id") id: string,
 		@Body() notification: Notification,

@@ -29,7 +29,6 @@ export class NotificationsService {
 		return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage, lastPage });
 	}
 
-
 	add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {
 		notification.seen = false;
 		notification.created = now();

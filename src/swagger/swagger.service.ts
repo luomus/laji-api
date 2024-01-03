@@ -63,32 +63,36 @@ export class SwaggerService {
 	 */
 	private patchRemoteRefs(document: OpenAPIObject) {
 		Object.keys(swaggerRemoteRefs).forEach((path: string) => {
-			Object.keys(swaggerRemoteRefs[path]).forEach((methodName: string) => {
-				const entry = swaggerRemoteRefs[path][methodName];
-				const remoteDoc = this.getRemoteSwaggerDoc(entry);
-				const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>); 
-				document!.components!.schemas![entry.ref] = remoteSchemas[entry.ref];
-				for (const iteratedPath of Object.keys(document.paths)) {
-					const pathItem = document.paths[iteratedPath];
-					for (const operationName of (["get", "put", "post", "delete"] as const)) {
-						const operation = pathItem[operationName];
-						if (!operation) {
-							continue;
-						}
-						const existingSchema: SchemaObject | ReferenceObject | undefined
-							= (operation.responses as any)["200"]?.content?.["application/json"]?.schema;
-						const schema: SchemaObject | ReferenceObject | undefined = pipe(
-							existingSchema,
-							replaceWithRemoteAsNeededWith(path, methodName, iteratedPath, operation, entry),
-							paginateAsNeededWith(operation)
-						);
-						if (schema) {
-							(operation.responses as any)["200"].content = {
-								"application/json": { schema }
+			const methods = swaggerRemoteRefs[path];
+			Object.keys(methods).forEach((methodName: string) => {
+				const responseCodes = methods[methodName];
+				Object.keys(responseCodes).forEach((responseCode: string) => {
+					const entry = swaggerRemoteRefs[path][methodName][responseCode];
+					const remoteDoc = this.getRemoteSwaggerDoc(entry);
+					const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>); 
+					document!.components!.schemas![entry.ref] = remoteSchemas[entry.ref];
+					for (const iteratedPath of Object.keys(document.paths)) {
+						const pathItem = document.paths[iteratedPath];
+						for (const operationName of (["get", "put", "post", "delete"] as const)) {
+							const operation = pathItem[operationName];
+							if (!operation) {
+								continue;
+							}
+							const existingSchema: SchemaObject | ReferenceObject | undefined
+								= (operation.responses as any)[responseCode]?.content?.["application/json"]?.schema;
+							const schema: SchemaObject | ReferenceObject | undefined = pipe(
+								existingSchema,
+								replaceWithRemoteAsNeededWith(path, methodName, iteratedPath, operation, entry),
+								paginateAsNeededWith(operation)
+							);
+							if (schema) {
+								(operation.responses as any)[responseCode].content = {
+									"application/json": { schema }
+								}
 							}
 						}
 					}
-				}
+				});
 			});
 		});
 		return document;
