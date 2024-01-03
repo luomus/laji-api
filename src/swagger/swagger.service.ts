@@ -5,7 +5,7 @@ import { CACHE_30_MIN, pipe } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, swaggerRemoteRefs } from "./swagger-remote.decorator";
-import {Interval} from "@nestjs/schedule";
+import { Interval } from "@nestjs/schedule";
 
 @Injectable()
 export class SwaggerService {
@@ -73,6 +73,7 @@ export class SwaggerService {
 							"application/json": { schema }
 						}
 						if (isPagedOperation(operation)) {
+							
 							asPagedResponse
 						}
 						break

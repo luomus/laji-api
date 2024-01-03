@@ -2,8 +2,9 @@ import { HttpException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
-import { Optional } from "src/type-utils";
-import { CACHE_1_MIN, paginateAlreadyPaged } from "src/utils";
+import { Optional } from "src/serializing/serializing";
+import { CACHE_1_MIN } from "src/utils";
+import { paginateAlreadyPaged } from "src/pagination";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 

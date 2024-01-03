@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { decoratePerson, Person, Role } from "./person.dto";
-import { serializeInto } from "../type-utils";
+import { serializeInto } from "src/serializing/serializing";
 import { promisePipe } from "src/utils";
 
 const CACHE_5_MIN = 1000 * 60 * 5;

@@ -1,4 +1,4 @@
-import { Private } from "src/type-utils";
+import { Private } from "src/serializing/private.decorator";
 import { Entity, Column, CreateDateColumn, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "ACCESSTOKEN" })

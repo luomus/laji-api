@@ -3,8 +3,10 @@ import { from, Observable, switchMap } from "rxjs";
 import { Request } from "express";
 import { isLangQueryDto, isPagedQueryDto, Lang, LangQueryDto, PagedDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
-import { applyToResult, pageResult, promisePipe } from "src/utils";
-import { excludePrivateProps, Newable, serializeInto as _serializeInto, SerializeOptions } from "src/type-utils";
+import { promisePipe } from "src/utils";
+import { pageResult, applyToResult  } from "src/pagination";
+import { Newable } from "src/type-utils";
+import { excludePrivateProps, serializeInto as _serializeInto, SerializeOptions } from "src/serializing/serializing";
 import { plainToClass } from "class-transformer";
 
 /**

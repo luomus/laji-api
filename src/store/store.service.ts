@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { RestClientService, LajiApiOptions }  from "src/rest-client/rest-client.service";
-import { getAllFromPagedResource, PaginatedDto } from "src/utils";
+import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
 
 interface StoreQueryResult<T> {
 	member: T[];

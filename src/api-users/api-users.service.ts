@@ -4,7 +4,7 @@ import { AccessTokenService } from "src/access-token/access-token.service";
 import { ApiUser } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
 import { MailService } from "src/mail/mail.service";
-import { serializeInto } from "src/type-utils";
+import { serializeInto } from "src/serializing/serializing";
 
 @Injectable()
 export class ApiUsersService {

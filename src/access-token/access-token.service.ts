@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { AccessToken } from "./access-token.entity";
 import { Request } from "express";
 import { ApiUser } from "src/api-users/api-user.entity";
-import { serializeInto } from "src/type-utils";
+import { serializeInto } from "src/serializing/serializing";
 import { uuid } from "src/utils";
 
 @Injectable()

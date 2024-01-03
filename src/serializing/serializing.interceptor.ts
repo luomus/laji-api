@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { map, Observable } from "rxjs";
-import { excludePrivateProps } from "src/type-utils";
-import { applyToResult } from "src/utils";
+import { excludePrivateProps } from "./serializing";
+import { applyToResult } from "src/pagination";
 
 @Injectable()
 export class SerializingInterceptor implements NestInterceptor {

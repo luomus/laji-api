@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
-import { serialize } from "src/type-utils";
+import { serialize } from "src/serializing/serializing";
 import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
 

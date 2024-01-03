@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsBoolean, IsInt, isObject } from "class-validator";
-import { ParseOptionalBoolean } from "./type-utils";
+import { ParseOptionalBoolean } from "./serializing/serializing";
 
 export class PagedDto {
 	@Type(() => Number)

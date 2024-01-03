@@ -1,4 +1,4 @@
-import { JSONObject } from ".././type-utils";
+import { JSONObject } from "../type-utils";
 
 export class Profile {
 	id: string;

@@ -1,6 +1,7 @@
 import { IsBoolean } from "class-validator";
 import { HasContext } from "src/common.dto";
-import { Private, ParseOptionalBoolean } from "src/type-utils";
+import { Private } from "src/serializing/private.decorator";
+import { ParseOptionalBoolean } from  "src/serializing/serializing";
 
 export enum Role {
 	Admin = "MA.admin"

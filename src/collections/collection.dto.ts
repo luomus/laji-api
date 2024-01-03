@@ -1,5 +1,6 @@
 import { IsBoolean } from "class-validator";
-import { Private, ParseOptionalBoolean } from "../type-utils";
+import { ParseOptionalBoolean } from "src/serializing/serializing";
+import { Private } from "src/serializing/private.decorator";
 import { PagedDto, Lang, MultiLang, HasContext, LangQueryDto } from "../common.dto";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
 
