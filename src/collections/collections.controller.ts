@@ -45,6 +45,7 @@ export class CollectionsController {
 	/** Get child collections */
 	@Get(":id/children")
 	@UseInterceptors(createQueryParamsInterceptor(FindCollectionsDto, Collection))
+	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findChildren(@Param("id") id: string, @Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findChildren(id);
 	}

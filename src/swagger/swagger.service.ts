@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, pipe } from "src/utils";
@@ -13,15 +13,20 @@ export class SwaggerService {
 	storeSwaggerDoc?: OpenAPIObject;
 	cachedPatchedDoc?: OpenAPIObject;
 
+	private logger = new Logger(SwaggerService.name);
+
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService
+		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 	) {
 		this.patchGlobalSchemaRefs = this.patchGlobalSchemaRefs.bind(this);
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);
 	}
 
 	onModuleInit() {
-		this.update();
+		this.logger.log("Loading remote sources for patching Swagger in background  started...");
+		this.update().then(() => {
+			this.logger.log("Loading remote sources for patching Swagger in background complete");
+		});
 	}
 
 	@Interval(CACHE_30_MIN)
@@ -39,7 +44,8 @@ export class SwaggerService {
 			return this.cachedPatchedDoc;
 		}
 
-		return pipe(document, this.patchGlobalSchemaRefs, this.patchRemoteRefs);
+		this.cachedPatchedDoc = pipe(document, this.patchGlobalSchemaRefs, this.patchRemoteRefs);
+		return this.cachedPatchedDoc;
 	}
 
 	private patchGlobalSchemaRefs(document: OpenAPIObject) {
@@ -48,6 +54,13 @@ export class SwaggerService {
 		return document;
 	}
 
+	/**
+	 * Iterates through the whole OpenAPIObject tree and patches it by:
+	 * 1. replaces remote entries defined by `@SwaggerRemoteRef` decorator
+	 * 2. Fixes response pagination globally
+	 *
+	 * Patching is performed mutably.
+	 */
 	private patchRemoteRefs(document: OpenAPIObject) {
 		Object.keys(swaggerRemoteRefs).forEach((path: string) => {
 			Object.keys(swaggerRemoteRefs[path]).forEach((methodName: string) => {
@@ -56,27 +69,24 @@ export class SwaggerService {
 				const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>); 
 				document!.components!.schemas![entry.ref] = remoteSchemas[entry.ref];
 				for (const iteratedPath of Object.keys(document.paths)) {
-					if (iteratedPath !== `/${path}` && !iteratedPath.startsWith(`/${path}/`)) {
-						continue;
-					}
 					const pathItem = document.paths[iteratedPath];
 					for (const operationName of (["get", "put", "post", "delete"] as const)) {
 						const operation = pathItem[operationName];
-						if (operation?.operationId !== methodName) {
+						if (!operation) {
 							continue;
 						}
-						const schema: SchemaObject | ReferenceObject = pipe(
-							{ "$ref": `#/components/schemas/${entry.ref}` },
+						const existingSchema: SchemaObject | ReferenceObject | undefined
+							= (operation.responses as any)["200"]?.content?.["application/json"]?.schema;
+						const schema: SchemaObject | ReferenceObject | undefined = pipe(
+							existingSchema,
+							replaceWithRemoteAsNeededWith(path, methodName, iteratedPath, operation, entry),
 							paginateAsNeededWith(operation)
 						);
-						(operation.responses as any)["200"].content = {
-							"application/json": { schema }
+						if (schema) {
+							(operation.responses as any)["200"].content = {
+								"application/json": { schema }
+							}
 						}
-						if (isPagedOperation(operation)) {
-							
-							asPagedResponse
-						}
-						break
 					}
 				}
 			});
@@ -92,7 +102,23 @@ export class SwaggerService {
 	}
 }
 
-const isPagedOperation = (operation: OperationObject) => {
+const replaceWithRemoteAsNeededWith = (
+	remoteEntryPath: string,
+	remoteEntryMethodName: string,
+	iteratedPath: string,
+	operation: OperationObject,
+	entry: SwaggerRemoteRefEntry) =>
+	(schema?: SchemaObject | ReferenceObject) => {
+		if (
+			iteratedPath !== `/${remoteEntryPath}` && !iteratedPath.startsWith(`/${remoteEntryPath}/`)
+			|| operation?.operationId !== remoteEntryMethodName
+		) {
+			return schema;
+		}
+		return { "$ref": `#/components/schemas/${entry.ref}` };
+	}
+
+const isPagedOperation = (operation: OperationObject): boolean => {
 	for (const param of (operation.parameters || [])) {
 		if ((param as ParameterObject).name === "page") {
 			return true;
@@ -115,6 +141,13 @@ const asPagedResponse = (schema: SchemaObject | ReferenceObject): SchemaObject =
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
 
+const isSchemaObject = (schema: SchemaObject | ReferenceObject): schema is SchemaObject => !!(schema as any).type;
+
+const isPagedSchema = (schema: SchemaObject | ReferenceObject) =>
+	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
+
 const paginateAsNeededWith = (operation: OperationObject) =>
-	(schema: SchemaObject | ReferenceObject) =>
-		isPagedOperation(operation) ? asPagedResponse(schema) : schema;
+	(schema?: SchemaObject | ReferenceObject) => 
+		(schema && isPagedOperation(operation) && !isPagedSchema(schema))
+			? asPagedResponse(schema)
+			: schema;
