@@ -3,7 +3,7 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { QueryWithPersonTokenDto } from "src/common.dto";
 import { GetPageDto, Notification } from "./notification.dto";
 import { NotificationsService } from "./notifications.service";
-import {SwaggerRemote, SwaggerRemoteRef} from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
 @SwaggerRemote()
 @ApiSecurity("access_token")

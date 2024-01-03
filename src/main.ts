@@ -1,11 +1,10 @@
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
-import { SwaggerModule, DocumentBuilder, OpenAPIObject } from "@nestjs/swagger";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import * as  proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
-import {JSONObject} from "./type-utils";
 
 export async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");

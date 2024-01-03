@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Request, Response } from "express";
 import * as _request from "request";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Querystring } = require("request/lib/querystring");
 
 const OLD_API = "http://localhost:3003/v0";

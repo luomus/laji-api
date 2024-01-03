@@ -31,7 +31,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { MailModule } from "./mail/mail.module";
 import { ApiUsersModule } from "./api-users/api-users.module";
 import { ApiUser } from "./api-users/api-user.entity";
-import { SwaggerModule } from './swagger/swagger.module';
+import { SwaggerModule } from "./swagger/swagger.module";
 
 @Module({
 	imports: [
