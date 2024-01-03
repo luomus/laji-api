@@ -1,4 +1,4 @@
-import { JSONObject } from "../type-utils";
+import { JSONObjectSerializable } from "../type-utils";
 
 export class Profile {
 	id: string;
@@ -12,5 +12,5 @@ export class Profile {
 	friends: string[] = [];
 	blocked: string[] = [];
 	friendRequests: string[] = [];
-	settings: JSONObject = {};
+	settings: JSONObjectSerializable = {};
 }
