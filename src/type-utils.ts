@@ -74,9 +74,7 @@ export const excludePrivateProps = (item: any) => {
 
 const excludeMetadataKey = Symbol("Private");
 
-/**
- * Mark a poperty to be excluded when serialized by SerializingInterceptor.
- */
+/** Mark a poperty to be excluded when serialized by SerializingInterceptor. */
 export function Private() {
 	  return Reflect.metadata(excludeMetadataKey, "PRIVATE");
 }
@@ -95,8 +93,6 @@ const optionalBooleanMapper = new Map([
 	  ["false", false],
 ]);
 
-/**
- * https://github.com/typestack/class-transformer/issues/676
- */
+/** https://github.com/typestack/class-transformer/issues/676 */
 export const ParseOptionalBoolean = () =>
 	  Transform(({ value }) => optionalBooleanMapper.get(value));

@@ -4,8 +4,8 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection } from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
+import {CACHE_10_MIN} from "src/utils";
 
-const CACHE_10_MIN = 1000 * 60 * 10;
 const GBIF_DATASET_PARENT = "HR.3777";
 
 @Injectable()

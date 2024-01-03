@@ -3,7 +3,7 @@ import { FactoryProvider, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
 import { Cache } from "cache-manager";
-import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 const storeClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",

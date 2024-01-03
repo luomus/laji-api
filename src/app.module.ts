@@ -31,6 +31,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { MailModule } from "./mail/mail.module";
 import { ApiUsersModule } from "./api-users/api-users.module";
 import { ApiUser } from "./api-users/api-user.entity";
+import { SwaggerModule } from './swagger/swagger.module';
 
 @Module({
 	imports: [
@@ -73,7 +74,8 @@ import { ApiUser } from "./api-users/api-user.entity";
 		CollectionsModule,
 		LangModule,
 		MailModule,
-		ApiUsersModule
+		ApiUsersModule,
+		SwaggerModule
 	],
 	controllers: [AppController],
 	providers: [

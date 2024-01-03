@@ -4,6 +4,8 @@ import * as crypto from "crypto";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
+export const CACHE_10_MIN = CACHE_1_MIN * 10;
+export const CACHE_30_MIN = CACHE_1_MIN * 30;
 
 type PromiseReducer<T, R>  = {
 	(value: T): R | Promise<R>;
@@ -152,9 +154,7 @@ type ApplyResult = {
 	<T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T ) => R): Promise<R | R[] | PaginatedDto<R>>
 }
 
-/**
- * Map a given function to all items of a "result" - "result" being either a page, an array or a single object.
- */
+/** Map a given function to all items of a "result". The "result" is either a page, an array or a single object. */
 const applyToResult: ApplyResult =  async <T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T) => R)
 	: Promise<R | R[] | PaginatedDto<R>> => {
 	if (isPaginatedDto(result)) {
@@ -178,8 +178,6 @@ export { applyToResult };
 export const uuid = (length: number) => crypto.randomBytes(length / 2).toString("hex");
 
 export type CacheOptions = {
-	/**
-	 * milliseconds for the cache TTL, true for default TTL.
-	 */
+	/**milliseconds for the cache TTL, true for default TTL. */
 	cache?: number;
 }
