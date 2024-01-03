@@ -49,8 +49,8 @@ export class SwaggerService {
 	}
 
 	private patchGlobalSchemaRefs(document: OpenAPIObject) {
-		document!.components!.schemas!.multilang = 
-					(this.storeSwaggerDoc!.components!.schemas as Record<string, SchemaObject>).multilang;
+		document!.components!.schemas!.multiLang = 
+					(this.storeSwaggerDoc!.components!.schemas as Record<string, SchemaObject>).multiLang;
 		return document;
 	}
 
