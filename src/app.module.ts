@@ -32,6 +32,9 @@ import { MailModule } from "./mail/mail.module";
 import { ApiUsersModule } from "./api-users/api-users.module";
 import { ApiUser } from "./api-users/api-user.entity";
 import { SwaggerModule } from "./swagger/swagger.module";
+import { ImagesModule } from './images/images.module';
+import { AbstractMediaModule } from './abstract-media/abstract-media.module';
+import { AudioModule } from './audio/audio.module';
 
 @Module({
 	imports: [
@@ -75,7 +78,9 @@ import { SwaggerModule } from "./swagger/swagger.module";
 		LangModule,
 		MailModule,
 		ApiUsersModule,
-		SwaggerModule
+		SwaggerModule,
+		ImagesModule,
+		AudioModule
 	],
 	controllers: [AppController],
 	providers: [
