@@ -14,10 +14,19 @@ export class AbstractMediaService {
         );
     }
 
-    async fineOne<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
+    async findOne<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
         const result = await this.getMedia(type, id);
         if (result?.length > 0) {
             return result.pop() as Media<T>;
+        } else {
+            throw new HttpException("Not found", 404);
+        }
+    }
+
+    async findURL<T extends MediaType>(type: T, id: string, urlKey: keyof Media<T>): Promise<string> {
+        const result = await this.findOne(type, id);
+        if (result[urlKey]) {
+            return result[urlKey] as string;
         } else {
             throw new HttpException("Not found", 404);
         }
