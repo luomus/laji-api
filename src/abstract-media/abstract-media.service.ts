@@ -1,10 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { TriplestoreService } from '../triplestore/triplestore.service';
 import { Media, MediaType } from './abstract-media.dto';
+import * as _request from 'request';
 
 @Injectable()
 export class AbstractMediaService {
     constructor(
+        private configService: ConfigService,
         private triplestoreService: TriplestoreService
     ) {}
 
@@ -30,5 +33,23 @@ export class AbstractMediaService {
         } else {
             throw new HttpException("Not found", 404);
         }
+    }
+
+    getUploadProxy(type: MediaType) {
+        const basePath = this.configService.get("MEDIA_PATH") as string;
+        const user = this.configService.get("MEDIA_USER") as string;
+        const pass = this.configService.get("MEDIA_PASS") as string;
+
+        const typeMediaClassMap: Record<MediaType, string> = {
+          [MediaType.image]: 'IMAGE',
+          [MediaType.audio]: 'AUDIO'
+        };
+
+        return _request(basePath + '/api/fileUpload', {
+            "auth": { user, pass },
+            "qs": {
+                "mediaClass": typeMediaClassMap[type]
+            }
+        });
     }
 }

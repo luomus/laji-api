@@ -1,11 +1,13 @@
-import { Controller, Get, Param, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
 import { FindOneDto, GetPageDto, MediaType } from '../abstract-media/abstract-media.dto';
 import { Image } from './image.dto';
 import { createQueryParamsInterceptor } from '../interceptors/query-params/query-params.interceptor';
+import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
+import { QueryWithPersonTokenDto } from '../common.dto';
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
@@ -13,7 +15,7 @@ import { createQueryParamsInterceptor } from '../interceptors/query-params/query
 @ApiTags("Image")
 export class ImagesController {
     constructor(
-        private abstractMediaService: AbstractMediaService,
+        private abstractMediaService: AbstractMediaService
     ) {}
 
     /** Get all images */
@@ -22,6 +24,14 @@ export class ImagesController {
     @SwaggerRemoteRef({ source: "store", ref: "image" })
     async getAll(@Query() { idIn }: GetPageDto) {
         return this.abstractMediaService.getMedia(MediaType.image, idIn);
+    }
+
+    /** Upload image and get temporary id */
+    @Post()
+    @UseGuards(ValidPersonTokenGuard)
+    async upload(@Query() {}: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
+        const proxy = this.abstractMediaService.getUploadProxy(MediaType.image);
+        req.pipe(proxy).pipe(res);
     }
 
     /** Get image by id */

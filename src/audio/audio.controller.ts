@@ -1,11 +1,13 @@
-import { Controller, Get, Param, Query, Res, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
 import { FindOneDto, GetPageDto, MediaType } from '../abstract-media/abstract-media.dto';
 import { Audio } from './audio.dto';
 import { createQueryParamsInterceptor } from '../interceptors/query-params/query-params.interceptor';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
+import { QueryWithPersonTokenDto } from '../common.dto';
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
@@ -22,6 +24,14 @@ export class AudioController {
     @SwaggerRemoteRef({ source: "store", ref: "audio" })
     async getAll(@Query() { idIn }: GetPageDto) {
         return this.abstractMediaService.getMedia(MediaType.audio, idIn);
+    }
+
+    /** Upload audio and get temporary id */
+    @Post()
+    @UseGuards(ValidPersonTokenGuard)
+    async upload(@Query() {}: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
+        const proxy = this.abstractMediaService.getUploadProxy(MediaType.audio);
+        req.pipe(proxy).pipe(res);
     }
 
     /** Get audio by id */
