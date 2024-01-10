@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
@@ -64,6 +64,13 @@ export class ImagesController {
         this.abstractMediaService.findURL(MediaType.image, id, 'thumbnailURL').then(url => {
             res.redirect(url);
         });
+    }
+
+    /** Upload image metadata */
+    @Post(":tempId")
+    @UseGuards(ValidPersonTokenGuard)
+    async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
+        return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, personToken);
     }
 }
 

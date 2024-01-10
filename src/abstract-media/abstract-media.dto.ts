@@ -1,5 +1,5 @@
 import { IntersectionType } from '@nestjs/swagger';
-import { Lang, LangQueryDto, PagedDto } from '../common.dto';
+import { Lang, LangQueryDto, MultiLang, PagedDto } from '../common.dto';
 import { Image, Audio } from '@luomus/laji-schema';
 import { ParseOptionalBoolean } from '../serializing/serializing';
 import { IsBoolean } from 'class-validator';
@@ -23,4 +23,58 @@ export enum MediaType {
     audio = 'MM.audio'
 }
 
-export type Media<T extends MediaType> = T extends MediaType.image ? Image : Audio;
+export type Media<T extends MediaType = any> = T extends MediaType.image ? Image : Audio;
+
+export class Meta {
+    license: Media['intellectualRights'];
+    rightsOwner: string;
+    secret?: boolean;
+    capturers?: string[];
+    captureDateTime?: string;
+    uploadedBy?: string;
+    originalFilename?: string;
+    documentId?: string;
+    tags?: string[];
+    identifications?: {
+        taxonIds: string[];
+        verbatim: string[];
+    };
+    primaryForTaxon?: string[];
+    caption?: string;
+    taxonDescriptionCaption?: MultiLang;
+    sex?: string[];
+    lifeStage?: string[];
+    plantLifeStage?: string[];
+    type?: string[];
+    sortOrder?: number;
+    uploadedDateTime?: string;
+    sourceSystem?: string;
+}
+
+export interface PartialMeta extends Partial<Omit<Meta, 'identifications'>> {
+    identifications?: {
+        taxonIds?: string[];
+        verbatim?: string[];
+    }
+}
+
+export class MetaResponse {
+    id: string;
+    secretKey?: string;
+    urls: Urls;
+    meta: Meta;
+}
+
+export class Urls {
+    original?: string;
+    full: string;
+    large?: string;
+    square?: string;
+    thumbnail: string;
+    pdf?: string;
+    mp3?: string;
+    wav?: string;
+    video?: string;
+    lowDetailModel?: string;
+    highDetailModel?: string;
+}

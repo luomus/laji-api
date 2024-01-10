@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
@@ -8,6 +8,7 @@ import { createQueryParamsInterceptor } from '../interceptors/query-params/query
 import { Request, Response } from 'express';
 import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
 import { QueryWithPersonTokenDto } from '../common.dto';
+import { Image } from '../images/image.dto';
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
@@ -64,5 +65,12 @@ export class AudioController {
         this.abstractMediaService.findURL(MediaType.audio, id, 'wavURL').then(url => {
             res.redirect(url);
         });
+    }
+
+    /** Upload audio metadata */
+    @Post(":tempId")
+    @UseGuards(ValidPersonTokenGuard)
+    async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio) {
+        return this.abstractMediaService.uploadMetadata(MediaType.audio, tempId, audio, personToken);
     }
 }
