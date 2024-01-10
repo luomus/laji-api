@@ -14,7 +14,7 @@ export class ValidPersonTokenGuard implements CanActivate {
         if (personToken && await this.personTokenService.isValidToken(personToken)) {
             return true;
         } else {
-            throw new HttpException('Invalid token', 400);
+            throw new HttpException('Invalid person token', 400);
         }
     }
 }

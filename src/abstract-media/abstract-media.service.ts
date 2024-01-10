@@ -13,7 +13,7 @@ const typeMediaClassMap: Record<MediaType, string> = {
     [MediaType.audio]: 'AUDIO'
 };
 
-const typePathMap: Record<MediaType, string> = {
+const typeMediaNameMap: Record<MediaType, string> = {
     [MediaType.image]: 'images',
     [MediaType.audio]: 'audio'
 }
@@ -75,7 +75,7 @@ export class AbstractMediaService {
         }
 
         const metadata = this.newMetadata(media, person, tempId);
-        const data: MetaResponse[] = await this.mediaClient.post<any>('api/' +  typePathMap[type], metadata);
+        const data: MetaResponse[] = await this.mediaClient.post<any>(`api/${typeMediaNameMap[type]}`, metadata);
 
         if (data?.[0]?.id) {
             return this.findOne(type, data[0].id);
@@ -89,12 +89,12 @@ export class AbstractMediaService {
         const current = await this.findOne(type, id);
 
         if (current.uploadedBy !== person.id) {
-            throw new HttpException("Can only update media uploaded by the user", 400);
+            throw new HttpException(`Can only update ${typeMediaNameMap[type]} uploaded by the user`, 400);
         }
 
         const metadata = this.mediaToMeta(media, person, current);
         try {
-            await this.mediaClient.put<any>('api/' +  typePathMap[type] + '/' + id, metadata);
+            await this.mediaClient.put<any>(`api/${typeMediaNameMap[type]}/${id}`, metadata);
         } catch (e) {
             const errorData = e.response?.data;
             if (typeof errorData === 'string' && errorData.includes('TRIPLESTORE')) {
@@ -111,10 +111,10 @@ export class AbstractMediaService {
         const current = await this.findOne(type, id);
 
         if (current.uploadedBy !== person.id) {
-            throw new HttpException("Can only delete media uploaded by the user", 400);
+            throw new HttpException(`Can only delete ${typeMediaNameMap[type]} uploaded by the user`, 400);
         }
 
-        return this.mediaClient.delete('api/' +  typePathMap[type] + '/' + id);
+        return this.mediaClient.delete(`api/${typeMediaNameMap[type]}/${id}`);
     }
 
     private newMetadata(media: Media, person: Person, tempId: string): { meta: PartialMeta, tempFileId: string }[] {
