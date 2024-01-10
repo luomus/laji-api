@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get, HttpCode, HttpStatus,
+    Param,
+    Post,
+    Put,
+    Query,
+    Req,
+    Res,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
@@ -48,6 +61,14 @@ export class AudioController {
     @UseGuards(ValidPersonTokenGuard)
     updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio) {
         return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, personToken);
+    }
+
+    /** Delete audio */
+    @Delete(":id")
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(ValidPersonTokenGuard)
+    delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
+        return this.abstractMediaService.deleteMedia(MediaType.audio, id, personToken);
     }
 
     /** Fetch mp3 by id */

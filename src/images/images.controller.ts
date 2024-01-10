@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get, HttpCode, HttpStatus,
+    Param,
+    Post,
+    Put,
+    Query,
+    Req,
+    Res,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
@@ -47,6 +60,14 @@ export class ImagesController {
     @UseGuards(ValidPersonTokenGuard)
     updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
         return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
+    }
+
+    /** Delete image */
+    @Delete(":id")
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(ValidPersonTokenGuard)
+    delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
+        return this.abstractMediaService.deleteMedia(MediaType.image, id, personToken);
     }
 
     /** Fetch large image by id */

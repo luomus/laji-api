@@ -106,6 +106,17 @@ export class AbstractMediaService {
         return this.findOne(type, id);
     }
 
+    async deleteMedia<T extends MediaType>(type: T, id: string, personToken: string) {
+        const person = await this.personsService.getByToken(personToken);
+        const current = await this.findOne(type, id);
+
+        if (current.uploadedBy !== person.id) {
+            throw new HttpException("Can only delete media uploaded by the user", 400);
+        }
+
+        return this.mediaClient.delete('api/' +  typePathMap[type] + '/' + id);
+    }
+
     private newMetadata(media: Media, person: Person, tempId: string): { meta: PartialMeta, tempFileId: string }[] {
         const meta = this.mediaToMeta(media, person);
         return [{
