@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
@@ -40,6 +40,13 @@ export class ImagesController {
     @SwaggerRemoteRef({ source: "store", ref: "image" })
     findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
         return this.abstractMediaService.findOne(MediaType.image, id);
+    }
+
+    /** Update image metadata */
+    @Put(":id")
+    @UseGuards(ValidPersonTokenGuard)
+    updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
+        return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
     }
 
     /** Fetch large image by id */

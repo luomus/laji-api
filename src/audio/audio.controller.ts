@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, Res, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
@@ -41,6 +41,13 @@ export class AudioController {
     @SwaggerRemoteRef({ source: "store", ref: "audio" })
     findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
         return this.abstractMediaService.findOne(MediaType.audio, id);
+    }
+
+    /** Update audio metadata */
+    @Put(":id")
+    @UseGuards(ValidPersonTokenGuard)
+    updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio) {
+        return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, personToken);
     }
 
     /** Fetch mp3 by id */

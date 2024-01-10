@@ -64,7 +64,7 @@ export class AbstractMediaService {
         });
     }
 
-    async uploadMetadata<T extends MediaType>(type: T, tempId: string, media: Media<T>, personToken: string): Promise<Media|MetaResponse[]> {
+    async uploadMetadata<T extends MediaType>(type: T, tempId: string, media: Media<T>, personToken: string): Promise<Media<T>|MetaResponse[]> {
         let person = await this.personsService.getByToken(personToken);
         if (personToken === this.configService.get("IMPORTER_TOKEN")) {
             person = {...person, id: media.uploadedBy || ''};
@@ -84,6 +84,28 @@ export class AbstractMediaService {
         }
     }
 
+    async updateMetadata<T extends MediaType>(type: T, id: string, media: Media<T>, personToken: string): Promise<Media<T>> {
+        const person = await this.personsService.getByToken(personToken);
+        const current = await this.findOne(type, id);
+
+        if (current.uploadedBy !== person.id) {
+            throw new HttpException("Can only update media uploaded by the user", 400);
+        }
+
+        const metadata = this.mediaToMeta(media, person, current);
+        try {
+            await this.mediaClient.put<any>('api/' +  typePathMap[type] + '/' + id, metadata);
+        } catch (e) {
+            const errorData = e.response?.data;
+            if (typeof errorData === 'string' && errorData.includes('TRIPLESTORE')) {
+                throw new HttpException("Meta data was not in correct form. Place check that all the values and properties are accepted", 400);
+            }
+            throw e;
+        }
+
+        return this.findOne(type, id);
+    }
+
     private newMetadata(media: Media, person: Person, tempId: string): { meta: PartialMeta, tempFileId: string }[] {
         const meta = this.mediaToMeta(media, person);
         return [{
@@ -92,25 +114,25 @@ export class AbstractMediaService {
         }];
     }
 
-    private mediaToMeta(media: Media, person: Partial<Person> = {}, current: Partial<Meta> = {}): PartialMeta {
+    private mediaToMeta(media: Media, person: Partial<Person> = {}, current: Partial<Media> = {}): PartialMeta {
         return {
             capturers: media.capturerVerbatim || [],
             rightsOwner: media.intellectualOwner || '',
-            license: media.intellectualRights || undefined,
+            license: media.intellectualRights,
             identifications: {
-                verbatim: media.taxonVerbatim || current.identifications?.verbatim || undefined,
-                taxonIds: current.identifications?.taxonIds || undefined
+                verbatim: media.taxonVerbatim || current.taxonVerbatim,
+                taxonIds: current.taxonURI
             },
-            caption: media.caption || undefined,
+            caption: media.caption,
             taxonDescriptionCaption: undefined,
-            captureDateTime: this.timeToApiTime(media.captureDateTime) || undefined,
+            captureDateTime: this.timeToApiTime(media.captureDateTime),
             tags: media.keyword || [],
-            documentId: current.documentId || undefined,
-            uploadedBy: current.uploadedBy || person.id || undefined,
-            sourceSystem: current.sourceSystem || undefined,
-            uploadedDateTime: current.uploadedDateTime || undefined,
-            sortOrder: media.sortOrder || current.sortOrder || undefined,
-            secret: (media.publicityRestrictions && media.publicityRestrictions !== 'MZ.publicityRestrictionsPublic') || false
+            documentId: current.documentURI?.[0],
+            uploadedBy: current.uploadedBy || person.id,
+            sourceSystem: current.sourceSystem,
+            uploadedDateTime: current.uploadDateTime,
+            sortOrder: media.sortOrder || current.sortOrder,
+            secret: (current.publicityRestrictions && current.publicityRestrictions !== 'MZ.publicityRestrictionsPublic') || false
         };
     }
 
