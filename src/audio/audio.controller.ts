@@ -12,10 +12,10 @@ import {
     UseGuards,
     UseInterceptors
 } from '@nestjs/common';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
-import { FindOneDto, GetPageDto, MediaType } from '../abstract-media/abstract-media.dto';
+import { FileUploadResponse, FindOneDto, GetPageDto, MediaType } from '../abstract-media/abstract-media.dto';
 import { Audio } from './audio.dto';
 import { createQueryParamsInterceptor } from '../interceptors/query-params/query-params.interceptor';
 import { Request, Response } from 'express';
@@ -57,6 +57,9 @@ export class AudioController {
     /** Upload audio and get temporary id */
     @Post()
     @UseGuards(ValidPersonTokenGuard)
+    @ApiOkResponse({
+        type: FileUploadResponse
+    })
     async upload(@Query() {}: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
         const proxy = this.abstractMediaService.getUploadProxy(MediaType.audio);
         req.pipe(proxy).pipe(res);

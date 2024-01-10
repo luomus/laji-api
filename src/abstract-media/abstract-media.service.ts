@@ -1,7 +1,7 @@
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TriplestoreService } from '../triplestore/triplestore.service';
-import { Media, MediaType, Meta, MetaResponse, PartialMeta } from './abstract-media.dto';
+import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from './abstract-media.dto';
 import * as _request from 'request';
 import * as moment from 'moment';
 import { PersonsService } from '../persons/persons.service';
@@ -75,7 +75,7 @@ export class AbstractMediaService {
         }
 
         const metadata = this.newMetadata(media, person, tempId);
-        const data: MetaResponse[] = await this.mediaClient.post<any>(`api/${typeMediaNameMap[type]}`, metadata);
+        const data: MetaUploadResponse[] = await this.mediaClient.post<any>(`api/${typeMediaNameMap[type]}`, metadata);
 
         return this.findOne(type, data[0].id);
     }
@@ -110,10 +110,10 @@ export class AbstractMediaService {
             throw new HttpException(`Can only delete ${typeMediaNameMap[type]} uploaded by the user`, 400);
         }
 
-        return this.mediaClient.delete(`api/${typeMediaNameMap[type]}/${id}`);
+        await this.mediaClient.delete(`api/${typeMediaNameMap[type]}/${id}`);
     }
 
-    private newMetadata(media: Media, person: Person, tempId: string): { meta: PartialMeta, tempFileId: string }[] {
+    private newMetadata(media: Media, person: Person, tempId: string): MetaUploadData[] {
         const meta = this.mediaToMeta(media, person);
         return [{
             meta: meta,

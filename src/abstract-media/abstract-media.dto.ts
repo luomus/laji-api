@@ -58,7 +58,19 @@ export interface PartialMeta extends Partial<Omit<Meta, 'identifications'>> {
     }
 }
 
-export class MetaResponse {
+export class FileUploadResponse {
+    name: string;
+    fileName: string;
+    id: string;
+    expires: number;
+}
+
+export class MetaUploadData {
+    tempFileId: string;
+    meta: PartialMeta;
+}
+
+export class MetaUploadResponse {
     id: string;
     secretKey?: string;
     urls: Urls;
