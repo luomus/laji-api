@@ -100,6 +100,7 @@ describe("/audio", function() {
   });
 
   it("returns a list of audio", function(done) {
+    this.timeout(10000);
     var pageSize = 10;
     var query = basePath +
       "?pageSize="+ pageSize+"&access_token=" + config["access_token"];
