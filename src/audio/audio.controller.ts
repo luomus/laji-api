@@ -21,7 +21,21 @@ import { createQueryParamsInterceptor } from '../interceptors/query-params/query
 import { Request, Response } from 'express';
 import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
 import { QueryWithPersonTokenDto } from '../common.dto';
-import { Image } from '../images/image.dto';
+
+const whitelist = [
+    "id",
+    "captureDateTime",
+    "caption",
+    "capturerVerbatim",
+    "keyword",
+    "intellectualOwner",
+    "intellectualRights",
+    "fullURL",
+    "mp3URL",
+    "wavURL",
+    "thumbnailURL",
+    "uploadedBy"
+];
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
@@ -34,7 +48,7 @@ export class AudioController {
 
     /** Get all audio */
     @Get()
-    @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio))
+    @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio, { whitelist }))
     @SwaggerRemoteRef({ source: "store", ref: "audio" })
     async getAll(@Query() { idIn }: GetPageDto) {
         return this.abstractMediaService.getMedia(MediaType.audio, idIn);
@@ -50,7 +64,7 @@ export class AudioController {
 
     /** Get audio by id */
     @Get(":id")
-    @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio))
+    @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio, { whitelist }))
     @SwaggerRemoteRef({ source: "store", ref: "audio" })
     findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
         return this.abstractMediaService.findOne(MediaType.audio, id);

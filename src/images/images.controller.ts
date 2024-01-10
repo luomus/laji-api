@@ -22,6 +22,22 @@ import { createQueryParamsInterceptor } from '../interceptors/query-params/query
 import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
 import { QueryWithPersonTokenDto } from '../common.dto';
 
+const whitelist = [
+    "id",
+    "captureDateTime",
+    "caption",
+    "capturerVerbatim",
+    "keyword",
+    "intellectualOwner",
+    "intellectualRights",
+    "fullURL",
+    "largeURL",
+    "squareThumbnailURL",
+    "thumbnailURL",
+    "originalURL",
+    "uploadedBy"
+];
+
 @SwaggerRemote()
 @ApiSecurity("access_token")
 @Controller("images")
@@ -33,7 +49,7 @@ export class ImagesController {
 
     /** Get all images */
     @Get()
-    @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image))
+    @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image, { whitelist }))
     @SwaggerRemoteRef({ source: "store", ref: "image" })
     async getAll(@Query() { idIn }: GetPageDto) {
         return this.abstractMediaService.getMedia(MediaType.image, idIn);
@@ -49,7 +65,7 @@ export class ImagesController {
 
     /** Get image by id */
     @Get(":id")
-    @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image))
+    @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image, { whitelist }))
     @SwaggerRemoteRef({ source: "store", ref: "image" })
     findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
         return this.abstractMediaService.findOne(MediaType.image, id);
