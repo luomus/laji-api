@@ -64,7 +64,7 @@ export class AbstractMediaService {
         });
     }
 
-    async uploadMetadata<T extends MediaType>(type: T, tempId: string, media: Media<T>, personToken: string): Promise<Media<T>|MetaResponse[]> {
+    async uploadMetadata<T extends MediaType>(type: T, tempId: string, media: Media<T>, personToken: string): Promise<Media<T>> {
         let person = await this.personsService.getByToken(personToken);
         if (personToken === this.configService.get("IMPORTER_TOKEN")) {
             person = {...person, id: media.uploadedBy || ''};
@@ -77,11 +77,7 @@ export class AbstractMediaService {
         const metadata = this.newMetadata(media, person, tempId);
         const data: MetaResponse[] = await this.mediaClient.post<any>(`api/${typeMediaNameMap[type]}`, metadata);
 
-        if (data?.[0]?.id) {
-            return this.findOne(type, data[0].id);
-        } else {
-            return data;
-        }
+        return this.findOne(type, data[0].id);
     }
 
     async updateMetadata<T extends MediaType>(type: T, id: string, media: Media<T>, personToken: string): Promise<Media<T>> {

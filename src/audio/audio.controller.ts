@@ -72,6 +72,7 @@ export class AudioController {
 
     /** Update audio metadata */
     @Put(":id")
+    @UseInterceptors(createQueryParamsInterceptor(undefined, Audio, { whitelist }))
     @UseGuards(ValidPersonTokenGuard)
     updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio) {
         return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, personToken);
@@ -111,6 +112,7 @@ export class AudioController {
 
     /** Upload audio metadata */
     @Post(":tempId")
+    @UseInterceptors(createQueryParamsInterceptor(undefined, Audio, { whitelist }))
     @UseGuards(ValidPersonTokenGuard)
     async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio) {
         return this.abstractMediaService.uploadMetadata(MediaType.audio, tempId, audio, personToken);

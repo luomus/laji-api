@@ -73,6 +73,7 @@ export class ImagesController {
 
     /** Update image metadata */
     @Put(":id")
+    @UseInterceptors(createQueryParamsInterceptor(undefined, Image, { whitelist }))
     @UseGuards(ValidPersonTokenGuard)
     updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
         return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
@@ -112,6 +113,7 @@ export class ImagesController {
 
     /** Upload image metadata */
     @Post(":tempId")
+    @UseInterceptors(createQueryParamsInterceptor(undefined, Image, { whitelist }))
     @UseGuards(ValidPersonTokenGuard)
     async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
         return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, personToken);
