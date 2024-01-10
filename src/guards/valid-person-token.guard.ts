@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, HttpException } from '@nestjs/common';
 import { PersonTokenService } from '../person-token/person-token.service';
 
 @Injectable()
@@ -11,10 +11,10 @@ export class ValidPersonTokenGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const personToken = request.query['personToken'];
 
-        if (!personToken) {
-            return false;
+        if (personToken && await this.personTokenService.isValidToken(personToken)) {
+            return true;
+        } else {
+            throw new HttpException('Invalid token', 400);
         }
-
-        return this.personTokenService.isValidToken(personToken);
     }
 }
