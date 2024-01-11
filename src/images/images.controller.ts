@@ -16,11 +16,11 @@ import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
-import { FileUploadResponse, FindOneDto, GetPageDto, MediaType } from '../abstract-media/abstract-media.dto';
+import { FileUploadResponse, MediaType } from '../abstract-media/abstract-media.dto';
 import { Image } from './image.dto';
 import { createQueryParamsInterceptor } from '../interceptors/query-params/query-params.interceptor';
 import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
-import { QueryWithPersonTokenDto } from '../common.dto';
+import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from '../common.dto';
 
 const whitelist = [
     "id",

@@ -1,22 +1,8 @@
 import { IsBoolean } from "class-validator";
 import { ParseOptionalBoolean } from "src/serializing/serializing";
 import { Private } from "src/serializing/private.decorator";
-import { PagedDto, Lang, MultiLang, HasContext, LangQueryDto } from "../common.dto";
-import { IntersectionType, OmitType } from "@nestjs/swagger";
-
-export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
-	/**
-	 * Comma separated ids
-	 */
-	idIn?: string;
-}
-
-export class FindOneDto  {
-	lang?: Lang = Lang.en;
-	@ParseOptionalBoolean()
-	@IsBoolean()
-	langFallback?: boolean = true;
-}
+import { PagedDto, Lang, MultiLang, HasContext } from "../common.dto";
+import { OmitType } from "@nestjs/swagger";
 
 export class FindCollectionsDto extends PagedDto {
 	lang?: Lang = Lang.en;

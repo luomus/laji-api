@@ -1,6 +1,14 @@
 import { Type } from "class-transformer";
 import { IsBoolean, IsInt, isObject } from "class-validator";
 import { ParseOptionalBoolean } from "./serializing/serializing";
+import { IntersectionType } from '@nestjs/swagger';
+
+export enum Lang {
+	fi = "fi",
+	sv = "sv",
+	en = "en",
+	multi = "multi",
+}
 
 export class PagedDto {
 	@Type(() => Number)
@@ -35,11 +43,18 @@ export class QueryWithPersonTokenDto {
 	personToken: string;
 }
 
-export enum Lang {
-	fi = "fi",
-	sv = "sv",
-	en = "en",
-	multi = "multi",
+export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
+	/**
+	 * Comma separated ids
+	 */
+	idIn?: string;
+}
+
+export class FindOneDto  {
+	lang?: Lang = Lang.en;
+	@ParseOptionalBoolean()
+	@IsBoolean()
+	langFallback?: boolean = true;
 }
 
 export const LANGS: Exclude<Lang, Lang.multi>[] = [Lang.fi, Lang.sv, Lang.en];

@@ -1,9 +1,10 @@
 import { Controller, Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
-import { Collection, FindCollectionsDto, FindOneDto, GetPageDto } from "./collection.dto";
+import { Collection, FindCollectionsDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { FindOneDto, GetPageDto } from '../common.dto';
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
