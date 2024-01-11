@@ -13,7 +13,6 @@ import {
     UseInterceptors
 } from '@nestjs/common';
 import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
 import { FileUploadResponse, MediaType } from '../abstract-media/abstract-media.dto';
 import { Audio } from './audio.dto';
@@ -38,7 +37,6 @@ const whitelist = [
     "uploadedBy"
 ];
 
-@SwaggerRemote()
 @ApiSecurity("access_token")
 @Controller("audio")
 @ApiTags("Audio")
@@ -50,7 +48,6 @@ export class AudioController {
     /** Get all audio */
     @Get()
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio, { whitelist }))
-    @SwaggerRemoteRef({ source: "store", ref: "audio" })
     async getAll(@Query() { idIn }: GetPageDto) {
         const ids = stringToArray(idIn);
         return this.abstractMediaService.getMedia(MediaType.audio, ids);
@@ -70,7 +67,6 @@ export class AudioController {
     /** Get audio by id */
     @Get(":id")
     @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio, { whitelist }))
-    @SwaggerRemoteRef({ source: "store", ref: "audio" })
     findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
         return this.abstractMediaService.findOne(MediaType.audio, id);
     }

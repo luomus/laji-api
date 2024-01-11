@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { SwaggerRemote, SwaggerRemoteRef } from '../swagger/swagger-remote.decorator';
 import { AbstractMediaService } from '../abstract-media/abstract-media.service';
 import { FileUploadResponse, MediaType } from '../abstract-media/abstract-media.dto';
 import { Image } from './image.dto';
@@ -39,7 +38,6 @@ const whitelist = [
     "uploadedBy"
 ];
 
-@SwaggerRemote()
 @ApiSecurity("access_token")
 @Controller("images")
 @ApiTags("Image")
@@ -51,7 +49,6 @@ export class ImagesController {
     /** Get all images */
     @Get()
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image, { whitelist }))
-    @SwaggerRemoteRef({ source: "store", ref: "image" })
     async getAll(@Query() { idIn }: GetPageDto) {
         const ids = stringToArray(idIn);
         return this.abstractMediaService.getMedia(MediaType.image, ids);
@@ -60,9 +57,7 @@ export class ImagesController {
     /** Upload image and get temporary id */
     @Post()
     @UseGuards(ValidPersonTokenGuard)
-    @ApiOkResponse({
-        type: FileUploadResponse
-    })
+    @ApiOkResponse({ type: FileUploadResponse })
     async upload(@Query() {}: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
         const proxy = this.abstractMediaService.getUploadProxy(MediaType.image);
         req.pipe(proxy).pipe(res);
@@ -71,7 +66,6 @@ export class ImagesController {
     /** Get image by id */
     @Get(":id")
     @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image, { whitelist }))
-    @SwaggerRemoteRef({ source: "store", ref: "image" })
     findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
         return this.abstractMediaService.findOne(MediaType.image, id);
     }
