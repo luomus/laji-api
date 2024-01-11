@@ -21,6 +21,7 @@ import { Image } from './image.dto';
 import { createQueryParamsInterceptor } from '../interceptors/query-params/query-params.interceptor';
 import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from '../common.dto';
+import { stringToArray } from '../utils';
 
 const whitelist = [
     "id",
@@ -52,7 +53,8 @@ export class ImagesController {
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image, { whitelist }))
     @SwaggerRemoteRef({ source: "store", ref: "image" })
     async getAll(@Query() { idIn }: GetPageDto) {
-        return this.abstractMediaService.getMedia(MediaType.image, idIn);
+        const ids = stringToArray(idIn);
+        return this.abstractMediaService.getMedia(MediaType.image, ids);
     }
 
     /** Upload image and get temporary id */

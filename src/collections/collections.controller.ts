@@ -5,6 +5,7 @@ import { Collection, FindCollectionsDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { FindOneDto, GetPageDto } from '../common.dto';
+import { stringToArray } from '../utils';
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
@@ -20,9 +21,7 @@ export class CollectionsController {
 	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Collection))
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async getAll(@Query() { idIn }: GetPageDto) {
-		const ids = typeof idIn === "string"
-			? idIn.split(",")
-			: [];
+		const ids = stringToArray(idIn);
 		return this.collectionsService.getCollections(ids);
 	}
 

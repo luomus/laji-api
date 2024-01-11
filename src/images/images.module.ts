@@ -5,8 +5,6 @@ import { PersonTokenModule } from '../person-token/person-token.module';
 
 @Module({
     imports: [AbstractMediaModule, PersonTokenModule],
-    controllers: [ImagesController],
-    providers: [],
-    exports: []
+    controllers: [ImagesController]
 })
 export class ImagesModule {}

@@ -21,6 +21,7 @@ import { createQueryParamsInterceptor } from '../interceptors/query-params/query
 import { Request, Response } from 'express';
 import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from '../common.dto';
+import { stringToArray } from '../utils';
 
 const whitelist = [
     "id",
@@ -51,7 +52,8 @@ export class AudioController {
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio, { whitelist }))
     @SwaggerRemoteRef({ source: "store", ref: "audio" })
     async getAll(@Query() { idIn }: GetPageDto) {
-        return this.abstractMediaService.getMedia(MediaType.audio, idIn);
+        const ids = stringToArray(idIn);
+        return this.abstractMediaService.getMedia(MediaType.audio, ids);
     }
 
     /** Upload audio and get temporary id */
