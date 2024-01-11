@@ -22,21 +22,6 @@ import { ValidPersonTokenGuard } from '../guards/valid-person-token.guard';
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from '../common.dto';
 import { stringToArray } from '../utils';
 
-const whitelist = [
-    "id",
-    "captureDateTime",
-    "caption",
-    "capturerVerbatim",
-    "keyword",
-    "intellectualOwner",
-    "intellectualRights",
-    "fullURL",
-    "mp3URL",
-    "wavURL",
-    "thumbnailURL",
-    "uploadedBy"
-];
-
 @ApiSecurity("access_token")
 @Controller("audio")
 @ApiTags("Audio")
@@ -47,7 +32,7 @@ export class AudioController {
 
     /** Get all audio */
     @Get()
-    @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio, { whitelist }))
+    @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio))
     async getAll(@Query() { idIn }: GetPageDto): Promise<Audio[]> {
         const ids = stringToArray(idIn);
         return this.abstractMediaService.getMedia(MediaType.audio, ids);
@@ -66,14 +51,14 @@ export class AudioController {
 
     /** Get audio by id */
     @Get(":id")
-    @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio, { whitelist }))
+    @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio))
     findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Audio> {
         return this.abstractMediaService.findOne(MediaType.audio, id);
     }
 
     /** Update audio metadata */
     @Put(":id")
-    @UseInterceptors(createQueryParamsInterceptor(undefined, Audio, { whitelist }))
+    @UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
     @UseGuards(ValidPersonTokenGuard)
     updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio): Promise<Audio> {
         return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, personToken);
@@ -113,7 +98,7 @@ export class AudioController {
 
     /** Upload audio metadata */
     @Post(":tempId")
-    @UseInterceptors(createQueryParamsInterceptor(undefined, Audio, { whitelist }))
+    @UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
     @UseGuards(ValidPersonTokenGuard)
     async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio): Promise<Audio> {
         return this.abstractMediaService.uploadMetadata(MediaType.audio, tempId, audio, personToken);
