@@ -49,7 +49,7 @@ export class ImagesController {
     /** Get all images */
     @Get()
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image, { whitelist }))
-    async getAll(@Query() { idIn }: GetPageDto) {
+    async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
         const ids = stringToArray(idIn);
         return this.abstractMediaService.getMedia(MediaType.image, ids);
     }
@@ -66,7 +66,7 @@ export class ImagesController {
     /** Get image by id */
     @Get(":id")
     @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image, { whitelist }))
-    findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
+    findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Image> {
         return this.abstractMediaService.findOne(MediaType.image, id);
     }
 
@@ -74,7 +74,7 @@ export class ImagesController {
     @Put(":id")
     @UseInterceptors(createQueryParamsInterceptor(undefined, Image, { whitelist }))
     @UseGuards(ValidPersonTokenGuard)
-    updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
+    updateMetadata(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image): Promise<Image> {
         return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
     }
 
@@ -114,7 +114,7 @@ export class ImagesController {
     @Post(":tempId")
     @UseInterceptors(createQueryParamsInterceptor(undefined, Image, { whitelist }))
     @UseGuards(ValidPersonTokenGuard)
-    async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image) {
+    async uploadMetadata(@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image): Promise<Image> {
         return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, personToken);
     }
 }
