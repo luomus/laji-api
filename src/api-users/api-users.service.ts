@@ -15,6 +15,7 @@ export class ApiUsersService {
 		private dataSource: DataSource
 	) {}
 
+	/** @throws HttpException */
 	async getByAccessToken(accessToken: string): Promise<ApiUser> {
 		const token = await this.accessTokenService.findOne(accessToken);
 
@@ -31,6 +32,7 @@ export class ApiUsersService {
 		return apiUser;
 	}
 
+	/** @throws HttpException */
 	async create(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
 		const apiUser = serializeInto(ApiUser)(apiUserWithEmail);
 		const existing = await this.findByEmail(apiUser.email);
@@ -58,6 +60,7 @@ export class ApiUsersService {
 		}
 	}
 
+	/** @throws HttpException */
 	async renew(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
 		const apiUser = serializeInto(ApiUser)(apiUserWithEmail);
 		const existing = await this.findByEmail(apiUser.email);

@@ -73,8 +73,8 @@ export class FormsController {
 	/** Get a form by id */
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
-	findOne(@Param("id") id: string, @Query() { format = Format.schema, lang = Lang.en, expand = true }: GetDto) {
-		return this.formsService.findOne(id, format, lang, expand);
+	getOne(@Param("id") id: string, @Query() { format = Format.schema, lang = Lang.en, expand = true }: GetDto) {
+		return this.formsService.get(id, format, lang, expand);
 	}
 
 	/** Create a new form */

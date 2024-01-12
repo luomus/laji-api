@@ -56,6 +56,7 @@ export class FormPermissionsService {
 		return this.getByCollectionIdAndPerson(collectionID, person);
 	}
 
+	/** @throws HttpException */
 	private async getByCollectionIdAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
@@ -64,7 +65,7 @@ export class FormPermissionsService {
 		}
 
 		const permissions = await this.getByCollectionId(formWithPermissionFeature.collectionID);
-		const isAdmin = await isAdminOf(permissions, person);
+		const isAdmin = isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 			listProps.forEach(prop => {
@@ -87,6 +88,7 @@ export class FormPermissionsService {
 			&& (form.options.restrictAccess || form.options.hasAdmins))
 	}
 
+	/** @throws HttpException */
 	async requestAccess(collectionID: string, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		const permissions = await this.getByCollectionIdAndPerson(collectionID, person);
@@ -110,6 +112,7 @@ export class FormPermissionsService {
 		return this.getByCollectionIdAndPerson(collectionID, person);
 	}
 
+	/** @throws HttpException */
 	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", personToken: string) {
 		const author = await this.personsService.getByToken(personToken);
 		const customer = await this.personsService.findByPersonId(personID);
@@ -217,7 +220,7 @@ export class FormPermissionsService {
 	private async getFormTitleForLang(collectionID: string, form: Form | undefined, lang: Lang): Promise<string> {
 		if (form?.options.shortTitleFromCollectionName && collectionID) {
 			const collection = await this.langService.translate<Collection<MultiLang>, Collection<string>>(
-				await this.collectionsService.findOne(collectionID),
+				await this.collectionsService.get(collectionID),
 				lang,
 				true
 			);
@@ -226,7 +229,7 @@ export class FormPermissionsService {
 			}
 		}
 		if (form) {
-			const translatedForm = await this.formService.findOne(form.id, Format.json, lang, true);
+			const translatedForm = await this.formService.get(form.id, Format.json, lang, true);
 			const titleFromForm = translatedForm.shortTitle || translatedForm.title
 			if ( titleFromForm) {
 				return titleFromForm;
@@ -255,9 +258,7 @@ const naturalSort = (a: string, b: string) =>
 
 const isPerson = (person: Person) => (userID: string) => userID === person.id;
 
-/**
- * All response types have these properties, but they contain different values in the lists (person ids or collection ids).
- */
+/** All response types have these properties, but they contain different values in the lists (person ids or collection ids). */
 type PermissionLists = { admins: string[], editors: string[], permissionRequests: string[] };
 
 const entitiesToPermissionLists = (entities: FormPermissionEntity[], mapToProp: keyof FormPermissionEntity)

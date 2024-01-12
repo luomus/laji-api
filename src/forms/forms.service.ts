@@ -17,7 +17,7 @@ export class FormsService {
 		return this.formClient.post("", form, { params: { personToken } });
 	}
 
-	findOne(id: string, format: Format, lang: Lang, expand: boolean) {
+	get(id: string, format: Format, lang: Lang, expand: boolean) {
 		return this.formClient.get(id, { params: {
 			format,
 			lang: formatLangParam(lang),

@@ -38,7 +38,7 @@ export class CollectionsController {
 	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Collection))
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
-		return this.collectionsService.findOne(id);
+		return this.collectionsService.get(id);
 	}
 
 	/** Get child collections */

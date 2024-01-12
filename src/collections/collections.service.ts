@@ -30,7 +30,8 @@ export class CollectionsService {
 		await this.getIdToChildren();
 	}
 
-	async findOne(id: string) {
+	/** @throws HttpException */
+	async get(id: string) {
 		const collection = (await this.getIdToCollection())[id];
 		if (!collection) {
 			throw new HttpException("Not found", 404);

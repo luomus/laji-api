@@ -32,6 +32,8 @@ export class ProfileService {
 
 	/**
 	 * Create a new profile, if person has no profile.
+	 *
+	 * @throws HttpException
 	 */
 	async createWithPersonId(personId: string, profile: Partial<Profile>): Promise<Profile> {
 		let existingProfile: Profile | undefined;
@@ -65,6 +67,7 @@ export class ProfileService {
 		return this.storeProfileService.update(nextProfile);
 	}
 
+	/** @throws HttpException */
 	async addFriendRequest(personToken: string, profileKey: string) {
 		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
 		const profile = await this.findByProfileKey(profileKey);
@@ -83,6 +86,7 @@ export class ProfileService {
 		return updated;
 	}
 
+	/** @throws HttpException */
 	async acceptFriendRequest(personToken: string, friendPersonId: string) {
 		await this.getByPersonId(friendPersonId);
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
@@ -131,6 +135,7 @@ export class ProfileService {
 		return this.storeProfileService.create(profile);
 	}
 
+	/** @throws HttpException */
 	private async getByPersonId(personId: string) {
 		const profile = await this.findByPersonId(personId);
 		if (!profile) {
