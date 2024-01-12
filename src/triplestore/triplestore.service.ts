@@ -8,7 +8,6 @@ import { ContextProperties, MetadataService, Property } from "src/metadata/metad
 import { Cache } from "cache-manager";
 import { MultiLang } from "src/common.dto";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { isArray } from 'util';
 
 const BASE_URL = "http://tun.fi/";
 

@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ImagesController } from './images.controller';
-import { AbstractMediaModule } from '../abstract-media/abstract-media.module';
-import { PersonTokenModule } from '../person-token/person-token.module';
+import { ImagesController } from "./images.controller";
+import { AbstractMediaModule } from "../abstract-media/abstract-media.module";
+import { PersonTokenModule } from "../person-token/person-token.module";
 
 @Module({
-    imports: [AbstractMediaModule, PersonTokenModule],
-    controllers: [ImagesController]
+	imports: [AbstractMediaModule, PersonTokenModule],
+	controllers: [ImagesController]
 })
 export class ImagesModule {}

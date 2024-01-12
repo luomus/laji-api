@@ -4,8 +4,8 @@ import { createQueryParamsInterceptor } from "src/interceptors/query-params/quer
 import { Collection, FindCollectionsDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { FindOneDto, GetPageDto } from '../common.dto';
-import { stringToArray } from '../utils';
+import { FindOneDto, GetPageDto } from "../common.dto";
+import { stringToArray } from "../utils";
 
 @SwaggerRemote()
 @ApiSecurity("access_token")
