@@ -61,11 +61,11 @@ export class AbstractMediaService {
 
 	getUploadProxy(type: MediaType): _request.Request {
 		const basePath = this.configService.get("MEDIA_PATH") as string;
-		const user = this.configService.get("MEDIA_USER") as string;
-		const pass = this.configService.get("MEDIA_PASS") as string;
+		const basicAuth = this.configService.get("MEDIA_AUTH") as string;
+		const auth = this.parseBasicAuth(basicAuth);
 
 		return _request(basePath + "/api/fileUpload", {
-			"auth": { user, pass },
+			auth,
 			"qs": {
 				"mediaClass": typeMediaClassMap[type]
 			}
@@ -173,5 +173,16 @@ export class AbstractMediaService {
 			return timeMoment.utc(false).format("X");
 		}
 		return undefined;
+	}
+
+	private parseBasicAuth(auth: string): { user?: string, pass?: string } {
+		const parts = auth.split(' ');
+		if (parts[0] !== "Basic") {
+			return {};
+		}
+
+		const result = atob(parts[1]).split(":");
+
+		return { user: result[0], pass: result[1] };
 	}
 }
