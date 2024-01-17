@@ -8,8 +8,10 @@ export enum MediaType {
 
 export type Media<T extends MediaType> = T extends MediaType.image ? Image : Audio;
 
+type MediaIntellectualRights = Media<any>["intellectualRights"];
+
 export class Meta {
-	license: Media<any>["intellectualRights"];
+	license: MediaIntellectualRights;
 	rightsOwner: string;
 	secret?: boolean;
 	capturers?: string[];
@@ -73,3 +75,27 @@ export class Urls {
 	lowDetailModel?: string;
 	highDetailModel?: string;
 }
+
+export const mediaIntellectualRightsValues: MediaIntellectualRights[] = [
+	"MZ.intellectualRightsCC-BY-SA-4.0",
+	"MZ.intellectualRightsCC-BY-NC-4.0",
+	"MZ.intellectualRightsCC-BY-NC-SA-4.0",
+	"MZ.intellectualRightsCC-BY-4.0",
+	"MZ.intellectualRightsCC0-4.0",
+	"MZ.intellectualRightsODBL-1.0",
+	"MZ.intellectualRightsPD",
+	"MZ.intellectualRightsARR",
+	"MZ.intellectualRightsCC-BY-2.0",
+	"MZ.intellectualRightsCC-BY-SA-2.0",
+	"MZ.intellectualRightsCC-BY-SA-2.0-DE",
+	"MZ.intellectualRightsCC-BY-NC-2.0",
+	"MZ.intellectualRightsCC-BY-NC-SA-2.0",
+	"MZ.intellectualRightsCC-BY-NC-ND-2.0",
+	"MZ.intellectualRightsCC-BY-SA-2.5",
+	"MZ.intellectualRightsCC-BY-SA-2.5-SE",
+	"MZ.intellectualRightsCC-BY-3.0",
+	"MZ.intellectualRightsCC-BY-SA-3.0",
+	"MZ.intellectualRightsCC-BY-NC-SA-3.0",
+	"MZ.intellectualRightsCC-BY-ND-4.0",
+	"MZ.intellectualRightsCC-BY-NC-ND-4.0"
+];
