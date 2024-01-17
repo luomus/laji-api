@@ -55,7 +55,10 @@ export class AbstractMediaService {
 		}
 	}
 
-	getUploadProxy(type: MediaType): _request.Request {
+	async getUploadProxy(type: MediaType, personToken: string): Promise<_request.Request> {
+		// check that the person token is valid
+		await this.personsService.getByToken(personToken);
+
 		const basePath = this.configService.get("MEDIA_PATH") as string;
 		const basicAuth = this.configService.get("MEDIA_AUTH") as string;
 		const auth = this.parseBasicAuth(basicAuth);

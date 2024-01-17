@@ -9,7 +9,6 @@ import {
 	Query,
 	Req,
 	Res,
-	UseGuards,
 	UseInterceptors
 } from "@nestjs/common";
 import { ApiOkResponse, ApiSecurity, ApiTags } from "@nestjs/swagger";
@@ -18,7 +17,6 @@ import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
-import { ValidPersonTokenGuard } from "../guards/valid-person-token.guard";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
 
 @ApiSecurity("access_token")
@@ -38,10 +36,9 @@ export class ImagesController {
 
     /** Upload image and get temporary id */
     @Post()
-    @UseGuards(ValidPersonTokenGuard)
     @ApiOkResponse({ type: FileUploadResponse })
-    async upload(@Query() {}: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
-    	const proxy = this.abstractMediaService.getUploadProxy(MediaType.image);
+    async upload(@Query() { personToken }: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
+    	const proxy = await this.abstractMediaService.getUploadProxy(MediaType.image, personToken);
     	req.pipe(proxy).pipe(res);
     }
 
@@ -55,7 +52,6 @@ export class ImagesController {
     /** Update image metadata */
     @Put(":id")
     @UseInterceptors(createQueryParamsInterceptor(undefined, Image))
-    @UseGuards(ValidPersonTokenGuard)
     updateMetadata(
         @Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image
     ): Promise<Image> {
@@ -65,7 +61,6 @@ export class ImagesController {
     /** Delete image */
     @Delete(":id")
     @HttpCode(HttpStatus.NO_CONTENT)
-    @UseGuards(ValidPersonTokenGuard)
     delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
     	return this.abstractMediaService.deleteMedia(MediaType.image, id, personToken);
     }
@@ -97,7 +92,6 @@ export class ImagesController {
     /** Upload image metadata */
     @Post(":tempId")
     @UseInterceptors(createQueryParamsInterceptor(undefined, Image))
-    @UseGuards(ValidPersonTokenGuard)
     async uploadMetadata(
         @Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image
     ): Promise<Image> {

@@ -9,7 +9,6 @@ import {
 	Query,
 	Req,
 	Res,
-	UseGuards,
 	UseInterceptors
 } from "@nestjs/common";
 import { ApiOkResponse, ApiSecurity, ApiTags } from "@nestjs/swagger";
@@ -18,7 +17,6 @@ import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.
 import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { Request, Response } from "express";
-import { ValidPersonTokenGuard } from "../guards/valid-person-token.guard";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
 
 @ApiSecurity("access_token")
@@ -38,12 +36,11 @@ export class AudioController {
 
     /** Upload audio and get temporary id */
     @Post()
-    @UseGuards(ValidPersonTokenGuard)
     @ApiOkResponse({
     	type: FileUploadResponse
     })
-    async upload(@Query() {}: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
-    	const proxy = this.abstractMediaService.getUploadProxy(MediaType.audio);
+    async upload(@Query() { personToken }: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
+    	const proxy = await this.abstractMediaService.getUploadProxy(MediaType.audio, personToken);
     	req.pipe(proxy).pipe(res);
     }
 
@@ -57,7 +54,6 @@ export class AudioController {
     /** Update audio metadata */
     @Put(":id")
     @UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
-    @UseGuards(ValidPersonTokenGuard)
     updateMetadata(
         @Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio
     ): Promise<Audio> {
@@ -67,7 +63,6 @@ export class AudioController {
     /** Delete audio */
     @Delete(":id")
     @HttpCode(HttpStatus.NO_CONTENT)
-    @UseGuards(ValidPersonTokenGuard)
     delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
     	return this.abstractMediaService.deleteMedia(MediaType.audio, id, personToken);
     }
@@ -99,7 +94,6 @@ export class AudioController {
     /** Upload audio metadata */
     @Post(":tempId")
     @UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
-    @UseGuards(ValidPersonTokenGuard)
     async uploadMetadata(
         @Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio
     ): Promise<Audio> {

@@ -33,17 +33,4 @@ export class PersonTokenService {
 		await this.getInfo(personToken);
 		return this.lajiAuthClient.delete(`token/${personToken}`);
 	}
-
-	async isValidToken(personToken: string): Promise<boolean> {
-		if (personToken === this.configService.get("IMPORTER_TOKEN")) {
-			return true;
-		}
-
-		try {
-			await this.getInfo(personToken);
-			return true;
-		} catch (e) {
-			return false;
-		}
-	}
 }
