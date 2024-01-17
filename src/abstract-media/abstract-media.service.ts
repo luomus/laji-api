@@ -3,7 +3,6 @@ import { ConfigService } from "@nestjs/config";
 import { TriplestoreService } from "../triplestore/triplestore.service";
 import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from "./abstract-media.dto";
 import * as _request from "request";
-import * as moment from "moment";
 import { PersonsService } from "../persons/persons.service";
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
@@ -162,19 +161,18 @@ export class AbstractMediaService {
 		};
 	}
 
-	private timeToApiTime(date?: string|Date): string|undefined {
-		if (!date) {
+	private timeToApiTime(dateString?: string): string|undefined {
+		if (!dateString) {
 			return;
 		}
-		if (date instanceof Date) {
-			date = date.toISOString();
+
+		const date = new Date(dateString);
+
+		if (isNaN(date.getTime())) {
+			return;
 		}
-		const time = date.substring(0, 19);
-		const timeMoment = moment(time);
-		if (timeMoment.isValid()) {
-			return timeMoment.utc(false).format("X");
-		}
-		return undefined;
+
+		return Math.floor(date.getTime() / 1000).toString();
 	}
 
 	private parseBasicAuth(auth: string): { user?: string, pass?: string } {
