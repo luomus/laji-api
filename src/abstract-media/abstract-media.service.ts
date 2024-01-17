@@ -84,7 +84,9 @@ export class AbstractMediaService {
 		}
 
 		const metadata = this.newMetadata(media, person, tempId);
-		const data: MetaUploadResponse[] = await this.mediaClient.post<any>(`api/${typeMediaNameMap[type]}`, metadata);
+		const data = await this.mediaClient.post<MetaUploadData[], MetaUploadResponse[]>(
+			`api/${typeMediaNameMap[type]}`, metadata
+		);
 
 		return this.findOne(type, data[0].id);
 	}
@@ -101,7 +103,7 @@ export class AbstractMediaService {
 
 		const metadata = this.mediaToMeta<T>(media, person, current);
 		try {
-			await this.mediaClient.put<any>(`api/${typeMediaNameMap[type]}/${id}`, metadata);
+			await this.mediaClient.put(`api/${typeMediaNameMap[type]}/${id}`, metadata);
 		} catch (e) {
 			const errorData = e.response?.data;
 			if (typeof errorData === "string" && errorData.includes("TRIPLESTORE")) {

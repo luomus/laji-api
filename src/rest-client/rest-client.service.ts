@@ -101,26 +101,26 @@ export class RestClientService<T = any> {
 	get = async <S = T>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>) =>
 		RestClientService.applyOptions<S>(await this.getWithCache<S>(path, options, lajiApiOptions), lajiApiOptions);
 
-	async post<S = T>(
+	async post<S = T, R = S>(
 		path?: string,
 		body?: S, options?: AxiosRequestConfig,
-		lajiApiOptions?: LajiApiOptions<S>
+		lajiApiOptions?: LajiApiOptions<R>
 	) {
 		await this.cache.del(this.getPath(path));
 		return RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.post<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
+			this.httpService.post<R>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
 		), lajiApiOptions);
 	}
 
-	async put<S = T>(
+	async put<S = T, R = S>(
 		path?: string,
 		body?: S,
 		options?: AxiosRequestConfig,
-		lajiApiOptions?: LajiApiOptions<S>
+		lajiApiOptions?: LajiApiOptions<R>
 	) {
 		await this.cache.del(this.getPath(path));
 		return RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.put<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
+			this.httpService.put<R>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
 		), lajiApiOptions);
 	}
 
