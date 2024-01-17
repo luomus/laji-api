@@ -100,7 +100,7 @@ export class AbstractMediaService {
 			throw new HttpException(`Can only update ${typeMediaNameMap[type]} uploaded by the user`, 400);
 		}
 
-		const metadata = this.mediaToMeta(media, person, current);
+		const metadata = this.mediaToMeta<T>(media, person, current);
 		try {
 			await this.mediaClient.put<any>(`api/${typeMediaNameMap[type]}/${id}`, metadata);
 		} catch (e) {
@@ -128,15 +128,17 @@ export class AbstractMediaService {
 		await this.mediaClient.delete(`api/${typeMediaNameMap[type]}/${id}`);
 	}
 
-	private newMetadata(media: Media, person: Person, tempId: string): MetaUploadData[] {
-		const meta = this.mediaToMeta(media, person);
+	private newMetadata<T extends MediaType>(media: Media<T>, person: Person, tempId: string): MetaUploadData[] {
+		const meta = this.mediaToMeta<T>(media, person);
 		return [{
 			meta: meta,
 			tempFileId: tempId
 		}];
 	}
 
-	private mediaToMeta(media: Media, person: Partial<Person> = {}, current: Partial<Media> = {}): PartialMeta {
+	private mediaToMeta<T extends MediaType>(
+		media: Media<T>, person: Partial<Person> = {}, current: Partial<Media<T>> = {}
+	): PartialMeta {
 		return {
 			capturers: media.capturerVerbatim || [],
 			rightsOwner: media.intellectualOwner || "",
@@ -176,7 +178,7 @@ export class AbstractMediaService {
 	}
 
 	private parseBasicAuth(auth: string): { user?: string, pass?: string } {
-		const parts = auth.split(' ');
+		const parts = auth.split(" ");
 		if (parts[0] !== "Basic") {
 			return {};
 		}

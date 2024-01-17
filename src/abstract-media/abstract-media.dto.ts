@@ -6,10 +6,10 @@ export enum MediaType {
     audio = "MM.audio"
 }
 
-export type Media<T extends MediaType = any> = T extends MediaType.image ? Image : Audio;
+export type Media<T extends MediaType> = T extends MediaType.image ? Image : Audio;
 
 export class Meta {
-	license: Media["intellectualRights"];
+	license: Media<any>["intellectualRights"];
 	rightsOwner: string;
 	secret?: boolean;
 	capturers?: string[];
