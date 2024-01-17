@@ -20,7 +20,6 @@ import { createQueryParamsInterceptor } from "../interceptors/query-params/query
 import { Request, Response } from "express";
 import { ValidPersonTokenGuard } from "../guards/valid-person-token.guard";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
-import { stringToArray } from "../utils";
 
 @ApiSecurity("access_token")
 @Controller("audio")
@@ -34,8 +33,7 @@ export class AudioController {
     @Get()
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio))
 	async getAll(@Query() { idIn }: GetPageDto): Promise<Audio[]> {
-		const ids = stringToArray(idIn);
-		return this.abstractMediaService.getMedia(MediaType.audio, ids);
+		return this.abstractMediaService.getMedia(MediaType.audio, idIn);
 	}
 
     /** Upload audio and get temporary id */

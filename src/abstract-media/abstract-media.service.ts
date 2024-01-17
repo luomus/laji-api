@@ -6,7 +6,6 @@ import * as _request from "request";
 import { PersonsService } from "../persons/persons.service";
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
-import { getQName } from "../id-utils";
 
 const typeMediaClassMap: Record<MediaType, string> = {
 	[MediaType.image]: "IMAGE",
@@ -27,13 +26,11 @@ export class AbstractMediaService {
         private personsService: PersonsService,
 	) {}
 
-	async getMedia<T extends MediaType>(type: T, ids?: string[]): Promise<Media<T>[]> {
-		const subject = getQName(ids || []).join(",");
-
+	async getMedia<T extends MediaType>(type: T, idIn?: string): Promise<Media<T>[]> {
 		return await this.triplestoreService.find<Media<T>>(
 			{
 				type,
-				subject,
+				subject: idIn,
 				predicate: "MZ.publicityRestrictions",
 				objectresource: "MZ.publicityRestrictionsPublic"
 			}
@@ -41,7 +38,7 @@ export class AbstractMediaService {
 	}
 
 	async findOne<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
-		const result = await this.getMedia(type, [id]);
+		const result = await this.getMedia(type, id);
 		if (result?.length > 0) {
 			return result.pop() as Media<T>;
 		} else {

@@ -20,7 +20,6 @@ import { Image } from "./image.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { ValidPersonTokenGuard } from "../guards/valid-person-token.guard";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
-import { stringToArray } from "../utils";
 
 @ApiSecurity("access_token")
 @Controller("images")
@@ -34,8 +33,7 @@ export class ImagesController {
     @Get()
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image))
 	async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
-		const ids = stringToArray(idIn);
-		return this.abstractMediaService.getMedia(MediaType.image, ids);
+		return this.abstractMediaService.getMedia(MediaType.image, idIn);
 	}
 
     /** Upload image and get temporary id */

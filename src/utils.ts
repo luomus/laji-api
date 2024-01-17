@@ -83,8 +83,3 @@ export const dictionarify = (arr: string[]) =>
 		dict[item] = true;
 		return dict;
 	}, {});
-
-export const stringToArray = (str?: string, separator = ","): string[] =>
- 	typeof str === "string"
-		? str.split(separator)
-		: [];

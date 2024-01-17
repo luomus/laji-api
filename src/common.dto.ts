@@ -47,7 +47,7 @@ export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
 	/**
 	 * Comma separated ids
 	 */
-	idIn?: string;
+	idIn = "";
 }
 
 export class FindOneDto  {
