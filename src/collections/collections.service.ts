@@ -44,7 +44,7 @@ export class CollectionsService {
 	}
 
 	async findRoots() {
-		return (await this.getCollections()).filter(collection => 
+		return (await this.findCollections()).filter(collection =>
 			!collection.isPartOf
 		);
 	}
@@ -60,7 +60,7 @@ export class CollectionsService {
 		return parents;
 	}
 
-	async getCollections(ids?: string[])
+	async findCollections(ids?: string[])
 		: Promise<Collection[]> {
 		const collections = [];
 		const all = await this.getAll();
@@ -96,7 +96,7 @@ export class CollectionsService {
 			return cached;
 		}
 		this.idToChildren = {};
-		const collections = await this.getCollections();
+		const collections = await this.findCollections();
 		for (const c of collections) {
 			this.idToChildren[c.id] = collections.filter(collection => collection.isPartOf === c.id);
 		}

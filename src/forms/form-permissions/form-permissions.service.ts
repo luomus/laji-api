@@ -43,7 +43,7 @@ export class FormPermissionsService {
 		return formPermissions;
 	}
 
-	private async getByCollectionId(collectionID: string)
+	private async findByCollectionId(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
 		return entitiesToPermissionLists(
 			await this.storeFormPermissionService.getAll(`collectionID:"${collectionID}"`),
@@ -51,6 +51,7 @@ export class FormPermissionsService {
 		);
 	}
 
+	/** @throws HttpException */
 	async getByCollectionIdAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
 		const person = await this.personsService.getByToken(personToken);
 		return this.getByCollectionIdAndPerson(collectionID, person);
@@ -64,7 +65,7 @@ export class FormPermissionsService {
 			throw new HttpException("Form does not have restrict feature enabled", 404);
 		}
 
-		const permissions = await this.getByCollectionId(formWithPermissionFeature.collectionID);
+		const permissions = await this.findByCollectionId(formWithPermissionFeature.collectionID);
 		const isAdmin = isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
@@ -196,7 +197,7 @@ export class FormPermissionsService {
 			return;
 		}
 
-		const { admins } = await this.getByCollectionId(collectionID);
+		const { admins } = await this.findByCollectionId(collectionID);
 		for (const adminID of admins) {
 			const admin = await this.personsService.findByPersonId(adminID);
 			this.mailService.sendFormPermissionRequestReceived(admin, { formTitle, person: admin, formID: form.id });

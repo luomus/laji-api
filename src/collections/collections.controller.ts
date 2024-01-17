@@ -22,7 +22,7 @@ export class CollectionsController {
 		const ids = typeof idIn === "string"
 			? idIn.split(",")
 			: [];
-		return this.collectionsService.getCollections(ids);
+		return this.collectionsService.findCollections(ids);
 	}
 
 	/** Get all root collections */
