@@ -1,15 +1,15 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	Get, HttpCode, HttpStatus,
-	Param,
-	Post,
-	Put,
-	Query,
-	Req,
-	Res,
-	UseInterceptors
+    Body,
+    Controller,
+    Delete,
+    Get, HttpCode, HttpStatus,
+    Param,
+    Post,
+    Put,
+    Query,
+    Req,
+    Res,
+    UseInterceptors
 } from "@nestjs/common";
 import { ApiOkResponse, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { Request, Response } from "express";
@@ -23,30 +23,30 @@ import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
 @Controller("images")
 @ApiTags("Image")
 export class ImagesController {
-	constructor(
+    constructor(
         private abstractMediaService: AbstractMediaService
-	) {}
+    ) {}
 
     /** Get all images */
     @Get()
     @UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image))
-	async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
-		return this.abstractMediaService.getMedia(MediaType.image, idIn);
-	}
+    async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
+        return this.abstractMediaService.getMedia(MediaType.image, idIn);
+    }
 
     /** Upload image and get temporary id */
     @Post()
     @ApiOkResponse({ type: FileUploadResponse })
     async upload(@Query() { personToken }: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
-    	const proxy = await this.abstractMediaService.getUploadProxy(MediaType.image, personToken);
-    	req.pipe(proxy).pipe(res);
+        const proxy = await this.abstractMediaService.getUploadProxy(MediaType.image, personToken);
+        req.pipe(proxy).pipe(res);
     }
 
     /** Get image by id */
     @Get(":id")
     @UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image))
     findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Image> {
-    	return this.abstractMediaService.findOne(MediaType.image, id);
+        return this.abstractMediaService.findOne(MediaType.image, id);
     }
 
     /** Update image metadata */
@@ -55,38 +55,38 @@ export class ImagesController {
     updateMetadata(
         @Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image
     ): Promise<Image> {
-    	return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
+        return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
     }
 
     /** Delete image */
     @Delete(":id")
     @HttpCode(HttpStatus.NO_CONTENT)
     delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-    	return this.abstractMediaService.deleteMedia(MediaType.image, id, personToken);
+        return this.abstractMediaService.deleteMedia(MediaType.image, id, personToken);
     }
 
     /** Fetch large image by id */
     @Get(":id/large.jpg")
     findLarge(@Param("id") id: string, @Res() res: Response) {
-    	this.abstractMediaService.findURL(MediaType.image, id, "largeURL").then(url => {
-    		res.redirect(url);
-    	});
+        this.abstractMediaService.findURL(MediaType.image, id, "largeURL").then(url => {
+            res.redirect(url);
+        });
     }
 
     /** Fetch square thumbnail by id */
     @Get(":id/square.jpg")
     findSquare(@Param("id") id: string, @Res() res: Response) {
-    	this.abstractMediaService.findURL(MediaType.image, id, "squareThumbnailURL").then(url => {
-    		res.redirect(url);
-    	});
+        this.abstractMediaService.findURL(MediaType.image, id, "squareThumbnailURL").then(url => {
+            res.redirect(url);
+        });
     }
 
     /** Fetch thumbnail by id */
     @Get(":id/thumbnail.jpg")
     findThumbnail(@Param("id") id: string, @Res() res: Response) {
-    	this.abstractMediaService.findURL(MediaType.image, id, "thumbnailURL").then(url => {
-    		res.redirect(url);
-    	});
+        this.abstractMediaService.findURL(MediaType.image, id, "thumbnailURL").then(url => {
+            res.redirect(url);
+        });
     }
 
     /** Upload image metadata */
@@ -95,7 +95,7 @@ export class ImagesController {
     async uploadMetadata(
         @Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image
     ): Promise<Image> {
-    	return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, personToken);
+        return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, personToken);
     }
 }
 
