@@ -18,7 +18,7 @@ export class AccessTokenService {
 	}
 
 	getAccessTokenFromRequest(request: Request): string | undefined {
-		return (request.query.access_token as string)|| request.headers.authorization;
+		return (request.query.access_token as string) || request.headers.authorization;
 	}
 
 	findByUserID(userId: number): Promise<AccessToken | null> {
