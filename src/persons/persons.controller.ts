@@ -1,14 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
-import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { serialize } from "src/serializing/serializing";
 import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
+import { LajiApiController } from "src/decorators/laji-api-controller";
 
-@ApiSecurity("access_token")
+@LajiApiController("person")
 @ApiTags("Person")
-@Controller("person")
 export class PersonsController {
 	constructor(
 		private readonly personsService: PersonsService,
@@ -36,7 +36,7 @@ export class PersonsController {
 		return serialize(
 			await this.personsService.findByPersonId(personId),
 			Person,
-			{ whitelist: ["id", "fullName", "group", "@context"] }
+			// { whitelist: ["id", "fullName", "group", "@context"] }
 		);
 	}
 

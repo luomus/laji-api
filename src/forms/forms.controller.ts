@@ -1,17 +1,16 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
 import { AcceptAccessDto, Form, Format, GetAllDto, GetDto, RevokeAccessDto, TransformDto } from "./dto/form.dto";
-import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
-import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { LajiApiController } from "src/decorators/laji-api-controller";
 
-@SwaggerRemote()
-@ApiSecurity("access_token")
 @ApiTags("Form")
-@Controller("forms")
+@LajiApiController("forms")
 export class FormsController {
 	constructor(
 		private readonly formsService: FormsService,

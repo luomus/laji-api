@@ -21,12 +21,15 @@ const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
  * Allows defining a remote Swagger schema ref for a controller method. The referred schema is merged into our own
  *   OpenAPI document. The result will be magically paginated also.
  *
- * Note that the controller must be decorated with `@SwaggerRemote()`!
+ * Note that the controller must be decorated with either `@LajiApiController()` or `@SwaggerRemote()`!
  * */
 export function SwaggerRemoteRef(entry: SwaggerRemoteRefEntry) {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	return function (target: any, propertyKey: any) {
 		Reflect.defineMetadata(SWAGGER_REMOTE_METADATA + propertyKey, entry, target);
+
+		const path = Reflect.getMetadata(PATH_METADATA, target);
+		console.log('path' ,path);
 	}
 }
 

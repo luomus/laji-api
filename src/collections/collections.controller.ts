@@ -1,13 +1,12 @@
-import { Controller, Get, Param, Query, UseInterceptors } from "@nestjs/common";
-import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { Collection, FindCollectionsDto, FindOneDto, GetPageDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
-import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { LajiApiController } from "src/decorators/laji-api-controller";
 
-@SwaggerRemote()
-@ApiSecurity("access_token")
-@Controller("collections")
+@LajiApiController("collections")
 @ApiTags("Collections")
 export class CollectionsController {
 	constructor(
