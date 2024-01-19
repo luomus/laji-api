@@ -1,11 +1,28 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { CACHE_30_MIN, pipe } from "src/utils";
+import { CACHE_30_MIN, pipe, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
-import { SwaggerRemoteRefEntry, swaggerRemoteRefs } from "./swagger-remote.decorator";
+import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
+import { SerializeEntry, entryHasWhiteList, isSerializeEntry } from "src/serializing/serialize.decorator";
+import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object-factory";
+import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-properties-accessor";
+import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
+import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
+
+type SchemaItem = SchemaObject | ReferenceObject;
+type SwaggerSchema = Record<string, SchemaItem>;
+
+function getJsonSchema(targetConstructor: Type<unknown>) {
+	const factory = new SchemaObjectFactory(new ModelPropertiesAccessor(), new SwaggerTypesMapper());
+
+	const schemas: Record<string, SchemaObject> = {};
+	factory.exploreModelSchema(targetConstructor, schemas);
+
+	return schemas[targetConstructor.name];
+}
 
 @Injectable()
 export class SwaggerService {
@@ -62,40 +79,72 @@ export class SwaggerService {
 	 * Patching is performed mutably.
 	 */
 	private patchRemoteRefs(document: OpenAPIObject) {
-		Object.keys(swaggerRemoteRefs).forEach((path: string) => {
-			const methods = swaggerRemoteRefs[path];
+		Object.keys(swaggerCustomizationEntries).forEach((path: string) => {
+			const methods = swaggerCustomizationEntries[path];
 			Object.keys(methods).forEach((methodName: string) => {
 				const responseCodes = methods[methodName];
 				Object.keys(responseCodes).forEach((responseCode: string) => {
-					const entry = swaggerRemoteRefs[path][methodName][responseCode];
-					const remoteDoc = this.getRemoteSwaggerDoc(entry);
-					const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>); 
-					document!.components!.schemas![entry.ref] = remoteSchemas[entry.ref];
-					for (const iteratedPath of Object.keys(document.paths)) {
-						const pathItem = document.paths[iteratedPath];
-						for (const operationName of (["get", "put", "post", "delete"] as const)) {
-							const operation = pathItem[operationName];
-							if (!operation) {
-								continue;
-							}
-							const existingSchema: SchemaObject | ReferenceObject | undefined
-								= (operation.responses as any)[responseCode]?.content?.["application/json"]?.schema;
-							const schema: SchemaObject | ReferenceObject | undefined = pipe(
-								existingSchema,
-								replaceWithRemoteAsNeededWith(path, methodName, iteratedPath, operation, entry),
-								paginateAsNeededWith(operation)
-							);
-							if (schema) {
-								(operation.responses as any)[responseCode].content = {
-									"application/json": { schema }
+					const entries = swaggerCustomizationEntries[path][methodName][responseCode];
+
+					entries?.forEach(entry => {
+						this.entrySideEffectForSchema(document!.components!.schemas!, entry)
+						for (const iteratedPath of Object.keys(document.paths)) {
+							const pathItem = document.paths[iteratedPath];
+							for (const operationName of (["get", "put", "post", "delete"] as const)) {
+								const operation = pathItem[operationName];
+								if (!operation) {
+									continue;
+								}
+								const existingSchema: SchemaObject | ReferenceObject | undefined
+									= (operation.responses as any)[responseCode]?.content?.["application/json"]?.schema;
+								if (
+									iteratedPath !== `/${path}` && !iteratedPath.startsWith(`/${path}/`)
+									|| operation?.operationId !== methodName
+								) {
+									continue;
+								}
+
+								const schema: SchemaItem | undefined = pipe(
+									existingSchema,
+									applyEntry(entry),
+									paginateAsNeededWith(operation)
+								);
+								if (schema) {
+									(operation.responses as any)[responseCode].content = {
+										"application/json": { schema }
+									}
 								}
 							}
 						}
-					}
+					});
 				});
 			});
 		});
 		return document;
+	}
+
+	entrySideEffectForSchema(schema: Record<string, SchemaObject | ReferenceObject>, entry: SwaggerCustomizationEntry) {
+		if (isSwaggerRemoteRefEntry(entry)) {
+			this.remoteRefEntrySideEffectForSchema(schema, entry);
+		} else if (isSerializeEntry(entry)) {
+			this.serializeEntrySideEffectsForSchema(schema, entry);
+		}
+	}
+
+	remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
+		const remoteDoc = this.getRemoteSwaggerDoc(entry);
+		const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>); 
+		schema![entry.ref] = remoteSchemas[entry.ref];
+	}
+
+	serializeEntrySideEffectsForSchema(schema: SwaggerSchema, entry: SerializeEntry) {
+		if (entry.schemaDefinitionName) {
+			const jsonSchema = getJsonSchema(entry.serializeInto);
+			if (entryHasWhiteList(entry)) {
+				whitelistKeys((jsonSchema.properties as any), entry.serializeOptions.whitelist);
+			}
+			schema![entry.schemaDefinitionName] = jsonSchema;
+		}
 	}
 
 	private getRemoteSwaggerDoc(entry: SwaggerRemoteRefEntry) {
@@ -106,21 +155,24 @@ export class SwaggerService {
 	}
 }
 
-const replaceWithRemoteAsNeededWith = (
-	remoteEntryPath: string,
-	remoteEntryMethodName: string,
-	iteratedPath: string,
-	operation: OperationObject,
-	entry: SwaggerRemoteRefEntry) =>
-	(schema?: SchemaObject | ReferenceObject) => {
-		if (
-			iteratedPath !== `/${remoteEntryPath}` && !iteratedPath.startsWith(`/${remoteEntryPath}/`)
-			|| operation?.operationId !== remoteEntryMethodName
-		) {
-			return schema;
-		}
-		return { "$ref": `#/components/schemas/${entry.ref}` };
+const applyEntry = (entry: SwaggerCustomizationEntry) => (schema?: SchemaItem): SchemaItem | undefined => {
+	if (isSwaggerRemoteRefEntry(entry)) {
+		return replaceWithRemoteAsNeededWith(entry);
+	} else if (isSerializeEntry(entry)) {
+		return replaceWithSerializedAsNeededWith(entry)(schema);
 	}
+	return schema;
+};
+
+const replaceWithRemoteAsNeededWith = (entry: SwaggerRemoteRefEntry) => (
+	{ "$ref": `#/components/schemas/${entry.ref}` }
+);
+
+const replaceWithSerializedAsNeededWith = (entry: SerializeEntry) => (schema?: SchemaItem) => (
+	entry.schemaDefinitionName
+		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
+		: schema
+);
 
 const isPagedOperation = (operation: OperationObject): boolean => {
 	for (const param of (operation.parameters || [])) {
@@ -131,7 +183,7 @@ const isPagedOperation = (operation: OperationObject): boolean => {
 	return false;
 };
 
-const asPagedResponse = (schema: SchemaObject | ReferenceObject): SchemaObject => ({
+const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	type: "object",
 	properties: {
 		page: { type: "number" },
@@ -145,9 +197,9 @@ const asPagedResponse = (schema: SchemaObject | ReferenceObject): SchemaObject =
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
 
-const isSchemaObject = (schema: SchemaObject | ReferenceObject): schema is SchemaObject => !!(schema as any).type;
+const isSchemaObject = (schema: SchemaItem): schema is SchemaObject => !!(schema as any).type;
 
-const isPagedSchema = (schema: SchemaObject | ReferenceObject) =>
+const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
 
 const paginateAsNeededWith = (operation: OperationObject) =>

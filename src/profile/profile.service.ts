@@ -51,6 +51,7 @@ export class ProfileService {
 		return this.create(personId, profile);
 	}
 
+	/** @throws HttpException */
 	async updateWithPersonId(personId: string, profile: Partial<Profile>) {
 		const existingProfile = await this.findByPersonId(personId);
 		if (!existingProfile) {

@@ -1,4 +1,4 @@
-export const isObject = (any: any): any is Record<string, unknown> =>
+export const isObject = (any: unknown): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;
 
 export type JSONSerializable = string | number | boolean | JSONObjectSerializable | JSONSerializable[] | null;

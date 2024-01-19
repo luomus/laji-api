@@ -83,3 +83,15 @@ export const dictionarify = (arr: string[]) =>
 		dict[item] = true;
 		return dict;
 	}, {});
+
+/** Removes given keys from given object. Note that it performs this immutably for performance reasons! */
+export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whitelist: (keyof T)[]) => {
+	const knownKeys = dictionarify(Object.getOwnPropertyNames(obj));
+	whitelist && Object.keys(knownKeys).forEach(prop => {
+		if (!whitelist.includes(prop)) {
+			delete (obj as any)[prop];
+		}
+	});
+	return obj;
+}
+
