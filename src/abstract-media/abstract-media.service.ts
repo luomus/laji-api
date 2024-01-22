@@ -39,22 +39,20 @@ export class AbstractMediaService {
 
 	/** @throws HttpException */
 	async get<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
-		const result = await this.findMedia(type, [id]);
-		if (result?.length > 0) {
-			return result.pop() as Media<T>;
-		} else {
+		const [result] = await this.findMedia(type, [id]);
+		if (!result) {
 			throw new HttpException("Not found", 404);
 		}
+		return result;
 	}
 
 	/** @throws HttpException */
 	async getURL<T extends MediaType>(type: T, id: string, urlKey: keyof Media<T>): Promise<string> {
 		const result = await this.get(type, id);
-		if (result[urlKey]) {
-			return result[urlKey] as string;
-		} else {
+		if (!result[urlKey]) {
 			throw new HttpException("Not found", 404);
 		}
+		return result[urlKey] as string;
 	}
 
 	/** @throws HttpException */
