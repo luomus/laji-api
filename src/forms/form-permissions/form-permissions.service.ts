@@ -71,7 +71,7 @@ export class FormPermissionsService {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 			listProps.forEach(prop => {
 				permissions[prop].sort(naturalSort);
-			})
+			});
 		} else {
 			permissions.admins = [];
 			permissions.editors = permissions.editors.filter(isPerson(person));
@@ -86,7 +86,7 @@ export class FormPermissionsService {
 		return forms.find(form =>
 			(form.collectionID === collectionID
 			|| parentCollections.some(parentCollection => form.collectionID === parentCollection.id))
-			&& (form.options.restrictAccess || form.options.hasAdmins))
+			&& (form.options.restrictAccess || form.options.hasAdmins));
 	}
 
 	/** @throws HttpException */
@@ -231,7 +231,7 @@ export class FormPermissionsService {
 		}
 		if (form) {
 			const translatedForm = await this.formService.get(form.id, Format.json, lang, true);
-			const titleFromForm = translatedForm.shortTitle || translatedForm.title
+			const titleFromForm = translatedForm.shortTitle || translatedForm.title;
 			if ( titleFromForm) {
 				return titleFromForm;
 			}
@@ -247,7 +247,7 @@ function isAdminOf(permissions: PermissionLists, person: Person) {
 
 function hasEditRights(permissions: FormPermissionDto, person: Person) {
 	return isAdminOf(permissions, person)
-		|| permissions.editors.includes(person.id)
+		|| permissions.editors.includes(person.id);
 }
 
 function hasRequested(permissions: FormPermissionDto, person: Person) {

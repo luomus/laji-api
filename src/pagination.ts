@@ -54,13 +54,13 @@ export const addPrevAndNextPage = <T extends { currentPage: number; lastPage: nu
 };
 
 const addContextToPaged = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "@context">): PaginatedDto<T> => {
-	const context = (paged.results[0] as any)?.["@context"]
+	const context = (paged.results[0] as any)?.["@context"];
 	const results = context
 		? paged.results.map(i => {
 			const _i = { ...i };
 			delete (_i as any)["@context"];
 			return _i;
-		}) : paged.results
+		}) : paged.results;
 	return { ...paged, results, "@context": context || `http://schema.laji.fi/context/generic-${lang}.jsonld` };
 };
 
@@ -74,7 +74,7 @@ export const getAllFromPagedResource = async <T>(
 		items = items.concat(res.results);
 	}
 	return items;
-}
+};
 
 type ApplyResult = {
 	<T, R>(result: T, fn: (r: T) => R): Promise<R>

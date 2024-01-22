@@ -38,7 +38,7 @@ export function createSwaggerScanner(metadataKey: string) {
 			swaggerCustomizationEntries[path] = {
 				...(swaggerCustomizationEntries[path] || {}),
 				[propertyKey]: { [responseCode]: [ ...existingEntries, entry ] }
-			}
+			};
 		});
-	}
+	};
 }

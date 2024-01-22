@@ -55,7 +55,7 @@ export class CollectionsService {
 		let collection = idToCollection[id];
 		while (collection.isPartOf) {
 			collection = idToCollection[collection.isPartOf];
-			parents.push(collection)
+			parents.push(collection);
 		}
 		return parents;
 	}
@@ -85,7 +85,7 @@ export class CollectionsService {
 		const idToCollection = (await this.getAll()).reduce((idToCollection, c) => {
 			idToCollection[c.id] = c;
 			return idToCollection;
-		}, {} as Record<string, Collection<MultiLang>>)
+		}, {} as Record<string, Collection<MultiLang>>);
 		this.idToCollection = idToCollection;
 		return idToCollection;
 	}
@@ -109,7 +109,7 @@ export class CollectionsService {
 			return cached;
 		}
 		this.collections = (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
-		return this.collections
+		return this.collections;
 	}
 
 	private async getTriplestoreCollections(): Promise<Collection<MultiLang>[]> {
@@ -215,7 +215,7 @@ const getInheritedProperty = <K extends keyof TriplestoreCollection>(
 			? collection[property]
 			: ((collection.isPartOf && idToCollection[(collection.isPartOf as string)])
 				? getInheritedProperty(property, idToCollection[collection.isPartOf], idToCollection)
-				: undefined)
+				: undefined);
 
 const getRootParent = (collection: TriplestoreCollection, idToCollection: Record<string, TriplestoreCollection>)
 	: TriplestoreCollection | undefined => {
@@ -226,7 +226,7 @@ const getRootParent = (collection: TriplestoreCollection, idToCollection: Record
 		parent = idToCollection[parent.isPartOf];
 	}
 	return parent;
-}
+};
 
 const getLongName = (
 	collection: TriplestoreCollection,
@@ -247,4 +247,4 @@ const getLongName = (
 			: "";
 		return multiLang;
 	}, {});
-}
+};

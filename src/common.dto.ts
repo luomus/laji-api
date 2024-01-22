@@ -49,7 +49,7 @@ export type MultiLang = Partial<CompleteMultiLang>;
 
 export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, Lang.multi>): (string | undefined) => {
 	return multiLangItem[lang];
-}
+};
 
 export class HasContext {
 	"@context": string;

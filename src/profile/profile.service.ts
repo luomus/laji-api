@@ -9,7 +9,7 @@ import { uuid } from "src/utils";
 
 @Injectable()
 export class ProfileService {
-	private storeProfileService = this.storeService.forResource<Profile>("profile", { serializeInto: Profile })
+	private storeProfileService = this.storeService.forResource<Profile>("profile", { serializeInto: Profile });
 
 	constructor(
 		private storeService: StoreService,
@@ -22,7 +22,7 @@ export class ProfileService {
 	 */
 	async getByPersonIdOrCreate(personId: string) {
 		const profile = await this.findByPersonId(personId);
-		return profile || this.create(personId, {})
+		return profile || this.create(personId, {});
 	}
 
 	async getByPersonTokenOrCreate(personToken: string) {
@@ -107,14 +107,14 @@ export class ProfileService {
 				...profile,
 				friends: [...profile.friends, friendPersonId],
 				friendRequests: profile.friendRequests.filter((id: string) => id !== friendPersonId)
-			}
+			};
 		}
 	}
 
 	async removeFriend(personToken: string, friendPersonId: string, block: boolean) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
 		const profile = await this.getByPersonIdOrCreate(personId);
-		const friendProfile = await this.getByPersonId(friendPersonId)
+		const friendProfile = await this.getByPersonId(friendPersonId);
 
 		await this.storeProfileService.update(removeFriend(friendProfile, personId, false));
 		return this.storeProfileService.update(removeFriend(profile, friendPersonId, block));

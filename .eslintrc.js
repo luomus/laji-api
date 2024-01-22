@@ -51,6 +51,7 @@ module.exports = {
 				"ignoreRestSiblings": true
 			}
 		],
-		"@typescript-eslint/space-infix-ops": 2
+		"@typescript-eslint/space-infix-ops": 2,
+		"semi": 2
   },
 };

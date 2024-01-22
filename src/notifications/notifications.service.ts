@@ -11,7 +11,7 @@ import * as equals from "fast-deep-equal";
 @Injectable()
 export class NotificationsService {
 	private storeNotificationsService =
-		this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN })
+		this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN });
 
 	constructor(
 		private storeService: StoreService,
@@ -71,4 +71,4 @@ export class NotificationsService {
 
 const now = () => {
 	return new Date().toISOString();
-}
+};

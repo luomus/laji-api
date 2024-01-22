@@ -93,5 +93,5 @@ export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whiteli
 		}
 	});
 	return obj;
-}
+};
 

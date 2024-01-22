@@ -54,7 +54,7 @@ export class StoreService {
 					await this.getPageWith<T>(resource, options)(query, page, 10000)
 				),
 			);
-		}
+		};
 
 	private createWith = <T>(resource: string, options?: LajiApiOptions<T>) => (item: Partial<T>) =>
 		this.storeRestClient.post<Partial<T>>(resource, item, undefined, options) as Promise<T>;
@@ -101,5 +101,5 @@ export class StoreService {
 			create: this.createWith<T>(resource, options),
 			update: this.updateWith<T>(resource, options),
 			delete: this.deleteWith(resource)
-		})
+		});
 }

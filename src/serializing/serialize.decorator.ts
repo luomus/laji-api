@@ -21,7 +21,7 @@ export type SerializeEntry = SerializeEntryWithWhiteList | SerializeEntryWithout
 
 export const entryHasWhiteList = (entry: SerializeEntry): entry is SerializeEntryWithWhiteList => {
 	return (entry.serializeOptions as any)?.whitelist;
-}
+};
 
 export const isSerializeEntry = (entry: unknown): entry is SerializeEntry =>
 	isObject(entry) && "serializeInto" in entry;
@@ -60,7 +60,7 @@ export const SwaggerSerializeOptionsApplied: SerializeOverload = (
 			entry,
 			target
 		);
-	}
+	};
 };
 
 export const SerializeScanner = createSwaggerScanner(SERIALIZE_METADATA);

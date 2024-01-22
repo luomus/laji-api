@@ -14,7 +14,7 @@ export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>
 				if (serializeInto) {
 					result = await applyToResult(result, _serializeInto(serializeInto, serializeOptions));
 				}
-				return applyToResult(result, excludePrivateProps)
+				return applyToResult(result, excludePrivateProps);
 			}));
 		}
 	}

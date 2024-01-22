@@ -26,7 +26,7 @@ export const decoratePerson = (person: Person): Person => {
 		person.fullName = `${(person.inheritedName || "")} ${(person.preferredName || "")}`;
 	}
 	return person;
-}
+};
 
 export class RemoveFriendDto {
 	// eslint-disable-next-line @typescript-eslint/no-inferrable-types

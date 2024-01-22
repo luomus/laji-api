@@ -34,7 +34,7 @@ export class PersonsService {
 			this.triplestoreService.findOne(personId, { cache: CACHE_5_MIN }),
 			serializeInto(Person),
 			decoratePerson
-		)
+		);
 	}
 
 	async isICTAdmin(personToken: string) {

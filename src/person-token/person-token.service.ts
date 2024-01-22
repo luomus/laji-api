@@ -14,12 +14,12 @@ export class PersonTokenService {
 			personId: info.user.qname,
 			target: info.target,
 			next: info.next,
-		}
+		};
 	}
 
 	/** @throws HttpException */
 	async getPersonIdFromToken(personToken: string): Promise<string> {
-		const { personId } = await this.getInfo(personToken)
+		const { personId } = await this.getInfo(personToken);
 		if (!personId) {
 			throw new HttpException("No personId found for personToken", 404);
 		}

@@ -256,7 +256,7 @@ export class TriplestoreService {
 			d[k] = value;
 			return d;
 		}, {});
-	}
+	};
 
 	private dropPrefixes(data: JSONObjectSerializable) {
 		const unprefix = (k: string) => k.split(".").pop() as string;

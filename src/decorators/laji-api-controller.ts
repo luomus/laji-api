@@ -12,5 +12,5 @@ export function LajiApiController(prefix: string | string[]) {
 		Controller(prefix),
 		SwaggerRemoteScanner(), // @SwaggerRemoteRef() doesn't work without this controller level decorator
 		SerializeScanner(), // @Serialize() swagger changes doesn't work without this controller level decorator
-	)
+	);
 }

@@ -10,7 +10,7 @@ export class FormsService {
 	constructor(@Inject("FORM_REST_CLIENT") private formClient: RestClientService<Form>) {}
 
 	async getAll(lang = Lang.en) {
-		return (await this.formClient.get<{forms: Form[]}>("", { params: { lang } }, { cache: CACHE_1_MIN })).forms
+		return (await this.formClient.get<{forms: Form[]}>("", { params: { lang } }, { cache: CACHE_1_MIN })).forms;
 	}
 
 	create(form: Form, personToken: string) {
@@ -40,5 +40,5 @@ export class FormsService {
 }
 
 function formatLangParam(lang: Lang) {
-	return lang === "multi" ? undefined : lang
+	return lang === "multi" ? undefined : lang;
 }

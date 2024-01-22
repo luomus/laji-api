@@ -24,7 +24,7 @@ export function SwaggerRemoteRef(entry: SwaggerRemoteRefEntry) {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	return function (target: any, propertyKey: any) {
 		Reflect.defineMetadata(SWAGGER_REMOTE_METADATA + propertyKey, entry, target);
-	}
+	};
 }
 
 export const SwaggerRemoteScanner = createSwaggerScanner(SWAGGER_REMOTE_METADATA);

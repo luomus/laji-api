@@ -60,7 +60,7 @@ export class RestClientService<T = any> {
 	}
 
 	private getCacheKey(path?: string, options?: AxiosRequestConfig) {
-		return this.getPath(path) + JSON.stringify(options?.params)
+		return this.getPath(path) + JSON.stringify(options?.params);
 	}
 
 	private async getWithCache<S>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>)

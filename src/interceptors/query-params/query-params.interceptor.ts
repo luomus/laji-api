@@ -60,7 +60,7 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 				return applyToResult(result, this.getTranslate(context, lang, langFallback));
 			}
 			return result;
-		}
+		};
 
 		private getTranslate(context: string, lang?: Lang, langFallback?: boolean) {
 			return (result: any) => this.langService.translateWithContext(context)(result, lang, langFallback);

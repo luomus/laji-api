@@ -49,7 +49,7 @@ export const excludePrivateProps = (item: any) => {
 		excludedItem[k] = item[k];
 		return excludedItem;
 	}, {});
-}
+};
 
 export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOptions) =>
 	serializeInto(Class, options)(item);

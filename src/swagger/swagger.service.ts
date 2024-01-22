@@ -87,7 +87,7 @@ export class SwaggerService {
 					const entries = swaggerCustomizationEntries[path][methodName][responseCode];
 
 					entries?.forEach(entry => {
-						this.entrySideEffectForSchema(document!.components!.schemas!, entry)
+						this.entrySideEffectForSchema(document!.components!.schemas!, entry);
 						for (const iteratedPath of Object.keys(document.paths)) {
 							const pathItem = document.paths[iteratedPath];
 							for (const operationName of (["get", "put", "post", "delete"] as const)) {
@@ -112,7 +112,7 @@ export class SwaggerService {
 								if (schema) {
 									(operation.responses as any)[responseCode].content = {
 										"application/json": { schema }
-									}
+									};
 								}
 							}
 						}
