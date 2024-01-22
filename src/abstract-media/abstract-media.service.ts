@@ -26,11 +26,11 @@ export class AbstractMediaService {
         private personsService: PersonsService,
 	) {}
 
-	async findMedia<T extends MediaType>(type: T, idIn?: string): Promise<Media<T>[]> {
+	async findMedia<T extends MediaType>(type: T, idIn?: string[]): Promise<Media<T>[]> {
 		return await this.triplestoreService.find<Media<T>>(
 			{
 				type,
-				subject: idIn,
+				subject: idIn?.join(","),
 				predicate: "MZ.publicityRestrictions",
 				objectresource: "MZ.publicityRestrictionsPublic"
 			}
@@ -39,7 +39,7 @@ export class AbstractMediaService {
 
 	/** @throws HttpException */
 	async get<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
-		const result = await this.findMedia(type, id);
+		const result = await this.findMedia(type, [id]);
 		if (result?.length > 0) {
 			return result.pop() as Media<T>;
 		} else {

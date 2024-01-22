@@ -1,7 +1,7 @@
-import { Type } from "class-transformer";
+import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsInt, isObject } from "class-validator";
 import { ParseOptionalBoolean } from "./serializing/serializing";
-import { IntersectionType } from "@nestjs/swagger";
+import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 
 export enum Lang {
 	fi = "fi",
@@ -47,7 +47,9 @@ export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
 	/**
 	 * Comma separated ids
 	 */
-	idIn?: string;
+	@ApiProperty({ type: String, required: false })
+	@Transform(({ value }: { value: string }) => value.split(",").filter(id => !!id))
+	idIn?: string[];
 }
 
 export class FindOneDto  {
