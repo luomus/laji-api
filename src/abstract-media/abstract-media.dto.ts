@@ -2,8 +2,8 @@ import { MultiLang } from "../common.dto";
 import { Image, Audio } from "@luomus/laji-schema";
 
 export enum MediaType {
-    image = "MM.image",
-    audio = "MM.audio"
+	image = "MM.image",
+	audio = "MM.audio"
 }
 
 export type Media<T extends MediaType> = T extends MediaType.image ? Image : Audio;
@@ -21,9 +21,9 @@ export class Meta {
 	documentId?: string;
 	tags?: string[];
 	identifications?: {
-        taxonIds: string[];
-        verbatim: string[];
-    };
+		taxonIds: string[];
+		verbatim: string[];
+	};
 	primaryForTaxon?: string[];
 	caption?: string;
 	taxonDescriptionCaption?: MultiLang;
@@ -37,10 +37,10 @@ export class Meta {
 }
 
 export interface PartialMeta extends Partial<Omit<Meta, "identifications">> {
-    identifications?: {
-        taxonIds?: string[];
-        verbatim?: string[];
-    }
+	identifications?: {
+		taxonIds?: string[];
+		verbatim?: string[];
+	}
 }
 
 export class FileUploadResponse {

@@ -20,10 +20,10 @@ const typeMediaNameMap: Record<MediaType, string> = {
 @Injectable()
 export class AbstractMediaService {
 	constructor(
-        @Inject("MEDIA_REST_CLIENT") private mediaClient: RestClientService,
-        private configService: ConfigService,
-        private triplestoreService: TriplestoreService,
-        private personsService: PersonsService,
+		@Inject("MEDIA_REST_CLIENT") private mediaClient: RestClientService,
+		private configService: ConfigService,
+		private triplestoreService: TriplestoreService,
+		private personsService: PersonsService,
 	) {}
 
 	async findMedia<T extends MediaType>(type: T, idIn?: string[]): Promise<Media<T>[]> {
