@@ -1,6 +1,6 @@
 import { classToPlain, plainToClass, Transform } from "class-transformer";
 import { isObject, Newable } from "src/type-utils";
-import { dictionarify, whitelistKeys } from "src/utils";
+import { whitelistKeys } from "src/utils";
 import { getPrivateDecorator } from "./private.decorator";
 
 export type SerializeOptions = {
