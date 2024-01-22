@@ -15,7 +15,7 @@ const typeMediaClassMap: Record<MediaType, string> = {
 const typeMediaNameMap: Record<MediaType, string> = {
 	[MediaType.image]: "images",
 	[MediaType.audio]: "audio"
-}
+};
 
 @Injectable()
 export class AbstractMediaService {
@@ -57,7 +57,7 @@ export class AbstractMediaService {
 
 	/** @throws HttpException */
 	async getUploadProxy(type: MediaType, personToken: string): Promise<_request.Request> {
-		// check that the person token is valid
+		// Check that the person token is valid.
 		await this.personsService.getByToken(personToken);
 
 		const basePath = this.configService.get("MEDIA_PATH") as string;
@@ -167,7 +167,7 @@ export class AbstractMediaService {
 		};
 	}
 
-	private timeToApiTime(dateString?: string): string|undefined {
+	private timeToApiTime(dateString?: string): string | undefined {
 		if (!dateString) {
 			return;
 		}

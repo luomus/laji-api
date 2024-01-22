@@ -1,6 +1,5 @@
 import {
 	Body,
-	Controller,
 	Delete,
 	Get, HttpCode, HttpStatus,
 	Param,
@@ -11,16 +10,16 @@ import {
 	Res,
 	UseInterceptors
 } from "@nestjs/common";
-import { ApiOkResponse, ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { Request, Response } from "express";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
+import { LajiApiController } from "src/decorators/laji-api-controller";
 
-@ApiSecurity("access_token")
-@Controller("audio")
+@LajiApiController("audio")
 @ApiTags("Audio")
 export class AudioController {
 	constructor(

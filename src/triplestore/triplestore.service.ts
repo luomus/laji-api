@@ -88,7 +88,7 @@ export class TriplestoreService {
 			}
 		}
 
-		let result = await this.rdfToJsonLd<T|T[]>(
+		let result = await this.rdfToJsonLd<T | T[]>(
 			this.triplestoreClient.get("search", { params: _query }),
 			this.getCacheKey("search", _query),
 			options
