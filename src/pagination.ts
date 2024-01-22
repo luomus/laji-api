@@ -13,7 +13,7 @@ export class PaginatedDto<T> {
 	"@context": string;
 }
 
-export const isPaginatedDto = <T>(maybePaginated: any): maybePaginated is PaginatedDto<T> => 
+export const isPaginatedDto = <T>(maybePaginated: any): maybePaginated is PaginatedDto<T> =>
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
 		.every(k => k in maybePaginated);
 
@@ -76,30 +76,35 @@ export const getAllFromPagedResource = async <T>(
 	return items;
 };
 
-type ApplyResult = {
-	<T, R>(result: T, fn: (r: T) => R): Promise<R>
-	<T, R>(result: T[], fn: (r: T) => R): Promise<R[]>
-	<T, R>(result: PaginatedDto<T>, fn: (r: T) => R): Promise<PaginatedDto<R>>
-	<T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T ) => R): Promise<R | R[] | PaginatedDto<R>>
+/* eslint-disable max-len */
+type ResultApplier = {
+	<T, R>(fn: (r: T) => (result: T) => Promise<R>): (result: T) => Promise<R>;
+	<T, R>(fn: (r: T) => (result: T[]) => Promise<R>): (result: T) => Promise<R[]>;
+	<T, R>(fn: (r: T) => (result: PaginatedDto<R>) => Promise<PaginatedDto<R>>): (result: T) => Promise<PaginatedDto<R>>;
+	// <T, R>(fn: (r: T) => (result: T | T[] | PaginatedDto<R>) => Promise<R | R[] | PaginatedDto<R>>): (result: T) => Promise<R | R[] | PaginatedDto<R>>;
 }
+/* eslint-enable max-len */
 
-/** Map a given function to all items of a "result". The "result" is either a page, an array or a single object. */
-const applyToResult: ApplyResult =  async <T, R>(result: T | T[] | PaginatedDto<T>, fn: (r: T) => R)
-	: Promise<R | R[] | PaginatedDto<R>> => {
-	if (isPaginatedDto(result)) {
-		const mappedResults = [];
-		for (const r of result.results) {
-			mappedResults.push(await fn(r));
+/**
+ * Creates a function that maps the input items of a "result" with the given function.
+ * The "result" is either a page, an array or a single object.
+ * */
+const applyToResult: ResultApplier = <T, R>(fn: (result: T) => R ) =>
+	async (result: T | T[] | PaginatedDto<T>): Promise<R | R[] | PaginatedDto<R>> => {
+		if (isPaginatedDto(result)) {
+			const mappedResults = [];
+			for (const r of result.results) {
+				mappedResults.push(await fn(r));
+			}
+			return { ...result, results: mappedResults };
+		} else if (Array.isArray(result)) {
+			const mapped: R[] = [];
+			for (const r of result) {
+				mapped.push(await fn(r));
+			}
+			return mapped;
 		}
-		return { ...result, results: mappedResults };
-	} else if (Array.isArray(result)) {
-		const mapped = [];
-		for (const r of result) {
-			mapped.push(await fn(r));
-		}
-		return mapped;
-	}
-	return fn(result);
-};
+		return fn(result);
+	};
 
 export { applyToResult };

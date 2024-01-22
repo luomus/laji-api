@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, mixin, NestInterceptor } from "@nestjs/common";
 import { from, Observable, switchMap } from "rxjs";
 import { Request } from "express";
-import { isLangQueryDto, isPagedQueryDto, Lang, LangQueryDto, PagedDto } from "src/common.dto";
+import { isLangQueryDto, isPagedQueryDto, LangQueryDto, PagedDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
 import { pageResult, applyToResult  } from "src/pagination";
@@ -10,7 +10,7 @@ import { excludePrivateProps, serializeInto as _serializeInto, SerializeOptions 
 import { plainToClass } from "class-transformer";
 
 /**
- * Creates an interceptor that handles applying the paging and language related query params to the result. 
+ * Creates an interceptor that handles applying the paging and language related query params to the result.
  * @param QueryDto The DTO class of the query. Formatting the response to be correctly translated and paged depends on the DTO class having 'page', 'pageSize' and 'lang' props.
  * @param serializeInto Serialize the result item(s) into a class.
  * @param serializeOptions Options for serialization.
@@ -31,7 +31,7 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 			return next.handle().pipe(switchMap(result => from(
 				promisePipe(result,
 					this.handleQuery(request.query),
-					result => applyToResult(result, this.serialize))
+					applyToResult(serialize))
 			)));
 		}
 
@@ -57,21 +57,19 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 				if (!context) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
-				return applyToResult(result, this.getTranslate(context, lang, langFallback));
+				return applyToResult(
+					await this.langService.contextualTranslateWith(context, lang, langFallback)
+				)(result);
 			}
 			return result;
 		};
+	}
 
-		private getTranslate(context: string, lang?: Lang, langFallback?: boolean) {
-			return (result: any) => this.langService.translateWithContext(context)(result, lang, langFallback);
-		}
-
-		serialize(result: any) {
-			return excludePrivateProps(serializeInto
-				? _serializeInto(serializeInto, serializeOptions)(result)
-				: result
-			);
-		}
+	function serialize(result: any) {
+		return excludePrivateProps(serializeInto
+			? _serializeInto(serializeInto, serializeOptions)(result)
+			: result
+		);
 	}
 
 	return mixin(QueryParamsInterceptor) as any;

@@ -10,11 +10,10 @@ export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>
 	class SerializingInterceptor implements NestInterceptor {
 		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 			return next.handle().pipe(switchMap(async result => {
-
 				if (serializeInto) {
-					result = await applyToResult(result, _serializeInto(serializeInto, serializeOptions));
+					result = await applyToResult(_serializeInto(serializeInto, serializeOptions))(result);
 				}
-				return applyToResult(result, excludePrivateProps);
+				return applyToResult(excludePrivateProps)(result);
 			}));
 		}
 	}

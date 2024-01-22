@@ -11,10 +11,15 @@ export class LangService {
 
 	constructor(private metadataService: MetadataService) {}
 
-	translateWithContext<T, R = T>(context: string) { 
-		return async (item: T, lang: Lang = Lang.en, langFallback = true, extraMultiLangKeys: (keyof T)[] = [])
-			: Promise<R> => {
-			const multiLangKeys = [...extraMultiLangKeys, ...(await this.getMultiLangKeys(context))];
+	async contextualTranslateWith<T, R = T>(
+		context: string,
+		lang: Lang = Lang.en,
+		langFallback = true,
+		extraMultiLangKeys: (keyof T)[] = []
+	) {
+		const multiLangKeys = [...extraMultiLangKeys, ...(await this.getMultiLangKeys(context))];
+
+		return (item: T): R => {
 			const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
 				(acc as any)[prop] = getLangValue(((item as any)[prop] as (MultiLang | undefined)), lang, langFallback);
 				return acc;
@@ -26,9 +31,11 @@ export class LangService {
 		};
 	}
 
-	translate<T extends HasContext, R extends HasContext = T>
+	async translate<T extends HasContext, R extends HasContext = T>
 	(item: T, lang?: Lang, langFallback?: boolean, extraMultiLangKeys?: (keyof T)[]) {
-		return this.translateWithContext<T, R>(item["@context"])(item, lang, langFallback, extraMultiLangKeys);
+		return (
+			await this.contextualTranslateWith<T, R>(item["@context"], lang, langFallback, extraMultiLangKeys)
+		)(item);
 	}
 
 	async getMultiLangKeys(context: string) {
@@ -45,14 +52,6 @@ export class LangService {
 		}, [] as string[]);
 		this.multiLangKeyCache[context] = keys;
 		return keys;
-	}
-
-	translateWith<T extends HasContext, R extends HasContext>(
-		lang = Lang.en,
-		fallbackLang = true,
-		extraMultiLangKeys?: (keyof T)[]
-	) {
-		return (item: T) => this.translate<T, R>(item, lang, fallbackLang, extraMultiLangKeys);
 	}
 }
 

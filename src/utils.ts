@@ -50,6 +50,7 @@ function promisePipe<T>(initialValue: T | Promise<T>, ...operations: PromiseRedu
 	)
 	, isPromise(initialValue) ? initialValue : Promise.resolve(initialValue));
 }
+/* eslint-enable max-len */
 
 /**
  * Reduces an initial value into something else with a list of operations
@@ -73,6 +74,7 @@ function pipe<T, A, B, C, D, E, F, G, H, I>(initialValue: T, op1: Reducer<T, A>,
 function pipe<T>(initialValue: T, ...operations: Reducer<any, any>[]): any {
 	return operations.reduce((value, fn) => fn(value), initialValue);
 }
+/* eslint-enable max-len */
 
 export { promisePipe, pipe };
 
@@ -94,4 +96,3 @@ export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whiteli
 	});
 	return obj;
 };
-
