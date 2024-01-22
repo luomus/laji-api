@@ -84,7 +84,7 @@ export class AbstractMediaService {
 		}
 
 		const metadata = this.newMetadata(media, person, tempId);
-		const data = await this.mediaClient.post<MetaUploadData[], MetaUploadResponse[]>(
+		const data = await this.mediaClient.post<MetaUploadResponse[]>(
 			`api/${typeMediaNameMap[type]}`, metadata
 		);
 
