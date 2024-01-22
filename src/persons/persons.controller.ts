@@ -1,14 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
-import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
-import { serialize } from "src/serializing/serializing";
 import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
+import { LajiApiController } from "src/decorators/laji-api-controller";
+import { Serialize } from "src/serializing/serialize.decorator";
 
-@ApiSecurity("access_token")
+@LajiApiController("person")
 @ApiTags("Person")
-@Controller("person")
 export class PersonsController {
 	constructor(
 		private readonly personsService: PersonsService,
@@ -32,24 +32,18 @@ export class PersonsController {
 	 * Find person by user id (this will not include email)
 	 */
 	@Get("by-id/:personId")
+	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
 	async findPersonByPersonId(@Param("personId") personId: string) {
-		return serialize(
-			await this.personsService.findByPersonId(personId),
-			Person,
-			{ whitelist: ["id", "fullName", "group", "@context"] }
-		);
+		return this.personsService.findByPersonId(personId);
 	}
 
 	/*
 	 * Find profile by user id (this will only return small subset of the full profile)
 	 */
 	@Get("by-id/:personId/profile")
+	@Serialize(Profile, { whitelist: ["userID", "profileKey", "image", "profileDescription"] }, "SensitiveProfile")
 	async getProfileByPersonId(@Param("personId") personId: string) {
-		return serialize(
-			await this.profileService.getByPersonIdOrCreate(personId),
-			Profile,
-			{ whitelist: ["userID", "profileKey", "image", "profileDescription"] }
-		);
+		return this.profileService.getByPersonIdOrCreate(personId);
 	}
 
 	/*

@@ -16,6 +16,7 @@ export class PersonsService {
 		private triplestoreService: TriplestoreService
 	) {}
 
+	/** @throws HttpException */
 	async getByToken(personToken: string) {
 		if (personToken === this.configService.get("IMPORTER_TOKEN")) {
 			return ImporterPerson;
@@ -33,7 +34,7 @@ export class PersonsService {
 			this.triplestoreService.findOne(personId, { cache: CACHE_5_MIN }),
 			serializeInto(Person),
 			decoratePerson
-		)
+		);
 	}
 
 	async isICTAdmin(personToken: string) {

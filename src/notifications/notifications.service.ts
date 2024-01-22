@@ -11,7 +11,7 @@ import * as equals from "fast-deep-equal";
 @Injectable()
 export class NotificationsService {
 	private storeNotificationsService =
-		this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN })
+		this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN });
 
 	constructor(
 		private storeService: StoreService,
@@ -35,6 +35,7 @@ export class NotificationsService {
 		return this.storeNotificationsService.create(notification);
 	}
 
+	/** @throws HttpException */
 	async findByIdAndPersonToken(id: string, personToken: string) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
 		const notification = await this.storeNotificationsService.findOne(id);
@@ -44,6 +45,7 @@ export class NotificationsService {
 		return notification;
 	}
 
+	/** @throws HttpException */
 	async update(id: string, notification: Notification, personToken: string) {
 		const existing = await this.findByIdAndPersonToken(id, personToken);
 		if (!existing) {
@@ -57,6 +59,7 @@ export class NotificationsService {
 		return this.storeNotificationsService.update(notification);
 	}
 
+	/** @throws HttpException */
 	async delete(id: string, personToken: string) {
 		const existing = await this.findByIdAndPersonToken(id, personToken);
 		if (!existing) {
@@ -68,4 +71,4 @@ export class NotificationsService {
 
 const now = () => {
 	return new Date().toISOString();
-}
+};

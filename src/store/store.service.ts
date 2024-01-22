@@ -54,7 +54,7 @@ export class StoreService {
 					await this.getPageWith<T>(resource, options)(query, page, 10000)
 				),
 			);
-		}
+		};
 
 	private createWith = <T>(resource: string, options?: LajiApiOptions<T>) => (item: Partial<T>) =>
 		this.storeRestClient.post<Partial<T>>(resource, item, undefined, options) as Promise<T>;
@@ -71,7 +71,7 @@ export class StoreService {
 		page = 1,
 		pageSize = 20,
 		options?: LajiApiOptions<any> & { serializeInto?: undefined }) =>
-		this.getPageWith<T>(resource, options)(query, page, pageSize);
+			this.getPageWith<T>(resource, options)(query, page, pageSize);
 
 	getAll = <T>(resource: string, query: string, options?: LajiApiOptions<any> & { serializeInto?: undefined }) =>
 		this.getAllWith<T>(resource, options)(query);
@@ -94,12 +94,12 @@ export class StoreService {
 	 */	
 	forResource = <T extends {id: string}>(resource: string, options?: LajiApiOptions<T>)
 		: StoreServiceForResource<T> => ({
-		getPage: this.getPageWith<T>(resource, options ? { ...options, serializeInto: undefined } : undefined),
-		getAll: this.getAllWith<T>(resource, options ? { ...options, serializeInto: undefined } : undefined),
-		findOne: async (query: string) => 
-			RestClientService.applyOptions((await this.getPageWith<T>(resource)(query, 1, 1)).member[0], options),
-		create: this.createWith<T>(resource, options),
-		update: this.updateWith<T>(resource, options),
-		delete: this.deleteWith(resource)
-	})
+			getPage: this.getPageWith<T>(resource, options ? { ...options, serializeInto: undefined } : undefined),
+			getAll: this.getAllWith<T>(resource, options ? { ...options, serializeInto: undefined } : undefined),
+			findOne: async (query: string) => 
+				RestClientService.applyOptions((await this.getPageWith<T>(resource)(query, 1, 1)).member[0], options),
+			create: this.createWith<T>(resource, options),
+			update: this.updateWith<T>(resource, options),
+			delete: this.deleteWith(resource)
+		});
 }

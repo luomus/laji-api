@@ -42,7 +42,7 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 
 			const query = plainToClass(QueryDto, rawQuery);
 			const { lang, langFallback, page, pageSize } = query;
-			let context;
+			let context: string | undefined;
 			if (isLangQueryDto(query)) {
 				if (Array.isArray(result)) {
 					context = result[0]?.["@context"];
@@ -54,10 +54,13 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 				result = pageResult(result, page, pageSize, lang);
 			}
 			if (isLangQueryDto(query)) {
+				if (!context) {
+					throw new Error("QueryParamsInterceptor failed to get the @context for item");
+				}
 				return applyToResult(result, this.getTranslate(context, lang, langFallback));
 			}
 			return result;
-		}
+		};
 
 		private getTranslate(context: string, lang?: Lang, langFallback?: boolean) {
 			return (result: any) => this.langService.translateWithContext(context)(result, lang, langFallback);

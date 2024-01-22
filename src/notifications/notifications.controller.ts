@@ -1,13 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Put, Query } from "@nestjs/common";
-import { ApiSecurity, ApiTags } from "@nestjs/swagger";
+import { Body, Delete, Get, Param, Put, Query } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 import { QueryWithPersonTokenDto } from "src/common.dto";
 import { GetPageDto, Notification } from "./notification.dto";
 import { NotificationsService } from "./notifications.service";
-import { SwaggerRemote, SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { LajiApiController } from "src/decorators/laji-api-controller";
 
-@SwaggerRemote()
-@ApiSecurity("access_token")
-@Controller("notifications")
+@LajiApiController("notifications")
 @ApiTags("Notifications")
 export class NotificationsController {
 	constructor(private notificationsService: NotificationsService) {}

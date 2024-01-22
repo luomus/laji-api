@@ -1,6 +1,6 @@
 import { classToPlain, plainToClass, Transform } from "class-transformer";
 import { isObject, Newable } from "src/type-utils";
-import { dictionarify } from "src/utils";
+import { whitelistKeys } from "src/utils";
 import { getPrivateDecorator } from "./private.decorator";
 
 export type SerializeOptions = {
@@ -25,7 +25,6 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 		? item
 		: classToPlain(item);
 	const instance = plainToClass(Class, plainItem);
-	const knownKeys = dictionarify(Object.getOwnPropertyNames(instance));
 	(excludePrefix || filterNulls) && Object.keys(instance as any).forEach(k => {
 		if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {
 			delete (instance as any)[k];
@@ -34,11 +33,7 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 			delete (instance as any)[k];
 		}
 	});
-	whitelist && Object.keys(knownKeys).forEach(prop => {
-		if (!whitelist.includes(prop)) {
-			delete (instance as any)[prop];
-		}
-	});
+	whitelist && whitelistKeys(instance as any, whitelist);
 	return instance;
 };
 
@@ -54,7 +49,7 @@ export const excludePrivateProps = (item: any) => {
 		excludedItem[k] = item[k];
 		return excludedItem;
 	}, {});
-}
+};
 
 export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOptions) =>
 	serializeInto(Class, options)(item);

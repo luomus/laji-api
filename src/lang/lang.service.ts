@@ -18,17 +18,17 @@ export class LangService {
 			const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
 				(acc as any)[prop] = getLangValue(((item as any)[prop] as (MultiLang | undefined)), lang, langFallback);
 				return acc;
-			}, {})
+			}, {});
 			return {
 				...item,
 				...multiLangValuesTranslated
 			} as unknown as R;
-		}
+		};
 	}
 
 	translate<T extends HasContext, R extends HasContext = T>
 	(item: T, lang?: Lang, langFallback?: boolean, extraMultiLangKeys?: (keyof T)[]) {
-		return this.translateWithContext<T, R>(item["@context"])(item, lang, langFallback, extraMultiLangKeys)
+		return this.translateWithContext<T, R>(item["@context"])(item, lang, langFallback, extraMultiLangKeys);
 	}
 
 	async getMultiLangKeys(context: string) {
@@ -64,7 +64,7 @@ const getLangValueWithFallback = (multiLangValue?: MultiLang, fallbackLang = tru
 			return multiLangValue[fallbackLang] as string;
 		}
 	}
-}
+};
 
 const getMultiLangValue = (multiLangValue?: MultiLang, langFallback = true): CompleteMultiLang | undefined => {
 	const completeMultiLang = LANGS.reduce((multiLangValueFilled: CompleteMultiLang, lang) => {
@@ -77,7 +77,7 @@ const getMultiLangValue = (multiLangValue?: MultiLang, langFallback = true): Com
 	return (Object.keys(completeMultiLang) as (keyof CompleteMultiLang)[]).every(k => completeMultiLang[k] === "")
 		? undefined
 		: completeMultiLang;
-}
+};
 
 function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi, langFallback?: boolean)
 	: CompleteMultiLang;

@@ -12,7 +12,7 @@ export class HttpClientErrorToHttpExceptionInterceptor implements NestIntercepto
 				return (!(e instanceof HttpException) && e.response?.status)
 					? new HttpException(e.response?.data as any ?? "LajiApi generic error - External request failed",
 						e.response?.status)
-					: e
+					: e;
 			}
 			);
 		}

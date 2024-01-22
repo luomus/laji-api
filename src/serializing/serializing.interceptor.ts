@@ -1,11 +1,23 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
-import { map, Observable } from "rxjs";
-import { excludePrivateProps } from "./serializing";
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor, mixin } from "@nestjs/common";
+import { Observable, switchMap } from "rxjs";
+import { SerializeOptions, excludePrivateProps, serializeInto as _serializeInto } from "./serializing";
 import { applyToResult } from "src/pagination";
+import { Newable } from "src/type-utils";
 
-@Injectable()
-export class SerializingInterceptor implements NestInterceptor {
-	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		return next.handle().pipe(map(result => applyToResult(result, excludePrivateProps)));
+
+export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>, serializeOptions?: SerializeOptions) {
+	@Injectable()
+	class SerializingInterceptor implements NestInterceptor {
+		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+			return next.handle().pipe(switchMap(async result => {
+
+				if (serializeInto) {
+					result = await applyToResult(result, _serializeInto(serializeInto, serializeOptions));
+				}
+				return applyToResult(result, excludePrivateProps);
+			}));
+		}
 	}
+	return mixin(SerializingInterceptor) as any;
 }
+export const SerializingInterceptor = createNewSerializingInterceptorWith();

@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
-import { isObject, JSON, JSONObject } from "../type-utils";
+import { isObject, JSONSerializable, JSONObjectSerializable } from "../type-utils";
 import { CacheOptions, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { Cache } from "cache-manager";
@@ -100,7 +100,7 @@ export class TriplestoreService {
 	}
 
 	private async rdfToJsonLd<T>(
-		rdf: JSON | Promise<JSON>,
+		rdf: JSONSerializable | Promise<JSONSerializable>,
 		cacheKey: string,
 		options?: TriplestoreQueryOptions
 	): Promise<T> {
@@ -167,11 +167,14 @@ export class TriplestoreService {
 	}
 
 	compactJsonLd(jsonld: any) {
-		return compact(jsonld, jsonld["@type"]) as unknown as JSON;
+		return compact(jsonld, jsonld["@type"]) as unknown as JSONSerializable;
 	}
 
-	private traverseJsonLd(data: JSONObject, op: (jsonLd: JSONObject | JSON[]) => (JSON | undefined)): JSONObject {
-		const traverse = (data: JSON | JSON[]): JSON => {
+	private traverseJsonLd(
+		data: JSONObjectSerializable,
+		op: (jsonLd: JSONObjectSerializable | JSONSerializable[]
+		) => (JSONSerializable | undefined)): JSONObjectSerializable {
+		const traverse = (data: JSONSerializable | JSONSerializable[]): JSONSerializable => {
 			if (Array.isArray(data)) {
 				const operated = op(data);
 				if (operated !== undefined) {
@@ -183,7 +186,8 @@ export class TriplestoreService {
 				if (operated !== undefined) {
 					return operated;
 				}
-				return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
+				const keys = (Object.keys(data) as (keyof JSONObjectSerializable)[]);
+				return keys.reduce<JSONObjectSerializable>((d, k) => {
 					const value = data[k];
 					// Should never happen, but doesn't matter if it does.
 					// Undefined values have no semantic difference to missing keys.
@@ -198,23 +202,23 @@ export class TriplestoreService {
 			return data;
 		};
 
-		return traverse(data) as JSONObject;
+		return traverse(data) as JSONObjectSerializable;
 	}
 
 	/**
 	 * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
 	 * This function resolves those resources into values like "MOS.500".
 	 */
-	private resolveResources(data: JSONObject): JSONObject {
-		return this.traverseJsonLd(data, (value: JSONObject | JSON[]) => {
+	private resolveResources(data: JSONObjectSerializable): JSONObjectSerializable {
+		return this.traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
 			if (isResourceIdentifier(value)) {
 				return value["@id"].replace(BASE_URL, "");
 			}
 		});
 	}
 
-	private resolveLangResources(data: JSONObject): JSONObject {
-		return this.traverseJsonLd(data, (value: JSONObject | JSON[]) => {
+	private resolveLangResources(data: JSONObjectSerializable): JSONObjectSerializable {
+		return this.traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
 			if (Array.isArray(value) && isMultiLangResource(value[0])) {
 				return value.reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => ({
 					...langObj,
@@ -225,7 +229,7 @@ export class TriplestoreService {
 	}
 
 	/** RDF doesn't know about our properties' schema info. This function makes the output to adhere to schema.  */
-	private adhereToSchema = (properties: ContextProperties) => async (data: JSONObject) => {
+	private adhereToSchema = (properties: ContextProperties) => async (data: JSONObjectSerializable) => {
 		function asArray(value: any, property: Property) {
 			if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
 				return [value];
@@ -240,7 +244,7 @@ export class TriplestoreService {
 		const transformations: ((value: any, property: Property) => any | undefined)[] =
 			[asArray, multiLangAsArr];
 
-		return (Object.keys(data) as (keyof JSONObject)[]).reduce<JSONObject>((d, k) => {
+		return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
 			const property = properties[k];
 			let value = data[k];
 			if (!property) {
@@ -257,18 +261,18 @@ export class TriplestoreService {
 			d[k] = value;
 			return d;
 		}, {});
-	}
+	};
 
-	private dropPrefixes(data: JSONObject) {
+	private dropPrefixes(data: JSONObjectSerializable) {
 		const unprefix = (k: string) => k.split(".").pop() as string;
 
-		return (Object.keys(data) as string[]).reduce<JSONObject>((d, k) => {
+		return (Object.keys(data) as string[]).reduce<JSONObjectSerializable>((d, k) => {
 			d[unprefix(k)] = data[k];
 			return d;
 		}, {});
 	}
 
-	private rmIdAndType(data: JSONObject) {
+	private rmIdAndType(data: JSONObjectSerializable) {
 		const { "@type": type, "@id": id, ...d } = data;
 		if (typeof id === "string") {
 			d.id = id.replace(BASE_URL, "");
