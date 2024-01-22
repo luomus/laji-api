@@ -2,11 +2,15 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { LajiAuthPersonGet, PersonTokenInfo } from "./person-token.dto";
 import { CACHE_1_SEC } from "src/utils";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class PersonTokenService {
 	
-	constructor(@Inject("LAJI_AUTH_REST_CLIENT") private lajiAuthClient: RestClientService<LajiAuthPersonGet>) {}
+	constructor(
+		@Inject("LAJI_AUTH_REST_CLIENT") private lajiAuthClient: RestClientService<LajiAuthPersonGet>,
+		private configService: ConfigService
+	) {}
 
 	async getInfo(personToken: string): Promise<PersonTokenInfo> {
 		const info = await this.lajiAuthClient.get(`token/${personToken}`, undefined, { cache: 10 * CACHE_1_SEC });

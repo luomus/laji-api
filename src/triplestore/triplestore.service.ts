@@ -79,6 +79,7 @@ export class TriplestoreService {
 	 */
 	async find<T>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions): Promise<T[]> {
 		const _query = { ...this.getBaseQuery(), ...query };
+
 		const { cache } = options || {};
 		if (cache) {
 			const cached = await this.cache.get<T[]>(this.getCacheKey("search", _query));
@@ -86,11 +87,16 @@ export class TriplestoreService {
 				return cached;
 			}
 		}
-		return this.rdfToJsonLd<T[]>(
+
+		let result = await this.rdfToJsonLd<T|T[]>(
 			this.triplestoreClient.get("search", { params: _query }),
 			this.getCacheKey("search", _query),
 			options
 		);
+		if (!Array.isArray(result)) {
+			result = [result];
+		}
+		return result;
 	}
 
 	private async rdfToJsonLd<T>(
@@ -103,8 +109,7 @@ export class TriplestoreService {
 			this.triplestoreToJsonLd
 		);
 		const isArrayResult = Array.isArray(jsonld["@graph"]);
-
-		if (isArrayResult && jsonld.length === 0) {
+		if (isArrayResult && (jsonld["@graph"] as any).length === 0) {
 			return [] as T;
 		}
 

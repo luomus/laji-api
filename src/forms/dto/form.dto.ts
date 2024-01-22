@@ -3,7 +3,7 @@ export enum Format {
 	schema = "schema",
 	json = "json"
 }
-import { Form as FormI } from "laji-schema";
+import { Form as FormI } from "@luomus/laji-schema";
 import { OmitType } from "@nestjs/swagger";
 
 export type Form = FormI & {

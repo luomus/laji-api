@@ -45,7 +45,7 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 			let context: string | undefined;
 			if (isLangQueryDto(query)) {
 				if (Array.isArray(result)) {
-					context = result[0]["@context"];
+					context = result[0]?.["@context"];
 				} else {
 					context = result["@context"];
 				}

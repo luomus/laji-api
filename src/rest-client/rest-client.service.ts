@@ -101,9 +101,9 @@ export class RestClientService<T = any> {
 	get = async <S = T>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>) =>
 		RestClientService.applyOptions<S>(await this.getWithCache<S>(path, options, lajiApiOptions), lajiApiOptions);
 
-	async post<S = T>(
+	async post<S = T, R = T>(
 		path?: string,
-		body?: S, options?: AxiosRequestConfig,
+		body?: R, options?: AxiosRequestConfig,
 		lajiApiOptions?: LajiApiOptions<S>
 	) {
 		await this.cache.del(this.getPath(path));
@@ -112,9 +112,9 @@ export class RestClientService<T = any> {
 		), lajiApiOptions);
 	}
 
-	async put<S = T>(
+	async put<S = T, R = T>(
 		path?: string,
-		body?: S,
+		body?: R,
 		options?: AxiosRequestConfig,
 		lajiApiOptions?: LajiApiOptions<S>
 	) {

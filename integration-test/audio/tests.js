@@ -3,8 +3,9 @@ var config = require("../config.json");
 var helpers = require("../helpers");
 const { request } = require("chai");
 
-const errorMissingPersonToken = "personToken is a required argument";
-const errorOnlyOwn = "Can only handle audios uploaded by the user";
+const errorMissingPersonToken = "INVALID TOKEN";
+const errorOnlyOwn = "Can only update audio uploaded by the user";
+const errorOnlyOwnDelete = "Can only delete audio uploaded by the user";
 
 const itemProperties = [
   "@context",
@@ -51,7 +52,7 @@ describe("/audio", function() {
       .post(basePath + "/" + config.id.audio_others + "?access_token=" + config["access_token"])
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.have.property("error").include({message: errorMissingPersonToken});
+        res.body.should.include({code: errorMissingPersonToken});
         done();
       });
   });
@@ -62,7 +63,7 @@ describe("/audio", function() {
       .send({})
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.have.property("error").include({message: errorMissingPersonToken});
+        res.body.should.include({code: errorMissingPersonToken});
         done();
       });
   });
@@ -72,7 +73,7 @@ describe("/audio", function() {
       .delete(basePath + "/" + config.id.audio_others + "?access_token=" + config["access_token"])
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.have.property("error").include({message: errorMissingPersonToken});
+        res.body.should.include({code: errorMissingPersonToken});
         done();
       });
   });
@@ -83,7 +84,7 @@ describe("/audio", function() {
       .send({})
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.have.property("error").include({message: errorOnlyOwn});
+        res.body.should.include({message: errorOnlyOwn});
         done();
       });
   });
@@ -93,12 +94,13 @@ describe("/audio", function() {
       .delete(basePath + "/" + config.id.audio_others + "?access_token=" + config.access_token + "&personToken=" + config.user.token)
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.have.property("error").include({message: errorOnlyOwn});
+        res.body.should.include({message: errorOnlyOwnDelete});
         done();
       });
   });
 
   it("returns a list of audio", function(done) {
+    this.timeout(10000);
     var pageSize = 10;
     var query = basePath +
       "?pageSize="+ pageSize+"&access_token=" + config["access_token"];

@@ -1,4 +1,4 @@
-import { FormPermissionSingle, FormPermission, FormPermissionPerson } from "laji-schema";
+import { FormPermissionSingle, FormPermission, FormPermissionPerson } from "@luomus/laji-schema";
 
 export enum FormPermissionEntityType {
 	empty = "",
