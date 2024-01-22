@@ -31,7 +31,7 @@ export class ImagesController {
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image))
 	async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
-		return this.abstractMediaService.getMedia(MediaType.image, idIn);
+		return this.abstractMediaService.findMedia(MediaType.image, idIn);
 	}
 
 	/** Upload image and get temporary id */
@@ -46,7 +46,7 @@ export class ImagesController {
 	@Get(":id")
 	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image))
 	findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Image> {
-		return this.abstractMediaService.findOne(MediaType.image, id);
+		return this.abstractMediaService.get(MediaType.image, id);
 	}
 
 	/** Update image metadata */
@@ -68,7 +68,7 @@ export class ImagesController {
 	/** Fetch large image by id */
 	@Get(":id/large.jpg")
 	findLarge(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.findURL(MediaType.image, id, "largeURL").then(url => {
+		this.abstractMediaService.getURL(MediaType.image, id, "largeURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -76,7 +76,7 @@ export class ImagesController {
 	/** Fetch square thumbnail by id */
 	@Get(":id/square.jpg")
 	findSquare(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.findURL(MediaType.image, id, "squareThumbnailURL").then(url => {
+		this.abstractMediaService.getURL(MediaType.image, id, "squareThumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -84,7 +84,7 @@ export class ImagesController {
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.findURL(MediaType.image, id, "thumbnailURL").then(url => {
+		this.abstractMediaService.getURL(MediaType.image, id, "thumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}

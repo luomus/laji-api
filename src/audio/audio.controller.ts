@@ -31,7 +31,7 @@ export class AudioController {
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio))
 	async getAll(@Query() { idIn }: GetPageDto): Promise<Audio[]> {
-		return this.abstractMediaService.getMedia(MediaType.audio, idIn);
+		return this.abstractMediaService.findMedia(MediaType.audio, idIn);
 	}
 
 	/** Upload audio and get temporary id */
@@ -48,7 +48,7 @@ export class AudioController {
 	@Get(":id")
 	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio))
 	findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Audio> {
-		return this.abstractMediaService.findOne(MediaType.audio, id);
+		return this.abstractMediaService.get(MediaType.audio, id);
 	}
 
 	/** Update audio metadata */
@@ -70,7 +70,7 @@ export class AudioController {
 	/** Fetch mp3 by id */
 	@Get(":id/mp3")
 	findMp3(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.findURL(MediaType.audio, id, "mp3URL").then(url => {
+		this.abstractMediaService.getURL(MediaType.audio, id, "mp3URL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -78,7 +78,7 @@ export class AudioController {
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.findURL(MediaType.audio, id, "thumbnailURL").then(url => {
+		this.abstractMediaService.getURL(MediaType.audio, id, "thumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -86,7 +86,7 @@ export class AudioController {
 	/** Fetch wav by id */
 	@Get(":id/wav")
 	findWav(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.findURL(MediaType.audio, id, "wavURL").then(url => {
+		this.abstractMediaService.getURL(MediaType.audio, id, "wavURL").then(url => {
 			res.redirect(url);
 		});
 	}

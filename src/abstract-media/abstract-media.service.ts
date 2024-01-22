@@ -26,7 +26,7 @@ export class AbstractMediaService {
         private personsService: PersonsService,
 	) {}
 
-	async getMedia<T extends MediaType>(type: T, idIn?: string): Promise<Media<T>[]> {
+	async findMedia<T extends MediaType>(type: T, idIn?: string): Promise<Media<T>[]> {
 		return await this.triplestoreService.find<Media<T>>(
 			{
 				type,
@@ -37,8 +37,9 @@ export class AbstractMediaService {
 		);
 	}
 
-	async findOne<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
-		const result = await this.getMedia(type, id);
+	/** @throws HttpException */
+	async get<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
+		const result = await this.findMedia(type, id);
 		if (result?.length > 0) {
 			return result.pop() as Media<T>;
 		} else {
@@ -46,8 +47,9 @@ export class AbstractMediaService {
 		}
 	}
 
-	async findURL<T extends MediaType>(type: T, id: string, urlKey: keyof Media<T>): Promise<string> {
-		const result = await this.findOne(type, id);
+	/** @throws HttpException */
+	async getURL<T extends MediaType>(type: T, id: string, urlKey: keyof Media<T>): Promise<string> {
+		const result = await this.get(type, id);
 		if (result[urlKey]) {
 			return result[urlKey] as string;
 		} else {
@@ -55,6 +57,7 @@ export class AbstractMediaService {
 		}
 	}
 
+	/** @throws HttpException */
 	async getUploadProxy(type: MediaType, personToken: string): Promise<_request.Request> {
 		// check that the person token is valid
 		await this.personsService.getByToken(personToken);
@@ -71,6 +74,7 @@ export class AbstractMediaService {
 		});
 	}
 
+	/** @throws HttpException */
 	async uploadMetadata<T extends MediaType>(
 		type: T, tempId: string, media: Media<T>, personToken: string
 	): Promise<Media<T>> {
@@ -88,14 +92,15 @@ export class AbstractMediaService {
 			`api/${typeMediaNameMap[type]}`, metadata
 		);
 
-		return this.findOne(type, data[0].id);
+		return this.get(type, data[0].id);
 	}
 
+	/** @throws HttpException */
 	async updateMetadata<T extends MediaType>(
 		type: T, id: string, media: Media<T>, personToken: string
 	): Promise<Media<T>> {
 		const person = await this.personsService.getByToken(personToken);
-		const current = await this.findOne(type, id);
+		const current = await this.get(type, id);
 
 		if (current.uploadedBy !== person.id) {
 			throw new HttpException(`Can only update ${typeMediaNameMap[type]} uploaded by the user`, 400);
@@ -115,12 +120,13 @@ export class AbstractMediaService {
 			throw e;
 		}
 
-		return this.findOne(type, id);
+		return this.get(type, id);
 	}
 
+	/** @throws HttpException */
 	async deleteMedia<T extends MediaType>(type: T, id: string, personToken: string): Promise<void> {
 		const person = await this.personsService.getByToken(personToken);
-		const current = await this.findOne(type, id);
+		const current = await this.get(type, id);
 
 		if (current.uploadedBy !== person.id) {
 			throw new HttpException(`Can only delete ${typeMediaNameMap[type]} uploaded by the user`, 400);
