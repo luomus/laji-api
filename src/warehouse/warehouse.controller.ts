@@ -1,5 +1,5 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { All, Controller, Next, Req, Res } from "@nestjs/common";
+import { All, Controller, Logger, Next, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
 import { ApiExcludeController } from "@nestjs/swagger";
@@ -8,6 +8,8 @@ import { ApiExcludeController } from "@nestjs/swagger";
 @ApiExcludeController() // Warehouse has it's own swagger doc, which is merged to ours by SwaggerService.
 export class WarehouseController {
 
+	private logger = new Logger(WarehouseController.name);
+
 	constructor(private config: ConfigService) {}
 
 	warehouseProxy = createProxyMiddleware({
@@ -15,7 +17,14 @@ export class WarehouseController {
 		changeOrigin: true,
 		pathRewrite: {
 			"^/warehouse": "/"
-		}
+		},
+		logProvider: () => ({
+			log: this.logger.log,
+			debug: this.logger.debug,
+			info: this.logger.verbose,
+			warn: this.logger.warn,
+			error: this.logger.error
+		})
 	});
 
   @All("*")
