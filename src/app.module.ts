@@ -34,6 +34,7 @@ import { ApiUser } from "./api-users/api-user.entity";
 import { SwaggerModule } from "./swagger/swagger.module";
 import { ImagesModule } from "./images/images.module";
 import { AudioModule } from "./audio/audio.module";
+import { WarehouseModule } from "./warehouse/warehouse.module";
 
 @Module({
 	imports: [
@@ -79,7 +80,8 @@ import { AudioModule } from "./audio/audio.module";
 		ApiUsersModule,
 		SwaggerModule,
 		ImagesModule,
-		AudioModule
+		AudioModule,
+		WarehouseModule
 	],
 	controllers: [AppController],
 	providers: [

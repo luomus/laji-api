@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, pipe, whitelistKeys } from "src/utils";
-import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
+import { OperationObject, ParameterObject, PathItemObject, PathsObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
@@ -15,32 +15,26 @@ import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagge
 type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
-function getJsonSchema(targetConstructor: Type<unknown>) {
-	const factory = new SchemaObjectFactory(new ModelPropertiesAccessor(), new SwaggerTypesMapper());
-
-	const schemas: Record<string, SchemaObject> = {};
-	factory.exploreModelSchema(targetConstructor, schemas);
-
-	return schemas[targetConstructor.name];
-}
-
 @Injectable()
 export class SwaggerService {
 
 	storeSwaggerDoc?: OpenAPIObject;
+	warehouseSwaggerDoc?: OpenAPIObject;
 	cachedPatchedDoc?: OpenAPIObject;
 
 	private logger = new Logger(SwaggerService.name);
 
 	constructor(
 		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
+		@Inject("WAREHOUSE_REST_CLIENT") private warehouseClient: RestClientService,
 	) {
 		this.patchGlobalSchemaRefs = this.patchGlobalSchemaRefs.bind(this);
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);
+		this.patchWarehouse = this.patchWarehouse.bind(this);
 	}
 
 	onModuleInit() {
-		this.logger.log("Loading remote sources for patching Swagger in background  started...");
+		this.logger.log("Loading remote sources for patching Swagger in background started...");
 		this.update().then(() => {
 			this.logger.log("Loading remote sources for patching Swagger in background complete");
 		});
@@ -49,11 +43,12 @@ export class SwaggerService {
 	@Interval(CACHE_30_MIN)
 	async update() {
 		this.storeSwaggerDoc = await this.storeClient.get("documentation-json");
+		this.warehouseSwaggerDoc = await this.warehouseClient.get("openapi-v3.json");
 		this.cachedPatchedDoc = undefined;
 	}
 
 	patch(document: OpenAPIObject) {
-		if (!this.storeSwaggerDoc) {
+		if (!this.storeSwaggerDoc || !this.warehouseSwaggerDoc) {
 			throw new Error("Remote swagger docs weren't loaded yet. Try again soon.");
 		}
 
@@ -61,13 +56,42 @@ export class SwaggerService {
 			return this.cachedPatchedDoc;
 		}
 
-		this.cachedPatchedDoc = pipe(document, this.patchGlobalSchemaRefs, this.patchRemoteRefs);
+		this.cachedPatchedDoc = pipe(document,
+			this.patchGlobalSchemaRefs,
+			this.patchWarehouse,
+			this.patchRemoteRefs
+		);
 		return this.cachedPatchedDoc;
 	}
 
 	private patchGlobalSchemaRefs(document: OpenAPIObject) {
-		document!.components!.schemas!.multiLang = 
+		document!.components!.schemas!.multiLang =
 					(this.storeSwaggerDoc!.components!.schemas as Record<string, SchemaObject>).multiLang;
+		return document;
+	}
+
+	private patchWarehouse(document: OpenAPIObject) {
+		const warehouseSwaggerDoc = this.warehouseSwaggerDoc!;
+		const warehousePaths = Object.keys(warehouseSwaggerDoc.paths).reduce((paths, p) => {
+			const pathItem = warehouseSwaggerDoc.paths[p];
+			for (const operationName of (["get", "put", "post", "delete"] as const)) {
+				const operation = pathItem[operationName];
+				if (!operation) {
+					continue;
+				}
+				operation.security = [ { access_token: [] } ];
+			}
+			paths[`/warehouse${p}`] = pathItem;
+			return paths;
+		}, {} as PathsObject);
+		document.paths = {
+			...document.paths,
+			...warehousePaths
+		};
+		document.components!.schemas = {
+			...document.components!.schemas,
+			...warehouseSwaggerDoc.components!.schemas
+		};
 		return document;
 	}
 
@@ -133,7 +157,7 @@ export class SwaggerService {
 
 	remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
 		const remoteDoc = this.getRemoteSwaggerDoc(entry);
-		const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>); 
+		const remoteSchemas = (remoteDoc!.components!.schemas as Record<string, SchemaObject>);
 		schema![entry.ref] = remoteSchemas[entry.ref];
 	}
 
@@ -155,20 +179,31 @@ export class SwaggerService {
 	}
 }
 
+// Taken from https://github.com/nestjs/swagger/issues/2306
+function getJsonSchema(targetConstructor: Type<unknown>) {
+	const factory = new SchemaObjectFactory(new ModelPropertiesAccessor(), new SwaggerTypesMapper());
+
+	const schemas: Record<string, SchemaObject> = {};
+	factory.exploreModelSchema(targetConstructor, schemas);
+
+	return schemas[targetConstructor.name];
+}
+
+
 const applyEntry = (entry: SwaggerCustomizationEntry) => (schema?: SchemaItem): SchemaItem | undefined => {
 	if (isSwaggerRemoteRefEntry(entry)) {
-		return replaceWithRemoteAsNeededWith(entry);
+		return replaceWithRemote(entry);
 	} else if (isSerializeEntry(entry)) {
-		return replaceWithSerializedAsNeededWith(entry)(schema);
+		return replaceWithSerialized(entry, schema);
 	}
 	return schema;
 };
 
-const replaceWithRemoteAsNeededWith = (entry: SwaggerRemoteRefEntry) => (
+const replaceWithRemote = (entry: SwaggerRemoteRefEntry) => (
 	{ "$ref": `#/components/schemas/${entry.ref}` }
 );
 
-const replaceWithSerializedAsNeededWith = (entry: SerializeEntry) => (schema?: SchemaItem) => (
+const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
 	entry.schemaDefinitionName
 		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
 		: schema
@@ -203,7 +238,7 @@ const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
 
 const paginateAsNeededWith = (operation: OperationObject) =>
-	(schema?: SchemaObject | ReferenceObject) => 
+	(schema?: SchemaObject | ReferenceObject) =>
 		(schema && isPagedOperation(operation) && !isPagedSchema(schema))
 			? asPagedResponse(schema)
 			: schema;
