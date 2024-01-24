@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, pipe, whitelistKeys } from "src/utils";
-import { OperationObject, ParameterObject, PathItemObject, PathsObject, ReferenceObject, SchemaObject }
+import { OperationObject, ParameterObject, PathsObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
