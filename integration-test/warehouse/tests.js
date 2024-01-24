@@ -22,7 +22,6 @@ describe("/warehouse", function() {
 				+ "&wkt=POLYGON((27.327641%2063.046118,27.202279%2063.040706,27.297792%2063.024463,27.327641%2063.046118))&crs=WGS84"
 				+ "&access_token=" + config.access_token
 		/* eslint-enable max-len */
-		console.log(url);
 		request(this.server)
 			.post(url)
 			.end(function(err, res) {
