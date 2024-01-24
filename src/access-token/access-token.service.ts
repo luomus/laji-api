@@ -17,7 +17,7 @@ export class AccessTokenService {
 		return this.accessTokenRepository.findOneBy({ id });
 	}
 
-	getAccessTokenFromRequest(request: Request): string | undefined {
+	findAccessTokenFromRequest(request: Request): string | undefined {
 		return (request.query.access_token as string) || request.headers.authorization;
 	}
 

@@ -7,7 +7,7 @@ import { Request } from "express";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { ApiUser } from "./api-user.entity";
 import { serializeInto } from "src/serializing/serializing";
-import { BypassAccessTokenAuth } from "src/access-token/access-token.guard";
+import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 
 @ApiTags("API user")
 @Controller("api-users")
@@ -24,7 +24,7 @@ export class ApiUsersController {
 	@UseInterceptors(createQueryParamsInterceptor(undefined, ApiUser, { filterNulls: true }))
 	@ApiSecurity("access_token")
 	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
-		const token = accessToken || this.accessTokenService.getAccessTokenFromRequest(request);
+		const token = accessToken || this.accessTokenService.findAccessTokenFromRequest(request);
 		if (!token) {
 			throw new HttpException("You must provide a token", 422);
 		}

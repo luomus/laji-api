@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, SetMetadata, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { AccessTokenService } from "./access-token.service";
@@ -17,7 +17,7 @@ export class AccessTokenGuard implements CanActivate {
 			return true;
 		}
 
-		const accessToken = this.accessTokenService.getAccessTokenFromRequest(request);
+		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request);
 		if (typeof accessToken !== "string") {
 			throw new UnauthorizedException("access_token missing");
 		}
@@ -32,6 +32,3 @@ export class AccessTokenGuard implements CanActivate {
 		return true;
 	}
 }
-
-
-export const BypassAccessTokenAuth = () => SetMetadata("BypassAccessTokenAuth", true);
