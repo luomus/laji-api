@@ -7,7 +7,7 @@ export const CACHE_30_MIN = CACHE_1_MIN * 30;
 
 export type CacheOptions = {
 	/**milliseconds for the cache TTL, true for default TTL. */
-	cache?: number;
+	cache?: number | true;
 }
 
 type PromiseReducer<T, R>  = {

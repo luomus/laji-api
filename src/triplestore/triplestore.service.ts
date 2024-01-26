@@ -46,7 +46,7 @@ export class TriplestoreService {
 		this.compactJsonLd = this.compactJsonLd.bind(this);
 		this.formatJsonLd = this.formatJsonLd.bind(this);
 	}
-	
+
 	private getBaseQuery() {
 		return { format: "rdf/xml" };
 	}
@@ -54,7 +54,7 @@ export class TriplestoreService {
 	// TODO returned items @context is different than old lajiapi
 	/**
 	 * Find a resource from triplestore.
-	 * @param resource The resource identifier to get 
+	 * @param resource The resource identifier to get
 	 * @param options Cache options
 	 */
 	async findOne<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
@@ -143,7 +143,11 @@ export class TriplestoreService {
 	}
 
 	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
-		options?.cache && await this.cache.set(cacheKey, item, options.cache);
+		options?.cache && await this.cache.set(
+			cacheKey,
+			item,
+			typeof options.cache === "number" ? options.cache : undefined
+		);
 		return item;
 	}
 

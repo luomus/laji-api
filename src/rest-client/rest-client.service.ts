@@ -92,7 +92,7 @@ export class RestClientService<T = any> {
 			cachedByPath![this.getCacheKey(path, options)] = result;
 			await this.cache.set(this.getPath(path),
 				cachedByPath!,
-				lajiApiOptions.cache);
+				typeof lajiApiOptions.cache === "number" ? lajiApiOptions.cache : undefined);
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
 		}
 		return result;
