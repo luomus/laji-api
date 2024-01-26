@@ -27,7 +27,7 @@ export class FormPermissionsService {
 
 	async getByPersonToken(personToken: string): Promise<FormPermissionPersonDto> {
 		const person = await this.personsService.getByToken(personToken);
-		const permissionEntities = await this.storeFormPermissionService.getAll(`userID:"${person.id}"`);
+		const permissionEntities = await this.storeFormPermissionService.getAll({ userID: person.id });
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
 			...entitiesToPermissionLists(permissionEntities, "collectionID")
@@ -45,10 +45,7 @@ export class FormPermissionsService {
 
 	private async findByCollectionId(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
-		return entitiesToPermissionLists(
-			await this.storeFormPermissionService.getAll(`collectionID:"${collectionID}"`),
-			"userID"
-		);
+		return entitiesToPermissionLists(await this.storeFormPermissionService.getAll({ collectionID }), "userID");
 	}
 
 	/** @throws HttpException */
@@ -150,9 +147,7 @@ export class FormPermissionsService {
 	}
 
 	private async getExistingEntity(collectionID: string, personID: string) {
-		const permissions = await this.storeFormPermissionService.getAll(
-			`collectionID:"${collectionID}" AND userID:"${personID}"`
-		);
+		const permissions = await this.storeFormPermissionService.getAll({ collectionID, userID: personID });
 		const existing = permissions.pop();
 		// There should be always just one permission, but in case some other system (old api...)
 		// has messed thing up, we make sure there's just one. No need for awaiting for this.
@@ -211,7 +206,7 @@ export class FormPermissionsService {
 
 	private async getFormTitle(collectionID: string): Promise<CompleteMultiLang> {
 		const form = await this.findFormWithPermissionFeature(collectionID);
-		
+
 		const fi = await this.getFormTitleForLang(collectionID, form, Lang.fi);
 		const sv = await this.getFormTitleForLang(collectionID, form, Lang.sv);
 		const en = await this.getFormTitleForLang(collectionID, form, Lang.en);

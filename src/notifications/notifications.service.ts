@@ -1,7 +1,7 @@
 import { HttpException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
-import { StoreService } from "src/store/store.service";
+import { StoreQuery, StoreService } from "src/store/store.service";
 import { Optional } from "src/serializing/serializing";
 import { CACHE_1_MIN } from "src/utils";
 import { paginateAlreadyPaged } from "src/pagination";
@@ -20,9 +20,12 @@ export class NotificationsService {
 
 	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize = 20) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		let query = `toPerson:"${personId}"`;
+		const query: StoreQuery  = { toPerson: personId };
+		// let query = `toPerson:"${personId}"`;
 		if (onlyUnseen) {
-			query += " AND seen: \"false\"";
+			query.seen = false;
+      //
+			// query += " AND seen: \"false\"";
 		}
 		const pagedResult = await this.storeNotificationsService.getPage(query, page, pageSize);
 		const { totalItems, member, currentPage, lastPage } = pagedResult;
@@ -38,8 +41,8 @@ export class NotificationsService {
 	/** @throws HttpException */
 	async findByIdAndPersonToken(id: string, personToken: string) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const notification = await this.storeNotificationsService.findOne(id);
-		if (notification?.toPerson !== personId) {
+		const notification = await this.storeNotificationsService.get(id);
+		if (notification.toPerson !== personId) {
 			throw new HttpException("This isn't your notification", 403);
 		}
 		return notification;
