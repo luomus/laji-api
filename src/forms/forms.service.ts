@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { Form, Format } from "./dto/form.dto";
+import { Form, FormListing, Format } from "./dto/form.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_1_MIN } from "src/utils";
 import { Lang } from "src/common.dto";
@@ -10,7 +10,8 @@ export class FormsService {
 	constructor(@Inject("FORM_REST_CLIENT") private formClient: RestClientService<Form>) {}
 
 	async getAll(lang = Lang.en) {
-		return (await this.formClient.get<{forms: Form[]}>("", { params: { lang } }, { cache: CACHE_1_MIN })).forms;
+		return (await this.formClient.get<{forms: FormListing[]}>("", { params: { lang } }, { cache: CACHE_1_MIN }))
+			.forms;
 	}
 
 	create(form: Form, personToken: string) {

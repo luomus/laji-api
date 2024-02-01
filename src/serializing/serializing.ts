@@ -1,7 +1,10 @@
-import { classToPlain, plainToClass, Transform } from "class-transformer";
+import { classToPlain, Exclude, Expose, plainToClass, plainToInstance, Transform } from "class-transformer";
 import { isObject, Newable } from "src/type-utils";
 import { whitelistKeys } from "src/utils";
 import { getPrivateDecorator } from "./private.decorator";
+import { applyDecorators } from "@nestjs/common";
+import { IsBoolean } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export type SerializeOptions = {
 	excludePrefix?: string;
@@ -13,7 +16,7 @@ export type SerializeOptions = {
  * NestJS has it's own implementation for serialization, but it doesn't work when used with the swagger CLI plugin.
  *   It for example won't respect the default values of the classes when serializing. So, we have a custom
  *   implementation.
- */ 
+ */
 export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) => (item: any): T => {
 	const {
 		excludePrefix = "_",
@@ -24,7 +27,7 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	const plainItem = item.construct === Object
 		? item
 		: classToPlain(item);
-	const instance = plainToClass(Class, plainItem);
+	const instance = plainToClass(Class, plainItem, { enableImplicitConversion: true });
 	(excludePrefix || filterNulls) && Object.keys(instance as any).forEach(k => {
 		if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {
 			delete (instance as any)[k];
@@ -37,8 +40,10 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	return instance;
 };
 
-export const excludePrivateProps = (item: any) => {
-	if (!isObject(item) || item.construct === Object) {
+export const excludePrivateProps = (item: any): any => {
+	if (Array.isArray(item) && isObject(item[0]) && item[0].constructor !== Object) {
+		return item.map(excludePrivateProps);
+	} else if (!isObject(item) || item.constructor === Object) {
 		return item;
 	}
 	return Object.keys(item as any).reduce((excludedItem: any, k: string) => {
@@ -46,7 +51,7 @@ export const excludePrivateProps = (item: any) => {
 		if (excludedByDecorator) {
 			return excludedItem;
 		}
-		excludedItem[k] = item[k];
+		excludedItem[k] = excludePrivateProps(item[k]);
 		return excludedItem;
 	}, {});
 };
@@ -61,6 +66,33 @@ const optionalBooleanMapper = new Map([
 	  ["false", false],
 ]);
 
-/** https://github.com/typestack/class-transformer/issues/676 */
-export const ParseOptionalBoolean = () =>
-	  Transform(({ value }) => optionalBooleanMapper.get(value));
+export const IsOptionalBoolean = () => applyDecorators(
+	IsBoolean(),
+	// https://github.com/typestack/class-transformer/issues/676
+	Transform(({ value }) => optionalBooleanMapper.get(value)),
+);
+
+export const CommaSeparatedIds = () => applyDecorators(
+	Transform(({ value }: { value: string }) => value.split(",").filter(id => !!id)),
+	ApiProperty({ type: String, required: false })
+);
+
+export const pickAsExposed = <T, K extends (string | symbol) & keyof T>
+	(_class: Newable<T>, ...properties: K[]): Pick<T, K> & Newable<Pick<T, K>> => {
+	@Exclude() class Picked {};
+	properties.forEach(p => {
+		Expose()(Picked, (p as string | symbol));
+	});
+	return Picked as Pick<T, K> & Newable<Pick<T, K>>;
+};
+
+// export const safeQuery
+
+/** Serializes the instance into the given class filtering all non defined values.
+ *
+ */
+export const pickAndSerialize = <T, K extends (string | symbol) & keyof T>(
+	serializeInto: Newable<T>,
+	instance: any,
+	...keys: K[]
+) => plainToInstance(pickAsExposed(serializeInto, ...keys), instance, { exposeUnsetFields: false });

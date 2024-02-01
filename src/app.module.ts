@@ -35,6 +35,7 @@ import { SwaggerModule } from "./swagger/swagger.module";
 import { ImagesModule } from "./images/images.module";
 import { AudioModule } from "./audio/audio.module";
 import { WarehouseModule } from "./warehouse/warehouse.module";
+import { NamedPlacesModule } from "./named-places/named-places.module";
 
 @Module({
 	imports: [
@@ -81,7 +82,8 @@ import { WarehouseModule } from "./warehouse/warehouse.module";
 		SwaggerModule,
 		ImagesModule,
 		AudioModule,
-		WarehouseModule
+		WarehouseModule,
+		NamedPlacesModule
 	],
 	controllers: [AppController],
 	providers: [

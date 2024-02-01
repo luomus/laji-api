@@ -1,7 +1,6 @@
-import { IsBoolean } from "class-validator";
 import { HasContext } from "src/common.dto";
 import { Private } from "src/serializing/private.decorator";
-import { ParseOptionalBoolean } from  "src/serializing/serializing";
+import { IsOptionalBoolean } from  "src/serializing/serializing";
 
 export enum Role {
 	Admin = "MA.admin"
@@ -30,7 +29,6 @@ export const decoratePerson = (person: Person): Person => {
 
 export class RemoveFriendDto {
 	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-	@ParseOptionalBoolean()
-	@IsBoolean()
+	@IsOptionalBoolean()
 	block: boolean = false;
 }

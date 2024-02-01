@@ -92,6 +92,11 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
 Moved from "/formPermission" to "/form/permissions". Backward compatibility is kept.
 
+## Named places
+
+* Getting existing place without edit rights returns 403 instead of 404
+* `/named-places` using `selectedFields` param doesn't automatically add 'id' to the param
+
 ## Access token renewal
 
 Old API checked that the renewal wasn't being spammed. New API doesn't care - the renewal endpoint isn't so particularly special that we should protect it from spamming? Or is it more delicate since it uses a db connection? Anyways a more robust & thorough spam blocking would be better.

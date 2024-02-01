@@ -1,7 +1,8 @@
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsInt, isObject } from "class-validator";
-import { ParseOptionalBoolean } from "./serializing/serializing";
+import { IsInt, isObject } from "class-validator";
+import { CommaSeparatedIds, IsOptionalBoolean } from "./serializing/serializing";
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import { applyDecorators } from "@nestjs/common";
 
 export enum Lang {
 	fi = "fi",
@@ -21,42 +22,37 @@ export class PagedDto {
 	lang?: Lang = Lang.en;
 }
 
-export const isPagedQueryDto = (maybePagedQuery: any): maybePagedQuery is PagedDto => 
+export const isPagedQueryDto = (maybePagedQuery: any): maybePagedQuery is PagedDto =>
 	isObject(maybePagedQuery) && ["page", "pageSize"] .every(k => k in maybePagedQuery);
 
 export class LangQueryDto {
 	lang?: Lang = Lang.en;
-	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-	@ParseOptionalBoolean()
-	@IsBoolean()
-	langFallback?: boolean = true;
+	@IsOptionalBoolean() langFallback?: boolean = true;
 }
 
-export const isLangQueryDto = (maybeLangQuery: any): maybeLangQuery is LangQueryDto => 
+export const isLangQueryDto = (maybeLangQuery: any): maybeLangQuery is LangQueryDto =>
 	isObject(maybeLangQuery) && ["lang", "langFallback"] .every(k => k in maybeLangQuery);
 
-
 export class QueryWithPersonTokenDto {
-	/**
-	 * Person's authentication token
-	 */
+	/** Person's authentication token */
 	personToken: string;
+}
+
+export class QueryWithCollectionID {
+	/** Collection id */
+	collectionID: string;
 }
 
 export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
 	/**
 	 * Comma separated ids
 	 */
-	@ApiProperty({ type: String, required: false })
-	@Transform(({ value }: { value: string }) => value.split(",").filter(id => !!id))
-	idIn?: string[];
+	@CommaSeparatedIds() idIn?: string[];
 }
 
 export class FindOneDto  {
 	lang?: Lang = Lang.en;
-	@ParseOptionalBoolean()
-	@IsBoolean()
-	langFallback?: boolean = true;
+	@IsOptionalBoolean() langFallback?: boolean = true;
 }
 
 export const LANGS: Exclude<Lang, Lang.multi>[] = [Lang.fi, Lang.sv, Lang.en];

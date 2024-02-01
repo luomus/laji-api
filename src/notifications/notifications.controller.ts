@@ -10,18 +10,15 @@ import { LajiApiController } from "src/decorators/laji-api-controller";
 @ApiTags("Notifications")
 export class NotificationsController {
 	constructor(private notificationsService: NotificationsService) {}
-	/*
-	 * Get notifications
-	 */
+
+	/* Get notifications */
 	@Get(":personToken")
 	@SwaggerRemoteRef({ source: "store", ref: "notification" })
 	getAll(@Param("personToken") personToken: string, @Query() { page, pageSize, onlyUnSeen }: GetPageDto) {
 		return this.notificationsService.getPage(personToken, onlyUnSeen, page, pageSize);
 	}
 
-	/*
-	 * Update notification
-	 */
+	/* Update notification */
 	@Put(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "notification" })
 	update(
@@ -32,9 +29,7 @@ export class NotificationsController {
 		return this.notificationsService.update(id, notification, personToken);
 	}
 
-	/*
-	 * Delete notification
-	 */
+	/* Delete notification */
 	@Delete(":id")
 	delete(
 		@Param("id") id: string,

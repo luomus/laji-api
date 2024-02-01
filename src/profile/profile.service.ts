@@ -9,7 +9,7 @@ import { uuid } from "src/utils";
 
 @Injectable()
 export class ProfileService {
-	private profileStore = this.storeService.forResource<Profile>("profile", { serializeInto: Profile });
+	private store = this.storeService.forResource<Profile>("profile", { serializeInto: Profile });
 
 	constructor(
 		private storeService: StoreService,
@@ -65,7 +65,7 @@ export class ProfileService {
 			}
 		});
 
-		return this.profileStore.update(nextProfile);
+		return this.store.update(nextProfile);
 	}
 
 	/** @throws HttpException */
@@ -80,7 +80,7 @@ export class ProfileService {
 			throw new HttpException("Friend request already sent", 422);
 		}
 
-		const updated = await this.profileStore.update({
+		const updated = await this.store.update({
 			...profile, friendRequests: [...friendRequests, personId]
 		});
 		this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
@@ -97,8 +97,8 @@ export class ProfileService {
 		if (!profile.friendRequests.includes(friendPersonId)) {
 			throw new HttpException("No friend request found", 422);
 		}
-		await this.profileStore.update(addFriend(friendProfile, personId));
-		const updated = await this.profileStore.update(addFriend(profile, friendPersonId));
+		await this.store.update(addFriend(friendProfile, personId));
+		const updated = await this.store.update(addFriend(profile, friendPersonId));
 		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
 		return updated;
 
@@ -116,8 +116,8 @@ export class ProfileService {
 		const profile = await this.getByPersonIdOrCreate(personId);
 		const friendProfile = await this.getByPersonId(friendPersonId);
 
-		await this.profileStore.update(removeFriend(friendProfile, personId, false));
-		return this.profileStore.update(removeFriend(profile, friendPersonId, block));
+		await this.store.update(removeFriend(friendProfile, personId, false));
+		return this.store.update(removeFriend(profile, friendPersonId, block));
 
 		function removeFriend(profile: Profile, removePersonId: string, block: boolean) {
 			const removeFriendFilter = (f: string) => f !== removePersonId;
@@ -133,7 +133,7 @@ export class ProfileService {
 	private create(personId: string, profile: Partial<Profile>) {
 		profile.userID = personId;
 		profile.profileKey = uuid(6);
-		return this.profileStore.create(profile);
+		return this.store.create(profile);
 	}
 
 	/** @throws HttpException */
@@ -146,10 +146,10 @@ export class ProfileService {
 	}
 
 	private async findByPersonId(personId: string): Promise<Profile | undefined> {
-		return this.profileStore.findOne({ userID: personId });
+		return this.store.findOne({ userID: personId });
 	}
 
 	private async findByProfileKey(profileKey: string): Promise<Profile | undefined> {
-		return this.profileStore.findOne({ profileKey });
+		return this.store.findOne({ profileKey });
 	}
 }

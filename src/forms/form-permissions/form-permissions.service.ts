@@ -14,7 +14,7 @@ import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, Form
 
 @Injectable()
 export class FormPermissionsService {
-	private storeFormPermissionService = this.storeService.forResource<FormPermissionEntity>("formPermissionSingle");
+	private store = this.storeService.forResource<FormPermissionEntity>("formPermissionSingle");
 
 	constructor(
 		private personsService: PersonsService,
@@ -27,10 +27,10 @@ export class FormPermissionsService {
 
 	async getByPersonToken(personToken: string): Promise<FormPermissionPersonDto> {
 		const person = await this.personsService.getByToken(personToken);
-		const permissionEntities = await this.storeFormPermissionService.getAll({ userID: person.id });
+		const findities = await this.store.getAll({ userID: person.id });
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
-			...entitiesToPermissionLists(permissionEntities, "collectionID")
+			...entitiesToPermissionLists(findities, "collectionID")
 		};
 		const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 		for (const listProp of listProps) {
@@ -45,7 +45,7 @@ export class FormPermissionsService {
 
 	private async findByCollectionId(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
-		return entitiesToPermissionLists(await this.storeFormPermissionService.getAll({ collectionID }), "userID");
+		return entitiesToPermissionLists(await this.store.getAll({ collectionID }), "userID");
 	}
 
 	/** @throws HttpException */
@@ -99,7 +99,7 @@ export class FormPermissionsService {
 			throw new HttpException("You already have requested access to this form", 406);
 		}
 
-		await this.storeFormPermissionService.create({
+		await this.store.create({
 			collectionID,
 			type: FormPermissionEntityType.request,
 			userID: person.id
@@ -128,11 +128,11 @@ export class FormPermissionsService {
 		const permissionType = type === "admin"
 			? FormPermissionEntityType.admin
 			: FormPermissionEntityType.editor;
-		const existing = await this.getExistingEntity(collectionID, personID);
+		const existing = await this.findExistingEntity(collectionID, personID);
 		if (existing) {
-			await this.storeFormPermissionService.update({ ...existing, type: permissionType });
+			await this.store.update({ ...existing, type: permissionType });
 		} else {
-			await this.storeFormPermissionService.create({
+			await this.store.create({
 				collectionID,
 				type: permissionType,
 				userID: customer.id
@@ -146,14 +146,14 @@ export class FormPermissionsService {
 		return this.getByCollectionIdAndPerson(collectionID, author);
 	}
 
-	private async getExistingEntity(collectionID: string, personID: string) {
-		const permissions = await this.storeFormPermissionService.getAll({ collectionID, userID: personID });
+	private async findExistingEntity(collectionID: string, personID: string) {
+		const permissions = await this.store.getAll({ collectionID, userID: personID });
 		const existing = permissions.pop();
 		// There should be always just one permission, but in case some other system (old api...)
 		// has messed thing up, we make sure there's just one. No need for awaiting for this.
 		if (permissions.length > 0) {
 			for (const permission of permissions) {
-				this.storeFormPermissionService.delete(permission.id);
+				this.store.delete(permission.id);
 			}
 		}
 		return existing;
@@ -173,13 +173,13 @@ export class FormPermissionsService {
 			throw new HttpException("Insufficient rights to allow form access", 403);
 		}
 
-		const existing = await this.getExistingEntity(collectionID, personID);
+		const existing = await this.findExistingEntity(collectionID, personID);
 
 		if (!existing) {
 			throw new HttpException("User did not have a permission to delete", 404);
 		}
 
-		await this.storeFormPermissionService.delete(existing.id);
+		await this.store.delete(existing.id);
 		return this.getByCollectionIdAndPerson(collectionID, author);
 	}
 

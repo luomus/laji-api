@@ -1,4 +1,5 @@
 import { Lang } from "./common.dto";
+import { StoreQueryResult } from "./store/store.service";
 import { isObject } from "./type-utils";
 import { pipe } from "./utils";
 
@@ -108,3 +109,8 @@ const applyToResult: ResultApplier = <T, R>(fn: (result: T) => R ) =>
 	};
 
 export { applyToResult };
+
+export const storePageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => {
+	const { totalItems, member, currentPage, lastPage, pageSize } = result;
+	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage, lastPage });
+};

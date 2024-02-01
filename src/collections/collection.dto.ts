@@ -1,13 +1,11 @@
-import { IsBoolean } from "class-validator";
-import { ParseOptionalBoolean } from "src/serializing/serializing";
+import { IsOptionalBoolean } from "src/serializing/serializing";
 import { Private } from "src/serializing/private.decorator";
 import { PagedDto, Lang, MultiLang, HasContext } from "../common.dto";
 import { OmitType } from "@nestjs/swagger";
 
 export class FindCollectionsDto extends PagedDto {
 	lang?: Lang = Lang.en;
-	@ParseOptionalBoolean()
-	@IsBoolean()
+	@IsOptionalBoolean()
 	langFallback?: boolean = true;
 }
 

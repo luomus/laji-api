@@ -1,17 +1,18 @@
 import { HttpException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
-import { StoreQuery, StoreService } from "src/store/store.service";
+import { StoreService } from "src/store/store.service";
 import { Optional } from "src/serializing/serializing";
 import { CACHE_1_MIN } from "src/utils";
-import { paginateAlreadyPaged } from "src/pagination";
+import { storePageAdapter } from "src/pagination";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
+import { StoreQuery } from "src/store/store-query";
+import { omit } from "src/type-utils";
 
 @Injectable()
 export class NotificationsService {
-	private storeNotificationsService =
-		this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN });
+	private store = this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN });
 
 	constructor(
 		private storeService: StoreService,
@@ -20,28 +21,23 @@ export class NotificationsService {
 
 	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize = 20) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const query: StoreQuery  = { toPerson: personId };
-		// let query = `toPerson:"${personId}"`;
+		const query: StoreQuery<Notification>  = { toPerson: personId };
 		if (onlyUnseen) {
 			query.seen = false;
-      //
-			// query += " AND seen: \"false\"";
 		}
-		const pagedResult = await this.storeNotificationsService.getPage(query, page, pageSize);
-		const { totalItems, member, currentPage, lastPage } = pagedResult;
-		return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage, lastPage });
+		return storePageAdapter(await this.store.getPage(query, page, pageSize));
 	}
 
 	add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {
 		notification.seen = false;
 		notification.created = now();
-		return this.storeNotificationsService.create(notification);
+		return this.store.create(notification);
 	}
 
 	/** @throws HttpException */
 	async findByIdAndPersonToken(id: string, personToken: string) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const notification = await this.storeNotificationsService.get(id);
+		const notification = await this.store.get(id);
 		if (notification.toPerson !== personId) {
 			throw new HttpException("This isn't your notification", 403);
 		}
@@ -52,23 +48,23 @@ export class NotificationsService {
 	async update(id: string, notification: Notification, personToken: string) {
 		const existing = await this.findByIdAndPersonToken(id, personToken);
 		if (!existing) {
-			throw new HttpException("No notification found by id to update", 404);
+			throw new HttpException("No notification found to update", 404);
 		}
-		const { seen, ...existingWithoutSeen } = existing;
-		const { seen: seen2, ...notificationWithoutSeen } = notification;
+		const existingWithoutSeen = omit(existing, "seen");
+		const notificationWithoutSeen = omit(notification, "seen");
 		if (!equals(existingWithoutSeen, notificationWithoutSeen)) {
-			throw new HttpException("You can only update seen property", 422);
+			throw new HttpException("You can only update the 'seen' property", 422);
 		}
-		return this.storeNotificationsService.update(notification);
+		return this.store.update(notification);
 	}
 
 	/** @throws HttpException */
 	async delete(id: string, personToken: string) {
 		const existing = await this.findByIdAndPersonToken(id, personToken);
 		if (!existing) {
-			throw new HttpException("No notification found by id to delete", 404);
+			throw new HttpException("No notification found to delete", 404);
 		}
-		return this.storeNotificationsService.delete(id);
+		return this.store.delete(id);
 	}
 }
 
