@@ -1,4 +1,5 @@
-import { MaybeArray } from "src/type-utils";
+import { HttpException } from "@nestjs/common";
+import { MaybeArray, omit } from "src/type-utils";
 
 /** Defaults to "AND" */
 type Operation = "AND" | "OR";
@@ -56,14 +57,29 @@ export const or = operator("OR");
  */
 export type StoreQuery<T> = StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>;
 
+const RESERVED_SYNTAX =  ["\"", "AND", "OR", "(", ")"];
+
 export const parseQuery = <T>
 	(...queries: StoreQueryHigherOperation<T, Operation> | [StoreQueryLiteralMapOperation<T, Operation>])
 	: string =>
 {
+
+	const withBracketsIfNeeded = (
+		op: (clause: StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>) => string
+	) =>
+		(clause: StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>) => {
+			const parsedClause = op(clause);
+			if (isHigherOperation(clause) && clause.length > 1
+				|| Object.keys(omit(clause, "operation")).length > 1) {
+				return `(${parsedClause})`;
+			}
+			return parsedClause;
+		};
+
 	const parseHigherOperation = (clause: StoreQueryHigherOperation<T, Operation>): string =>
-		clause.map(subClause => `(${isHigherOperation(subClause)
+		clause.map(withBracketsIfNeeded(subClause => isHigherOperation(subClause)
 			? parseHigherOperation(subClause)
-			: parseLiteralOperation(subClause)})`
+			: parseLiteralOperation(subClause))
 		).join(` ${clause.operation || "AND"} `);
 
 	const parseLiteralOperation = (clause: StoreQueryLiteralMapOperation<T, Operation>) => {
@@ -71,27 +87,31 @@ export const parseQuery = <T>
 		return (Object.keys(realClause) as Extract<keyof T, string>[]).map(k => {
 			const subClause  = clause[k]!;
 			return `${k}: ${Array.isArray(subClause) ? parseLiteralsArray(subClause) : parseLiteral(subClause)}`;
-		}).join(`" ${operation} "`);
+		}).join(` ${operation} `);
 	};
 
-	const parseLiteral = (clause: StoreQueryLiteral) =>
-		typeof clause === "string"
-			? `"${clause}"`
-			: `${clause}`;
+	const parseLiteral = (clause: StoreQueryLiteral) => {
+		if (typeof clause === "string") {
+			if (RESERVED_SYNTAX.some(reservedSyntax => clause.toUpperCase().includes(reservedSyntax))) {
+				// eslint-disable-next-line max-len
+				throw new HttpException(`Store query literals containing reserved syntax (${RESERVED_SYNTAX.join(", ")}) is not allowed`, 422);
+			}
+			return  `"${clause}"`;
+		}
+		return`${clause}`;
+	};
 
 	const parseLiteralsArray = (clause: StoreQueryLiteral[]) =>
 		`(${clause.map(subClause => parseLiteral(subClause)).join(" ")})`;
 
 	const [query] = queries;
-	if (queries.length === 1 && isLiteralMapOperation(query)) {
-		return parseLiteralOperation(query);
-	}
+	const parsed = (queries.length === 1 && isLiteralMapOperation(query))
+		? parseLiteralOperation(query)
+		: parseHigherOperation(queries);
 
-	if (isHigherOperation(query)) {
-		return parseHigherOperation(query);
-	} else {
-		return parseLiteralOperation(query);
-	}
+	return (parsed[0] === "(" && parsed[parsed.length - 1] === ")")
+		? parsed.substring(1, parsed.length - 1) // Remove unnecessary outermost brackets.
+		: parsed;
 };
 
 // Exported so code defining a query can say what a clause should look like safely, since StoreQueryLiteralMapOperation's
