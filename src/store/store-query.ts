@@ -4,42 +4,41 @@ import { MaybeArray, omit } from "src/type-utils";
 /** Defaults to "AND" */
 type Operation = "AND" | "OR";
 
-type StoreQueryHigherOperation<T, OP extends Operation> =
-	(StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>)[]
+type HigherOperation<T, OP extends Operation> =
+	(HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>)[]
 	& { operation?: OP };
 
 const isHigherOperation = <T>(
-	clause: Omit<StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>, "operation">
-): clause is StoreQueryHigherOperation<T, Operation> =>
+	clause: Omit<HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>, "operation">
+): clause is HigherOperation<T, Operation> =>
 		Array.isArray(clause);
 
-type StoreQueryLiteral = string | boolean | number;
+type Literal = string | boolean | number;
 
-type StoreQueryLiteralMapOperation<T, OP extends Operation> =
-	Partial<Record<Extract<keyof T, string>, MaybeArray<StoreQueryLiteral>>> & { operation?: OP };
+type LiteralMapOperation<T, OP extends Operation, K extends keyof T & string = keyof T & string> =
+	Partial<Record<K, MaybeArray<T[K] & Literal>>> & { operation?: OP };
 
 const isLiteralMapOperation = <T>(
-	clause: Omit<StoreQueryLiteralMapOperation<T, Operation>, "operation">
-	| Omit<StoreQueryHigherOperation<T, Operation>, "operation">
-): clause is StoreQueryLiteralMapOperation<T, Operation> =>
+	clause: Omit<LiteralMapOperation<T, Operation>, "operation">
+	| Omit<HigherOperation<T, Operation>, "operation">
+): clause is LiteralMapOperation<T, Operation> =>
 		!Array.isArray(clause);
 
 function operator<OP extends Operation>(operation: OP) {
-	function _<T>(...queries: [Omit<StoreQueryLiteralMapOperation<T, Operation>, "operation">])
-		: StoreQueryLiteralMapOperation<T, OP>;
-	function _<T>(...queries: (StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>)[])
-		: StoreQueryHigherOperation<T, OP>;
-	function _<T>(...queries:
-		(StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>)[]
-		| [Omit<StoreQueryLiteralMapOperation<T, Operation>, "operation">]
-	) : (StoreQueryHigherOperation<T, OP> | StoreQueryLiteralMapOperation<T, OP>) {
+	function _<T>(...queries: [Omit<LiteralMapOperation<T, Operation>, "operation">])
+		: LiteralMapOperation<T, OP>;
+	function _<T>(...queries: (HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>)[])
+		: HigherOperation<T, OP>;
+	function _<T>(...queries: (HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>)[]
+		| [Omit<LiteralMapOperation<T, Operation>, "operation">]
+	) : (HigherOperation<T, OP> | LiteralMapOperation<T, OP>) {
 		const [query] = queries;
 		if (queries.length === 1 && isLiteralMapOperation(query)) {
 			query.operation = operation;
-			return query as StoreQueryLiteralMapOperation<T, OP>;
+			return query as LiteralMapOperation<T, OP>;
 		}
-		(queries as StoreQueryHigherOperation<T, OP>).operation = operation;
-		return queries as StoreQueryHigherOperation<T, OP>;
+		(queries as HigherOperation<T, OP>).operation = operation;
+		return queries as HigherOperation<T, OP>;
 	}
 
 	return _;
@@ -50,24 +49,24 @@ export const or = operator("OR");
 
 /**
  * A query clause where:
- * * An array is a collection of query clauses interpreted with the given operator. Defaults to "and" operator.
- * * An object is a map between search terms and their respective search term literals. The search terms are interpreted with a given operator, which defaults to "and".
+ * * An array is a collection of query clauses interpreted with the chosen[1] operator.
+ * * An object is a map between search terms and their respective search term literals. The search terms are interpreted with a chosen[1] operator.
  *
- *  Use the `or()` and `and()` wrappers to choose the operator for a clause. They accept either an array or an object.
+ *  [1] Use the `or()` and `and()` wrappers to choose the operator for a clause. Clauses default to an "and" operator.
  */
-export type StoreQuery<T> = StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>;
+export type StoreQuery<T> = HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>;
 
 const RESERVED_SYNTAX =  ["\"", "AND", "OR", "(", ")"];
 
 export const parseQuery = <T>
-	(...queries: StoreQueryHigherOperation<T, Operation> | [StoreQueryLiteralMapOperation<T, Operation>])
+	(...queries: HigherOperation<T, Operation> | [LiteralMapOperation<T, Operation>])
 	: string =>
 {
 
 	const withBracketsIfNeeded = (
-		op: (clause: StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>) => string
+		op: (clause: HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>) => string
 	) =>
-		(clause: StoreQueryHigherOperation<T, Operation> | StoreQueryLiteralMapOperation<T, Operation>) => {
+		(clause: HigherOperation<T, Operation> | LiteralMapOperation<T, Operation>) => {
 			const parsedClause = op(clause);
 			if (isHigherOperation(clause) && clause.length > 1
 				|| Object.keys(omit(clause, "operation")).length > 1) {
@@ -76,21 +75,21 @@ export const parseQuery = <T>
 			return parsedClause;
 		};
 
-	const parseHigherOperation = (clause: StoreQueryHigherOperation<T, Operation>): string =>
+	const parseHigherOperation = (clause: HigherOperation<T, Operation>): string =>
 		clause.map(withBracketsIfNeeded(subClause => isHigherOperation(subClause)
 			? parseHigherOperation(subClause)
-			: parseLiteralOperation(subClause))
+			: parseLiteralMapOperation(subClause))
 		).join(` ${clause.operation || "AND"} `);
 
-	const parseLiteralOperation = (clause: StoreQueryLiteralMapOperation<T, Operation>) => {
+	const parseLiteralMapOperation = (clause: LiteralMapOperation<T, Operation>) => {
 		const { operation = "AND", ...realClause } = clause;
-		return (Object.keys(realClause) as Extract<keyof T, string>[]).map(k => {
-			const subClause  = clause[k]!;
-			return `${k}: ${Array.isArray(subClause) ? parseLiteralsArray(subClause) : parseLiteral(subClause)}`;
+		return (Object.keys(realClause) as (keyof T & string)[]).map(k => {
+			const subClause = clause[k]!;
+			return `${k}: ${Array.isArray(subClause) ? parseLiteralsOr(subClause) : parseLiteral(subClause)}`;
 		}).join(` ${operation} `);
 	};
 
-	const parseLiteral = (clause: StoreQueryLiteral) => {
+	const parseLiteral = (clause: Literal) => {
 		if (typeof clause === "string") {
 			if (RESERVED_SYNTAX.some(reservedSyntax => clause.toUpperCase().includes(reservedSyntax))) {
 				// eslint-disable-next-line max-len
@@ -101,12 +100,12 @@ export const parseQuery = <T>
 		return`${clause}`;
 	};
 
-	const parseLiteralsArray = (clause: StoreQueryLiteral[]) =>
+	const parseLiteralsOr = (clause: Literal[]) =>
 		`(${clause.map(subClause => parseLiteral(subClause)).join(" ")})`;
 
 	const [query] = queries;
 	const parsed = (queries.length === 1 && isLiteralMapOperation(query))
-		? parseLiteralOperation(query)
+		? parseLiteralMapOperation(query)
 		: parseHigherOperation(queries);
 
 	return (parsed[0] === "(" && parsed[parsed.length - 1] === ")")
@@ -116,6 +115,6 @@ export const parseQuery = <T>
 
 // Exported so code defining a query can say what a clause should look like safely, since StoreQueryLiteralMapOperation's
 // "operation" is allowed to be undefined, hence trying to type an "or" clause with it would allow any operation actually.
-export type StoreQueryMapLiteral<T, OP extends Operation | undefined> = OP extends ("AND" | undefined)
-	? StoreQueryLiteralMapOperation<T, "AND">
-	: StoreQueryLiteralMapOperation<T, "OR"> & { operation: OP };
+export type LiteralMap<T, OP extends Operation | undefined> = OP extends ("AND" | undefined)
+	? LiteralMapOperation<T, "AND">
+	: LiteralMapOperation<T, "OR"> & { operation: OP };
