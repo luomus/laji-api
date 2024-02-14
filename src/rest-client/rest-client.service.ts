@@ -1,5 +1,5 @@
 import { HttpService } from "@nestjs/axios";
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
@@ -22,11 +22,16 @@ export type LajiApiOptions<T> = {
 /**
  * Abstract wrapper for a service that connects to a remote REST API.
  * The implementing service can "provide (nestTM)" this service and fill in the REST_CLIENT_CONFIG.
+ *
+ * Enables caching based on the assumption that it's a REST API; GET responses are cached, until a
+ * POST, PUT or DELETE is made to the same path.
  */
 @Injectable()
-export class RestClientService<T = any> {
+export class RestClientService<T = unknown> {
 	private path: string;
 	private auth: string | undefined;
+
+	private logger = new Logger(RestClientService.name);
 
 	constructor(
 		private readonly httpService: HttpService,
@@ -59,8 +64,9 @@ export class RestClientService<T = any> {
 			: item;
 	}
 
-	private getCacheKey(path?: string, options?: AxiosRequestConfig) {
-		return this.getPath(path) + JSON.stringify(options?.params);
+	private getPathAndQuery(path?: string, options?: AxiosRequestConfig) {
+		const query = new URLSearchParams(options?.params).toString();
+		return this.getPath(path) + (query ? `?${query}` : "");
 	}
 
 	private async getWithCache<S>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>)
@@ -74,22 +80,25 @@ export class RestClientService<T = any> {
 		// "https://foo.bar/path?param2=bar": "cached example value 2",
 		// } }
 		let cachedByPath: Record<string, S>;
+		const pathAndQuery = this.getPathAndQuery(path, options);
 		if (lajiApiOptions?.cache) {
 			cachedByPath = await this.cache.get<Record<string, S>>(this.getPath(path))
 				|| {} as Record<string, S>;
-			const cached = this.getCacheKey(path, options) in cachedByPath
-				? cachedByPath[this.getCacheKey(path, options)]
+			const cached = pathAndQuery in cachedByPath
+				? cachedByPath[pathAndQuery]
 				: undefined;
 			if (cached) {
+				this.logger.verbose(`Cache hit for ${pathAndQuery}`);
 				return cached;
 			}
 		}
+		this.logger.verbose(`GET ${pathAndQuery}`);
 		const result = await firstValueFrom(
 			this.httpService.get<S>(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data))
 		);
 		if (lajiApiOptions?.cache) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
-			cachedByPath![this.getCacheKey(path, options)] = result;
+			cachedByPath![pathAndQuery] = result;
 			await this.cache.set(this.getPath(path),
 				cachedByPath!,
 				typeof lajiApiOptions.cache === "number" ? lajiApiOptions.cache : undefined);

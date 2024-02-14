@@ -43,26 +43,26 @@ export class FormPermissionsService {
 		return formPermissions;
 	}
 
-	private async findByCollectionId(collectionID: string)
+	private async findByCollectionID(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
 		return entitiesToPermissionLists(await this.store.getAll({ collectionID }), "userID");
 	}
 
 	/** @throws HttpException */
-	async getByCollectionIdAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
+	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
 		const person = await this.personsService.getByToken(personToken);
-		return this.getByCollectionIdAndPerson(collectionID, person);
+		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
 
 	/** @throws HttpException */
-	private async getByCollectionIdAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
+	private async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
 		if (!formWithPermissionFeature?.collectionID) {
 			throw new HttpException("Form does not have restrict feature enabled", 404);
 		}
 
-		const permissions = await this.findByCollectionId(formWithPermissionFeature.collectionID);
+		const permissions = await this.findByCollectionID(formWithPermissionFeature.collectionID);
 		const isAdmin = isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
@@ -78,20 +78,18 @@ export class FormPermissionsService {
 	}
 
 	private async findFormWithPermissionFeature(collectionID: string): Promise<Form | undefined> {
-		const forms = await this.formService.getAll();
-		const parentCollections = await this.collectionsService.getParents(collectionID);
-		return forms.find(form =>
-			(form.collectionID === collectionID
-			|| parentCollections.some(parentCollection => form.collectionID === parentCollection.id))
-			&& (form.options.restrictAccess || form.options.hasAdmins));
+		return this.formService.findFormByCollectionIDFromHeritanceByRule(
+			collectionID,
+			form => !!(form.options.restrictAccess || form.options.hasAdmins)
+		);
 	}
 
 	/** @throws HttpException */
 	async requestAccess(collectionID: string, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
-		const permissions = await this.getByCollectionIdAndPerson(collectionID, person);
+		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
 
-		if (hasEditRights(permissions, person)) {
+		if (hasEditRightsOf(permissions, person)) {
 			throw new HttpException("You already have access to this form", 406);
 		}
 
@@ -107,7 +105,7 @@ export class FormPermissionsService {
 
 		this.sendFormPermissionRequested(person, collectionID);
 
-		return this.getByCollectionIdAndPerson(collectionID, person);
+		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
 
 	/** @throws HttpException */
@@ -119,7 +117,7 @@ export class FormPermissionsService {
 			throw new HttpException(`User by id ${personID} not found`, 404);
 		}
 
-		const authorPermissions = await this.getByCollectionIdAndPerson(collectionID, author);
+		const authorPermissions = await this.getByCollectionIDAndPerson(collectionID, author);
 
 		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
@@ -143,7 +141,7 @@ export class FormPermissionsService {
 			this.sendFormPermissionAccepted(customer, collectionID);
 		}
 
-		return this.getByCollectionIdAndPerson(collectionID, author);
+		return this.getByCollectionIDAndPerson(collectionID, author);
 	}
 
 	private async findExistingEntity(collectionID: string, personID: string) {
@@ -167,7 +165,7 @@ export class FormPermissionsService {
 			throw new HttpException(`User by id ${personID} not found`, 404);
 		}
 
-		const authorPermissions = await this.getByCollectionIdAndPerson(collectionID, author);
+		const authorPermissions = await this.getByCollectionIDAndPerson(collectionID, author);
 
 		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
@@ -180,7 +178,7 @@ export class FormPermissionsService {
 		}
 
 		await this.store.delete(existing.id);
-		return this.getByCollectionIdAndPerson(collectionID, author);
+		return this.getByCollectionIDAndPerson(collectionID, author);
 	}
 
 	private async sendFormPermissionRequested(person: Person, collectionID: string) {
@@ -192,7 +190,7 @@ export class FormPermissionsService {
 			return;
 		}
 
-		const { admins } = await this.findByCollectionId(collectionID);
+		const { admins } = await this.findByCollectionID(collectionID);
 		for (const adminID of admins) {
 			const admin = await this.personsService.findByPersonId(adminID);
 			this.mailService.sendFormPermissionRequestReceived(admin, { formTitle, person: admin, formID: form.id });
@@ -235,12 +233,12 @@ export class FormPermissionsService {
 	}
 }
 
-function isAdminOf(permissions: PermissionLists, person: Person) {
-	return person.role?.includes(Role.Admin)
+export function isAdminOf(permissions: PermissionLists, person: Person) {
+	return person.role?.some(r => r === Role.Admin)
 		|| permissions.admins?.includes(person.id);
 }
 
-function hasEditRights(permissions: FormPermissionDto, person: Person) {
+export function hasEditRightsOf(permissions: FormPermissionDto, person: Person) {
 	return isAdminOf(permissions, person)
 		|| permissions.editors.includes(person.id);
 }

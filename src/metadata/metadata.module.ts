@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
-import { TriplestoreReadonlyClientModule } from "src/triplestore/readonly-client/triplestore-readonly-client.module";
 import { MetadataService } from "./metadata.service";
+import {TriplestoreReadonlyModule} from "src/triplestore/triplestore-readonly.module";
 
 @Module({
-	imports: [TriplestoreReadonlyClientModule],
+	imports: [TriplestoreReadonlyModule],
 	providers: [MetadataService],
 	exports: [MetadataService]
 })

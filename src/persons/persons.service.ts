@@ -43,9 +43,10 @@ export class PersonsService {
 	}
 }
 
-const ImporterPerson: Person = {
+const ImporterPerson: Person = serializeInto(Person)({
 	id: "",
 	fullName: "Importer",
 	emailAddress: "",
-	"@context": ""
-};
+	"@context": "",
+	role: [Role.Admin, Role.Import]
+});

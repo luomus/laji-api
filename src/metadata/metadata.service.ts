@@ -19,19 +19,15 @@ const CACHE_30_MIN = 1000 * 60 * 30;
 @Injectable()
 export class MetadataService {
 	constructor(
-		@Inject("TRIPLESTORE_READONLY_REST_CLIENT") private triplestoreRestClient: RestClientService,
+		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreRestClient: RestClientService,
 		@Inject(CACHE_MANAGER) private cache: Cache) {}
 
-	/**
-	 * Get all properties.
-	 */
+	/** Get all properties. */
 	private getProperties() {
 		return this.triplestoreRestClient.get<Property[]>("schema/property", undefined);
 	}
 
-	/**
-	 * Get a mapping between contexts' and their properties.
-	 */
+	/** Get a mapping between contexts' and their properties. */
 	private async getContexts() {
 		const cached = await this.cache.get<Contexts>("properties");
 		if (cached) {
@@ -45,13 +41,11 @@ export class MetadataService {
 			});
 			return contextMap;
 		}, {});
-		await this.cache.set("properties", contexts, CACHE_30_MIN); 
+		await this.cache.set("properties", contexts, CACHE_30_MIN);
 		return contexts;
 	}
 
-	/**
-	 * Get a property map for a context.
-	 */
+	/** Get a property map for a context. */
 	async getPropertiesForContext(context: string) {
 		return (await this.getContexts())[MetadataService.parseContext(context)];
 	}

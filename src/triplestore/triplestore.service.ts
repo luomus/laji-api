@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
-import { isObject, JSONSerializable, JSONObjectSerializable } from "../type-utils";
+import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise } from "../type-utils";
 import { CacheOptions, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { Cache } from "cache-manager";
@@ -31,6 +31,8 @@ type TriplestoreSearchQuery = {
 
 type TriplestoreQueryOptions = CacheOptions;
 
+const baseQuery = { format: "rdf/xml" };
+
 @Injectable()
 export class TriplestoreService {
 	constructor(
@@ -38,17 +40,7 @@ export class TriplestoreService {
 		private metadataService: MetadataService,
 		@Inject(CACHE_MANAGER) private cache: Cache
 	) {
-		this.triplestoreToJsonLd = this.triplestoreToJsonLd.bind(this);
-		this.resolveResources = this.resolveResources.bind(this);
-		this.resolveLangResources = this.resolveLangResources.bind(this);
-		this.dropPrefixes = this.dropPrefixes.bind(this);
-		this.rmIdAndType = this.rmIdAndType.bind(this);
-		this.compactJsonLd = this.compactJsonLd.bind(this);
 		this.formatJsonLd = this.formatJsonLd.bind(this);
-	}
-
-	private getBaseQuery() {
-		return { format: "rdf/xml" };
 	}
 
 	// TODO returned items @context is different than old lajiapi
@@ -60,14 +52,14 @@ export class TriplestoreService {
 	async findOne<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
 		const { cache } = options || {};
 		if (cache) {
-			const cached = await this.cache.get<T>(this.getCacheKey(resource));
+			const cached = await this.cache.get<T>(getPathAndQuery(resource));
 			if (cached) {
 				return cached;
 			}
 		}
 		return this.rdfToJsonLd<T>(
-			this.triplestoreClient.get(resource, { params: this.getBaseQuery() }),
-			this.getCacheKey(resource),
+			this.triplestoreClient.get(resource, { params: baseQuery }),
+			getPathAndQuery(resource),
 			options
 		);
 	}
@@ -78,19 +70,19 @@ export class TriplestoreService {
 	 * @param options Cache options
 	 */
 	async find<T>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions): Promise<T[]> {
-		const _query = { ...this.getBaseQuery(), ...query };
+		query = { ...baseQuery, ...query };
 
 		const { cache } = options || {};
 		if (cache) {
-			const cached = await this.cache.get<T[]>(this.getCacheKey("search", _query));
+			const cached = await this.cache.get<T[]>(getPathAndQuery("search", query));
 			if (cached) {
 				return cached;
 			}
 		}
 
 		let result = await this.rdfToJsonLd<T | T[]>(
-			this.triplestoreClient.get("search", { params: _query }),
-			this.getCacheKey("search", _query),
+			this.triplestoreClient.get("search", { params: query }),
+			getPathAndQuery("search", query),
 			options
 		);
 		if (!Array.isArray(result)) {
@@ -100,46 +92,46 @@ export class TriplestoreService {
 	}
 
 	private async rdfToJsonLd<T>(
-		rdf: JSONSerializable | Promise<JSONSerializable>,
+		rdf: MaybePromise<JSONSerializable>,
 		cacheKey: string,
 		options?: TriplestoreQueryOptions
 	): Promise<T> {
 		const jsonld = await promisePipe(
 			rdf,
-			this.triplestoreToJsonLd
+			triplestoreToJsonLd
 		);
 		const isArrayResult = Array.isArray(jsonld["@graph"]);
 		if (isArrayResult && (jsonld["@graph"] as any).length === 0) {
 			return [] as T;
 		}
 
-		const graphContext = isArrayResult
+		const jsonldContext = isArrayResult
 			? (jsonld["@graph"] as any)[0]["@type"]
 			: jsonld["@type"];
-		const context = await this.metadataService.getPropertiesForContext(MetadataService.parseContext(graphContext));
-
+		const metadataContext = await this.metadataService.getPropertiesForContext(
+			MetadataService.parseContext(jsonldContext)
+		);
 		const formatted = (isArrayResult
-			? await Promise.all((jsonld["@graph"] as any).map((i: any) => this.formatJsonLd(i, context)))
-			: await this.formatJsonLd(jsonld, context)
+			? await Promise.all((jsonld["@graph"] as any).map((i: any) =>
+				this.formatJsonLd(i, metadataContext))
+			)
+			: await this.formatJsonLd(jsonld, metadataContext)
 		) as T;
 
-		return this.cacheResult(formatted, cacheKey, options);
+		return this.cacheResult(formatted, cacheKey, options) as T;
 	}
 
 	private formatJsonLd(jsonld: any, context: ContextProperties) {
 		return promisePipe(
 			jsonld,
-			this.compactJsonLd,
-			this.resolveResources,
-			this.adhereToSchema(context),
-			this.resolveLangResources,
-			this.dropPrefixes,
-			this.rmIdAndType
+			stripBadProps,
+			compactJsonLd,
+			resolveResources,
+			adhereToSchemaWith(context),
+			resolveLangResources,
+			dropPrefixes,
+			rmIdAndType
 		);
-	}
-
-	private getCacheKey(resource: string, query?: TriplestoreSearchQuery) {
-		return resource + JSON.stringify(query || {});
 	}
 
 	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
@@ -150,137 +142,142 @@ export class TriplestoreService {
 		);
 		return item;
 	}
+}
 
-	triplestoreToJsonLd(rdf: string): Promise<NodeObject> {
-		const rdfStore = graph();
-		parse(rdf, rdfStore, BASE_URL, "application/rdf+xml");
+const getPathAndQuery = (resource: string, query?: TriplestoreSearchQuery) => {
+	return resource + JSON.stringify(query || {});
+};
 
-		return new Promise<NodeObject>((resolve, reject) => {
-			serialize(null, rdfStore, BASE_URL, "application/ld+json", async (err, data) => {
-				if (err) {
-					return reject(err);
-				}
-				if (!data) {
-					return reject(new HttpException("Not found", 404));
-				}
-
-				const jsonld = JSON.parse(data);
-				resolve(jsonld);
-			});
-		});
+const triplestoreToJsonLd = (rdf: string): Promise<NodeObject> => {
+	const rdfStore = graph();
+	parse(rdf, rdfStore, BASE_URL, "application/rdf+xml");
+	const jsonld = serialize(null, rdfStore, BASE_URL, "application/ld+json");
+	if (!jsonld) {
+		throw new HttpException("Not found", 404);
 	}
+	return JSON.parse(jsonld);
+};
 
-	compactJsonLd(jsonld: any) {
-		return compact(jsonld, jsonld["@type"]) as unknown as JSONSerializable;
-	}
+const stripBadProps = (jsonld: JSONObjectSerializable) => {
+	return traverseJsonLd(jsonld, iteratedJsonLd => {
+		if (!Array.isArray(iteratedJsonLd) && iteratedJsonLd["rdfs:label"]) {
+			delete iteratedJsonLd["rdfs:label"];
+		}
+		return iteratedJsonLd;
+	});
+};
 
-	private traverseJsonLd(
-		data: JSONObjectSerializable,
-		op: (jsonLd: JSONObjectSerializable | JSONSerializable[]
-		) => (JSONSerializable | undefined)): JSONObjectSerializable {
-		const traverse = (data: JSONSerializable | JSONSerializable[]): JSONSerializable => {
-			if (Array.isArray(data)) {
-				const operated = op(data);
-				if (operated !== undefined) {
-					return operated;
-				}
-				return data.map(traverse);
-			} else if (isObject(data)) {
-				const operated = op(data);
-				if (operated !== undefined) {
-					return operated;
-				}
-				const keys = (Object.keys(data) as (keyof JSONObjectSerializable)[]);
-				return keys.reduce<JSONObjectSerializable>((d, k) => {
-					const value = data[k];
-					// Should never happen, but doesn't matter if it does.
-					// Undefined values have no semantic difference to missing keys.
-					// We want the result to be JSON, and JSON doesn't have 'undefined'.
-					if (value === undefined) {
-						return d;
-					}
-					d[k] = traverse(value);
+const compactJsonLd = (jsonld: JSONObjectSerializable) => {
+	return compact(jsonld, (jsonld as any)["@type"]) as unknown as Promise<JSONSerializable>;
+};
+
+const traverseJsonLd = (
+	data: JSONObjectSerializable,
+	op: (jsonLd: JSONObjectSerializable | JSONSerializable[]
+	) => (JSONSerializable | undefined)): JSONObjectSerializable => {
+	const traverse = (data: JSONSerializable | JSONSerializable[]): JSONSerializable => {
+		if (Array.isArray(data)) {
+			const operated = op(data);
+			if (operated !== undefined) {
+				return operated;
+			}
+			return data.map(traverse);
+		} else if (isObject(data)) {
+			const operated = op(data);
+			if (operated !== undefined) {
+				return operated;
+			}
+			const keys = (Object.keys(data) as (keyof JSONObjectSerializable)[]);
+			return keys.reduce<JSONObjectSerializable>((d, k) => {
+				const value = data[k];
+				// Should never happen, but doesn't matter if it does.
+				// Undefined values have no semantic difference to missing keys.
+				// We want the result to be JSON, and JSON doesn't have 'undefined'.
+				if (value === undefined) {
 					return d;
-				}, {});
-			}
-			return data;
-		};
-
-		return traverse(data) as JSONObjectSerializable;
-	}
-
-	/**
-	 * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
-	 * This function resolves those resources into values like "MOS.500".
-	 */
-	private resolveResources(data: JSONObjectSerializable): JSONObjectSerializable {
-		return this.traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
-			if (isResourceIdentifier(value)) {
-				return value["@id"].replace(BASE_URL, "");
-			}
-		});
-	}
-
-	private resolveLangResources(data: JSONObjectSerializable): JSONObjectSerializable {
-		return this.traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
-			if (Array.isArray(value) && isMultiLangResource(value[0])) {
-				return value.reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => ({
-					...langObj,
-					[resource["@language"]]: resource["@value"]
-				}), {});
-			}
-		});
-	}
-
-	/** RDF doesn't know about our properties' schema info. This function makes the output to adhere to schema.  */
-	private adhereToSchema = (properties: ContextProperties) => async (data: JSONObjectSerializable) => {
-		function asArray(value: any, property: Property) {
-			if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
-				return [value];
-			}
-		}
-		function multiLangAsArr(value: any, property: Property) {
-			if (property.multiLanguage && value && !Array.isArray(value)) {
-				return [value];
-			}
-		}
-
-		const transformations: ((value: any, property: Property) => any | undefined)[] =
-			[asArray, multiLangAsArr];
-
-		return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
-			const property = properties[k];
-			let value = data[k];
-			if (!property) {
-				d[k] = value;
-				return d;
-			}
-			for (const transform of transformations) {
-				const transformed = transform(value, property);
-				if (transformed !== undefined) {
-					value = transformed;
 				}
-			}
-
-			d[k] = value;
-			return d;
-		}, {});
+				d[k] = traverse(value);
+				return d;
+			}, {});
+		}
+		return data;
 	};
 
-	private dropPrefixes(data: JSONObjectSerializable) {
-		const unprefix = (k: string) => k.split(".").pop() as string;
+	return traverse(data) as JSONObjectSerializable;
+};
 
-		return (Object.keys(data) as string[]).reduce<JSONObjectSerializable>((d, k) => {
-			d[unprefix(k)] = data[k];
-			return d;
-		}, {});
-	}
-
-	private rmIdAndType(data: JSONObjectSerializable) {
-		const { "@type": type, "@id": id, ...d } = data;
-		if (typeof id === "string") {
-			d.id = id.replace(BASE_URL, "");
+/**
+ * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
+ * This function resolves those resources into values like "MOS.500".
+ */
+const resolveResources = (data: JSONObjectSerializable): JSONObjectSerializable => {
+	return traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
+		if (isResourceIdentifier(value)) {
+			return value["@id"].replace(BASE_URL, "");
 		}
-		return d;
+	});
+};
+
+const resolveLangResources = (data: JSONObjectSerializable): JSONObjectSerializable => {
+	return traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
+		if (Array.isArray(value) && isMultiLangResource(value[0])) {
+			return value.reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => ({
+				...langObj,
+				[resource["@language"]]: resource["@value"]
+			}), {});
+		}
+	});
+};
+
+/** RDF doesn't know about our properties' schema info. This function makes the output adhere to the schema. */
+const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONObjectSerializable) => {
+	function asArray(value: JSONSerializable, property: Property) {
+		if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
+			return [value];
+		}
 	}
-}
+
+	function multiLangAsArr(value: JSONSerializable, property: Property) {
+		if (property.multiLanguage && value && !Array.isArray(value)) {
+			return [value];
+		}
+	}
+
+	const transformations: ((value: JSONSerializable, property: Property) => JSONSerializable | undefined)[] =
+		[asArray, multiLangAsArr];
+
+	return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
+		const property = properties[k];
+		let value = data[k];
+		if (!property) {
+			d[k] = value;
+			return d;
+		}
+		for (const transform of transformations) {
+			const transformed = transform(value, property);
+			if (transformed !== undefined) {
+				value = transformed;
+			}
+		}
+
+		d[k] = value;
+		return d;
+	}, {} as JSONObjectSerializable);
+};
+
+const dropPrefixes = (data: JSONObjectSerializable) => {
+	const unprefix = (k: string) => k.split(".").pop() as string;
+
+	return (Object.keys(data) as string[]).reduce<JSONObjectSerializable>((d, k) => {
+		d[unprefix(k)] = data[k];
+		return d;
+	}, {});
+};
+
+const rmIdAndType = (data: JSONObjectSerializable) => {
+	const { "@type": type, "@id": id, ...d } = data;
+	if (typeof id === "string") {
+		d.id = id.replace(BASE_URL, "");
+	}
+	return d;
+};

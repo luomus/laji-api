@@ -29,7 +29,7 @@ export class FormsController {
 		@Param("collectionID") collectionID: string,
 		@Query() { personToken }: QueryWithPersonTokenDto
 	) {
-		return this.formPermissionsService.getByCollectionIdAndPersonToken(collectionID, personToken);
+		return this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
 	}
 
 	/** Request access to form */
@@ -66,7 +66,7 @@ export class FormsController {
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
 	@UseInterceptors(createQueryParamsInterceptor(GetAllDto))
 	getPage(@Query() { lang }: GetAllDto) {
-		return this.formsService.getAll(lang);
+		return this.formsService.getListing(lang);
 	}
 
 	/** Get a form by id */

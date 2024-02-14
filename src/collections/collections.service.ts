@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { LANGS, MultiLang } from "src/common.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
@@ -11,11 +11,18 @@ const GBIF_DATASET_PARENT = "HR.3777";
 @Injectable()
 export class CollectionsService {
 
+	private logger = new Logger(CollectionsService.name);
+
 	constructor(
 		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService,
 		private triplestoreService: TriplestoreService
-	) {
-		this.update();
+	) { }
+
+	async onModuleInit() {
+		this.logger.log("Warming up collections started...");
+		this.update().then(() => {
+			this.logger.log("Warming up collections in background completed");
+		});
 	}
 
 	private collections: Collection[] | undefined;
@@ -197,7 +204,7 @@ export class CollectionsService {
 const collectionIsHidden = (
 	collection: TriplestoreCollection,
 	idToCollection: Record<string, TriplestoreCollection>
-) : boolean => 
+) : boolean =>
 	collection.metadataStatus === MetadataStatus.Hidden
 		|| (
 			(collection.isPartOf && idToCollection[(collection.isPartOf as string)])
@@ -210,7 +217,7 @@ const getInheritedProperty = <K extends keyof TriplestoreCollection>(
 	property: K,
 	collection: TriplestoreCollection,
 	idToCollection: Record<string, TriplestoreCollection>
-) : TriplestoreCollection[K] | undefined => 
+) : TriplestoreCollection[K] | undefined =>
 		collection[property] !== undefined
 			? collection[property]
 			: ((collection.isPartOf && idToCollection[(collection.isPartOf as string)])

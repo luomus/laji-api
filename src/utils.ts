@@ -4,6 +4,7 @@ export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
 export const CACHE_10_MIN = CACHE_1_MIN * 10;
 export const CACHE_30_MIN = CACHE_1_MIN * 30;
+export const CACHE_1_H = CACHE_1_MIN * 60;
 
 export type CacheOptions = {
 	/**milliseconds for the cache TTL, true for default TTL. */
@@ -86,6 +87,12 @@ export const dictionarify = (arr: string[]) =>
 		return dict;
 	}, {});
 
+export const dictionarifyByKey = <T>(objects: T[], key: keyof T) =>
+	objects.reduce<Record<string, T>>((map, obj) => {
+		map[obj[key] as string] = obj;
+		return map;
+	}, {});
+
 /** Removes given keys from given object. Note that it performs this immutably for performance reasons! */
 export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whitelist: (keyof T)[]) => {
 	const knownKeys = dictionarify(Object.getOwnPropertyNames(obj));
@@ -96,3 +103,67 @@ export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whiteli
 	});
 	return obj;
 };
+
+type ParseJSONPointerOptions = {
+	/** If a property is undefined and the pointer isn't yet parsed fully, undefined is returned. */
+	safely?: boolean;
+	/**
+	 * If a property is undefined and the pointer isn't yet parsed fully, the missing properties will be created. This is
+	 * a mutable operation. It adds an array if the token is numeric, and an object for a non-numeric token
+	 * **/
+	create?: boolean;
+}
+
+const validateJSONPointer = (pointer: string) => {
+	if (pointer[0] !== "/") {
+		throw new Error("Invalid JSON pointer");
+	}
+};
+
+export const parseJSONPointer = <T = unknown>(
+	obj: object,
+	pointer?: string,
+	{ safely, create }: ParseJSONPointerOptions = {}
+) : T => {
+	if (pointer === undefined) {
+		return obj as T;
+	}
+	validateJSONPointer(pointer);
+	const splits = pointer.split("/");
+	splits.shift();
+	return splits.reduce((pointedObj, token, i) => {
+		if ((create || safely) && (!pointedObj || !(token in pointedObj))) {
+			if (create) {
+				const nextSplit = splits[i + 1];
+				(pointedObj as any)[token] = isNaN(+nextSplit) ? {} : [];
+			} else if (safely) {
+				return undefined;
+			}
+		}
+		return (pointedObj as any)[token] as unknown;
+	}, obj) as T;
+};
+
+/** Warning: updates target immutably */
+export const updateWithJSONPointer = (
+	obj: object,
+	pointer: string,
+	value: unknown,
+	options?: ParseJSONPointerOptions
+): void => {
+	validateJSONPointer(pointer);
+	const splits = pointer.split("/");
+	splits.shift();
+	const last = splits.pop() as string;
+	const lastContainerPointer = splits.length ? `/${splits.join("/")}` : undefined;
+
+	const lastContainer = parseJSONPointer(obj, lastContainerPointer, options);
+	if (options?.safely && !lastContainer) {
+		return;
+	}
+	(lastContainer as any)[last] = value;
+	return;
+};
+
+export const asArray = <T>(maybeArr: T | T[]): T[] =>
+	Array.isArray(maybeArr) ? maybeArr : [maybeArr];

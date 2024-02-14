@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:e2e-old": "mocha --require integration-test/setup.js ./integration-test/{form-permission,forms,collection,person,notifications,api-user,audio,image,warehouse}/tests.js --exit",
+    "test:e2e-old": "mocha --require integration-test/setup.js ./integration-test/{form-permission,forms,collection,person,notifications,api-user,audio,image,warehouse,named-place}/tests.js --exit",
     "test:e2e-old:ci": "npm run test:e2e-old -- -R xunit --grep @no-ci --invert"
   },
   "dependencies": {
@@ -41,6 +41,7 @@
     "handlebars": "^4.7.8",
     "http-proxy-middleware": "^2.0.6",
     "jsonld": "^8.3.1",
+    "memoizee": "^0.4.15",
     "nodemailer": "^6.9.5",
     "oracledb": "^5.5.0",
     "rdflib": "^2.2.32",
@@ -54,8 +55,10 @@
     "@nestjs/schematics": "^10.0.2",
     "@nestjs/testing": "^10.2.4",
     "@types/express": "^4.17.17",
+    "@types/geojson": "^7946.0.14",
     "@types/jest": "29.5.4",
     "@types/jsonld": "^1.5.9",
+    "@types/memoizee": "^0.4.11",
     "@types/node": "20.5.9",
     "@types/nodemailer": "^6.4.9",
     "@types/request": "^2.48.8",
@@ -82,10 +85,9 @@
       "ts"
     ],
     "rootDir": "src",
-		"moduleNameMapper": {
-			"^src/(.*)$": "<rootDir>/$1"
-		},
-
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

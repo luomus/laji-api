@@ -2,13 +2,12 @@ import { HttpException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
-import { Optional } from "src/serializing/serializing";
 import { CACHE_1_MIN } from "src/utils";
 import { storePageAdapter } from "src/pagination";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 import { StoreQuery } from "src/store/store-query";
-import { omit } from "src/type-utils";
+import { Optional, omit } from "src/type-utils";
 
 @Injectable()
 export class NotificationsService {

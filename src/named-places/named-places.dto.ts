@@ -1,4 +1,4 @@
-// import { NamedPlace as NamedPlaceI } from "@luomus/laji-schema";
+import { NamedPlace as NamedPlaceI } from "@luomus/laji-schema";
 import { Document } from "@luomus/laji-schema";
 import { IntersectionType, PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
@@ -6,20 +6,23 @@ import { PagedDto, QueryWithCollectionID, QueryWithPersonTokenDto } from "src/co
 import { Person } from "src/persons/person.dto";
 import { Private } from "src/serializing/private.decorator";
 import { CommaSeparatedIds, IsOptionalBoolean } from "src/serializing/serializing";
+import type { Geometry } from "geojson";
 
-export class NamedPlace {
+export class NamedPlace implements Omit<NamedPlaceI, "geometry" | "prepopulatedDocument" | "acceptedDocument"> {
 	id: string;
+	name: string;
+	geometry: Geometry;
 	public = false;
 	owners: string[] = [];
 	editors: string[] = [];
 	collectionID?: string;
-	prepopulatedDocument?: Document;
-	acceptedDocument?: Document;
+	prepopulatedDocument?: Partial<Document>;
+	acceptedDocument?: Partial<Document>;
 
 	alternativeIDs?: string[];
 	municipality?: string[];
 	birdAssociationArea?: string[];
-	tags?: string[];
+	tags?: NamedPlaceI["tags"];
 
 	isEditableFor(person: Person): boolean {
 		return this.owners.includes(person.id) || (this.editors?.includes(person.id));
@@ -68,3 +71,5 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). */
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }
+
+export class CreateNamedPlaceDto extends IntersectionType(GetNamedPlaceDto, QueryWithPersonTokenDto) {}

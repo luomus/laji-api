@@ -1,15 +1,47 @@
 import { Lang, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
+import { OmitType } from "@nestjs/swagger";
+
 export enum Format {
 	schema = "schema",
 	json = "json"
 }
-import { Form as FormI } from "@luomus/laji-schema";
-import { OmitType } from "@nestjs/swagger";
+
+export type PrepopulatedDocumentFieldFnJoin = {
+	fn: "join";
+	from: string;
+	delimiter?: string;
+}
+
+export type PrepopulatedDocumentFieldFnTaxon = {
+	fn: "taxon";
+	from: string;
+	taxonProp?: keyof Taxon;
+}
+
+export type PrepopulatedDocumentFieldFnArea = {
+	fn: "area";
+	from: string;
+	type?: Area["areaType"];
+	key?: keyof Area;
+	delimiter?: string;
+}
+
+export type PrepopulatedDocumentFieldFn = PrepopulatedDocumentFieldFnJoin
+	| PrepopulatedDocumentFieldFnTaxon
+	| PrepopulatedDocumentFieldFnArea;
 
 export type Form = FormI & {
 	id: string;
-	options: NonNullable<FormI["options"]>
+	options: NonNullable<FormI["options"]> & {
+		namedPlaceOptions: Omit<NonNullable<FormI["options"]>["namedPlaceOptions"], "prepopulatedDocumentFields"> &
+		{
+			prepopulatedDocumentFields?: Record<string, string | PrepopulatedDocumentFieldFn>
+		}
+	}
 };
+
+export type FormSchemaFormat = FormI & { schema: JSONSchemaObject };
 
 export type FormListing = Pick<Form,
 	"id"
@@ -20,24 +52,9 @@ export type FormListing = Pick<Form,
 	| "supportedLanguage"
 	| "category"
 	| "collectionID"
-	| "name"> & {
-	options: Pick<Form["options"],
-			"allowExcel"
-			| "allowTemplate"
-			| "dataset"
-			| "emptyOnNoCount"
-			| "forms"
-			| "excludeFromGlobalExcel"
-			| "hasAdmins"
-			| "restrictAccess"
-			| "secondaryCopy"
-			| "sidebarFormLabel"
-			| "useNamedPlaces"
-			| "viewerType"
-			| "disabled"
-			| "shortTitleFromCollectionName"> &
-		{ namedPlaceOptions: { includeUnits: boolean } }
-}
+	| "name"
+	| "options"
+>;
 
 export class GetDto {
 	format?: Format = Format.schema;
@@ -76,3 +93,51 @@ export class AcceptAccessDto {
 }
 
 export class RevokeAccessDto extends OmitType(AcceptAccessDto, ["type"]) {}
+
+// We use our own typings instead of "json-schema" package because we use only a subset of the schema,
+// and so it'll be easier to work with this subset.
+export type JSONSchema =
+	JSONSchemaObject
+	| JSONSchemaArray
+	| JSONSchemaNumber
+	| JSONSchemaInteger
+	| JSONSchemaBoolean
+	| JSONSchemaString
+	| JSONSchemaEnumOneOf;
+
+type JSONShemaTypeCommon<T, D> = {
+	type: T;
+	default?: D;
+	title?: string;
+}
+
+export type JSONSchemaObject = JSONShemaTypeCommon<"object", Record<string, unknown>> & {
+	properties: Record<string, JSONSchema>;
+	required?: string[];
+}
+
+export function isJSONSchemaObject(schema: JSONSchema): schema is JSONSchemaObject {
+	return schema.type === "object";
+}
+
+export type JSONSchemaArray = JSONShemaTypeCommon<"array", unknown[]> & {
+	items: JSONSchema;
+	uniqueItems?: boolean;
+}
+
+export type JSONSchemaNumber = JSONShemaTypeCommon<"number", number>;
+
+export type JSONSchemaInteger = JSONShemaTypeCommon<"integer", number>;
+
+export type JSONSchemaBoolean = JSONShemaTypeCommon<"boolean", boolean>;
+
+export type JSONSchemaString = JSONShemaTypeCommon<"string", string>;
+
+export type JSONSchemaEnumOneOf = JSONSchemaString & {
+	oneOf: {const: string, title: string}[];
+}
+
+export function isJSONSchemaEnumOneOf(jsonSchema: JSONSchema): jsonSchema is JSONSchemaEnumOneOf {
+	return !!(jsonSchema as any).oneOf;
+}
+

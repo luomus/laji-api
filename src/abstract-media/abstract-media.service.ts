@@ -4,7 +4,7 @@ import { TriplestoreService } from "../triplestore/triplestore.service";
 import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from "./abstract-media.dto";
 import * as _request from "request";
 import { PersonsService } from "../persons/persons.service";
-import { Person } from "../persons/person.dto";
+import { Person, Role } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
 
 const typeMediaClassMap: Record<MediaType, string> = {
@@ -76,14 +76,11 @@ export class AbstractMediaService {
 	async uploadMetadata<T extends MediaType>(
 		type: T, tempId: string, media: Media<T>, personToken: string
 	): Promise<Media<T>> {
-		let person = await this.personsService.getByToken(personToken);
-		if (personToken === this.configService.get("IMPORTER_TOKEN")) {
-			person = { ...person, id: media.uploadedBy || "" };
-		}
-
 		if (!media.intellectualRights) {
 			throw new HttpException("Intellectual rights is required", 422);
 		}
+
+		const person = await this.personsService.getByToken(personToken);
 
 		const metadata = this.newMetadata(media, person, tempId);
 		const data = await this.mediaClient.post<MetaUploadResponse[]>(
@@ -142,8 +139,12 @@ export class AbstractMediaService {
 	}
 
 	private mediaToMeta<T extends MediaType>(
-		media: Media<T>, person: Partial<Person> = {}, current: Partial<Media<T>> = {}
+		media: Media<T>, person: Person, current: Partial<Media<T>> = {}
 	): PartialMeta {
+		const uploadedBy = current.uploadedBy
+			|| person.isImporter()
+			? media.uploadedBy
+			: person.id;
 		return {
 			capturers: media.capturerVerbatim || [],
 			rightsOwner: media.intellectualOwner || "",
@@ -157,7 +158,7 @@ export class AbstractMediaService {
 			captureDateTime: this.timeToApiTime(media.captureDateTime),
 			tags: media.keyword || [],
 			documentId: current.documentURI?.[0],
-			uploadedBy: current.uploadedBy || person.id,
+			uploadedBy,
 			sourceSystem: current.sourceSystem,
 			uploadedDateTime: current.uploadDateTime,
 			sortOrder: media.sortOrder || current.sortOrder,

@@ -12,9 +12,10 @@ export const isJSONObjectSerializableOrUndefined = (v?: JSONSerializable)
 
 export type Newable<T> = { new (...args: any[]): T; };
 
-export type MaybeArray<T> = T | T[];
+export type MaybeArray<T> = T | Array<T>;
+export type MaybePromise<T> = T | Promise<T>;
 
-export const omit = <T extends object, K extends (string | number | symbol) & keyof T> (
+export const omit = <T extends object, K extends (string | number | symbol) & keyof T>(
 	obj: T,
 	...keys: K[]
 ) : Omit<T, K> => {
@@ -26,3 +27,5 @@ export const omit = <T extends object, K extends (string | number | symbol) & ke
 		return filtered;
 	}, {} as T) as Omit<T, K>;
 };
+
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<{ [K: string]: T[K] }>;

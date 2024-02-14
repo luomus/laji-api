@@ -22,8 +22,6 @@ import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter"
 import { ProxyToOldApiService } from "./proxy-to-old-api/proxy-to-old-api.service";
 import { SerializingInterceptor } from "./serializing/serializing.interceptor";
 import { StoreModule } from "./store/store.module";
-import { TriplestoreClientModule } from "./triplestore/client/triplestore-client.module";
-import { TriplestoreReadonlyClientModule } from "./triplestore/readonly-client/triplestore-readonly-client.module";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
@@ -36,6 +34,10 @@ import { ImagesModule } from "./images/images.module";
 import { AudioModule } from "./audio/audio.module";
 import { WarehouseModule } from "./warehouse/warehouse.module";
 import { NamedPlacesModule } from "./named-places/named-places.module";
+import { TaxaModule } from "./taxa/taxa.module";
+import { AreaModule } from "./area/area.module";
+import { DocumentsModule } from "./documents/documents.module";
+import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.module";
 
 @Module({
 	imports: [
@@ -69,8 +71,7 @@ import { NamedPlacesModule } from "./named-places/named-places.module";
 		LajiAuthClientModule,
 		PersonTokenModule,
 		TriplestoreModule,
-		TriplestoreClientModule,
-		TriplestoreReadonlyClientModule,
+		TriplestoreReadonlyModule,
 		ProfileModule,
 		StoreModule,
 		MetadataModule,
@@ -83,7 +84,10 @@ import { NamedPlacesModule } from "./named-places/named-places.module";
 		ImagesModule,
 		AudioModule,
 		WarehouseModule,
-		NamedPlacesModule
+		NamedPlacesModule,
+		TaxaModule,
+		AreaModule,
+		DocumentsModule
 	],
 	controllers: [AppController],
 	providers: [

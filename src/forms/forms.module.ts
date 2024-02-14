@@ -9,6 +9,7 @@ import { PersonsModule } from "src/persons/persons.module";
 import { Cache } from "cache-manager";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { CollectionsModule } from "src/collections/collections.module";
 
 const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",
@@ -27,7 +28,7 @@ const formRestClientProvider: FactoryProvider<RestClientService<Form>> = {
 };
 
 @Module({
-	imports: [HttpModule, PersonsModule, forwardRef(() => FormPermissionsModule)],
+	imports: [HttpModule, PersonsModule, forwardRef(() => FormPermissionsModule), CollectionsModule],
 	controllers: [FormsController],
 	providers: [FormsService, formRestClientProvider, formClientConfigProvider],
 	exports: [FormsService]

@@ -96,6 +96,8 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 
 * Getting existing place without edit rights returns 403 instead of 404
 * `/named-places` using `selectedFields` param doesn't automatically add 'id' to the param
+* POST `/named-places` public place without edit rights to collection gives 403, not 422
+* POST `/named-places` doesn't care about lang param
 
 ## Access token renewal
 

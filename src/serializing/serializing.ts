@@ -59,8 +59,6 @@ export const excludePrivateProps = (item: any): any => {
 export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOptions) =>
 	serializeInto(Class, options)(item);
 
-export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
-
 const optionalBooleanMapper = new Map([
 	  ["true", true],
 	  ["false", false],

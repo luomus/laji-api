@@ -3,7 +3,8 @@ import { Private } from "src/serializing/private.decorator";
 import { IsOptionalBoolean } from  "src/serializing/serializing";
 
 export enum Role {
-	Admin = "MA.admin"
+	Admin = "MA.admin",
+	Import = "_IMPORT_"
 }
 
 export class Person extends HasContext {
@@ -13,11 +14,15 @@ export class Person extends HasContext {
 	@Private() preferredName?: string;
 	@Private() lajiAuthLoginName?: string;
 	fullName?: string;
-	role?: Role[];
+	role: Role[] = [];
 	group?: string;
 	organisation?: string[];
 	organisationAdmin?: string[];
 	securePortalUserRoleExpires?: string;
+
+	isImporter() {
+		return this.role.includes(Role.Import);
+	}
 }
 
 export const decoratePerson = (person: Person): Person => {

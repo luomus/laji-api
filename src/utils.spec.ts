@@ -1,0 +1,78 @@
+import { parseJSONPointer, updateWithJSONPointer } from "./utils";
+
+describe("utils", () => {
+	const obj = {
+		"foo": ["bar", "baz"],
+		"": 0,
+		" ": 7,
+	};
+
+	// Our implementation is partial, excluding functionality that we don't use, to keep complexity small.
+	// For example, we don't care about escaping ~1, ~0 and we don't support URI Fragment Identifiers (pointer starting with #).
+	describe("parseJSONPointer", () => {
+
+		it("parses empty as whole obj", () => {
+			expect(parseJSONPointer(obj, undefined)).toBe(obj);
+		});
+
+		it("parses depth of one", () => {
+			expect(parseJSONPointer(obj, "/foo")).toStrictEqual(["bar", "baz"]);
+		});
+
+		it("parses depth of two", () => {
+			expect(parseJSONPointer(obj, "/foo/0")).toBe("bar");
+		});
+
+		it("parses / as empty string property", () => {
+			expect(parseJSONPointer(obj, "/")).toBe(0);
+		});
+
+		it("parses '/ ' to one empty space char", () => {
+			expect(parseJSONPointer(obj, "/ ")).toBe(7);
+		});
+
+		it("is validated", () => {
+			expect(() => parseJSONPointer(obj, "not/valid/pointer")).toThrowError();
+		});
+
+		it("safely option returns undefined for nonexistent property", () => {
+			expect(parseJSONPointer(obj, "/not", { safely: true })).toBe(undefined);
+		});
+
+		it("safely option returns undefined for nonexistent property deeply", () => {
+			expect(parseJSONPointer(obj, "/not/existent", { safely: true })).toBe(undefined);
+		});
+	});
+
+	describe("updateWithJSONPointer", () => {
+
+		it("updates value in path", () => {
+			const obj2 = { a: "foo" };
+			expect(updateWithJSONPointer(obj2, "/a", "bar")).toStrictEqual({ a: "bar" });
+		});
+
+		it("create option creates missing properties", () => {
+			const obj2 = {};
+			expect(updateWithJSONPointer(obj2, "/missing/property", "foo", { create: true }))
+				.toStrictEqual({ missing: { property: "foo" } });
+		});
+
+		it("create option creates missing properties deeply", () => {
+			const obj2 = {};
+			expect(updateWithJSONPointer(obj2, "/missing/property/deep", "foo", { create: true }))
+				.toStrictEqual({ missing: { property: { deep: "foo" } } });
+		});
+
+		it("create option creates array for a numeric token", () => {
+			const obj2 = {};
+			expect(updateWithJSONPointer(obj2, "/missing/0/a", "foo", { create: true }))
+				.toStrictEqual({ missing: [ { a: "foo" } ] });
+		});
+
+		it("create option creates missing properties obj for non numeric", () => {
+			const obj2 = {};
+			expect(updateWithJSONPointer(obj2, "/missing/a/b", "foo", { create: true }))
+				.toStrictEqual({ missing: { a: { b: "foo" } } });
+		});
+	});
+});
