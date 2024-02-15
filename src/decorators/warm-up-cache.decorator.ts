@@ -1,13 +1,16 @@
 import { Logger } from "@nestjs/common";
 
 /**
- * A cache solution which automatically performs the following "job" periodically:
+ * A cache solution which automatically performs the following "job" (optionally periodically):
+ *
  * * Bust memoized methods cache
  * * Warm up
  *
  * The "job" is called at initialization, so the cache is warmed up right away.
  *
- * The class must have an `warmup()` method decorated with an
+ * The class must have a `warmup()` that should call methods that warm up the memoized data.
+ *
+ * Decorate the `warmup()` with an `@Interval()` to make it update periodically.
  */
 export const WarmupCache = () => (target: any) => {
 	if (!target.prototype.warmup) {
