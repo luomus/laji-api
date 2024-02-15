@@ -3,11 +3,11 @@ import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
 import { Interval } from "@nestjs/schedule";
 import { Area } from "./area.dto";
-import { Memoize } from "../decorators/memoize.decorator";
-import { WarmupCache } from "src/decorators/warm-up-cache.decorator";
+import { IntelligentMemoize } from "../decorators/intelligent-memoize.decorator";
+import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 
 @Injectable()
-@WarmupCache()
+@IntelligentInMemoryCache()
 export class AreaService {
 
 	constructor(
@@ -23,12 +23,12 @@ export class AreaService {
 		return this.triplestoreService.find<Area>({ type: "ML.area" }, { cache: CACHE_30_MIN });
 	}
 
-	@Memoize()
+	@IntelligentMemoize()
 	async getAllDict(): Promise<Record<string, Area>> {
 		return dictionarifyByKey(await this.getAll(), "id");
 	}
 
-	@Memoize()
+	@IntelligentMemoize()
 	async getDictByType(type: Area["areaType"]) {
 		return dictionarifyByKey((await this.getAll()).filter(area => area.areaType === type), "id");
 	}

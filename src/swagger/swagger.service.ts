@@ -11,14 +11,14 @@ import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object
 import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-properties-accessor";
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
-import { WarmupCache } from "src/decorators/warm-up-cache.decorator";
-import { Memoize } from "src/decorators/memoize.decorator";
+import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
+import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 
 type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
 @Injectable()
-@WarmupCache()
+@IntelligentInMemoryCache()
 export class SwaggerService {
 
 	storeSwaggerDoc?: OpenAPIObject;
@@ -48,7 +48,7 @@ export class SwaggerService {
 	}
 
 
-	@Memoize({ length: 0 }) // Cache the result for any input document. It's identical always, just not the same instance.
+	@IntelligentMemoize({ length: 0 }) // Cache the result for any input document. It's identical always, just not the same instance.
 	memoizedPatch(document: OpenAPIObject) {
 		return pipe(document,
 			this.patchGlobalSchemaRefs,

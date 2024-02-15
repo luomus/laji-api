@@ -5,13 +5,13 @@ import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection } from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
 import { CACHE_10_MIN } from "src/utils";
-import { WarmupCache } from "src/decorators/warm-up-cache.decorator";
-import {Memoize} from "src/decorators/memoize.decorator";
+import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
+import {IntelligentMemoize} from "src/decorators/intelligent-memoize.decorator";
 
 const GBIF_DATASET_PARENT = "HR.3777";
 
 @Injectable()
-@WarmupCache()
+@IntelligentInMemoryCache()
 export class CollectionsService {
 
 	constructor(
@@ -70,7 +70,7 @@ export class CollectionsService {
 		return collections;
 	}
 
-	@Memoize()
+	@IntelligentMemoize()
 	private async getIdToCollection(): Promise<Record<string, Collection<MultiLang>>> {
 		return (await this.getAll()).reduce((idToCollection, c) => {
 			idToCollection[c.id] = c;
@@ -78,7 +78,7 @@ export class CollectionsService {
 		}, {} as Record<string, Collection<MultiLang>>);
 	}
 
-	@Memoize()
+	@IntelligentMemoize()
 	private async getIdToChildren() {
 		const idToChildren: Record<string, Collection[]> = {};
 		const collections = await this.findCollections();
@@ -88,7 +88,7 @@ export class CollectionsService {
 		return idToChildren;
 	}
 
-	@Memoize()
+	@IntelligentMemoize()
 	private async getAll(): Promise<Collection<MultiLang>[]> {
 		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
 	}

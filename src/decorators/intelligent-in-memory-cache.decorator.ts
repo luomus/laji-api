@@ -3,26 +3,23 @@ import { Logger } from "@nestjs/common";
 /**
  * A cache solution which automatically performs the following "job" (optionally periodically):
  *
- * * Bust memoized methods cache
+ * * Flush methods memoized  with `@IntelligentIntelligentMemoize()`
  * * Warm up
  *
  * The "job" is called at initialization, so the cache is warmed up right away.
  *
- * The class must have a `warmup()` that should call methods that warm up the memoized data.
+ * The class can have a `warmup()` that should call methods that warm up the memoized data.
  *
  * Decorate the `warmup()` with an `@Interval()` to make it update periodically.
  */
-export const WarmupCache = () => (target: any) => {
-	if (!target.prototype.warmup) {
-		throw new Error("WarmupAndCache doesn't do anything if the target class doesn't have an `warmup()` method!");
-	}
+export const IntelligentInMemoryCache = () => (target: any) => {
 	const logger = new Logger(target.prototype.constructor.name);
 
 	// Monkey patch the `warmup()` method to bust memoized methods.
 	const originalWarmup = target.prototype.warmup;
 	target.prototype.warmup = function() {
 		target.prototype._memoizedFns.forEach((f: any) => f.clear());
-		return originalWarmup.call(this);
+		return originalWarmup?.call(this);
 	};
 
 	// Copy decorators to the monkey patched warmup method.
