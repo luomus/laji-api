@@ -7,7 +7,7 @@ import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @ApiTags("Form")
 @LajiApiController("forms")

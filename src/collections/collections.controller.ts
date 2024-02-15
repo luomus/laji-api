@@ -5,7 +5,7 @@ import { Collection, FindCollectionsDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { FindOneDto, GetPageDto } from "../common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @LajiApiController("collections")
 @ApiTags("Collections")

@@ -1,7 +1,7 @@
 import { Delete, Get, Param } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PersonTokenService } from "./person-token.service";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @LajiApiController("person-token")
 @ApiTags("Person token")

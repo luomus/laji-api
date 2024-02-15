@@ -17,7 +17,7 @@ import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { Request, Response } from "express";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @LajiApiController("audio")
 @ApiTags("Audio")

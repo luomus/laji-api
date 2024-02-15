@@ -1,7 +1,7 @@
 import { Body, Get, Param, Post, Query, UseInterceptors } from "@nestjs/common";
 import { NamedPlacesService } from "./named-places.service";
 import { CreateNamedPlaceDto, GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace } from "./named-places.dto";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";

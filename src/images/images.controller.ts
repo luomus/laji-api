@@ -17,7 +17,7 @@ import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.
 import { Image } from "./image.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @LajiApiController("images")
 @ApiTags("Image")

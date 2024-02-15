@@ -4,7 +4,7 @@ import { QueryWithPersonTokenDto } from "src/common.dto";
 import { GetPageDto, Notification } from "./notification.dto";
 import { NotificationsService } from "./notifications.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { LajiApiController } from "src/decorators/laji-api-controller";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @LajiApiController("notifications")
 @ApiTags("Notifications")
