@@ -76,7 +76,7 @@ export class NamedPlacesService {
 			throw new HttpException("You should not specify ID when adding!", 406);
 		}
 
-		await this.validateWrite(place, personToken);
+		await this.checkWriteAccess(place, personToken);
 
 		const person = await this.personsService.getByToken(personToken);
 
@@ -92,7 +92,7 @@ export class NamedPlacesService {
 	async update(place: NamedPlace, personToken: string) {
 		const existing = await this.get(place.id, personToken);
 
-		await this.validateWrite(place, personToken);
+		await this.checkWriteAccess(place, personToken);
 
 		const person = await this.personsService.getByToken(personToken);
 
@@ -107,18 +107,18 @@ export class NamedPlacesService {
 		return this.store.update(place);
 	}
 
-	async validateWrite(place: NamedPlace, personToken: string) {
+	async checkWriteAccess(place: NamedPlace, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		if (place.collectionID) {
-			await this.formsService.validatePersonCanAccessCollectionID(place.collectionID, person);
+			await this.formsService.checkPersonCanAccessCollectionID(place.collectionID, person);
 		}
 
 		if (place.public) {
-			await this.validateEditingAsPublicAllowed(place, personToken);
+			await this.checkEditingAsPublicAllowed(place, personToken);
 		}
 	}
 
-	private async validateEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
+	private async checkEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
 		if (!collectionID) {
 			return;
 		}
@@ -137,7 +137,7 @@ export class NamedPlacesService {
 		if (!hasEditRightsOf(permissions, person)) {
 			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
-		const allowedToAddPublic = await this.formsService.findFormByCollectionIDFromHeritanceByRule(
+		const allowedToAddPublic = await this.formsService.findFromHeritanceByRule(
 			collectionID,
 			f => !!f.options.allowAddingPublicNamedPlaces
 		);

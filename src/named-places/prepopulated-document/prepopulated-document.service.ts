@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { validateHasOnlyFieldsInForm } from "src/documents/documents.service";
+import { checkHasOnlyFieldsInForm } from "src/documents/documents.service";
 import { Form, Format, PrepopulatedDocumentFieldFn, PrepopulatedDocumentFieldFnArea, PrepopulatedDocumentFieldFnJoin,
 	PrepopulatedDocumentFieldFnTaxon } from "src/forms/dto/form.dto";
 import { FormsService } from "src/forms/forms.service";
@@ -36,21 +36,21 @@ export class PrepopulatedDocumentService {
 		if (!collectionID) {
 			return;
 		}
-		const strictForm = await this.formsService.findFormByCollectionIDFromHeritanceByRule(collectionID,
+		const strictForm = await this.formsService.findFromHeritanceByRule(collectionID,
 			form => !form.options?.strict !== false // Defaults to true.
 		);
 		if (!strictForm) {
 			return;
 		}
 		const strictFormSchemaFormat = await this.formsService.get(strictForm.id, Format.schema);
-		validateHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
+		checkHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
 	}
 
 	private async assignFor(place: NamedPlace, document: Partial<Document>): Promise<void> {
 		const updateAcceptedDocument = place.collectionID
 			&& !place.prepopulatedDocument
 			&& !place.acceptedDocument
-			&& await this.formsService.findFormByCollectionIDFromHeritanceByRule(
+			&& await this.formsService.findFromHeritanceByRule(
 				place.collectionID,
 				f => !!f.options.namedPlaceOptions?.useAcceptedDocument
 			);
@@ -65,7 +65,7 @@ export class PrepopulatedDocumentService {
 			return place.prepopulatedDocument;
 		}
 
-		const form = (await this.formsService.findFormByCollectionIDFromHeritanceByRule(
+		const form = (await this.formsService.findFromHeritanceByRule(
 			place.collectionID,
 			form => !!form.options.namedPlaceOptions?.prepopulatedDocumentFields
 		)) as HasPrepopDocFields | undefined;

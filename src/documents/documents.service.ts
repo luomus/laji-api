@@ -7,7 +7,7 @@ import { Document } from "@luomus/laji-schema";
 export class DocumentsService {
 }
 
-export const validateHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSchemaFormat): void => {
+export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSchemaFormat): void => {
 	// Keys not usually listed in form fields but are always valid.
 	const metaKeys = [
 		"id", "formID", "dateCreated", "dateEdited", "creator", "editor", "type",

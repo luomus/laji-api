@@ -78,7 +78,7 @@ export class FormPermissionsService {
 	}
 
 	private async findFormWithPermissionFeature(collectionID: string): Promise<Form | undefined> {
-		return this.formService.findFormByCollectionIDFromHeritanceByRule(
+		return this.formService.findFromHeritanceByRule(
 			collectionID,
 			form => !!(form.options.restrictAccess || form.options.hasAdmins)
 		);

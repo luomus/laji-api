@@ -78,7 +78,7 @@ export class FormsService {
 	}
 
 	/** throws @HttpException */
-	async validatePersonCanAccessCollectionID(collectionID: string, person: Person): Promise<void> {
+	async checkPersonCanAccessCollectionID(collectionID: string, person: Person): Promise<void> {
 		const collectionForms = await this.findListedByCollectionID(collectionID);
 		const isDisabled = collectionForms.some(f => f?.options.disabled) || false;
 
@@ -91,7 +91,7 @@ export class FormsService {
 		}
 	}
 
-	async findFormByCollectionIDFromHeritanceByRule(collectionID: string, rule: (f: Form) => boolean)
+	async findFromHeritanceByRule(collectionID: string, rule: (f: Form) => boolean)
 		: Promise<Form | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
 		const matches = forms.find(rule);
@@ -100,7 +100,7 @@ export class FormsService {
 		}
 		const parentCollections = await this.collectionsService.getParents(collectionID);
 		for (const parentCollection of parentCollections) {
-			const matches = await this.findFormByCollectionIDFromHeritanceByRule(parentCollection.id, rule);
+			const matches = await this.findFromHeritanceByRule(parentCollection.id, rule);
 			if (matches) {
 				return matches;
 			}
