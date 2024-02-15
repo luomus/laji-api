@@ -1,28 +1,21 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
 import { Interval } from "@nestjs/schedule";
 import { Area } from "./area.dto";
+import { Memoize } from "../decorators/memoize.decorator";
+import { WarmupCache } from "src/decorators/warm-up-cache.decorator";
 
 @Injectable()
+@WarmupCache()
 export class AreaService {
+
 	constructor(
 		@Inject("TRIPLESTORE_READONLY_SERVICE") private triplestoreService: TriplestoreService,
 	) { }
 
-	private logger = new Logger(AreaService.name);
-
-	async onModuleInit() {
-		this.logger.log("Warming up areas started...");
-		this.update().then(() => {
-			this.logger.log("Warming up areas in background completed");
-		});
-	}
-
 	@Interval(CACHE_30_MIN)
-	async update() {
-		this.all = undefined;
-		this.byType = undefined;
+	async warmup() {
 		await this.getAllDict();
 	}
 
@@ -30,22 +23,13 @@ export class AreaService {
 		return this.triplestoreService.find<Area>({ type: "ML.area" }, { cache: CACHE_30_MIN });
 	}
 
-
-	private all?: Record<string, Area>;
-
+	@Memoize({ promise: true })
 	async getAllDict(): Promise<Record<string, Area>> {
-		if (!this.all) {
-			this.all = dictionarifyByKey(await this.getAll(), "id");
-		}
-		return this.all;
+		return dictionarifyByKey(await this.getAll(), "id");
 	}
 
-	private byType?: Record<string, Area>;
-
+	@Memoize({ promise: true })
 	async getDictByType(type: Area["areaType"]) {
-		if (!this.byType) {
-			this.byType = dictionarifyByKey((await this.getAll()).filter(area => area.areaType === type), "id");
-		}
-		return this.byType;
+		return dictionarifyByKey((await this.getAll()).filter(area => area.areaType === type), "id");
 	}
 }
