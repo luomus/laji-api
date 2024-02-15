@@ -83,7 +83,7 @@ export class ProfileService {
 		const updated = await this.store.update({
 			...profile, friendRequests: [...friendRequests, personId]
 		});
-		this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
+		void this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
 		return updated;
 	}
 
@@ -99,7 +99,7 @@ export class ProfileService {
 		}
 		await this.store.update(addFriend(friendProfile, personId));
 		const updated = await this.store.update(addFriend(profile, friendPersonId));
-		this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
+		void this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
 		return updated;
 
 		function addFriend(profile: Profile, friendPersonId: string) {

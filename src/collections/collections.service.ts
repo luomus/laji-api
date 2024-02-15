@@ -6,7 +6,7 @@ import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection
 import { Interval } from "@nestjs/schedule";
 import { CACHE_10_MIN } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
-import {IntelligentMemoize} from "src/decorators/intelligent-memoize.decorator";
+import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 
 const GBIF_DATASET_PARENT = "HR.3777";
 
@@ -100,7 +100,7 @@ export class CollectionsService {
 		);
 
 		const collectionIdToChildIds: Record<string, string[]> = {};
-		function putToCollectionTree (collection: TriplestoreCollection) {
+		function putToCollectionTree(collection: TriplestoreCollection) {
 			const { isPartOf } = collection;
 			if (!isPartOf) {
 				return;

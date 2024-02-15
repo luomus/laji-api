@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
-import * as  proxy from "http-proxy-middleware";
+import * as proxy from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
 
@@ -63,7 +63,7 @@ export async function bootstrap() {
 	await app.listen(port, "0.0.0.0");
 	return app;
 }
-bootstrap();
+void bootstrap();
 
 const description =
 `

@@ -11,6 +11,6 @@ export class ProxyToOldApiFilter implements ExceptionFilter {
 	async catch(exception: NotFoundException, host: ArgumentsHost) {
 		const request = host.switchToHttp().getRequest<Request>();
 		const response = host.switchToHttp().getResponse<Response>();
-		this.proxyToOldApiService.redirectToOldApi(request, response);
+		void this.proxyToOldApiService.redirectToOldApi(request, response);
 	}
 }

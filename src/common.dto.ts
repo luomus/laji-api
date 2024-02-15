@@ -1,8 +1,7 @@
-import { Transform, Type } from "class-transformer";
+import { Type } from "class-transformer";
 import { IsInt, isObject } from "class-validator";
 import { CommaSeparatedIds, IsOptionalBoolean } from "./serializing/serializing";
-import { ApiProperty, IntersectionType } from "@nestjs/swagger";
-import { applyDecorators } from "@nestjs/common";
+import { IntersectionType } from "@nestjs/swagger";
 
 export enum Lang {
 	fi = "fi",

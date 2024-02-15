@@ -3,12 +3,12 @@ import { Logger } from "@nestjs/common";
 /**
  * A cache solution which automatically performs the following "job" (optionally periodically):
  *
- * * Flush methods memoized  with `@IntelligentIntelligentMemoize()`
+ * * Flush methods memoized with `@IntelligentIntelligentMemoize()`
  * * Warm up
  *
  * The "job" is called at initialization, so the cache is warmed up right away.
  *
- * The class can have a `warmup()` that should call methods that warm up the memoized data.
+ * The class can have a `warmup()` method that should call methods that warm up the memoized data.
  *
  * Decorate the `warmup()` with an `@Interval()` to make it update periodically.
  */

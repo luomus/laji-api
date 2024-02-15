@@ -103,7 +103,7 @@ export class FormPermissionsService {
 			userID: person.id
 		});
 
-		this.sendFormPermissionRequested(person, collectionID);
+		void this.sendFormPermissionRequested(person, collectionID);
 
 		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
@@ -138,7 +138,7 @@ export class FormPermissionsService {
 		}
 
 		if (!existing) {
-			this.sendFormPermissionAccepted(customer, collectionID);
+			void this.sendFormPermissionAccepted(customer, collectionID);
 		}
 
 		return this.getByCollectionIDAndPerson(collectionID, author);
@@ -151,7 +151,7 @@ export class FormPermissionsService {
 		// has messed thing up, we make sure there's just one. No need for awaiting for this.
 		if (permissions.length > 0) {
 			for (const permission of permissions) {
-				this.store.delete(permission.id);
+				void this.store.delete(permission.id);
 			}
 		}
 		return existing;
@@ -183,7 +183,7 @@ export class FormPermissionsService {
 
 	private async sendFormPermissionRequested(person: Person, collectionID: string) {
 		const formTitle = await this.getFormTitle(collectionID);
-		this.mailService.sendFormPermissionRequested(person, { formTitle });
+		void this.mailService.sendFormPermissionRequested(person, { formTitle });
 
 		const form = await this.findFormWithPermissionFeature(collectionID);
 		if (!form) {
@@ -193,13 +193,15 @@ export class FormPermissionsService {
 		const { admins } = await this.findByCollectionID(collectionID);
 		for (const adminID of admins) {
 			const admin = await this.personsService.findByPersonId(adminID);
-			this.mailService.sendFormPermissionRequestReceived(admin, { formTitle, person: admin, formID: form.id });
+			void this.mailService.sendFormPermissionRequestReceived(
+				admin, { formTitle, person: admin, formID: form.id }
+			);
 		}
 	}
 
 	private async sendFormPermissionAccepted(person: Person, collectionID: string) {
 		const formTitle = await this.getFormTitle(collectionID);
-		this.mailService.sendFormPermissionAccepted(person, { formTitle });
+		void this.mailService.sendFormPermissionAccepted(person, { formTitle });
 	}
 
 	private async getFormTitle(collectionID: string): Promise<CompleteMultiLang> {

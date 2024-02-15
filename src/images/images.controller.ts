@@ -67,7 +67,7 @@ export class ImagesController {
 	/** Fetch large image by id */
 	@Get(":id/large.jpg")
 	findLarge(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.image, id, "largeURL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.image, id, "largeURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -75,7 +75,7 @@ export class ImagesController {
 	/** Fetch square thumbnail by id */
 	@Get(":id/square.jpg")
 	findSquare(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.image, id, "squareThumbnailURL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.image, id, "squareThumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -83,7 +83,7 @@ export class ImagesController {
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.image, id, "thumbnailURL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.image, id, "thumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}

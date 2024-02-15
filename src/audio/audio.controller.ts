@@ -69,7 +69,7 @@ export class AudioController {
 	/** Fetch mp3 by id */
 	@Get(":id/mp3")
 	findMp3(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.audio, id, "mp3URL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.audio, id, "mp3URL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -77,7 +77,7 @@ export class AudioController {
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.audio, id, "thumbnailURL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.audio, id, "thumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -85,7 +85,7 @@ export class AudioController {
 	/** Fetch wav by id */
 	@Get(":id/wav")
 	findWav(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.audio, id, "wavURL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.audio, id, "wavURL").then(url => {
 			res.redirect(url);
 		});
 	}

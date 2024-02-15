@@ -4,7 +4,7 @@ import { TriplestoreService } from "../triplestore/triplestore.service";
 import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from "./abstract-media.dto";
 import * as _request from "request";
 import { PersonsService } from "../persons/persons.service";
-import { Person, Role } from "../persons/person.dto";
+import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
 
 const typeMediaClassMap: Record<MediaType, string> = {
