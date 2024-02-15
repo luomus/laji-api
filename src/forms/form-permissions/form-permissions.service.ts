@@ -48,13 +48,11 @@ export class FormPermissionsService {
 		return entitiesToPermissionLists(await this.store.getAll({ collectionID }), "userID");
 	}
 
-	/** @throws HttpException */
 	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
 		const person = await this.personsService.getByToken(personToken);
 		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
 
-	/** @throws HttpException */
 	private async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
@@ -84,7 +82,6 @@ export class FormPermissionsService {
 		);
 	}
 
-	/** @throws HttpException */
 	async requestAccess(collectionID: string, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
@@ -108,7 +105,6 @@ export class FormPermissionsService {
 		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
 
-	/** @throws HttpException */
 	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", personToken: string) {
 		const author = await this.personsService.getByToken(personToken);
 		const customer = await this.personsService.findByPersonId(personID);

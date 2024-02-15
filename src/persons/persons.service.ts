@@ -16,7 +16,6 @@ export class PersonsService {
 		private triplestoreService: TriplestoreService
 	) {}
 
-	/** @throws HttpException */
 	async getByToken(personToken: string) {
 		if (personToken === this.configService.get("IMPORTER_TOKEN")) {
 			return ImporterPerson;

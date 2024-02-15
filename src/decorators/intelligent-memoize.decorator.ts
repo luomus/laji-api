@@ -6,8 +6,7 @@ import * as memoize from "memoizee";
  *
  * Uses the `memoizee` library for memoization. See it's docs for options.
  *
- * Options default to `{ promise: true }` - which means that async operations
- * resulting in error aren't memoized.
+ * Options default to `{ promise: true }` - which means that async operations resulting in error aren't memoized.
  */
 export function IntelligentMemoize(options: memoize.Options<any> = { promise: true }) {
 	return function(target: any, key: PropertyKey, descriptor: PropertyDescriptor) {

@@ -33,7 +33,6 @@ export class NotificationsService {
 		return this.store.create(notification);
 	}
 
-	/** @throws HttpException */
 	async findByIdAndPersonToken(id: string, personToken: string) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
 		const notification = await this.store.get(id);
@@ -43,7 +42,6 @@ export class NotificationsService {
 		return notification;
 	}
 
-	/** @throws HttpException */
 	async update(id: string, notification: Notification, personToken: string) {
 		const existing = await this.findByIdAndPersonToken(id, personToken);
 		if (!existing) {
@@ -57,7 +55,6 @@ export class NotificationsService {
 		return this.store.update(notification);
 	}
 
-	/** @throws HttpException */
 	async delete(id: string, personToken: string) {
 		const existing = await this.findByIdAndPersonToken(id, personToken);
 		if (!existing) {

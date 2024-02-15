@@ -30,11 +30,7 @@ export class ProfileService {
 		return this.getByPersonIdOrCreate(personId);
 	}
 
-	/**
-	 * Create a new profile, if person has no profile.
-	 *
-	 * @throws HttpException
-	 */
+	/** Create a new profile, if person has no profile. */
 	async createWithPersonId(personId: string, profile: Partial<Profile>): Promise<Profile> {
 		let existingProfile: Profile | undefined;
 		try {
@@ -48,10 +44,10 @@ export class ProfileService {
 		if (existingProfile) {
 			throw new HttpException("User already has a profile", 422);
 		}
+
 		return this.create(personId, profile);
 	}
 
-	/** @throws HttpException */
 	async updateWithPersonId(personId: string, profile: Partial<Profile>) {
 		const existingProfile = await this.findByPersonId(personId);
 		if (!existingProfile) {
@@ -68,7 +64,6 @@ export class ProfileService {
 		return this.store.update(nextProfile);
 	}
 
-	/** @throws HttpException */
 	async addFriendRequest(personToken: string, profileKey: string) {
 		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
 		const profile = await this.findByProfileKey(profileKey);
@@ -76,6 +71,7 @@ export class ProfileService {
 			throw new HttpException("Profile not found", 404);
 		}
 		const { friendRequests, blocked, friends, userID: friendID } = profile;
+
 		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
 			throw new HttpException("Friend request already sent", 422);
 		}
@@ -87,7 +83,6 @@ export class ProfileService {
 		return updated;
 	}
 
-	/** @throws HttpException */
 	async acceptFriendRequest(personToken: string, friendPersonId: string) {
 		await this.getByPersonId(friendPersonId);
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
@@ -97,6 +92,7 @@ export class ProfileService {
 		if (!profile.friendRequests.includes(friendPersonId)) {
 			throw new HttpException("No friend request found", 422);
 		}
+
 		await this.store.update(addFriend(friendProfile, personId));
 		const updated = await this.store.update(addFriend(profile, friendPersonId));
 		void this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
@@ -136,7 +132,6 @@ export class ProfileService {
 		return this.store.create(profile);
 	}
 
-	/** @throws HttpException */
 	private async getByPersonId(personId: string) {
 		const profile = await this.findByPersonId(personId);
 		if (!profile) {

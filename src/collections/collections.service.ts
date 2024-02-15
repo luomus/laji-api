@@ -24,7 +24,6 @@ export class CollectionsService {
 		await this.getIdToChildren();
 	}
 
-	/** @throws HttpException */
 	async get(id: string) {
 		const collection = (await this.getIdToCollection())[id];
 		if (!collection) {

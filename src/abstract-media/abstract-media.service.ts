@@ -37,7 +37,6 @@ export class AbstractMediaService {
 		);
 	}
 
-	/** @throws HttpException */
 	async get<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
 		const [result] = await this.findMedia(type, [id]);
 		if (!result) {
@@ -46,7 +45,6 @@ export class AbstractMediaService {
 		return result;
 	}
 
-	/** @throws HttpException */
 	async getURL<T extends MediaType>(type: T, id: string, urlKey: keyof Media<T>): Promise<string> {
 		const result = await this.get(type, id);
 		if (!result[urlKey]) {
@@ -55,7 +53,6 @@ export class AbstractMediaService {
 		return result[urlKey] as string;
 	}
 
-	/** @throws HttpException */
 	async getUploadProxy(type: MediaType, personToken: string): Promise<_request.Request> {
 		// Check that the person token is valid.
 		await this.personsService.getByToken(personToken);
@@ -72,7 +69,6 @@ export class AbstractMediaService {
 		});
 	}
 
-	/** @throws HttpException */
 	async uploadMetadata<T extends MediaType>(
 		type: T, tempId: string, media: Media<T>, personToken: string
 	): Promise<Media<T>> {
@@ -90,7 +86,6 @@ export class AbstractMediaService {
 		return this.get(type, data[0].id);
 	}
 
-	/** @throws HttpException */
 	async updateMetadata<T extends MediaType>(
 		type: T, id: string, media: Media<T>, personToken: string
 	): Promise<Media<T>> {
@@ -118,7 +113,6 @@ export class AbstractMediaService {
 		return this.get(type, id);
 	}
 
-	/** @throws HttpException */
 	async deleteMedia<T extends MediaType>(type: T, id: string, personToken: string): Promise<void> {
 		const person = await this.personsService.getByToken(personToken);
 		const current = await this.get(type, id);

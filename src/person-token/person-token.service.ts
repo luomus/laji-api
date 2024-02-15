@@ -21,7 +21,6 @@ export class PersonTokenService {
 		};
 	}
 
-	/** @throws HttpException */
 	async getPersonIdFromToken(personToken: string): Promise<string> {
 		const { personId } = await this.getInfo(personToken);
 		if (!personId) {
