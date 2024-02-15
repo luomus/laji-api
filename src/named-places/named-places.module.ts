@@ -5,15 +5,11 @@ import { StoreModule } from "src/store/store.module";
 import { PersonsModule } from "src/persons/persons.module";
 import { FormsModule } from "src/forms/forms.module";
 import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
-import { TaxaModule } from "src/taxa/taxa.module";
-import { AreaModule } from "src/area/area.module";
-import { LangModule } from "src/lang/lang.module";
-import { DocumentsModule } from "src/documents/documents.module";
+import { PrepopulatedDocumentModule } from "./prepopulated-document/prepopulated-document.module";
 
 @Module({
 	providers: [NamedPlacesService],
-	imports: [StoreModule, PersonsModule, FormsModule, FormPermissionsModule, TaxaModule, AreaModule, LangModule,
-		DocumentsModule],
+	imports: [StoreModule, PersonsModule, FormsModule, FormPermissionsModule, PrepopulatedDocumentModule],
 	controllers: [NamedPlacesController]
 })
 export class NamedPlacesModule {}

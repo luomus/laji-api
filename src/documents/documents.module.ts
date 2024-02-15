@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { DocumentsService } from './documents.service';
+import { Module } from "@nestjs/common";
+import { DocumentsService } from "./documents.service";
 
 @Module({
-  providers: [DocumentsService]
+	providers: [DocumentsService]
 })
 export class DocumentsModule {}

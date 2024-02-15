@@ -8,20 +8,8 @@ import { FormsService } from "src/forms/forms.service";
 import {
 	FormPermissionsService, hasEditRightsOf, isAdminOf
 } from "src/forms/form-permissions/form-permissions.service";
-import {
-	Form, PrepopulatedDocumentFieldFnArea, PrepopulatedDocumentFieldFn, PrepopulatedDocumentFieldFnJoin,
-	PrepopulatedDocumentFieldFnTaxon,
-	Format
-} from "src/forms/dto/form.dto";
-import { CACHE_1_H, asArray, parseJSONPointer, updateWithJSONPointer } from "src/utils";
-import { TaxaService } from "src/taxa/taxa.service";
-import { AreaService } from "src/area/area.service";
-import { LangService } from "src/lang/lang.service";
-import { MaybeArray } from "src/type-utils";
-import { Lang } from "src/common.dto";
-import { Taxon } from "src/taxa/taxa.dto";
-import { Document } from "@luomus/laji-schema";
-import { validateHasOnlyFieldsInForm } from "src/documents/documents.service";
+import { CACHE_1_H } from "src/utils";
+import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
 
 @Injectable()
 export class NamedPlacesService {
@@ -35,9 +23,7 @@ export class NamedPlacesService {
 		private personsService: PersonsService,
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
-		private taxaService: TaxaService,
-		private areaService: AreaService,
-		private langService: LangService,
+		private prepopulatedDocumentService: PrepopulatedDocumentService
 	) {}
 
 	async getPage(
@@ -103,79 +89,15 @@ export class NamedPlacesService {
 			place.owners.push(person.id);
 		}
 
-		const prepopulatedDocument = await this.getAugmentedPrepopulatedDocument(place);
+		const prepopulatedDocument = await this.prepopulatedDocumentService.getAugmentedFor(place);
 		if (prepopulatedDocument) {
-			await this.validatePrepopulatedDocument(prepopulatedDocument, place.collectionID);
-			await this.setAcceptedAndPrepopulatedDocumentFor(place, prepopulatedDocument);
+			await this.prepopulatedDocumentService.validate(prepopulatedDocument, place.collectionID);
+			await this.prepopulatedDocumentService.setFor(place, prepopulatedDocument);
 		}
 
 		return this.store.create(place);
 	}
 
-	private async validatePrepopulatedDocument(prepopulatedDocument: Partial<Document>, collectionID?: string) {
-		if (!collectionID) {
-			return;
-		}
-		const strictForm = await this.formsService.findFormByCollectionIDFromHeritanceByRule(collectionID,
-			form => !form.options?.strict !== false // Defaults to true.
-		);
-		if (!strictForm) {
-			return;
-		}
-		const strictFormSchemaFormat = await this.formsService.get(strictForm.id, Format.schema);
-		validateHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
-	}
-
-	private async setAcceptedAndPrepopulatedDocumentFor(place: NamedPlace, document: Partial<Document>): Promise<void> {
-		const updateAcceptedDocument = place.collectionID
-			&& !place.prepopulatedDocument
-			&& !place.acceptedDocument
-			&& await this.formsService.findFormByCollectionIDFromHeritanceByRule(
-				place.collectionID,
-				f => !!f.options.namedPlaceOptions?.useAcceptedDocument
-			);
-		place.prepopulatedDocument = document;
-		if (updateAcceptedDocument) {
-			place.acceptedDocument = document;
-		}
-	}
-
-	private async getAugmentedPrepopulatedDocument(place: NamedPlace): Promise<Partial<Document> | undefined> {
-		if (!place.collectionID) {
-			return place.prepopulatedDocument;
-		}
-
-		const form = (await this.formsService.findFormByCollectionIDFromHeritanceByRule(
-			place.collectionID,
-			form => !!form.options.namedPlaceOptions?.prepopulatedDocumentFields
-		)) as HasPrepopDocFields | undefined;
-
-		if (!form) {
-			return place.prepopulatedDocument;
-		}
-
-		const { prepopulatedDocumentFields } = form.options.namedPlaceOptions;
-		const prepopulatedDocument = place.prepopulatedDocument || {};
-		const fieldJSONPointers = Object.keys(prepopulatedDocumentFields);
-
-		for (const fieldJSONPointer of fieldJSONPointers) {
-			const fnDescriptorOrValuePointer = prepopulatedDocumentFields[fieldJSONPointer];
-			let value: unknown;
-			if (typeof fnDescriptorOrValuePointer === "string") {
-				value = parseJSONPointer(place, fnDescriptorOrValuePointer, { safely: true });
-			} else {
-				const { fn, ...params } = fnDescriptorOrValuePointer;
-				const pointedValue = parseJSONPointer(place, params.from, { safely: true });
-				if (pointedValue !== undefined) {
-					value = await this.prepopulatedDocumentFieldFns[fn](params, pointedValue);
-				}
-			}
-			if (value !== undefined) {
-				updateWithJSONPointer(prepopulatedDocument, fieldJSONPointer, value, { create: true });
-			}
-		}
-		return prepopulatedDocument;
-	}
 
 	private async checkEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
 		if (!collectionID) {
@@ -200,53 +122,5 @@ export class NamedPlacesService {
 			throw new HttpException("You cannot make public named places", 403);
 		}
 	}
-
-	private prepopulatedDocumentFieldFns: PrepopulatedDocumentFieldFnMap = {
-		join: (
-			{ delimiter = ", " },
-			pointedValue: MaybeArray<unknown>
-		) : string | undefined => {
-			return Array.isArray(pointedValue) ? pointedValue.join(delimiter) : undefined;
-		},
-		taxon: async (
-			{ taxonProp = "vernacularName" },
-			pointedValue: string
-		) : Promise<string | undefined> => {
-			const taxon = await this.langService.translate(await this.taxaService.get(pointedValue), Lang.fi);
-			const value = taxon[taxonProp as keyof Taxon];
-			return value as string;
-		},
-		area: async (
-			{ type = "ML.municipality", key = "name", delimiter = ", " },
-			pointedValue: MaybeArray<string>
-		): Promise<string | undefined> => {
-			const idToArea = await this.areaService.getDictByType(type);
-			const municipalityIds = asArray(pointedValue);
-			return (await Promise.all(
-				municipalityIds.map(id => this.langService.translate(idToArea[id], Lang.fi))
-			)).map(m => m[key]).join(delimiter);
-		}
-	};
 }
 
-type PrepopulatedDocumentFieldFnParams<T> =
-	T extends "taxon" ? PrepopulatedDocumentFieldFnTaxon :
-	T extends "area" ? PrepopulatedDocumentFieldFnArea :
-	PrepopulatedDocumentFieldFnJoin;
-
-type PrepopulatedDocumentFieldFnMap = {
-	[fnName in PrepopulatedDocumentFieldFn["fn"]]: (
-		params: Omit<PrepopulatedDocumentFieldFnParams<fnName>, "fn">, pointedValue: unknown
-	) => string | undefined | Promise<string | undefined>
-}
-
-type HasPrepopDocFields = {
-	options: Form["options"]
-		& {
-			namedPlaceOptions: NonNullable<Form["options"]["namedPlaceOptions"]> &
-			{
-				prepopulatedDocumentFields:
-					NonNullable<Form["options"]["namedPlaceOptions"]["prepopulatedDocumentFields"]>
-			}
-		}
-}
