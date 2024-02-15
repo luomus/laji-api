@@ -52,6 +52,7 @@ module.exports = {
 			}
 		],
 		"@typescript-eslint/space-infix-ops": 2,
-		"semi": 2
+		"semi": 2,
+		"@typescript-eslint/no-floating-promises": 2
   },
 };
