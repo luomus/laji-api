@@ -82,7 +82,7 @@ export class NamedPlacesService {
 		}
 
 		if (place.public) {
-			this.checkEditingAsPublicAllowed(place, personToken);
+			this.validateEditingAsPublicAllowed(place, personToken);
 		}
 
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
@@ -98,26 +98,29 @@ export class NamedPlacesService {
 		return this.store.create(place);
 	}
 
-
-	private async checkEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
+	private async validateEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
 		if (!collectionID) {
 			return;
 		}
+
 		const permissions = await this.formPermissionsService.getByCollectionIDAndPersonToken(
 			collectionID,
 			personToken
 		);
 		const person = await this.personsService.getByToken(personToken);
 		const isAdmin = isAdminOf(permissions, person);
+
 		if (isAdmin) {
 			return;
 		}
-		const hasEditRights = hasEditRightsOf(permissions, person);
-		if (!hasEditRights) {
+
+		if (!hasEditRightsOf(permissions, person)) {
 			throw new HttpException("You cannot make public named places", 403);
 		}
-		const forms = await this.formsService.findListedByCollectionID(collectionID);
-		const allowedToAddPublic = forms.find(f => f.options.allowAddingPublicNamedPlaces);
+		const allowedToAddPublic = await this.formsService.findFormByCollectionIDFromHeritanceByRule(
+			collectionID,
+			f => !!f.options.allowAddingPublicNamedPlaces
+		);
 		if (!allowedToAddPublic) {
 			throw new HttpException("You cannot make public named places", 403);
 		}
