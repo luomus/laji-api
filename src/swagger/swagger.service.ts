@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, Type } from "@nestjs/common";
+import { Inject, Injectable, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, pipe, whitelistKeys } from "src/utils";
@@ -11,18 +11,18 @@ import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object
 import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-properties-accessor";
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
+import { WarmupCache } from "src/decorators/warm-up-cache.decorator";
+import { Memoize } from "src/decorators/memoize.decorator";
 
 type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
 @Injectable()
+@WarmupCache()
 export class SwaggerService {
 
 	storeSwaggerDoc?: OpenAPIObject;
 	warehouseSwaggerDoc?: OpenAPIObject;
-	cachedPatchedDoc?: OpenAPIObject;
-
-	private logger = new Logger(SwaggerService.name);
 
 	constructor(
 		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
@@ -33,18 +33,10 @@ export class SwaggerService {
 		this.patchWarehouse = this.patchWarehouse.bind(this);
 	}
 
-	onModuleInit() {
-		this.logger.log("Loading remote sources for patching Swagger in background started...");
-		this.update().then(() => {
-			this.logger.log("Loading remote sources for patching Swagger in background complete");
-		});
-	}
-
 	@Interval(CACHE_30_MIN)
-	async update() {
+	async warmup() {
 		this.storeSwaggerDoc = await this.storeClient.get("documentation-json");
 		this.warehouseSwaggerDoc = await this.warehouseClient.get("openapi-v3.json");
-		this.cachedPatchedDoc = undefined;
 	}
 
 	patch(document: OpenAPIObject) {
@@ -52,16 +44,17 @@ export class SwaggerService {
 			throw new Error("Remote swagger docs weren't loaded yet. Try again soon.");
 		}
 
-		if (this.cachedPatchedDoc) {
-			return this.cachedPatchedDoc;
-		}
+		return this.memoizedPatch(document);
+	}
 
-		this.cachedPatchedDoc = pipe(document,
+
+	@Memoize({ length: 0 }) // Cache the result for any input document. It's identical always, just not the same instance.
+	memoizedPatch(document: OpenAPIObject) {
+		return pipe(document,
 			this.patchGlobalSchemaRefs,
 			this.patchWarehouse,
 			this.patchRemoteRefs
 		);
-		return this.cachedPatchedDoc;
 	}
 
 	private patchGlobalSchemaRefs(document: OpenAPIObject) {

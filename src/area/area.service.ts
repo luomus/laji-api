@@ -23,12 +23,12 @@ export class AreaService {
 		return this.triplestoreService.find<Area>({ type: "ML.area" }, { cache: CACHE_30_MIN });
 	}
 
-	@Memoize({ promise: true })
+	@Memoize()
 	async getAllDict(): Promise<Record<string, Area>> {
 		return dictionarifyByKey(await this.getAll(), "id");
 	}
 
-	@Memoize({ promise: true })
+	@Memoize()
 	async getDictByType(type: Area["areaType"]) {
 		return dictionarifyByKey((await this.getAll()).filter(area => area.areaType === type), "id");
 	}

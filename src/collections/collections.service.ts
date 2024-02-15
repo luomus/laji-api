@@ -1,39 +1,26 @@
-import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { LANGS, MultiLang } from "src/common.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection } from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
 import { CACHE_10_MIN } from "src/utils";
+import { WarmupCache } from "src/decorators/warm-up-cache.decorator";
+import {Memoize} from "src/decorators/memoize.decorator";
 
 const GBIF_DATASET_PARENT = "HR.3777";
 
 @Injectable()
+@WarmupCache()
 export class CollectionsService {
-
-	private logger = new Logger(CollectionsService.name);
 
 	constructor(
 		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService,
 		private triplestoreService: TriplestoreService
 	) { }
 
-	async onModuleInit() {
-		this.logger.log("Warming up collections started...");
-		this.update().then(() => {
-			this.logger.log("Warming up collections in background completed");
-		});
-	}
-
-	private collections: Collection[] | undefined;
-	private idToCollection: Record<string, Collection> | undefined;
-	private idToChildren: Record<string, Collection[]> | undefined;
-
 	@Interval(CACHE_10_MIN)
-	async update() {
-		this.collections = undefined;
-		this.idToCollection = undefined;
-		this.idToChildren = undefined;
+	async warmup() {
 		await this.getIdToChildren();
 	}
 
@@ -83,40 +70,27 @@ export class CollectionsService {
 		return collections;
 	}
 
+	@Memoize()
 	private async getIdToCollection(): Promise<Record<string, Collection<MultiLang>>> {
-		const cached = this.idToCollection;
-		if (cached) {
-			return cached;
-		}
-
-		const idToCollection = (await this.getAll()).reduce((idToCollection, c) => {
+		return (await this.getAll()).reduce((idToCollection, c) => {
 			idToCollection[c.id] = c;
 			return idToCollection;
 		}, {} as Record<string, Collection<MultiLang>>);
-		this.idToCollection = idToCollection;
-		return idToCollection;
 	}
 
+	@Memoize()
 	private async getIdToChildren() {
-		const cached = this.idToChildren;
-		if (cached) {
-			return cached;
-		}
-		this.idToChildren = {};
+		const idToChildren: Record<string, Collection[]> = {};
 		const collections = await this.findCollections();
 		for (const c of collections) {
-			this.idToChildren[c.id] = collections.filter(collection => collection.isPartOf === c.id);
+			idToChildren[c.id] = collections.filter(collection => collection.isPartOf === c.id);
 		}
-		return this.idToChildren;
+		return idToChildren;
 	}
 
+	@Memoize()
 	private async getAll(): Promise<Collection<MultiLang>[]> {
-		const cached = this.collections;
-		if (cached) {
-			return cached;
-		}
-		this.collections = (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
-		return this.collections;
+		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
 	}
 
 	private async getTriplestoreCollections(): Promise<Collection<MultiLang>[]> {
