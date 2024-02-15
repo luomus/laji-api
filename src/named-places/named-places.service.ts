@@ -137,9 +137,9 @@ export class NamedPlacesService {
 		if (!hasEditRightsOf(permissions, person)) {
 			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
-		const allowedToAddPublic = await this.formsService.findFromHeritanceByRule(
+		const allowedToAddPublic = await this.formsService.findFor(
 			collectionID,
-			f => !!f.options.allowAddingPublicNamedPlaces
+			f => f.options.allowAddingPublicNamedPlaces
 		);
 		if (!allowedToAddPublic) {
 			throw new HttpException("Adding public places for this collection isn't allowed", 403);

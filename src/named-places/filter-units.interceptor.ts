@@ -20,8 +20,8 @@ export class FilterUnitsInterceptor implements NestInterceptor {
 	private async filterUnits(place: NamedPlace, includeUnits: boolean): Promise<NamedPlace | NamedPlaceUnitsFiltered> {
 		const shouldIncludeUnits = includeUnits
 			&& place.collectionID
-			&& await this.formsService.findFromHeritanceByRule(place.collectionID,
-				f => !!f.options.namedPlaceOptions?.includeUnits
+			&& await this.formsService.findFor(place.collectionID,
+				f => f.options.namedPlaceOptions?.includeUnits
 			);
 
 		return shouldIncludeUnits

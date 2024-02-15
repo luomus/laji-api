@@ -91,16 +91,17 @@ export class FormsService {
 		}
 	}
 
-	async findFromHeritanceByRule(collectionID: string, rule: (f: Form) => boolean)
+	/** Use Array.*find* *for the collection* and it's parents */
+	async findFor(collectionID: string, predicate: (f: Form) => unknown)
 		: Promise<Form | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
-		const matches = forms.find(rule);
+		const matches = forms.find(predicate);
 		if (matches) {
 			return matches;
 		}
 		const parentCollections = await this.collectionsService.getParents(collectionID);
 		for (const parentCollection of parentCollections) {
-			const matches = await this.findFromHeritanceByRule(parentCollection.id, rule);
+			const matches = await this.findFor(parentCollection.id, predicate);
 			if (matches) {
 				return matches;
 			}

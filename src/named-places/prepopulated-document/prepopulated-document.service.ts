@@ -36,8 +36,8 @@ export class PrepopulatedDocumentService {
 		if (!collectionID) {
 			return;
 		}
-		const strictForm = await this.formsService.findFromHeritanceByRule(collectionID,
-			form => !form.options?.strict !== false // Defaults to true.
+		const strictForm = await this.formsService.findFor(collectionID,
+			form => form.options?.strict !== false // Defaults to true.
 		);
 		if (!strictForm) {
 			return;
@@ -50,9 +50,9 @@ export class PrepopulatedDocumentService {
 		const updateAcceptedDocument = place.collectionID
 			&& !place.prepopulatedDocument
 			&& !place.acceptedDocument
-			&& await this.formsService.findFromHeritanceByRule(
+			&& await this.formsService.findFor(
 				place.collectionID,
-				f => !!f.options.namedPlaceOptions?.useAcceptedDocument
+				f => f.options.namedPlaceOptions?.useAcceptedDocument
 			);
 		place.prepopulatedDocument = document;
 		if (updateAcceptedDocument) {
@@ -65,9 +65,9 @@ export class PrepopulatedDocumentService {
 			return place.prepopulatedDocument;
 		}
 
-		const form = (await this.formsService.findFromHeritanceByRule(
+		const form = (await this.formsService.findFor(
 			place.collectionID,
-			form => !!form.options.namedPlaceOptions?.prepopulatedDocumentFields
+			form => form.options.namedPlaceOptions?.prepopulatedDocumentFields
 		)) as HasPrepopDocFields | undefined;
 
 		if (!form) {
