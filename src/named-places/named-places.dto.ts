@@ -1,6 +1,6 @@
 import { NamedPlace as NamedPlaceI } from "@luomus/laji-schema";
 import { Document } from "@luomus/laji-schema";
-import { IntersectionType, PartialType } from "@nestjs/swagger";
+import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { PagedDto, QueryWithCollectionID, QueryWithPersonTokenDto } from "src/common.dto";
 import { Person } from "src/persons/person.dto";
@@ -14,6 +14,7 @@ export class NamedPlace implements Omit<NamedPlaceI, "geometry" | "prepopulatedD
 	geometry: Geometry;
 	public = false;
 	owners: string[] = [];
+	/** Read access, not edit access */
 	editors: string[] = [];
 	collectionID?: string;
 	prepopulatedDocument?: Partial<Document>;
@@ -61,7 +62,7 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	@CommaSeparatedIds() municipality?: string[];
 	/** bird association area code */
 	@CommaSeparatedIds() birdAssociationArea?: string[];
-
+	/** Return only selected fields per place. Multiple values are separated by a comma (,). */
 	@CommaSeparatedIds() selectedFields?: (keyof NamedPlace)[];
 	@CommaSeparatedIds() taxonIDs?: string[];
 	/** Filter by tags. Multiple values are separated by a comma (,). */
@@ -72,4 +73,6 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }
 
-export class CreateNamedPlaceDto extends IntersectionType(GetNamedPlaceDto, QueryWithPersonTokenDto) {}
+export class CreateNamedPlaceDto extends IntersectionType(
+	OmitType(GetNamedPlaceDto, ["includeUnits"]),
+	QueryWithPersonTokenDto) {}

@@ -76,26 +76,46 @@ export class NamedPlacesService {
 			throw new HttpException("You should not specify ID when adding!", 406);
 		}
 
-		const person = await this.personsService.getByToken(personToken);
-		if (place.collectionID) {
-			await this.formsService.checkPersonCanAccessCollectionID(place.collectionID, person);
-		}
+		await this.validateWrite(place, personToken);
 
-		if (place.public) {
-			this.validateEditingAsPublicAllowed(place, personToken);
-		}
+		const person = await this.personsService.getByToken(personToken);
 
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
 			place.owners.push(person.id);
 		}
 
-		const prepopulatedDocument = await this.prepopulatedDocumentService.getAugmentedFor(place);
-		if (prepopulatedDocument) {
-			await this.prepopulatedDocumentService.validate(prepopulatedDocument, place.collectionID);
-			await this.prepopulatedDocumentService.setFor(place, prepopulatedDocument);
-		}
+		await this.prepopulatedDocumentService.augment(place);
 
 		return this.store.create(place);
+	}
+
+	async update(place: NamedPlace, personToken: string) {
+		const existing = await this.get(place.id, personToken);
+
+		await this.validateWrite(place, personToken);
+
+		const person = await this.personsService.getByToken(personToken);
+
+		if (!person.isImporter()
+			&& existing.owners.includes(person.id)
+			&& !place.owners.includes(person.id)
+		) {
+			place.owners.push(person.id);
+		}
+
+		await this.prepopulatedDocumentService.augment(place);
+		return this.store.update(place);
+	}
+
+	async validateWrite(place: NamedPlace, personToken: string) {
+		const person = await this.personsService.getByToken(personToken);
+		if (place.collectionID) {
+			await this.formsService.validatePersonCanAccessCollectionID(place.collectionID, person);
+		}
+
+		if (place.public) {
+			await this.validateEditingAsPublicAllowed(place, personToken);
+		}
 	}
 
 	private async validateEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
@@ -115,15 +135,14 @@ export class NamedPlacesService {
 		}
 
 		if (!hasEditRightsOf(permissions, person)) {
-			throw new HttpException("You cannot make public named places", 403);
+			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
 		const allowedToAddPublic = await this.formsService.findFormByCollectionIDFromHeritanceByRule(
 			collectionID,
 			f => !!f.options.allowAddingPublicNamedPlaces
 		);
 		if (!allowedToAddPublic) {
-			throw new HttpException("You cannot make public named places", 403);
+			throw new HttpException("Adding public places for this collection isn't allowed", 403);
 		}
 	}
 }
-

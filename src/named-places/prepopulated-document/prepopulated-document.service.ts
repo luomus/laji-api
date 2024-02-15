@@ -23,7 +23,16 @@ export class PrepopulatedDocumentService {
 		private areaService: AreaService
 	) { }
 
-	async validate(prepopulatedDocument: Partial<Document>, collectionID?: string) {
+
+	async augment(place: NamedPlace) {
+		const prepopulatedDocument = await this.getAugmentedFor(place);
+		if (prepopulatedDocument) {
+			await this.validate(prepopulatedDocument, place.collectionID);
+			await this.assignFor(place, prepopulatedDocument);
+		}
+	}
+
+	private async validate(prepopulatedDocument: Partial<Document>, collectionID?: string) {
 		if (!collectionID) {
 			return;
 		}
@@ -37,7 +46,7 @@ export class PrepopulatedDocumentService {
 		validateHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
 	}
 
-	async setFor(place: NamedPlace, document: Partial<Document>): Promise<void> {
+	private async assignFor(place: NamedPlace, document: Partial<Document>): Promise<void> {
 		const updateAcceptedDocument = place.collectionID
 			&& !place.prepopulatedDocument
 			&& !place.acceptedDocument
@@ -51,7 +60,7 @@ export class PrepopulatedDocumentService {
 		}
 	}
 
-	async getAugmentedFor(place: NamedPlace): Promise<Partial<Document> | undefined> {
+	private async getAugmentedFor(place: NamedPlace): Promise<Partial<Document> | undefined> {
 		if (!place.collectionID) {
 			return place.prepopulatedDocument;
 		}

@@ -1,4 +1,4 @@
-import { Body, Get, Param, Post, Query, UseInterceptors } from "@nestjs/common";
+import { Body, Get, Param, Post, Put, Query, UseInterceptors } from "@nestjs/common";
 import { NamedPlacesService } from "./named-places.service";
 import { CreateNamedPlaceDto, GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace } from "./named-places.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -42,6 +42,13 @@ export class NamedPlacesController {
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
 	create(@Body() place: NamedPlace, @Query() { personToken }: CreateNamedPlaceDto): Promise<NamedPlace>  {
 		return this.namedPlacesService.create(place, personToken);
+	}
+
+	/** Update an existing named place */
+	@Put()
+	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
+	update(@Body() place: NamedPlace, @Query() { personToken }: CreateNamedPlaceDto): Promise<NamedPlace>  {
+		return this.namedPlacesService.update(place, personToken);
 	}
 
 	/** Get a named place by id */

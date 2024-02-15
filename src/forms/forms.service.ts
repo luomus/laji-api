@@ -78,7 +78,7 @@ export class FormsService {
 	}
 
 	/** throws @HttpException */
-	async checkPersonCanAccessCollectionID(collectionID: string, person: Person): Promise<void> {
+	async validatePersonCanAccessCollectionID(collectionID: string, person: Person): Promise<void> {
 		const collectionForms = await this.findListedByCollectionID(collectionID);
 		const isDisabled = collectionForms.some(f => f?.options.disabled) || false;
 
