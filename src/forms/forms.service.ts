@@ -6,32 +6,6 @@ import { Lang } from "src/common.dto";
 import { Person, Role } from "src/persons/person.dto";
 import { CollectionsService } from "src/collections/collections.service";
 
-
-function f(a: string, b: true): string
-function f(a: string, b: false): number
-function f(a: string, b?: boolean): string | number
-function f(a: string, b?: boolean): string | number {
-	return 1 as any;
-}
-
-f("a");
-
-function getti(id: string, format: Format.json, lang?: Lang, expand?: boolean): Promise<Form>
-function getti(id: string, format: Format.schema, lang?: Lang, expand?: boolean): Promise<FormSchemaFormat>
-function getti(id: string, format?: Format, lang?: Lang, expand?: boolean): Promise<Form | FormSchemaFormat>
-function getti(id: string, format: Format = Format.json, lang: Lang = Lang.en, expand = true)
-	: Promise<Form | FormSchemaFormat> {
-	return {} as any;
-	// return this.formClient.get(id, { params: {
-	// 	format,
-	// 	lang: formatLangParam(lang),
-	// 	expand
-	// } }, { cache: CACHE_1_MIN }
-	// );
-}
-
-getti("moi");
-
 @Injectable()
 export class FormsService {
 	constructor(
@@ -91,7 +65,7 @@ export class FormsService {
 		}
 	}
 
-	/** Use Array.*find* *for the collection* and it's parents */
+	/** Use Array.*find* *for the collection* and it's parents with the *predicate* */
 	async findFor(collectionID: string, predicate: (f: Form) => unknown)
 		: Promise<Form | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
