@@ -1,12 +1,13 @@
-import { Body, Get, Param, Post, Put, Query, UseInterceptors } from "@nestjs/common";
+import { Body, Delete, Get, Param, Post, Put, Query, UseInterceptors } from "@nestjs/common";
 import { NamedPlacesService } from "./named-places.service";
-import { CreateNamedPlaceDto, GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace } from "./named-places.dto";
+import { GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace } from "./named-places.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serializing/serializing";
 import { PaginatedDto } from "src/pagination";
+import { QueryWithPersonTokenDto } from "src/common.dto";
 
 @ApiTags("Named places")
 @LajiApiController("named-places")
@@ -37,20 +38,6 @@ export class NamedPlacesController {
 		);
 	}
 
-	/** Create a new named place */
-	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
-	create(@Body() place: NamedPlace, @Query() { personToken }: CreateNamedPlaceDto): Promise<NamedPlace>  {
-		return this.namedPlacesService.create(place, personToken);
-	}
-
-	/** Update an existing named place */
-	@Put()
-	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
-	update(@Body() place: NamedPlace, @Query() { personToken }: CreateNamedPlaceDto): Promise<NamedPlace>  {
-		return this.namedPlacesService.update(place, personToken);
-	}
-
 	/** Get a named place by id */
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
@@ -59,4 +46,27 @@ export class NamedPlacesController {
 		return this.namedPlacesService.get(id, personToken);
 	}
 
+	/** Create a new named place */
+	@Post()
+	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
+	create(@Body() place: NamedPlace, @Query() { personToken }: QueryWithPersonTokenDto): Promise<NamedPlace>  {
+		return this.namedPlacesService.create(place, personToken);
+	}
+
+	/** Update an existing named place */
+	@Put()
+	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
+	update(
+		@Param("id") id: string,
+		@Body() place: NamedPlace,
+		@Query() { personToken }: QueryWithPersonTokenDto
+	): Promise<NamedPlace>  {
+		return this.namedPlacesService.update(id, place, personToken);
+	}
+
+	/** Delete a named place */
+	@Delete(":id")
+	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto): Promise<NamedPlace>  {
+		return this.namedPlacesService.delete(id, personToken);
+	}
 }

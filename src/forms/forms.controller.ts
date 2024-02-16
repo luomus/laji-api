@@ -96,7 +96,7 @@ export class FormsController {
 	@Delete(":id")
 	@UseGuards(IctAdminGuard)
 	remove(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.formsService.remove(id, personToken);
+		return this.formsService.delete(id, personToken);
 	}
 
 	/** Get preview of form transformed from json format to schema format */

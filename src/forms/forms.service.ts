@@ -39,7 +39,7 @@ export class FormsService {
 		return this.formClient.put(id, form, { params: { personToken } });
 	}
 
-	remove(id: string, personToken: string) {
+	delete(id: string, personToken: string) {
 		return this.formClient.delete(id, { params: { personToken } });
 	}
 

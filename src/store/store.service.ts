@@ -1,8 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { RestClientService, LajiApiOptions }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
-import { omit } from "src/type-utils";
+import { MaybeArray, omit } from "src/type-utils";
 import { parseQuery, StoreQuery } from "./store-query";
+import { asArray } from "src/utils";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -18,14 +19,14 @@ export class StoreService {
 	constructor(@Inject("STORE_REST_CLIENT") private storeRestClient: RestClientService) {}
 
 	private getPageWith = <T>(resource: string, options?: Omit<LajiApiOptions<any>, "serializeInto">) =>
-		(query: StoreQuery<T>, page = 1, pageSize = 20, selectedFields: (keyof T)[] = []) => {
+		(query: StoreQuery<T>, page = 1, pageSize = 20, selectedFields: MaybeArray<(keyof T)> = []) => {
 			return this.storeRestClient.get<StoreQueryResult<T>>(
 				resource,
 				{ params: {
 					q: parseQuery<T>(query),
 					page,
 					page_size: pageSize,
-					fields: selectedFields.join(",")
+					fields: asArray(selectedFields).join(",")
 				} },
 				options
 			);
@@ -90,8 +91,11 @@ export class StoreService {
 		/** The result won't be serialized for performance reasons. */
 		getAll: this.getAllWith<T>(resource, options ? omit(options, "serializeInto") : undefined),
 
-		findOne: async (query: StoreQuery<T>) =>
-			RestClientService.applyOptions((await this.getPageWith<T>(resource)(query, 1, 1)).member[0], options),
+		findOne: async (query: StoreQuery<T>, selectedFields?: MaybeArray<keyof T>) =>
+			RestClientService.applyOptions(
+				(await this.getPageWith<T>(resource)(query, 1, 1, selectedFields)).member[0],
+				options
+			),
 
 		get: this.getWith<T>(resource, options),
 

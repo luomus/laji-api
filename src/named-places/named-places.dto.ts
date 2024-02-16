@@ -72,7 +72,3 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). */
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }
-
-export class CreateNamedPlaceDto extends IntersectionType(
-	OmitType(GetNamedPlaceDto, ["includeUnits"]),
-	QueryWithPersonTokenDto) {}

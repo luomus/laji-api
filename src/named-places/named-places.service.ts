@@ -10,6 +10,7 @@ import {
 } from "src/forms/form-permissions/form-permissions.service";
 import { CACHE_1_H } from "src/utils";
 import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
+import { DocumentsService } from "src/documents/documents.service";
 
 @Injectable()
 export class NamedPlacesService {
@@ -23,7 +24,8 @@ export class NamedPlacesService {
 		private personsService: PersonsService,
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
-		private prepopulatedDocumentService: PrepopulatedDocumentService
+		private prepopulatedDocumentService: PrepopulatedDocumentService,
+		private documentService: DocumentsService
 	) {}
 
 	async getPage(
@@ -89,10 +91,10 @@ export class NamedPlacesService {
 		return this.store.create(place);
 	}
 
-	async update(place: NamedPlace, personToken: string) {
-		const existing = await this.get(place.id, personToken);
+	async update(id: string, place: NamedPlace, personToken: string) {
+		const existing = await this.get(id, personToken);
 
-		await this.checkWriteAccess(place, personToken);
+		await this.checkWriteAccess(existing, personToken);
 
 		const person = await this.personsService.getByToken(personToken);
 
@@ -105,6 +107,20 @@ export class NamedPlacesService {
 
 		await this.prepopulatedDocumentService.augment(place);
 		return this.store.update(place);
+	}
+
+	async delete(id: string, personToken: string) {
+		const existing = await this.get(id, personToken);
+		await this.checkWriteAccess(existing, personToken);
+
+		if (existing.public) {
+			const hasDocuments = !!(await this.documentService.findOne({ namedPlaceID: id }, "id"));
+			if (hasDocuments) {
+				throw new HttpException("Can't delete public place that has documents", 422);
+			}
+		}
+
+		return this.store.delete(id);
 	}
 
 	async checkWriteAccess(place: NamedPlace, personToken: string) {
