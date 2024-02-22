@@ -70,7 +70,7 @@ export const IsOptionalBoolean = () => applyDecorators(
 	Transform(({ value }) => optionalBooleanMapper.get(value)),
 );
 
-export const CommaSeparatedIds = () => applyDecorators(
+export const CommaSeparatedStrings = () => applyDecorators(
 	Transform(({ value }: { value: string }) => value.split(",").filter(id => !!id)),
 	ApiProperty({ type: String, required: false })
 );
@@ -84,11 +84,7 @@ export const pickAsExposed = <T, K extends (string | symbol) & keyof T>
 	return Picked as Pick<T, K> & Newable<Pick<T, K>>;
 };
 
-// export const safeQuery
-
-/** Serializes the instance into the given class filtering all non defined values.
- *
- */
+/** Serializes the instance into the given class filtering all non defined values. */
 export const pickAndSerialize = <T, K extends (string | symbol) & keyof T>(
 	serializeInto: Newable<T>,
 	instance: any,

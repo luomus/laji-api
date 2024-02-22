@@ -6,7 +6,7 @@ import { CACHE_1_MIN } from "src/utils";
 import { storePageAdapter } from "src/pagination";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
-import { StoreQuery } from "src/store/store-query";
+import { Query } from "src/store/store-query";
 import { Optional, omit } from "src/type-utils";
 
 @Injectable()
@@ -20,7 +20,7 @@ export class NotificationsService {
 
 	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize = 20) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const query: StoreQuery<Notification>  = { toPerson: personId };
+		const query: Query<Notification>  = { toPerson: personId };
 		if (onlyUnseen) {
 			query.seen = false;
 		}

@@ -3,7 +3,7 @@ import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { storePageAdapter } from "src/pagination";
-import { or, and, StoreQuery, LiteralMap } from "src/store/store-query";
+import { or, and, not, exists, Query, QueryLiteralMap } from "src/store/store-query";
 import { FormsService } from "src/forms/forms.service";
 import {
 	FormPermissionsService, hasEditRightsOf, isAdminOf
@@ -11,12 +11,13 @@ import {
 import { CACHE_1_H } from "src/utils";
 import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
 import { DocumentsService } from "src/documents/documents.service";
+import { CollectionsService } from "src/collections/collections.service";
 
 @Injectable()
 export class NamedPlacesService {
 
 	private store = this.storeService.forResource<NamedPlace>("namedPlace", {
-		serializeInto: NamedPlace, cache: CACHE_1_H * 6
+		serializeInto: NamedPlace, cache: CACHE_1_H * 6,
 	});
 
 	constructor(
@@ -25,18 +26,23 @@ export class NamedPlacesService {
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
 		private prepopulatedDocumentService: PrepopulatedDocumentService,
-		private documentService: DocumentsService
+		private documentService: DocumentsService,
+		private collectionsService: CollectionsService
 	) {}
 
 	async getPage(
-		query: LiteralMap<NamedPlace, "AND">,
+		query: QueryLiteralMap<NamedPlace, "AND">,
 		personToken?: string,
 		includePublic?: boolean,
 		page?: number,
 		pageSize = 20,
 		selectedFields?: (keyof NamedPlace)[]
 	) {
-		let storeQuery: StoreQuery<NamedPlace>;
+		if (typeof query.collectionID === "string") {
+			query.collectionID = await this.getCollectionIDs(query.collectionID);
+		}
+
+		let storeQuery: Query<NamedPlace>;
 
 		if (personToken) {
 			const person = await this.personsService.getByToken(personToken);
@@ -50,7 +56,16 @@ export class NamedPlacesService {
 			storeQuery = query;
 		}
 
+		if (!query.collectionID && !query.id) {
+			storeQuery = and(storeQuery, not<NamedPlace>({ collectionID: exists }));
+		}
+
 		return storePageAdapter(await this.store.getPage(storeQuery, page, pageSize, selectedFields));
+	}
+
+	private async getCollectionIDs(collectionID: string) {
+		const children = (await this.collectionsService.findChildren(collectionID)).map(c => c.id);
+		return [ collectionID, ...children ];
 	}
 
 	async get(id: string, personToken?: string) {

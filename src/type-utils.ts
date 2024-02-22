@@ -1,8 +1,9 @@
+/** Is what you would intuitively call an object. That is, it has typeof 'object' but excluding `Array` and `null`. */
 export const isObject = (any: unknown): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;
 
 export type JSONSerializable = string | number | boolean | null | JSONObjectSerializable | JSONSerializable[];
-export type JSONObjectSerializable = { [prop: string]: JSONSerializable };
+export type JSONObjectSerializable<T = any> = { [prop in keyof T & string]: JSONSerializable };
 
 export const isJSONObjectSerializable = (json?: JSONSerializable): json is JSONObjectSerializable => isObject(json);
 
@@ -12,6 +13,7 @@ export const isJSONObjectSerializableOrUndefined = (v?: JSONSerializable)
 
 export type Newable<T> = { new (...args: any[]): T; };
 
+export type Flatten<T> = T extends any[] ? T[number] : T;
 export type MaybeArray<T> = T | Array<T>;
 export type MaybePromise<T> = T | Promise<T>;
 

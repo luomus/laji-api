@@ -1,94 +1,141 @@
-import { parseQuery, and, or } from "./store-query";
+import { parseQuery, and, or, exists, not } from "./store-query";
+
+type Schema = { foo: string | boolean | number, bar: boolean, baz: number, barbabar: number };
 
 describe("parseQuery", () => {
 	it("surrounds string with quotes", () => {
-		expect(parseQuery<any>({ foo: "a" })).toBe("foo: \"a\"");
+		expect(parseQuery<Schema>({ foo: "a" })).toBe("foo: \"a\"");
 	});
 
 	it("doesn't surround booleans with quotes", () => {
-		expect(parseQuery<any>({ foo: true })).toBe("foo: true");
+		expect(parseQuery<Schema>({ foo: true })).toBe("foo: true");
 	});
 
 	it("doesn't surround numbers with quotes", () => {
-		expect(parseQuery<any>({ foo: 2 })).toBe("foo: 2");
+		expect(parseQuery<Schema>({ foo: 2 })).toBe("foo: 2");
+	});
+
+	it("doesn't surround numbers with quotes", () => {
+		expect(parseQuery<Schema>({ foo: 2 })).toBe("foo: 2");
+	});
+
+	it("parses 'exists' correct", () => {
+		expect(parseQuery<Schema>({ foo: exists })).toBe("_exists_: \"foo\"");
 	});
 
 	it("joins object properties with AND", () => {
-		expect(parseQuery<any>({ foo: 1, bar: true })).toBe("foo: 1 AND bar: true");
+		expect(parseQuery<Schema>({ foo: 1, bar: true })).toBe("foo: 1 AND bar: true");
 	});
 
-	it("joins or object with OR", () => {
-		expect(parseQuery<any>(or({ foo: 1, bar: true }))).toBe("foo: 1 OR bar: true");
+	it("joins 'or()' object with OR", () => {
+		expect(parseQuery<Schema>(or({ foo: 1, bar: true }))).toBe("foo: 1 OR bar: true");
 	});
 
 	it("joins an array as AND by default", () => {
-		expect(parseQuery<any>({ foo: 1 }, { bar: true })).toBe("foo: 1 AND bar: true");
+		expect(parseQuery<Schema>({ foo: 1 }, { bar: true })).toBe("foo: 1 AND bar: true");
 	});
 
-	it("joins and() arr as AND", () => {
-		expect(parseQuery<any>(and({ foo: 1 }, { bar: true }))).toBe("foo: 1 AND bar: true");
+	it("joins 'and()' array as AND", () => {
+		expect(parseQuery<Schema>(and({ foo: 1 }, { bar: true }))).toBe("foo: 1 AND bar: true");
 	});
 
-	it("joins or() arr as OR", () => {
-		expect(parseQuery <any>(or({ foo: 1 }, { bar: true }))).toBe("foo: 1 OR bar: true");
+	it("joins 'or()' array as OR", () => {
+		expect(parseQuery <Schema>(or({ foo: 1 }, { bar: true }))).toBe("foo: 1 OR bar: true");
 	});
 
 	it("deep OR and AND", () => {
-		expect(parseQuery<any>(or({ foo: 1, bar: true }, { baz: 2 })))
+		expect(parseQuery<Schema>(or({ foo: 1, bar: true }, { baz: 2 })))
 			.toBe("(foo: 1 AND bar: true) OR baz: 2");
 	});
 
 	it("deeper", () => {
-		expect(parseQuery<any>(and(or({ foo: 1, bar: true }, { barbabar: 3 }), { baz: 2 })))
+		expect(parseQuery<Schema>(and(or({ foo: 1, bar: true }, { barbabar: 3 }), { baz: 2 })))
 			.toBe("((foo: 1 AND bar: true) OR barbabar: 3) AND baz: 2");
 	});
 
 	it("literal join", () => {
-		expect(parseQuery<any>({ foo: [1, 2] })).toBe("foo: (1 2)");
+		expect(parseQuery<Schema>({ foo: [1, 2] })).toBe("foo: (1 2)");
 	});
 
 	it("deep literal join", () => {
-		expect(parseQuery<any>(or({ foo: [1, 2] }, { bar: 3 }))).toBe("foo: (1 2) OR bar: 3");
+		expect(parseQuery<Schema>(or({ foo: [1, 2] }, { bar: 3 }))).toBe("foo: (1 2) OR bar: 3");
 	});
 
 	it("deep ands and ors", () => {
-		expect(parseQuery<any>(and({ foo: 1, bar: true }, or({ barbabar: 3 }, { baz: 2 }))))
+		expect(parseQuery<Schema>(and({ foo: 1, bar: true }, or({ barbabar: 3 }, { baz: 2 }))))
 			.toBe("(foo: 1 AND bar: true) AND (barbabar: 3 OR baz: 2)");
 	});
 
+	it("'not()' wraps a literal map", () => {
+		expect(parseQuery<Schema>(not({ foo: 2 }))).toBe("NOT foo: 2");
+	});
+
+	it("'not()' with 'exists'", () => {
+		expect(parseQuery<Schema>(not({ foo: exists }))).toBe("NOT _exists_: \"foo\"");
+	});
+
+	it("'not()' wraps literal map", () => {
+		expect(parseQuery<Schema>(not({ foo: 2, bar: true, baz: exists })))
+			.toBe("NOT (foo: 2 AND bar: true AND _exists_: \"baz\")");
+	});
+
+	it("'not()' defaults to AND for sub clause", () => {
+		expect(parseQuery<Schema>(not({ foo: 2 }, { bar: true }, { baz: exists })))
+			.toBe("NOT (foo: 2 AND bar: true AND _exists_: \"baz\")");
+	});
+
+	it("'not()' allows OR as sub clause", () => {
+		expect(parseQuery<Schema>(not(or<Schema>({ foo: 2 }, { bar: true }, { baz: exists }))))
+			.toBe("NOT (foo: 2 OR bar: true OR _exists_: \"baz\")");
+		// ^ For future reference: this is a known issue here - type inference // fails for some reason so we need to give
+		// type to the inner `or()`.
+		//
+		// If this is to be fixed, inference would work for this for some reason:
+		// expect(parseQuery<Schema>(not(or({ foo: 2 }, { bar: true }, { baz: exists }), { bar: false })))
+		//                                                                               ^ added this
+	});
+
+	it("'and()' filters empty subclause and resolves into just the wrapped literal term", () => {
+		expect(parseQuery<Schema>(and({}, { foo: 2 }))).toBe("foo: 2");
+	});
+
 	it("protected against injection by '\"' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: "\" attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: "\" attack" }))).toThrowError();
 	});
 
 	it("protected against injection by '(' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: "( attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: "( attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ')' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: "( attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: "( attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ' AND ' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: "AND attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: " AND attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ' And ' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: " And attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: " And attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ' and ' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: " and attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: " and attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ' OR ' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: "OR attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: " OR attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ' oR ' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: " oR attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: " oR attack" }))).toThrowError();
 	});
 
 	it("protected against injection by ' and ' as attack vector", () => {
-		expect(() => parseQuery<any>(and({ foo: " or attack with double quote" }))).toThrowError();
+		expect(() => parseQuery<Schema>(and({ foo: " or attack" }))).toThrowError();
+	});
+
+	it("doesn't think porkkana is a threat", () => {
+		expect(() => parseQuery<Schema>(and({ foo: "porkkana" }))).not.toThrowError();
 	});
 });

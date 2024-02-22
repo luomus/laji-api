@@ -20,8 +20,10 @@ export class NamedPlacesController {
 	@UseInterceptors(FilterUnitsInterceptor)
 	getPage(@Query() query: GetNamedPlacePageDto): Promise<PaginatedDto<NamedPlace>> {
 		const { personToken, page, pageSize, selectedFields, includePublic, ...q } = query;
+		(q as Record<string, unknown>).id = q.idIn;
 		const safeQuery = pickAndSerialize(NamedPlace, q,
-			"alternativeIDs"
+			"id"
+			, "alternativeIDs"
 			, "municipality"
 			, "birdAssociationArea"
 			, "collectionID"

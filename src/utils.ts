@@ -7,7 +7,7 @@ export const CACHE_30_MIN = CACHE_1_MIN * 30;
 export const CACHE_1_H = CACHE_1_MIN * 60;
 
 export type CacheOptions = {
-	/**milliseconds for the cache TTL, true for default TTL. */
+	/** Milliseconds for the cache TTL, true for default TTL. */
 	cache?: number | true;
 }
 

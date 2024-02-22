@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsInt, isObject } from "class-validator";
-import { CommaSeparatedIds, IsOptionalBoolean } from "./serializing/serializing";
+import { CommaSeparatedStrings, IsOptionalBoolean } from "./serializing/serializing";
 import { IntersectionType } from "@nestjs/swagger";
 
 export enum Lang {
@@ -37,16 +37,11 @@ export class QueryWithPersonTokenDto {
 	personToken: string;
 }
 
-export class QueryWithCollectionID {
-	/** Collection id */
-	collectionID: string;
-}
-
 export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
 	/**
 	 * Comma separated ids
 	 */
-	@CommaSeparatedIds() idIn?: string[];
+	@CommaSeparatedStrings() idIn?: string[];
 }
 
 export class FindOneDto  {
