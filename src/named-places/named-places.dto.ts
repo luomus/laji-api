@@ -1,6 +1,5 @@
-import { NamedPlace as NamedPlaceI } from "@luomus/laji-schema";
-import { Document } from "@luomus/laji-schema";
-import { IntersectionType, PartialType } from "@nestjs/swagger";
+import { NamedPlace as NamedPlaceClass } from "@luomus/laji-schema/classes";
+import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { Person } from "src/persons/person.dto";
@@ -8,22 +7,13 @@ import { Private } from "src/serializing/private.decorator";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
 import type { Geometry } from "geojson";
 
-export class NamedPlace implements Omit<NamedPlaceI, "geometry" | "prepopulatedDocument" | "acceptedDocument"> {
+export class NamedPlace extends OmitType(NamedPlaceClass, ["geometry"]) {
 	id: string;
-	name: string;
 	geometry: Geometry;
 	public = false;
 	owners: string[] = [];
 	/** Read access, not edit access */
 	editors: string[] = [];
-	collectionID?: string;
-	prepopulatedDocument?: Partial<Document>;
-	acceptedDocument?: Partial<Document>;
-
-	alternativeIDs?: string[];
-	municipality?: string[];
-	birdAssociationArea?: string[];
-	tags?: NamedPlaceI["tags"];
 
 	isEditableFor(person: Person): boolean {
 		return this.owners.includes(person.id) || (this.editors?.includes(person.id));

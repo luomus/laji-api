@@ -22,7 +22,7 @@
     "test:e2e-old:ci": "npm run test:e2e-old -- -R xunit --grep @no-ci --invert"
   },
   "dependencies": {
-    "@luomus/laji-schema": "^1.0.4",
+    "@luomus/laji-schema": "^2.0.9",
     "@nestjs-modules/mailer": "^1.9.1",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/cache-manager": "^2.1.0",

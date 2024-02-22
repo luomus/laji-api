@@ -15,7 +15,6 @@ import { CollectionsService } from "src/collections/collections.service";
 
 @Injectable()
 export class NamedPlacesService {
-
 	private store = this.storeService.forResource<NamedPlace>("namedPlace", {
 		serializeInto: NamedPlace, cache: CACHE_1_H * 6,
 	});

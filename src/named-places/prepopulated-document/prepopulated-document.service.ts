@@ -32,7 +32,7 @@ export class PrepopulatedDocumentService {
 		}
 	}
 
-	private async validate(prepopulatedDocument: Partial<Document>, collectionID?: string) {
+	private async validate(prepopulatedDocument: Document, collectionID?: string) {
 		if (!collectionID) {
 			return;
 		}
@@ -46,7 +46,7 @@ export class PrepopulatedDocumentService {
 		checkHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
 	}
 
-	private async assignFor(place: NamedPlace, document: Partial<Document>): Promise<void> {
+	private async assignFor(place: NamedPlace, document: Document): Promise<void> {
 		const updateAcceptedDocument = place.collectionID
 			&& !place.prepopulatedDocument
 			&& !place.acceptedDocument
@@ -60,7 +60,7 @@ export class PrepopulatedDocumentService {
 		}
 	}
 
-	private async getAugmentedFor(place: NamedPlace): Promise<Partial<Document> | undefined> {
+	private async getAugmentedFor(place: NamedPlace): Promise<Document | undefined> {
 		if (!place.collectionID) {
 			return place.prepopulatedDocument;
 		}
@@ -75,7 +75,7 @@ export class PrepopulatedDocumentService {
 		}
 
 		const { prepopulatedDocumentFields } = form.options.namedPlaceOptions;
-		const prepopulatedDocument = place.prepopulatedDocument || {};
+		const prepopulatedDocument: Document = place.prepopulatedDocument || { gatherings: [{}] };
 		const fieldJSONPointers = Object.keys(prepopulatedDocumentFields);
 
 		for (const fieldJSONPointer of fieldJSONPointers) {

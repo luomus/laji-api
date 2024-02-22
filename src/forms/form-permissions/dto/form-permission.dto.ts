@@ -1,4 +1,5 @@
-import { FormPermissionSingle, FormPermission, FormPermissionPerson } from "@luomus/laji-schema";
+import { FormPermission, FormPermissionPerson, FormPermissionSingle } from "@luomus/laji-schema/classes";
+import { OmitType } from "@nestjs/swagger";
 
 export enum FormPermissionEntityType {
 	empty = "",
@@ -7,46 +8,20 @@ export enum FormPermissionEntityType {
 	request = "MFP.typeAccessRequest"
 }
 
-export class FormPermissionEntity implements FormPermissionSingle {
-	"@context"?: string;
+export class FormPermissionEntity extends OmitType(FormPermissionSingle, ["type"]) {
 	id: string;
-	"@type"?: string;
-	collectionID: string;
 	type?: FormPermissionEntityType;
-	userID?: string;
 }
 
-export class FormPermissionDto implements FormPermission {
-	"@context"?: string;
-	id?: string;
-	"@type"?: string;
-	/**
-	 * List of person IDs with admin permissions
-	 */
+export class FormPermissionDto extends FormPermission {
 	admins: string[];
-	/**
-	 * List of person IDs with edit permissions
-	 */
 	editors: string[];
-	/**
-	 * List of person IDs requesting permission to form
-	 */
 	permissionRequests: string[];
 	collectionID: string;
 }
 
-export class FormPermissionPersonDto implements FormPermissionPerson {
-	personID: string;
-	/**
-	 * List of collection IDs that the person has admin permission to
-	 */
+export class FormPermissionPersonDto extends FormPermissionPerson {
 	admins: string[];
-	/**
-	 * List of collection IDs that the person has edit permission to
-	 */
 	editors: string[];
-	/**
-	 * List of collection IDs that the person has requested permission for
-	 */
 	permissionRequests: string[];
 }
