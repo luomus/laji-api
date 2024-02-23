@@ -17,17 +17,20 @@ export type Flatten<T> = T extends any[] ? T[number] : T;
 export type MaybeArray<T> = T | Array<T>;
 export type MaybePromise<T> = T | Promise<T>;
 
-export const omit = <T extends object, K extends (string | number | symbol) & keyof T>(
+export const omitCurried = <T extends object, K extends keyof T = keyof T>(...keys: K[]) =>
+	(obj: T): Omit<T, K> => {
+		const dict = new Set(keys);
+		return (Object.keys(obj) as K[]).reduce((filtered, key) => {
+			if (!dict.has(key)) {
+				filtered[key] = obj[key];
+			}
+			return filtered;
+		}, {} as T) as Omit<T, K>;
+	};
+
+export const omit = <T extends object, K extends keyof T>(
 	obj: T,
 	...keys: K[]
-) : Omit<T, K> => {
-	const dict = new Set(keys);
-	return (Object.keys(obj) as K[]).reduce((filtered, key) => {
-		if (!dict.has(key)) {
-			filtered[key] = obj[key];
-		}
-		return filtered;
-	}, {} as T) as Omit<T, K>;
-};
+) => omitCurried<T, K>(...keys)(obj);
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<{ [K: string]: T[K] }>;

@@ -1,4 +1,5 @@
 import { NamedPlace as NamedPlaceClass } from "@luomus/laji-schema/classes";
+import { Unit } from "@luomus/laji-schema/interfaces";
 import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
@@ -21,7 +22,7 @@ export class NamedPlace extends OmitType(NamedPlaceClass, ["geometry"]) {
 }
 
 class GatheringUnitsFiltered {
-	@Private() units: Record<string, unknown>[];
+	@Private() units: Unit[];
 }
 
 class DocumentUnitsFiltered {

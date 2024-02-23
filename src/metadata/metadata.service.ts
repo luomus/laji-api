@@ -2,6 +2,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Inject, Injectable } from "@nestjs/common";
 import { Cache } from "cache-manager";
 import { RestClientService } from "src/rest-client/rest-client.service";
+import { CACHE_30_MIN } from "src/utils";
 
 export type Property = {
 	domain: string[];
@@ -13,8 +14,6 @@ export type Property = {
 
 export type ContextProperties = Record<string, Property>;
 type Contexts = Record<string, ContextProperties>;
-
-const CACHE_30_MIN = 1000 * 60 * 30;
 
 @Injectable()
 export class MetadataService {

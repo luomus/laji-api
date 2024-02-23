@@ -9,12 +9,12 @@ import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { CacheOptions } from "src/utils";
 
-export interface RestClientConfig {
+export type RestClientConfig<T = never> = RestClientOptions<T> & {
 	path: string;
 	auth?: string;
 }
 
-export type LajiApiOptions<T> = {
+export type RestClientOptions<T> = {
 	/** A class that that the result will be serialized into. */
 	serializeInto?: Newable<T>;
 } & CacheOptions;
@@ -35,7 +35,7 @@ export class RestClientService<T = unknown> {
 
 	constructor(
 		private readonly httpService: HttpService,
-		@Inject("REST_CLIENT_CONFIG") private readonly config: RestClientConfig,
+		@Inject("REST_CLIENT_CONFIG") private readonly config: RestClientConfig<T>,
 		@Inject(CACHE_MANAGER) private readonly cache: Cache
 	) {
 		this.path = this.config.path;
@@ -44,11 +44,11 @@ export class RestClientService<T = unknown> {
 		}
 	}
 
-	private getOptions(options: AxiosRequestConfig = {}) {
+	private getRequesconfig(config: AxiosRequestConfig = {}) {
 		if (!this.auth) {
-			return options;
+			return config;
 		}
-		return { ...options, headers: { Authorization: this.auth, ...(options.headers || {}) } };
+		return { ...config, headers: { Authorization: this.auth, ...(config.headers || {}) } };
 	}
 
 	private getPath(path?: string) {
@@ -58,18 +58,18 @@ export class RestClientService<T = unknown> {
 		return `${this.path}/${path}`;
 	}
 
-	static applyOptions<T>(item: T, lajiApiOptions?: LajiApiOptions<T>): T {
-		return lajiApiOptions?.serializeInto
-			? serializeInto(lajiApiOptions.serializeInto)(item)
+	static applyOptions<T>(item: T, options?: RestClientOptions<T>): T {
+		return options?.serializeInto
+			? serializeInto(options.serializeInto)(item)
 			: item;
 	}
 
-	private getPathAndQuery(path?: string, options?: AxiosRequestConfig) {
-		const query = new URLSearchParams(options?.params).toString();
+	private getPathAndQuery(path?: string, config?: AxiosRequestConfig) {
+		const query = new URLSearchParams(config?.params).toString();
 		return this.getPath(path) + (query ? `?${query}` : "");
 	}
 
-	private async getWithCache<S>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>)
+	private async getWithCache<S>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>)
 	: Promise<S> {
 		// We cache a map where keys are the path without query params, and the keys are the full uri with path and query params.
 		// This way we can bust the cache by just the path.
@@ -80,8 +80,8 @@ export class RestClientService<T = unknown> {
 		// "https://foo.bar/path?param2=bar": "cached example value 2",
 		// } }
 		let cachedByPath: Record<string, S>;
-		const pathAndQuery = this.getPathAndQuery(path, options);
-		if (lajiApiOptions?.cache) {
+		const pathAndQuery = this.getPathAndQuery(path, config);
+		if (options?.cache) {
 			cachedByPath = await this.cache.get<Record<string, S>>(this.getPath(path))
 				|| {} as Record<string, S>;
 			const cached = pathAndQuery in cachedByPath
@@ -94,49 +94,49 @@ export class RestClientService<T = unknown> {
 		}
 		this.logger.verbose(`GET ${pathAndQuery}`);
 		const result = await firstValueFrom(
-			this.httpService.get<S>(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data))
+			this.httpService.get<S>(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
 		);
-		if (lajiApiOptions?.cache) {
+		if (options?.cache) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
 			cachedByPath![pathAndQuery] = result;
 			await this.cache.set(this.getPath(path),
 				cachedByPath!,
-				typeof lajiApiOptions.cache === "number" ? lajiApiOptions.cache : undefined);
+				typeof options.cache === "number" ? options.cache : undefined);
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
 		}
 		return result;
 	}
 
-	get = async <S = T>(path?: string, options?: AxiosRequestConfig, lajiApiOptions?: LajiApiOptions<S>) =>
-		RestClientService.applyOptions<S>(await this.getWithCache<S>(path, options, lajiApiOptions), lajiApiOptions);
+	get = async <S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>) =>
+		RestClientService.applyOptions<S>(await this.getWithCache<S>(path, config, options), options);
 
 	async post<S = T, R = T>(
 		path?: string,
-		body?: R, options?: AxiosRequestConfig,
-		lajiApiOptions?: LajiApiOptions<S>
+		body?: R, config?: AxiosRequestConfig,
+		options?: RestClientOptions<S>
 	) {
-		await this.cache.del(this.getPath(path));
+		options?.cache && await this.cache.del(this.getPath(path));
 		return RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.post<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
-		), lajiApiOptions);
+			this.httpService.post<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
+		), options);
 	}
 
 	async put<S = T, R = T>(
 		path?: string,
 		body?: R,
-		options?: AxiosRequestConfig,
-		lajiApiOptions?: LajiApiOptions<S>
+		config?: AxiosRequestConfig,
+		options?: RestClientOptions<S>
 	) {
-		await this.cache.del(this.getPath(path));
+		options?.cache && await this.cache.del(this.getPath(path));
 		return RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.put<S>(this.getPath(path), body, this.getOptions(options)).pipe(map(r => r.data))
-		), lajiApiOptions);
+			this.httpService.put<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
+		), options);
 	}
 
-	async delete(path?: string, options?: AxiosRequestConfig) {
-		await this.cache.del(this.getPath(path));
+	async delete(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
+		options?.cache && await this.cache.del(this.getPath(path));
 		return firstValueFrom(
-			this.httpService.delete(this.getPath(path), this.getOptions(options)).pipe(map(r => r.data))
+			this.httpService.delete(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
 		);
 	}
 }

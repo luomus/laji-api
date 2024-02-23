@@ -15,7 +15,7 @@ type PromiseReducer<T, R>  = {
 	(value: T): R | Promise<R>;
 }
 
-type Reducer<T, R>  = {
+type Reducer<T, R> = {
 	(value: T): R;
 }
 
@@ -167,3 +167,5 @@ export const updateWithJSONPointer = (
 
 export const asArray = <T>(maybeArr: T | T[]): T[] =>
 	Array.isArray(maybeArr) ? maybeArr : [maybeArr];
+
+export const doMaybe = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;

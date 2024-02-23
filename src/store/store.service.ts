@@ -1,9 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { RestClientService, LajiApiOptions }  from "src/rest-client/rest-client.service";
+import { RestClientService, RestClientOptions }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
-import { MaybeArray, omit } from "src/type-utils";
+import { MaybeArray, omit, omitCurried } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
-import { asArray } from "src/utils";
+import { asArray, doMaybe } from "src/utils";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -14,11 +14,13 @@ export type StoreQueryResult<T> = {
 	currentPage: number;
 }
 
+const restClientOptions = doMaybe(omitCurried<Omit<RestClientOptions<never>, "serializeInto">>("cache"));
+
 @Injectable()
 export class StoreService {
 	constructor(@Inject("STORE_REST_CLIENT") private storeRestClient: RestClientService) {}
 
-	private getPageWith = <T>(resource: string, options?: Omit<LajiApiOptions<any>, "serializeInto">) =>
+	private getPageWith = <T>(resource: string, options?: Omit<RestClientOptions<never>, "serializeInto">) =>
 		(query: Query<T>, page = 1, pageSize = 20, selectedFields: MaybeArray<(keyof T)> = []) => {
 			return this.storeRestClient.get<StoreQueryResult<T>>(
 				resource,
@@ -28,11 +30,11 @@ export class StoreService {
 					page_size: pageSize,
 					fields: asArray(selectedFields).join(",")
 				} },
-				options
+				restClientOptions(options)
 			);
 		};
 
-	private getAllWith = <T>(resource: string, options?: Omit<LajiApiOptions<any>, "serializeInto">) =>
+	private getAllWith = <T>(resource: string, options?: Omit<RestClientOptions<never>, "serializeInto">) =>
 		async (query: Query<T>) => {
 			return getAllFromPagedResource(
 				async (page: number) => storePageToPaginatedDto(
@@ -41,17 +43,17 @@ export class StoreService {
 			);
 		};
 
-	getWith = <T>(resource: string, options?: LajiApiOptions<T>) => (id: string) =>
-		this.storeRestClient.get<T>(`${resource}/${id}`, undefined, options);
+	getWith = <T>(resource: string, options?: RestClientOptions<T>) => (id: string) =>
+		this.storeRestClient.get<T>(`${resource}/${id}`, undefined, restClientOptions(options));
 
-	private createWith = <T>(resource: string, options?: LajiApiOptions<T>) => (item: Partial<T>) =>
-		this.storeRestClient.post<Partial<T>>(resource, item, undefined, options) as Promise<T>;
+	private createWith = <T>(resource: string, options?: RestClientOptions<T>) => (item: Partial<T>) =>
+		this.storeRestClient.post<Partial<T>>(resource, item, undefined, restClientOptions(options)) as Promise<T>;
 
-	private updateWith = <T extends {id: string}>(resource: string, options?: LajiApiOptions<T>) => (item: T) =>
-		this.storeRestClient.put<T>(`${resource}/${item.id}`, item, undefined, options);
+	private updateWith = <T extends {id: string}>(resource: string, options?: RestClientOptions<T>) => (item: T) =>
+		this.storeRestClient.put<T>(`${resource}/${item.id}`, item, undefined, restClientOptions(options));
 
-	private deleteWith = (resource: string) => (id: string) =>
-		this.storeRestClient.delete(`${resource}/${id}`, undefined);
+	private deleteWith = <T>(resource: string, options?: RestClientOptions<T>) => (id: string) =>
+		this.storeRestClient.delete(`${resource}/${id}`, undefined, restClientOptions(options));
 
 	getPage = <T>(
 		resource: string,
@@ -59,19 +61,19 @@ export class StoreService {
 		page = 1,
 		pageSize = 20,
 		selectedFields: (keyof T)[] = [],
-		options?: LajiApiOptions<any> & { serializeInto?: undefined }) =>
+		options?: RestClientOptions<any> & { serializeInto?: undefined }) =>
 			this.getPageWith<T>(resource, options)(query, page, pageSize, selectedFields);
 
-	getAll = <T>(resource: string, query: Query<T>, options?: Omit<LajiApiOptions<any>, "serializeInto">) =>
+	getAll = <T>(resource: string, query: Query<T>, options?: Omit<RestClientOptions<never>, "serializeInto">) =>
 		this.getAllWith<T>(resource, options)(query);
 
-	get = <T>(resource: string, id: string, options?: LajiApiOptions<T>) =>
+	get = <T>(resource: string, id: string, options?: RestClientOptions<T>) =>
 		this.getWith<T>(resource, options)(id);
 
-	create = <T>(resource: string, item: Partial<T>, options?: LajiApiOptions<T>) =>
+	create = <T>(resource: string, item: Partial<T>, options?: RestClientOptions<T>) =>
 		this.createWith<T>(resource, options)(item);
 
-	update<T extends {id: string}>(resource: string, item: T, options?: LajiApiOptions<T>) {
+	update<T extends {id: string}>(resource: string, item: T, options?: RestClientOptions<T>) {
 		return this.updateWith(resource, options)(item);
 	}
 
@@ -84,7 +86,7 @@ export class StoreService {
 	 * and serialization - Expect for `getPage()` and `getAll()` methods, since the whole result shouldn't be serialized.
 	 * Use `findOne()` to serialize the result.
 	 */
-	forResource = <T extends {id: string}>(resource: string, options?: LajiApiOptions<T>) => ({
+	forResource = <T extends {id: string}>(resource: string, options?: RestClientOptions<T>) => ({
 		/** The result won't be serialized for performance reasons. You should rely on query-params interceptor serializing the page. */
 		getPage: this.getPageWith<T>(resource, options ? omit(options, "serializeInto") : undefined),
 

@@ -1,7 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Form, FormListing, FormSchemaFormat, Format } from "./dto/form.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { CACHE_1_MIN } from "src/utils";
 import { Lang } from "src/common.dto";
 import { Person, Role } from "src/persons/person.dto";
 import { CollectionsService } from "src/collections/collections.service";
@@ -14,8 +13,7 @@ export class FormsService {
 	) {}
 
 	async getListing(lang = Lang.en) {
-		return (await this.formClient.get<{forms: FormListing[]}>("", { params: { lang } }, { cache: CACHE_1_MIN }))
-			.forms;
+		return (await this.formClient.get<{forms: FormListing[]}>("", { params: { lang } }, )).forms;
 	}
 
 	create(form: Form, personToken: string) {
@@ -31,7 +29,7 @@ export class FormsService {
 			format,
 			lang: formatLangParam(lang),
 			expand
-		} }, { cache: CACHE_1_MIN }
+		} }
 		);
 	}
 

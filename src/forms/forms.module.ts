@@ -10,12 +10,14 @@ import { Cache } from "cache-manager";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { CollectionsModule } from "src/collections/collections.module";
+import { CACHE_1_MIN } from "src/utils";
 
 const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("FORM_PATH") as string,
 		auth: configService.get("FORM_AUTH") as string,
+		cache: CACHE_1_MIN
 	}),
 	inject: [ConfigService],
 };
