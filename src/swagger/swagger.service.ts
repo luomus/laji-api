@@ -47,8 +47,8 @@ export class SwaggerService {
 		return this.memoizedPatch(document);
 	}
 
-
-	@IntelligentMemoize({ length: 0 }) // Cache the result for any input document. It's identical always, just not the same instance.
+	// Length 0 to memoize the result regardless of the document equalness. It's identical always, just not the same instance.
+	@IntelligentMemoize({ length: 0 })
 	memoizedPatch(document: OpenAPIObject) {
 		return pipe(document,
 			this.patchGlobalSchemaRefs,

@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Collection } from "src/collections/collection.dto";
 import { CollectionsService } from "src/collections/collections.service";
 import { CompleteMultiLang, Lang, MultiLang } from "src/common.dto";
@@ -11,14 +11,15 @@ import { Form, Format } from "../dto/form.dto";
 import { FormsService } from "../forms.service";
 import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto
 } from "./dto/form-permission.dto";
+import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class FormPermissionsService {
-	private store = this.storeService.forResource<FormPermissionEntity>("formPermissionSingle");
+	private store = new StoreService<FormPermissionEntity>(this.storeClient, { resource: "formPermissionSingle" });
 
 	constructor(
 		private personsService: PersonsService,
-		private storeService: StoreService,
+		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 		private formService: FormsService,
 		private collectionsService: CollectionsService,
 		private mailService: MailService,

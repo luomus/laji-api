@@ -14,7 +14,7 @@ export type RestClientConfig<T = never> = RestClientOptions<T> & {
 	auth?: string;
 }
 
-export type RestClientOptions<T> = {
+export type RestClientOptions<T = never> = {
 	/** A class that that the result will be serialized into. */
 	serializeInto?: Newable<T>;
 } & CacheOptions;

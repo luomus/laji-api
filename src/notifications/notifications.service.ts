@@ -1,4 +1,4 @@
-import { HttpException } from "@nestjs/common";
+import { HttpException, Inject } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
@@ -8,19 +8,20 @@ import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 import { Query } from "src/store/store-query";
 import { Optional, omit } from "src/type-utils";
+import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class NotificationsService {
-	private store = this.storeService.forResource<Notification>("notification", { cache: CACHE_1_MIN });
+	private store = new StoreService<Notification>(this.storeClient, { resource: "notification", cache: CACHE_1_MIN });
 
 	constructor(
-		private storeService: StoreService,
+		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 		private personTokenService: PersonTokenService
 	) {}
 
 	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize = 20) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const query: Query<Notification>  = { toPerson: personId };
+		const query: Query<Notification> = { toPerson: personId };
 		if (onlyUnseen) {
 			query.seen = false;
 		}

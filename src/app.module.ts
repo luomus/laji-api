@@ -21,7 +21,6 @@ import { ProfileModule } from "./profile/profile.module";
 import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter";
 import { ProxyToOldApiService } from "./proxy-to-old-api/proxy-to-old-api.service";
 import { SerializingInterceptor } from "./serializing/serializing.interceptor";
-import { StoreModule } from "./store/store.module";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
@@ -73,7 +72,6 @@ import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.mo
 		TriplestoreModule,
 		TriplestoreReadonlyModule,
 		ProfileModule,
-		StoreModule,
 		MetadataModule,
 		NotificationsModule,
 		CollectionsModule,

@@ -6,6 +6,8 @@ import { Area } from "./area.dto";
 import { IntelligentMemoize } from "../decorators/intelligent-memoize.decorator";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 
+const CACHE_TTL = CACHE_30_MIN;
+
 @Injectable()
 @IntelligentInMemoryCache()
 export class AreaService {
@@ -14,13 +16,13 @@ export class AreaService {
 		@Inject("TRIPLESTORE_READONLY_SERVICE") private triplestoreService: TriplestoreService,
 	) { }
 
-	@Interval(CACHE_30_MIN)
+	@Interval(CACHE_TTL)
 	async warmup() {
 		await this.getAllDict();
 	}
 
 	private getAll() {
-		return this.triplestoreService.find<Area>({ type: "ML.area" }, { cache: CACHE_30_MIN });
+		return this.triplestoreService.find<Area>({ type: "ML.area" }, { cache: CACHE_TTL });
 	}
 
 	@IntelligentMemoize()

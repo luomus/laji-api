@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -12,15 +12,16 @@ import { CACHE_1_H } from "src/utils";
 import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
+import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class NamedPlacesService {
-	private store = this.storeService.forResource<NamedPlace>("namedPlace", {
-		serializeInto: NamedPlace, cache: CACHE_1_H * 6,
+	private store = new StoreService(this.storeClient, {
+		resource: "namedPlace", serializeInto: NamedPlace, cache: CACHE_1_H * 6,
 	});
 
 	constructor(
-		private storeService: StoreService,
+		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 		private personsService: PersonsService,
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
@@ -95,7 +96,6 @@ export class NamedPlacesService {
 		await this.checkWriteAccess(place, personToken);
 
 		const person = await this.personsService.getByToken(personToken);
-
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
 			place.owners.push(person.id);
 		}
@@ -111,7 +111,6 @@ export class NamedPlacesService {
 		await this.checkWriteAccess(existing, personToken);
 
 		const person = await this.personsService.getByToken(personToken);
-
 		if (!person.isImporter()
 			&& existing.owners.includes(person.id)
 			&& !place.owners.includes(person.id)

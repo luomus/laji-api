@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
@@ -6,13 +6,15 @@ import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serializing/serializing";
 import * as equals from "fast-deep-equal";
 import { uuid } from "src/utils";
+import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class ProfileService {
-	private store = this.storeService.forResource<Profile>("profile", { serializeInto: Profile });
+
+	private store = new StoreService(this.storeClient, { resource: "profile", serializeInto: Profile });
 
 	constructor(
-		private storeService: StoreService,
+		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
 		private personTokenService: PersonTokenService,
 		private notificationsService: NotificationsService) {
 	}
