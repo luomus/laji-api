@@ -3,25 +3,33 @@ import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { storePageAdapter } from "src/pagination";
-import { or, and, not, exists, Query, QueryLiteralMap } from "src/store/store-query";
+import { getQueryVocabulary, Query, QueryLiteralMap } from "src/store/store-query";
 import { FormsService } from "src/forms/forms.service";
 import {
 	FormPermissionsService, hasEditRightsOf, isAdminOf
 } from "src/forms/form-permissions/form-permissions.service";
-import { CACHE_1_H } from "src/utils";
 import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
-import { RestClientService } from "src/rest-client/rest-client.service";
+import { QueryCacheOptions } from "src/store/store-cache";
+
+const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
+
+export const AllowedPageQueryKeys = [
+	"id"
+	, "alternativeIDs"
+	, "municipality"
+	, "birdAssociationArea"
+	, "collectionID"
+	, "tags"
+	, "public"
+] as const;
 
 @Injectable()
 export class NamedPlacesService {
-	private store = new StoreService(this.storeClient, {
-		resource: "namedPlace", serializeInto: NamedPlace, cache: CACHE_1_H * 6,
-	});
 
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
+		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<NamedPlace>,
 		private personsService: PersonsService,
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
@@ -31,7 +39,7 @@ export class NamedPlacesService {
 	) {}
 
 	async getPage(
-		query: QueryLiteralMap<NamedPlace, "AND">,
+		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
 		personToken?: string,
 		includePublic?: boolean,
 		page?: number,
@@ -43,10 +51,11 @@ export class NamedPlacesService {
 		}
 
 		let storeQuery: Query<NamedPlace>;
+		let cacheConfig: QueryCacheOptions<NamedPlace> = { primaryKeys: [ "collectionID" ] };
 
 		if (personToken) {
 			const person = await this.personsService.getByToken(personToken);
-			const readAllowedClause = or<NamedPlace>({ owners: person.id, editors: person.id });
+			const readAllowedClause = or({ owners: person.id, editors: person.id });
 			if (includePublic) {
 				readAllowedClause.public = true;
 			}
@@ -57,10 +66,14 @@ export class NamedPlacesService {
 		}
 
 		if (!query.collectionID && !query.id) {
-			storeQuery = and(storeQuery, not<NamedPlace>({ collectionID: exists }));
+			storeQuery = and(storeQuery, not({ collectionID: exists }));
 		}
 
-		return storePageAdapter(await this.store.getPage(storeQuery, page, pageSize, selectedFields));
+		if (!query.collectionID && query.id) { // The only configuration where collectionID is not in the query.
+			cacheConfig = { primaryKeys: ["id"] };
+		}
+
+		return storePageAdapter(await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig));
 	}
 
 	private async getCollectionIDs(collectionID: string) {

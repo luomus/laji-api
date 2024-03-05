@@ -9,7 +9,7 @@ import { TriplestoreModule } from "src/triplestore/triplestore.module";
 import { LangModule } from "src/lang/lang.module";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
-const gbifClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const gbifClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("GBIF_PATH") as string,
@@ -19,7 +19,7 @@ const gbifClientConfigProvider: FactoryProvider<RestClientConfig> = {
 
 const gbifRestClientProvider: FactoryProvider<RestClientService> = {
 	provide: "GBIF_REST_CLIENT",
-	useFactory: (httpService: HttpService, gbifClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, gbifClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, gbifClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };

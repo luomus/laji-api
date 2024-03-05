@@ -8,7 +8,7 @@ import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { PersonsModule } from "../persons/persons.module";
 
-const mediaClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const mediaClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("MEDIA_PATH") as string,
@@ -19,7 +19,7 @@ const mediaClientConfigProvider: FactoryProvider<RestClientConfig> = {
 
 const mediaRestClientProvider: FactoryProvider<RestClientService> = {
 	provide: "MEDIA_REST_CLIENT",
-	useFactory: (httpService: HttpService, mediaClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, mediaClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, mediaClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };

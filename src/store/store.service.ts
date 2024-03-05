@@ -1,8 +1,12 @@
-import { RestClientService, RestClientOptions }  from "src/rest-client/rest-client.service";
+import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
-import { MaybeArray, omitCurried } from "src/type-utils";
+import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doMaybe } from "src/utils";
+import { Cache } from "cache-manager";
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource } from "./store-cache";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -13,37 +17,47 @@ export type StoreQueryResult<T> = {
 	currentPage: number;
 }
 
-type StoreConfig<T> = {
+export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
 	resource: string;
-} & RestClientOptions<T>
-
-const restClientOptions = doMaybe(omitCurried<Omit<RestClientOptions<never>, "serializeInto">>("cache"));
+	cache?: StoreCacheOptions<T> & {
+		/** Milliseconds for the cache TTL */
+		ttl?: number;
+	}
+}
 
 /**
  * A service for using a specific store endpoint, applying the given options to each method, allowing caching
  * and serialization - Expect for `getPage()` and `getAll()` methods, since the whole result shouldn't be serialized.
  * Use `findOne()` to serialize the result.
- *
- * Note that this service isn't provided by dependency injection. That's because there's already a dependency injected
- * service for each store resource. Providing in injectable StoreService would require a token for each resource, which
- * would be unnecessary clumsy.
  */
-export class StoreService<T> {
+@Injectable()
+export class StoreService<T extends { id?: string }> {
 
-	constructor(private storeRestClient: RestClientService, private config: StoreConfig<T>) {}
+	private logger = new Logger(StoreService.name + "/" + this.config.resource);
+	private restClientOptions = doMaybe(omitForKeys<StoreConfig<T>>("resource", "cache"));
 
-	private getOptions(options?: RestClientOptions<T>) {
-		return { ...this.config, ...(options || {}) };
-	}
+	constructor(
+		private storeClient: RestClientService<T>,
+		@Inject(CACHE_MANAGER) private readonly cache: Cache,
+		private config: StoreConfig<T>
+	) {}
 
-	getPage(
+	async getPage(
 		query: Query<T>,
 		page = 1,
 		pageSize = 20,
-		selectedFields: MaybeArray<(keyof T)> = [],
-		options?: Omit<RestClientOptions<T>, "serializeInto">
+		selectedFields: MaybeArray<KeyOf<T>> = [],
+		cacheOptions?: QueryCacheOptions<T>
 	) {
-		return this.storeRestClient.get<StoreQueryResult<T>>(
+		let cacheKey: string | undefined;
+		if (this.config.cache) {
+			cacheKey = this.cacheKeyForPagedQuery(query, page, pageSize, asArray(selectedFields), cacheOptions);
+			const cached = await this.cache.get<StoreQueryResult<T>>(cacheKey);
+			if (cached) {
+				return cached;
+			}
+		}
+		const result = await this.storeClient.get<StoreQueryResult<T>>(
 			this.config.resource,
 			{ params: {
 				q: parseQuery<T>(query),
@@ -51,51 +65,147 @@ export class StoreService<T> {
 				page_size: pageSize,
 				fields: asArray(selectedFields).join(",")
 			} },
-			// Never cache paged result as the the rest client service's simple caching strategy won't work with it.
-			doMaybe(omitCurried<RestClientOptions>("cache", "serializeInto"))
-			(restClientOptions(this.getOptions(options)))
+			doMaybe(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
 		);
+		if (this.config.cache) {
+			await this.cache.set(cacheKey!, result);
+		}
+		return result;
 	}
 
-	getAll(query: Query<T>, options?: Omit<RestClientOptions<never>, "serializeInto">) {
+	async getAll(query: Query<T>, cacheOptions?: QueryCacheOptions<T>) {
 		return getAllFromPagedResource(
-			async (page: number) => storePageToPaginatedDto(
-				await this.getPage(query, page, 10000, undefined, options)
-			),
+			async (page: number) => storePageToPaginatedDto(await this.getPage(
+				query, page, 10000, undefined, cacheOptions
+			))
 		);
 	}
 
-	get(id: string, options?: RestClientOptions<T>) {
-		return this.storeRestClient.get<T>(`${this.config.resource}/${id}`, undefined, restClientOptions(options));
-	}
-
-	async findOne(query: Query<T>, selectedFields?: MaybeArray<keyof T>) {
+	async findOne(query: Query<T>, selectedFields?: MaybeArray<KeyOf<T>>, cacheOptions?: QueryCacheOptions<T>) {
 		return RestClientService.applyOptions(
-			(await this.getPage(query, 1, 1, selectedFields)).member[0],
-			restClientOptions(restClientOptions(this.config))
+			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).member[0],
+			this.restClientOptions(this.config)
 		);
 	}
 
-	create(item: Partial<T>, options?: RestClientOptions<T>) {
-		return this.storeRestClient.post<T, Partial<T>>(
+	async get(id: string): Promise<T & { id: string }> {
+		const { cache } = this.config;
+		if (cache) {
+			const cached = await this.cache.get<T & { id: string }>(this.withCachePrefix(id));
+			if (cached) {
+				return cached;
+			}
+		}
+		const result = await this.storeClient.get<T & { id: string }>(`${this.config.resource}/${id}`,
+			undefined,
+			this.restClientOptions(this.config));
+		if (cache) {
+			await this.cache.set(this.withCachePrefix(id), result);
+		}
+		return result;
+	}
+
+	async create(item: Partial<T>) {
+		const result = await this.storeClient.post<T & { id: string }, Partial<T>>(
 			this.config.resource,
 			item,
 			undefined,
-			restClientOptions(options)
+			this.restClientOptions(this.config)
 		);
+		if (this.config.cache) {
+			await this.cache.del(this.withCachePrefix(result.id));
+			await this.bustCacheForResult(result);
+		}
+		return result;
 	}
 
-	update<TT extends T & {id: string}>(item: TT, options?: RestClientOptions<T>) {
-		return this.storeRestClient.put<T>(
+	async update<TT extends T & {id: string}>(item: TT) {
+		const result = await this.storeClient.put<T & { id: string }, TT>(
 			`${this.config.resource}/${item.id}`,
 			item,
 			undefined,
-			restClientOptions(options)
+			this.restClientOptions(this.config)
 		);
+		if (this.config.cache) {
+			await this.cache.del(this.withCachePrefix(result.id));
+			await this.bustCacheForResult(result);
+		}
+		return result;
 	}
 
-	delete<T>(id: string, options?: RestClientOptions<T>) {
-		return this.storeRestClient.delete(`${this.config.resource}/${id}`, undefined, restClientOptions(options));
+	async delete(id: string) {
+		const { cache } = this.config;
+		let existing: T & { id: string } | undefined;
+
+		if (cache) {
+			try {
+				existing = await this.get(id);
+			} catch (e) { } // Handled later.
+		}
+
+		const path = `${this.config.resource}/${id}`;
+		const result = await this.storeClient.delete(path, undefined, this.restClientOptions(this.config));
+
+		if (cache) {
+			await this.cache.del(this.withCachePrefix(id));
+			if (!existing) {
+				// eslint-disable-next-line max-len
+				this.logger.error("Store delete request was successful for an item that couldn't be fetched prior. This situation should be impossible and is catastrophic for caching! Flushing the whole cache for the resource.");
+				await this.cache.del(this.withCachePrefix("*"));
+				return result;
+			}
+			await this.bustCacheForResult(existing);
+		}
+		return result;
+	}
+
+	private withCachePrefix(key: string) {
+		return `STORE_${this.config.resource}:${key}`;
+	}
+
+	private tokenizeCacheConfig(config: StoreCacheOptions<T>): string {
+		const { keys, primaryKeys } = config;
+		return [keys, primaryKeys].map(k => [...(k || [])].sort().join(";")).join(":");
+	}
+
+	private async bustCacheForResult(result: T) {
+		for (const cacheKey of this.cacheKeysForPagedResource(result)) {
+			await this.cache.del(cacheKey);
+		}
+	}
+
+	private queryCacheSpaces: Record<string, StoreCacheOptions<T>> = {};
+
+	private cacheKeyForPagedQuery(
+		query: Query<T>,
+		page: number,
+		pageSize: number,
+		selectedFields: KeyOf<T>[],
+		queryCacheOptions: QueryCacheOptions<T> = {}
+	) {
+		if (!this.config.cache) {
+			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
+		}
+		const pagedSuffix = `:${[page, pageSize,selectedFields.join(",") || "*"].join(":")}`;
+		const config = { ...this.config.cache, ...queryCacheOptions };
+		const queryCacheKey = getCacheKeyForQuery(query, config);
+		const cacheSpaceToken = this.tokenizeCacheConfig(config);
+		this.queryCacheSpaces[cacheSpaceToken] = config;
+		return this.withCachePrefix(cacheSpaceToken + ":" + queryCacheKey) + pagedSuffix;
+	}
+
+	private cacheKeysForPagedResource(resource: Partial<T>) {
+		if (!this.config.cache) {
+			throw new Error("Can't get a cache key for a resource if caching isn't enabled in config");
+		}
+		const pagedSuffix = ":*:*:*";
+		return Object.keys(this.queryCacheSpaces).map(cacheSpaceToken => {
+			const config = this.queryCacheSpaces[cacheSpaceToken];
+			return this.withCachePrefix(cacheSpaceToken + ":" + getCacheKeyForResource<T>(
+				resource,
+				config
+			)) + pagedSuffix;
+		});
 	}
 }
 

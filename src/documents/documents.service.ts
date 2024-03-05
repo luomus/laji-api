@@ -2,15 +2,11 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { FormSchemaFormat, JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/forms/dto/form.dto";
 import { isObject  } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
-import { CACHE_10_MIN } from "src/utils";
 import { Document } from "./documents.dto";
-import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class DocumentsService {
-	private store = new StoreService<Document>(this.storeClient, { resource: "document", cache: CACHE_10_MIN });
-
-	constructor(@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,) {}
+	constructor(@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Document>) {}
 
 	findOne = this.store.findOne;
 }

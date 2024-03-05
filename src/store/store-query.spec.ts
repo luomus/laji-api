@@ -1,6 +1,9 @@
-import { parseQuery, and, or, exists, not } from "./store-query";
+import { parseQuery, getQueryVocabulary } from "./store-query";
+
 
 type Schema = { foo: string | boolean | number, bar: boolean, baz: number, barbabar: number };
+
+const { and, or, exists, not } = getQueryVocabulary<Schema>();
 
 describe("parseQuery", () => {
 	it("surrounds string with quotes", () => {
@@ -40,7 +43,7 @@ describe("parseQuery", () => {
 	});
 
 	it("joins 'or()' array as OR", () => {
-		expect(parseQuery <Schema>(or({ foo: 1 }, { bar: true }))).toBe("foo: 1 OR bar: true");
+		expect(parseQuery<Schema>(or({ foo: 1 }, { bar: true }))).toBe("foo: 1 OR bar: true");
 	});
 
 	it("deep OR and AND", () => {
@@ -58,7 +61,7 @@ describe("parseQuery", () => {
 	});
 
 	it("deep literal join", () => {
-		expect(parseQuery<Schema>(or({ foo: [1, 2] }, { bar: 3 }))).toBe("foo: (1 2) OR bar: 3");
+		expect(parseQuery<Schema>(or({ foo: [1, 2] }, { bar: true }))).toBe("foo: (1 2) OR bar: true");
 	});
 
 	it("deep ands and ors", () => {
@@ -85,14 +88,8 @@ describe("parseQuery", () => {
 	});
 
 	it("'not()' allows OR as sub clause", () => {
-		expect(parseQuery<Schema>(not(or<Schema>({ foo: 2 }, { bar: true }, { baz: exists }))))
+		expect(parseQuery<Schema>(not(or({ foo: 2 }, { bar: true }, { baz: exists }))))
 			.toBe("NOT (foo: 2 OR bar: true OR _exists_: \"baz\")");
-		// ^ For future reference: this is a known issue here - type inference // fails for some reason so we need to give
-		// type to the inner `or()`.
-		//
-		// If this is to be fixed, inference would work for this for some reason:
-		// expect(parseQuery<Schema>(not(or({ foo: 2 }, { bar: true }, { baz: exists }), { bar: false })))
-		//                                                                               ^ added this
 	});
 
 	it("'and()' filters empty subclause and resolves into just the wrapped literal term", () => {

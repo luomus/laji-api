@@ -6,7 +6,7 @@ import { LajiAuthClientService } from "./laji-auth-client.service";
 import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
-const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("LAJI_AUTH_PATH") as string
@@ -14,9 +14,9 @@ const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	inject: [ConfigService],
 };
 
-const lajiAuthRestClientProvider: FactoryProvider<RestClientService<any>> = {
+const lajiAuthRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "LAJI_AUTH_REST_CLIENT",
-	useFactory: (httpService: HttpService, lajiAuthClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, lajiAuthClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, lajiAuthClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };

@@ -8,7 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { MetadataService } from "src/metadata/metadata.service";
 
-export const triplestoreReadonlyClientConfigProvider: FactoryProvider<RestClientConfig> = {
+export const triplestoreReadonlyClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("TRIPLESTORE_READONLY_PATH") as string,
@@ -17,18 +17,17 @@ export const triplestoreReadonlyClientConfigProvider: FactoryProvider<RestClient
 	inject: [ConfigService],
 };
 
-export const triplestoreReadonlyRestClientProvider: FactoryProvider<RestClientService> = {
+export const triplestoreReadonlyRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "TRIPLESTORE_REST_CLIENT",
-	useFactory: (httpService: HttpService, storeClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, storeClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, storeClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };
 
 const triplestoreReadonlyServiceProvider: FactoryProvider<TriplestoreService> = {
 	provide: "TRIPLESTORE_READONLY_SERVICE",
-	useFactory: (triplestoreReadonlyClient: RestClientService, metadataService: MetadataService, cache: Cache) => {
-		return new TriplestoreService(triplestoreReadonlyClient, metadataService, cache);
-	},
+	useFactory: (triplestoreReadonlyClient: RestClientService<never>, metadataService: MetadataService, cache: Cache) =>
+		new TriplestoreService(triplestoreReadonlyClient, metadataService, cache),
 	inject: [
 		{ token: "TRIPLESTORE_REST_CLIENT", optional: false },
 		MetadataService,

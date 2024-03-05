@@ -2,21 +2,18 @@ import { HttpException, Inject } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
-import { CACHE_1_MIN } from "src/utils";
 import { storePageAdapter } from "src/pagination";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 import { Query } from "src/store/store-query";
 import { Optional, omit } from "src/type-utils";
-import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class NotificationsService {
-	private store = new StoreService<Notification>(this.storeClient, { resource: "notification", cache: CACHE_1_MIN });
 
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
-		private personTokenService: PersonTokenService
+		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Notification>,
+		private personTokenService: PersonTokenService,
 	) {}
 
 	async getPage(personToken: string, onlyUnseen = false, page?: number, pageSize = 20) {
@@ -28,7 +25,7 @@ export class NotificationsService {
 		return storePageAdapter(await this.store.getPage(query, page, pageSize));
 	}
 
-	add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {
+	async add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {
 		notification.seen = false;
 		notification.created = now();
 		return this.store.create(notification);

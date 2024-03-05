@@ -7,7 +7,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
 import { WarehouseController } from "./warehouse.controller";
 
-const warehouseClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const warehouseClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "WAREHOUSE_REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("WAREHOUSE_PATH") as string
@@ -15,9 +15,9 @@ const warehouseClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	inject: [ConfigService],
 };
 
-const warehouseRestClientProvider: FactoryProvider<RestClientService> = {
+const warehouseRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "WAREHOUSE_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, formClientConfig, cache),
 	inject: [
 		HttpService,

@@ -1,4 +1,4 @@
-/** Is what you would intuitively call an object. That is, it has typeof 'object' but excluding `Array` and `null`. */
+/** Is what you would intuitively call an object. That is, it's typeof === "object" but not `Array` or `null`. */
 export const isObject = (any: unknown): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;
 
@@ -17,7 +17,7 @@ export type Flatten<T> = T extends any[] ? T[number] : T;
 export type MaybeArray<T> = T | Array<T>;
 export type MaybePromise<T> = T | Promise<T>;
 
-export const omitCurried = <T extends object, K extends keyof T = keyof T>(...keys: K[]) =>
+export const omitForKeys = <T extends object, K extends keyof T = keyof T>(...keys: K[]) =>
 	(obj: T): Omit<T, K> => {
 		const dict = new Set(keys);
 		return (Object.keys(obj) as K[]).reduce((filtered, key) => {
@@ -31,6 +31,9 @@ export const omitCurried = <T extends object, K extends keyof T = keyof T>(...ke
 export const omit = <T extends object, K extends keyof T>(
 	obj: T,
 	...keys: K[]
-) => omitCurried<T, K>(...keys)(obj);
+) => omitForKeys<T, K>(...keys)(obj);
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<{ [K: string]: T[K] }>;
+
+/** `keyof T` excluding number an symbol. Useful when the domain deals only with string keys. */
+export type KeyOf<T> = Exclude<keyof T, number | symbol>;

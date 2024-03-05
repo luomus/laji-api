@@ -36,7 +36,7 @@ const baseQuery = { format: "rdf/xml" };
 @Injectable()
 export class TriplestoreService {
 	constructor(
-		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService,
+		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService<JSONSerializable>,
 		private metadataService: MetadataService,
 		@Inject(CACHE_MANAGER) private cache: Cache
 	) {

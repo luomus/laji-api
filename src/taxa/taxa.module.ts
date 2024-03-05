@@ -6,7 +6,7 @@ import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { TaxaService } from "./taxa.service";
 
-const taxaClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const taxaClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("TAXON_PATH") as string,
@@ -15,9 +15,9 @@ const taxaClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	inject: [ConfigService],
 };
 
-const taxaRestClientProvider: FactoryProvider<RestClientService> = {
+const taxaRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "TAXA_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, formClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };

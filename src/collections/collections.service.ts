@@ -15,7 +15,7 @@ const GBIF_DATASET_PARENT = "HR.3777";
 export class CollectionsService {
 
 	constructor(
-		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService,
+		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService<unknown>,
 		private triplestoreService: TriplestoreService
 	) { }
 

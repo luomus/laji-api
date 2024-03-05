@@ -5,7 +5,7 @@ import { RestClientConfig, RestClientService } from "src/rest-client/rest-client
 import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
-const storeClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const storeClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("STORE_PATH") as string,
@@ -14,9 +14,9 @@ const storeClientConfigProvider: FactoryProvider<RestClientConfig> = {
 	inject: [ConfigService],
 };
 
-const storeRestClientProvider: FactoryProvider<RestClientService> = {
+const storeRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "STORE_REST_CLIENT",
-	useFactory: (httpService: HttpService, storeClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, storeClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, storeClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };

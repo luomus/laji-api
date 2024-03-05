@@ -6,15 +6,12 @@ import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serializing/serializing";
 import * as equals from "fast-deep-equal";
 import { uuid } from "src/utils";
-import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class ProfileService {
 
-	private store = new StoreService(this.storeClient, { resource: "profile", serializeInto: Profile });
-
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
+		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Profile>,
 		private personTokenService: PersonTokenService,
 		private notificationsService: NotificationsService) {
 	}

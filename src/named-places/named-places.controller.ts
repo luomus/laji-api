@@ -1,5 +1,5 @@
 import { Body, Delete, Get, Param, Post, Put, Query, UseInterceptors } from "@nestjs/common";
-import { NamedPlacesService } from "./named-places.service";
+import { AllowedPageQueryKeys, NamedPlacesService } from "./named-places.service";
 import { GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace } from "./named-places.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { FilterUnitsInterceptor } from "./filter-units.interceptor";
@@ -21,15 +21,7 @@ export class NamedPlacesController {
 	getPage(@Query() query: GetNamedPlacePageDto): Promise<PaginatedDto<NamedPlace>> {
 		const { personToken, page, pageSize, selectedFields, includePublic, ...q } = query;
 		(q as Record<string, unknown>).id = q.idIn;
-		const safeQuery = pickAndSerialize(NamedPlace, q,
-			"id"
-			, "alternativeIDs"
-			, "municipality"
-			, "birdAssociationArea"
-			, "collectionID"
-			, "tags"
-			, "public"
-		);
+		const safeQuery = pickAndSerialize(NamedPlace, q, ...AllowedPageQueryKeys);
 		return this.namedPlacesService.getPage(
 			safeQuery,
 			personToken,

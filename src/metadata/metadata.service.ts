@@ -18,7 +18,7 @@ type Contexts = Record<string, ContextProperties>;
 @Injectable()
 export class MetadataService {
 	constructor(
-		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreRestClient: RestClientService,
+		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreRestClient: RestClientService<unknown>,
 		@Inject(CACHE_MANAGER) private cache: Cache) {}
 
 	/** Get all properties. */

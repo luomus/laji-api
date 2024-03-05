@@ -9,27 +9,31 @@ import { Cache } from "cache-manager";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { CacheOptions } from "src/utils";
 
-export type RestClientConfig<T = never> = RestClientOptions<T> & {
+export type RestClientConfig<T> = RestClientOptions<T> & {
 	path: string;
 	auth?: string;
-}
+};
 
-export type RestClientOptions<T = never> = {
+export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions;
+
+export type HasMaybeSerializeInto<T> = {
 	/** A class that that the result will be serialized into. */
 	serializeInto?: Newable<T>;
-} & CacheOptions;
+}
 
 /**
- * Abstract wrapper for a service that connects to a remote REST API.
- * The implementing service can "provide (nestTM)" this service and fill in the REST_CLIENT_CONFIG.
+ * Abstract wrapper for a service that connects to a remote REST API. The implementing service can "provide (nestTM)"
+ * this service and fill in the REST_CLIENT_CONFIG.
  *
- * Enables caching based on the assumption that it's a REST API; GET responses are cached, until a
- * POST, PUT or DELETE is made to the same path.
+ * Enables caching based on the assumption that it's a REST API; GET responses are cached, until a POST, PUT or DELETE
+ * is made to the same path.
+ *
+ * Caching can be configured to be for all request, or request-specific. Request-specific caching can be done by adding
+ * the `cache` option to each method (get, put, post, del). The client must give the option to bust the cache for a
+ * path.
  */
 @Injectable()
 export class RestClientService<T = unknown> {
-	private path: string;
-	private auth: string | undefined;
 
 	private logger = new Logger(RestClientService.name);
 
@@ -38,24 +42,20 @@ export class RestClientService<T = unknown> {
 		@Inject("REST_CLIENT_CONFIG") private readonly config: RestClientConfig<T>,
 		@Inject(CACHE_MANAGER) private readonly cache: Cache
 	) {
-		this.path = this.config.path;
-		if (this.config.auth) {
-			this.auth = this.config.auth;
-		}
 	}
 
 	private getRequesconfig(config: AxiosRequestConfig = {}) {
-		if (!this.auth) {
+		if (!this.config.auth) {
 			return config;
 		}
-		return { ...config, headers: { Authorization: this.auth, ...(config.headers || {}) } };
+		return { ...config, headers: { Authorization: this.config.auth, ...(config.headers || {}) } };
 	}
 
 	private getPath(path?: string) {
 		if (path === undefined) {
-			return this.path;
+			return this.config.path;
 		}
-		return `${this.path}/${path}`;
+		return `${this.config.path}/${path}`;
 	}
 
 	static applyOptions<T>(item: T, options?: RestClientOptions<T>): T {
@@ -67,6 +67,13 @@ export class RestClientService<T = unknown> {
 	private getPathAndQuery(path?: string, config?: AxiosRequestConfig) {
 		const query = new URLSearchParams(config?.params).toString();
 		return this.getPath(path) + (query ? `?${query}` : "");
+	}
+
+	private shouldUseCache(options?: RestClientOptions<unknown>) {
+		if (options && "cache" in options) {
+			return options.cache;
+		}
+		return this.config.cache;
 	}
 
 	private async getWithCache<S>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>)
@@ -115,10 +122,11 @@ export class RestClientService<T = unknown> {
 		body?: R, config?: AxiosRequestConfig,
 		options?: RestClientOptions<S>
 	) {
-		options?.cache && await this.cache.del(this.getPath(path));
-		return RestClientService.applyOptions(await firstValueFrom(
+		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.post<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
 		), options);
+		this.shouldUseCache(options) && await this.cache.del(this.getPath(path));
+		return result;
 	}
 
 	async put<S = T, R = T>(
@@ -127,16 +135,18 @@ export class RestClientService<T = unknown> {
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<S>
 	) {
-		options?.cache && await this.cache.del(this.getPath(path));
-		return RestClientService.applyOptions(await firstValueFrom(
+		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.put<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
 		), options);
+		this.shouldUseCache(options) && await this.cache.del(this.getPath(path));
+		return result;
 	}
 
 	async delete(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
-		options?.cache && await this.cache.del(this.getPath(path));
-		return firstValueFrom(
+		const result = firstValueFrom(
 			this.httpService.delete(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
 		);
+		this.shouldUseCache(options) && await this.cache.del(this.getPath(path));
+		return result;
 	}
 }

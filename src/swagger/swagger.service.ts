@@ -13,6 +13,7 @@ import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
+import { JSONSerializable } from "src/type-utils";
 
 type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
@@ -25,8 +26,8 @@ export class SwaggerService {
 	warehouseSwaggerDoc?: OpenAPIObject;
 
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
-		@Inject("WAREHOUSE_REST_CLIENT") private warehouseClient: RestClientService,
+		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService<JSONSerializable>,
+		@Inject("WAREHOUSE_REST_CLIENT") private warehouseClient: RestClientService<JSONSerializable>,
 	) {
 		this.patchGlobalSchemaRefs = this.patchGlobalSchemaRefs.bind(this);
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);

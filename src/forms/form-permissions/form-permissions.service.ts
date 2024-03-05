@@ -11,15 +11,13 @@ import { Form, Format } from "../dto/form.dto";
 import { FormsService } from "../forms.service";
 import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto
 } from "./dto/form-permission.dto";
-import { RestClientService } from "src/rest-client/rest-client.service";
 
 @Injectable()
 export class FormPermissionsService {
-	private store = new StoreService<FormPermissionEntity>(this.storeClient, { resource: "formPermissionSingle" });
 
 	constructor(
 		private personsService: PersonsService,
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService,
+		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<FormPermissionEntity>,
 		private formService: FormsService,
 		private collectionsService: CollectionsService,
 		private mailService: MailService,
@@ -28,10 +26,10 @@ export class FormPermissionsService {
 
 	async getByPersonToken(personToken: string): Promise<FormPermissionPersonDto> {
 		const person = await this.personsService.getByToken(personToken);
-		const findities = await this.store.getAll({ userID: person.id });
+		const entities = await this.store.getAll({ userID: person.id }, { primaryKeys: ["userID"] });
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
-			...entitiesToPermissionLists(findities, "collectionID")
+			...entitiesToPermissionLists(entities, "collectionID")
 		};
 		const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 		for (const listProp of listProps) {
@@ -46,7 +44,9 @@ export class FormPermissionsService {
 
 	private async findByCollectionID(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
-		return entitiesToPermissionLists(await this.store.getAll({ collectionID }), "userID");
+		return entitiesToPermissionLists(
+			await this.store.getAll({ collectionID }, { primaryKeys: ["collectionID"] }),
+			"userID");
 	}
 
 	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
@@ -142,7 +142,10 @@ export class FormPermissionsService {
 	}
 
 	private async findExistingEntity(collectionID: string, personID: string) {
-		const permissions = await this.store.getAll({ collectionID, userID: personID });
+		const permissions = await this.store.getAll(
+			{ collectionID, userID: personID },
+			{ primaryKeys: ["collectionID", "userID"] }
+		);
 		const existing = permissions.pop();
 		// There should be always just one permission, but in case some other system (old api...)
 		// has messed thing up, we make sure there's just one. No need for awaiting for this.

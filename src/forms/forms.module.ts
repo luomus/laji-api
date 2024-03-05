@@ -12,7 +12,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { CollectionsModule } from "src/collections/collections.module";
 import { CACHE_1_MIN } from "src/utils";
 
-const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
+const formClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("FORM_PATH") as string,
@@ -24,7 +24,7 @@ const formClientConfigProvider: FactoryProvider<RestClientConfig> = {
 
 const formRestClientProvider: FactoryProvider<RestClientService<Form>> = {
 	provide: "FORM_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig, cache: Cache) =>
+	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig<never>, cache: Cache) =>
 		new RestClientService(httpService, formClientConfig, cache),
 	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
 };
