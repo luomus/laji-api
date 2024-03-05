@@ -70,8 +70,8 @@ export class FormPermissionsService {
 			});
 		} else {
 			permissions.admins = [];
-			permissions.editors = permissions.editors.filter(isPerson(person));
-			permissions.permissionRequests = permissions.permissionRequests.filter(isPerson(person));
+			permissions.editors = permissions.editors.filter(withIsPerson(person));
+			permissions.permissionRequests = permissions.permissionRequests.filter(withIsPerson(person));
 		}
 		return { collectionID, ...permissions };
 	}
@@ -252,7 +252,7 @@ function hasRequested(permissions: FormPermissionDto, person: Person) {
 const naturalSort = (a: string, b: string) =>
 	parseInt(a.replace( /^\D+/g, ""), 10) - parseInt(b.replace( /^\D+/g, ""), 10);
 
-const isPerson = (person: Person) => (userID: string) => userID === person.id;
+const withIsPerson = (person: Person) => (userID: string) => userID === person.id;
 
 /** All response types have these properties, but they contain different values in the lists (person ids or collection ids). */
 type PermissionLists = { admins: string[], editors: string[], permissionRequests: string[] };
