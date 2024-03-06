@@ -362,7 +362,11 @@ describe("StoreService", () => {
 					store = mockSetup<ArrayPrimary>({
 						resource: "mockResource",
 						cache: {
-							keys: ["primary"]
+							keys: ["primary"],
+							primaryKeySpaces: [
+								[],
+								["primary"]
+							]
 						},
 					});
 				});

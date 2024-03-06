@@ -15,7 +15,16 @@ const storeResourceConfig: FactoryProvider<StoreConfig> = {
 	provide: "STORE_RESOURCE_CONFIG",
 	useFactory: () => ({
 		resource: "formPermissionSingle",
-		cache: { ttl: CACHE_1_H, keys: ["toPerson", "seen"], primaryKeys: ["toPerson"] }
+		cache: { ttl: CACHE_1_H,
+			keys: ["collectionID", "userID"],
+			primaryKeySpaces: [
+				["userID"],
+				["collectionID"],
+				["collectionID", "userID"]
+			]
+
+
+		} // Primary keys configured per query in the service.
 	})
 };
 

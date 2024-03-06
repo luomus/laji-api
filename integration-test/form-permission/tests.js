@@ -23,6 +23,7 @@ describe("/formPermissions", function() {
 	});
 
 	it("listing permissions for collection works", function(done) {
+		this.timeout(30000); // Collections initial load take a while.
 		const query = `${basePath}/${collectionID}`
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];

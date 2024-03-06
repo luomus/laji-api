@@ -102,9 +102,9 @@ export type OnlyNonArrayLiteralKeys<T> = { [K in KeyOf<T>]: T[K] extends (Litera
 
 export type StoreCacheOptions<T> = {
 	/** Must be an array of all keys possible in a query */
-	keys: Readonly<KeyOf<T>[]>,
+	keys: Readonly<KeyOf<T>[]>;
 	/** Keys that are always defined for a query. They can't be of array type. */
-	primaryKeys?: OnlyNonArrayLiteralKeys<T>[],
+	primaryKeys?: OnlyNonArrayLiteralKeys<T>[];
 };
 
 export type QueryCacheOptions<T> = Partial<StoreCacheOptions<T>>;

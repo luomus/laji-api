@@ -6,7 +6,8 @@ import { asArray, doMaybe } from "src/utils";
 import { Cache } from "cache-manager";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource } from "./store-cache";
+import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
+} from "./store-cache";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -22,6 +23,7 @@ export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
 	cache?: StoreCacheOptions<T> & {
 		/** Milliseconds for the cache TTL */
 		ttl?: number;
+		primaryKeySpaces?: StoreCacheOptions<T>["primaryKeys"][]
 	}
 }
 
@@ -163,9 +165,8 @@ export class StoreService<T extends { id?: string }> {
 		return `STORE_${this.config.resource}:${key}`;
 	}
 
-	private tokenizeCacheConfig(config: StoreCacheOptions<T>): string {
-		const { keys, primaryKeys } = config;
-		return [keys, primaryKeys].map(k => [...(k || [])].sort().join(";")).join(":");
+	private tokenizePrimaryKeys(primaryKeys: StoreCacheOptions<T>["primaryKeys"] = []): string {
+		return primaryKeys.sort().join(";");
 	}
 
 	private async bustCacheForResult(result: T) {
@@ -174,23 +175,40 @@ export class StoreService<T extends { id?: string }> {
 		}
 	}
 
-	private queryCacheSpaces: Record<string, StoreCacheOptions<T>> = {};
+	private queryCacheSpaces: Record<string, StoreCacheOptions<T>["primaryKeys"]> = (
+		this.config.cache?.primaryKeySpaces
+		|| [this.config.cache?.primaryKeys || [] as OnlyNonArrayLiteralKeys<T>[]]
+	).reduce<Record<string, StoreCacheOptions<T>["primaryKeys"]>>(
+		(tokenToPrimaryKeys, primaryKeys) => {
+			tokenToPrimaryKeys[this.tokenizePrimaryKeys(primaryKeys)] = primaryKeys;
+			return tokenToPrimaryKeys;
+		}, {});
+
+	private getCacheConfig(primaryKeys?: StoreCacheOptions<T>["primaryKeys"]) {
+		if (!this.config.cache) {
+			throw new Error("Cache not configured");
+		}
+		const config = { ...this.config.cache };
+		if (primaryKeys) {
+			config.primaryKeys = primaryKeys;
+		}
+		return config;
+	}
 
 	private cacheKeyForPagedQuery(
 		query: Query<T>,
 		page: number,
 		pageSize: number,
 		selectedFields: KeyOf<T>[],
-		queryCacheOptions: QueryCacheOptions<T> = {}
+		queryCacheOptions: Pick<QueryCacheOptions<T>, "primaryKeys"> = {}
 	) {
 		if (!this.config.cache) {
 			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
 		}
 		const pagedSuffix = `:${[page, pageSize,selectedFields.join(",") || "*"].join(":")}`;
-		const config = { ...this.config.cache, ...queryCacheOptions };
+		const config = this.getCacheConfig(queryCacheOptions.primaryKeys);
 		const queryCacheKey = getCacheKeyForQuery(query, config);
-		const cacheSpaceToken = this.tokenizeCacheConfig(config);
-		this.queryCacheSpaces[cacheSpaceToken] = config;
+		const cacheSpaceToken = this.tokenizePrimaryKeys(config.primaryKeys);
 		return this.withCachePrefix(cacheSpaceToken + ":" + queryCacheKey) + pagedSuffix;
 	}
 
@@ -203,7 +221,7 @@ export class StoreService<T extends { id?: string }> {
 			const config = this.queryCacheSpaces[cacheSpaceToken];
 			return this.withCachePrefix(cacheSpaceToken + ":" + getCacheKeyForResource<T>(
 				resource,
-				config
+				this.getCacheConfig(config)
 			)) + pagedSuffix;
 		});
 	}

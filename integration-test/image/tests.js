@@ -51,6 +51,7 @@ describe("/image", function() {
 	it("returns 400 when no person token specified for post request", function(done) {
 		request(this.server)
 			.post(basePath + "/" + config.id.image_others + "?access_token=" + config["access_token"])
+			.send({ intellectualRights: "MZ.intellectualRightsCC-BY-SA-4.0" })
 			.end(function(err, res) {
 				res.should.have.status(400);
 				res.body.should.include({code: errorMissingPersonToken});
