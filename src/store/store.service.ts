@@ -3,11 +3,10 @@ import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
 import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doMaybe } from "src/utils";
-import { Cache } from "cache-manager";
-import { Inject, Injectable, Logger } from "@nestjs/common";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Injectable, Logger } from "@nestjs/common";
 import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
 } from "./store-cache";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -40,7 +39,7 @@ export class StoreService<T extends { id?: string }> {
 
 	constructor(
 		private storeClient: RestClientService<T>,
-		@Inject(CACHE_MANAGER) private readonly cache: Cache,
+		private readonly cache: RedisCacheService,
 		private config: StoreConfig<T>
 	) {}
 
@@ -171,7 +170,7 @@ export class StoreService<T extends { id?: string }> {
 
 	private async bustCacheForResult(result: T) {
 		for (const cacheKey of this.cacheKeysForPagedResource(result)) {
-			await this.cache.del(cacheKey);
+			await this.cache.patternDel(cacheKey);
 		}
 	}
 

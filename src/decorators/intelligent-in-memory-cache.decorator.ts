@@ -27,13 +27,13 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 		Reflect.defineMetadata(key, Reflect.getMetadata(key, originalWarmup), target.prototype.warmup)
 	);
 
-	// Make a `onModuleInit()` method that warms up by calling the `warmup()` method.
-	const originalOnModuleInit = target.prototype.onModuleInit;
-	target.prototype.onModuleInit = function() {
+	// Make a `onApplicationBootstrap()` method that warms up by calling the `warmup()` method.
+	const originalOnApplicationBootstrap = target.prototype.onApplicationBootstrap;
+	target.prototype.onApplicationBootstrap = function() {
 		logger.log("Warming up");
 		target.prototype.warmup.call(this).then(() => {
 			logger.log("Warming up in background completed");
 		});
-		originalOnModuleInit?.call(this);
+		originalOnApplicationBootstrap?.call(this);
 	};
 };

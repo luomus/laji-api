@@ -3,8 +3,7 @@ import { FactoryProvider, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
 import { LajiAuthClientService } from "./laji-auth-client.service";
-import { Cache } from "cache-manager";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
@@ -16,9 +15,9 @@ const lajiAuthClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 
 const lajiAuthRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "LAJI_AUTH_REST_CLIENT",
-	useFactory: (httpService: HttpService, lajiAuthClientConfig: RestClientConfig<never>, cache: Cache) =>
+	useFactory: (httpService: HttpService, lajiAuthClientConfig: RestClientConfig<never>, cache: RedisCacheService) =>
 		new RestClientService(httpService, lajiAuthClientConfig, cache),
-	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
+	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, RedisCacheService],
 };
 
 @Module({

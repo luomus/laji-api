@@ -5,9 +5,8 @@ import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise } from "../type-utils";
 import { CacheOptions, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
-import { Cache } from "cache-manager";
 import { MultiLang } from "src/common.dto";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 const BASE_URL = "http://tun.fi/";
 
@@ -38,7 +37,7 @@ export class TriplestoreService {
 	constructor(
 		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService<JSONSerializable>,
 		private metadataService: MetadataService,
-		@Inject(CACHE_MANAGER) private cache: Cache
+		private cache: RedisCacheService
 	) {
 		this.formatJsonLd = this.formatJsonLd.bind(this);
 	}

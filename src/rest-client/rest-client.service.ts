@@ -5,9 +5,8 @@ import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { Newable } from "src/type-utils";
 import { serializeInto } from "src/serializing/serializing";
-import { Cache } from "cache-manager";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { CacheOptions } from "src/utils";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 export type RestClientConfig<T> = RestClientOptions<T> & {
 	path: string;
@@ -40,7 +39,7 @@ export class RestClientService<T = unknown> {
 	constructor(
 		private readonly httpService: HttpService,
 		@Inject("REST_CLIENT_CONFIG") private readonly config: RestClientConfig<T>,
-		@Inject(CACHE_MANAGER) private readonly cache: Cache
+		private cache: RedisCacheService
 	) {
 	}
 

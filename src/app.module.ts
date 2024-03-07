@@ -1,10 +1,8 @@
 import { HttpModule } from "@nestjs/axios";
-import { CacheModule } from "@nestjs/cache-manager";
 import { Module, ValidationPipe } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { redisStore } from "cache-manager-redis-yet";
 import { AccessToken } from "./access-token/access-token.entity";
 import { AccessTokenModule } from "./access-token/access-token.module";
 import { AppController } from "./app.controller";
@@ -37,6 +35,7 @@ import { TaxaModule } from "./taxa/taxa.module";
 import { AreaModule } from "./area/area.module";
 import { DocumentsModule } from "./documents/documents.module";
 import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.module";
+import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 
 @Module({
 	imports: [
@@ -56,13 +55,14 @@ import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.mo
 			}),
 			inject: [ConfigService]
 		}),
+		RedisCacheModule,
 		// https://github.com/dabroek/node-cache-manager-redis-store/issues/40#issuecomment-1383193211
-		CacheModule.registerAsync({
-			useFactory: async () => ({
-				store: await redisStore({ ttl: 5000 })
-			}),
-			isGlobal: true
-		}),
+		// CacheModule.registerAsync({
+		// 	useFactory: async () => ({
+		// 		store: await redisStore({ ttl: 5000 })
+		// 	}),
+		// 	isGlobal: true
+		// }),
 		ScheduleModule.forRoot(),
 		FormsModule,
 		AccessTokenModule,
@@ -85,7 +85,7 @@ import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.mo
 		NamedPlacesModule,
 		TaxaModule,
 		AreaModule,
-		DocumentsModule
+		DocumentsModule,
 	],
 	controllers: [AppController],
 	providers: [

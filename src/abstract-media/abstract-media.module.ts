@@ -4,9 +4,8 @@ import { TriplestoreModule } from "../triplestore/triplestore.module";
 import { RestClientConfig, RestClientService } from "../rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { HttpModule, HttpService } from "@nestjs/axios";
-import { Cache } from "cache-manager";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { PersonsModule } from "../persons/persons.module";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 const mediaClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
@@ -19,9 +18,9 @@ const mediaClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 
 const mediaRestClientProvider: FactoryProvider<RestClientService> = {
 	provide: "MEDIA_REST_CLIENT",
-	useFactory: (httpService: HttpService, mediaClientConfig: RestClientConfig<never>, cache: Cache) =>
+	useFactory: (httpService: HttpService, mediaClientConfig: RestClientConfig<never>, cache: RedisCacheService) =>
 		new RestClientService(httpService, mediaClientConfig, cache),
-	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
+	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, RedisCacheService],
 };
 
 @Module({

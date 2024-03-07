@@ -1,9 +1,8 @@
 import { HttpModule, HttpService } from "@nestjs/axios";
 import { FactoryProvider, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
-import { Cache } from "cache-manager";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 const storeClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	provide: "REST_CLIENT_CONFIG",
@@ -16,9 +15,9 @@ const storeClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 
 const storeRestClientProvider: FactoryProvider<RestClientService<never>> = {
 	provide: "STORE_REST_CLIENT",
-	useFactory: (httpService: HttpService, storeClientConfig: RestClientConfig<never>, cache: Cache) =>
+	useFactory: (httpService: HttpService, storeClientConfig: RestClientConfig<never>, cache: RedisCacheService) =>
 		new RestClientService(httpService, storeClientConfig, cache),
-	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, { token: CACHE_MANAGER, optional: false }],
+	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, RedisCacheService],
 };
 
 @Module({
