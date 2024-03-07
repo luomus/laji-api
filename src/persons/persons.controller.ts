@@ -34,7 +34,7 @@ export class PersonsController {
 	@Get("by-id/:personId")
 	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
 	async findPersonByPersonId(@Param("personId") personId: string) {
-		return this.personsService.findByPersonId(personId);
+		return this.personsService.getByPersonId(personId);
 	}
 
 	/*

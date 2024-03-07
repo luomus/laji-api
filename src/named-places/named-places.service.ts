@@ -5,13 +5,12 @@ import { PersonsService } from "src/persons/persons.service";
 import { storePageAdapter } from "src/pagination";
 import { getQueryVocabulary, Query, QueryLiteralMap } from "src/store/store-query";
 import { FormsService } from "src/forms/forms.service";
-import {
-	FormPermissionsService, hasEditRightsOf, isAdminOf
-} from "src/forms/form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
+import { dateToISODate } from "src/utils";
 
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
 
@@ -149,7 +148,53 @@ export class NamedPlacesService {
 		return this.store.delete(id);
 	}
 
-	async checkWriteAccess(place: NamedPlace, personToken: string) {
+	async reserve(id: string, personToken: string, personID?: string, until?: string) {
+		const place = await this.get(id);
+
+		if (!place.collectionID) {
+			throw new HttpException("Can't reserve a place that doesn't belong to a collection", 422);
+		}
+
+		const isAdmin = this.formPermissionsService.isAdminOf(place.collectionID, personToken);
+
+		if (!isAdmin && place.reserve?.until && new Date(place.reserve.until) >= new Date()) {
+			throw new HttpException("The place is already reserved", 400);
+		}
+
+		let untilDate: Date;
+		if (until) {
+			untilDate = new Date(until);
+			if (isNaN(Date.parse(untilDate as unknown as string))) { // TS is wrong here, `Date.parse()` accepts `Date`.
+				throw new HttpException("'until' has bad date format, should be YYYY-MM-DD", 422);
+			}
+			if (untilDate < new Date()) {
+				throw new HttpException("You can't reserve to a date in the past", 422);
+			}
+			if (!isAdmin) {
+				const oneYearAway = new Date();
+				oneYearAway.setFullYear(oneYearAway.getFullYear() + 1);
+				if (untilDate > oneYearAway) {
+					throw new HttpException("You can't reserve to a date so far away in the future", 400);
+				}
+			}
+		} else {
+			untilDate = new Date();
+			untilDate.setMonth(untilDate.getMonth() + 1);
+		}
+
+		if (personID && !isAdmin) {
+			throw new HttpException("Only admin can reserve to other user", 403);
+		}
+
+		const forPerson = personID
+			? await this.personsService.getByPersonId(personID)
+			: await this.personsService.getByToken(personToken);
+
+		place.reserve = { reserver: forPerson.id, until: dateToISODate(untilDate) };
+		return this.update(place.id, place, personToken);
+	}
+
+	private async checkWriteAccess(place: NamedPlace, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		if (place.collectionID) {
 			await this.formsService.checkPersonCanAccessCollectionID(place.collectionID, person);
@@ -165,18 +210,11 @@ export class NamedPlacesService {
 			return;
 		}
 
-		const permissions = await this.formPermissionsService.getByCollectionIDAndPersonToken(
-			collectionID,
-			personToken
-		);
-		const person = await this.personsService.getByToken(personToken);
-		const isAdmin = isAdminOf(permissions, person);
-
-		if (isAdmin) {
+		if (await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
 			return;
 		}
 
-		if (!hasEditRightsOf(permissions, person)) {
+		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
 			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
 		const allowedToAddPublic = await this.formsService.findFor(

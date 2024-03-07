@@ -1,6 +1,6 @@
 import { Body, Delete, Get, Param, Post, Put, Query, UseInterceptors } from "@nestjs/common";
 import { AllowedPageQueryKeys, NamedPlacesService } from "./named-places.service";
-import { GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace } from "./named-places.dto";
+import { GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace, ReservationDto } from "./named-places.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
@@ -62,5 +62,12 @@ export class NamedPlacesController {
 	@Delete(":id")
 	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto): Promise<NamedPlace>  {
 		return this.namedPlacesService.delete(id, personToken);
+	}
+
+	/** Create a new named place */
+	@Post(":id/reservation")
+	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
+	reserve(@Param("id") id: string, @Query() { personToken, personID, until }: ReservationDto): Promise<NamedPlace>  {
+		return this.namedPlacesService.reserve(id, personToken, personID, until);
 	}
 }

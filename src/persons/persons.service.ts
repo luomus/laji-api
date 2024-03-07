@@ -25,10 +25,10 @@ export class PersonsService {
 		if (personId === null) {
 			throw new HttpException("No personId found for personToken", 404);
 		}
-		return this.findByPersonId(personId);
+		return this.getByPersonId(personId);
 	}
 
-	async findByPersonId(personId: string) {
+	async getByPersonId(personId: string) {
 		return promisePipe(
 			this.triplestoreService.findOne(personId, { cache: CACHE_5_MIN }),
 			serializeInto(Person),

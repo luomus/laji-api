@@ -169,3 +169,5 @@ export const asArray = <T>(maybeArr: T | T[]): T[] =>
 	Array.isArray(maybeArr) ? maybeArr : [maybeArr];
 
 export const doMaybe = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
+
+export const dateToISODate = (date: Date) => date.toISOString().split("T")[0];

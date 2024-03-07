@@ -66,3 +66,10 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). Defaults to false.*/
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }
+
+export class ReservationDto extends QueryWithPersonTokenDto {
+	/** Id for the person (your own id will be used if you are not admin) */
+	personID?: string
+	/** The date when the reservation expires */
+	until?: string
+}

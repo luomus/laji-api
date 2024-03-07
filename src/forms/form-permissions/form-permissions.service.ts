@@ -108,7 +108,7 @@ export class FormPermissionsService {
 
 	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", personToken: string) {
 		const author = await this.personsService.getByToken(personToken);
-		const customer = await this.personsService.findByPersonId(personID);
+		const customer = await this.personsService.getByPersonId(personID);
 
 		if (!customer) {
 			throw new HttpException(`User by id ${personID} not found`, 404);
@@ -159,7 +159,7 @@ export class FormPermissionsService {
 
 	async revokeAccess(collectionID: string, personID: string, personToken: string) {
 		const author = await this.personsService.getByToken(personToken);
-		const customer = await this.personsService.findByPersonId(personID);
+		const customer = await this.personsService.getByPersonId(personID);
 
 		if (!customer) {
 			throw new HttpException(`User by id ${personID} not found`, 404);
@@ -181,6 +181,24 @@ export class FormPermissionsService {
 		return this.getByCollectionIDAndPerson(collectionID, author);
 	}
 
+	async isAdminOf(collectionID: string, personToken: string) {
+		const permissions = await this.getByCollectionIDAndPersonToken(
+			collectionID,
+			personToken
+		);
+		const person = await this.personsService.getByToken(personToken);
+		return isAdminOf(permissions, person);
+	}
+
+	async hasEditRightsOf(collectionID: string, personToken: string) {
+		const permissions = await this.getByCollectionIDAndPersonToken(
+			collectionID,
+			personToken
+		);
+		const person = await this.personsService.getByToken(personToken);
+		return hasEditRightsOf(permissions, person);
+	}
+
 	private async sendFormPermissionRequested(person: Person, collectionID: string) {
 		const formTitle = await this.getFormTitle(collectionID);
 		void this.mailService.sendFormPermissionRequested(person, { formTitle });
@@ -192,7 +210,7 @@ export class FormPermissionsService {
 
 		const { admins } = await this.findByCollectionID(collectionID);
 		for (const adminID of admins) {
-			const admin = await this.personsService.findByPersonId(adminID);
+			const admin = await this.personsService.getByPersonId(adminID);
 			void this.mailService.sendFormPermissionRequestReceived(
 				admin, { formTitle, person: admin, formID: form.id }
 			);
@@ -235,19 +253,16 @@ export class FormPermissionsService {
 	}
 }
 
-export function isAdminOf(permissions: PermissionLists, person: Person) {
-	return person.role?.some(r => r === Role.Admin)
+const isAdminOf = (permissions: PermissionLists, person: Person) =>
+	person.role?.some(r => r === Role.Admin)
 		|| permissions.admins?.includes(person.id);
-}
 
-export function hasEditRightsOf(permissions: FormPermissionDto, person: Person) {
-	return isAdminOf(permissions, person)
+const hasEditRightsOf = (permissions: FormPermissionDto, person: Person) =>
+	isAdminOf(permissions, person)
 		|| permissions.editors.includes(person.id);
-}
 
-function hasRequested(permissions: FormPermissionDto, person: Person) {
-	return permissions.permissionRequests.includes(person.id);
-}
+const hasRequested = (permissions: FormPermissionDto, person: Person) =>
+	permissions.permissionRequests.includes(person.id);
 
 const naturalSort = (a: string, b: string) =>
 	parseInt(a.replace( /^\D+/g, ""), 10) - parseInt(b.replace( /^\D+/g, ""), 10);
