@@ -60,14 +60,20 @@ export class NamedPlacesController {
 
 	/** Delete a named place */
 	@Delete(":id")
-	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto): Promise<NamedPlace>  {
+	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.namedPlacesService.delete(id, personToken);
 	}
 
 	/** Create a new named place */
 	@Post(":id/reservation")
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
-	reserve(@Param("id") id: string, @Query() { personToken, personID, until }: ReservationDto): Promise<NamedPlace>  {
+	reserve(@Param("id") id: string, @Query() { personToken, personID, until }: ReservationDto): Promise<NamedPlace> {
 		return this.namedPlacesService.reserve(id, personToken, personID, until);
+	}
+
+	/** Cancel a reservation for a named place */
+	@Delete(":id/reservation")
+	cancelReservation(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
+		return this.namedPlacesService.cancelReservation(id, personToken);
 	}
 }

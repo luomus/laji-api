@@ -194,6 +194,12 @@ export class NamedPlacesService {
 		return this.update(place.id, place, personToken);
 	}
 
+	async cancelReservation(id: string, personToken: string) {
+		const place = await this.get(id, personToken);
+		delete place.reserve;
+		return this.update(place.id, place, personToken);
+	}
+
 	private async checkWriteAccess(place: NamedPlace, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		if (place.collectionID) {
