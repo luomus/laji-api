@@ -93,7 +93,7 @@ export class NamedPlacesService {
 
 		const person = await this.personsService.getByToken(personToken);
 
-		if (!place.isEditableFor(person)) {
+		if (!place.isReadableFor(person)) {
 			throw new HttpException("You are not an editor or an owner of the place", 403);
 		}
 
@@ -105,12 +105,12 @@ export class NamedPlacesService {
 			throw new HttpException("You should not specify ID when adding!", 406);
 		}
 
-		await this.checkWriteAccess(place, personToken);
-
 		const person = await this.personsService.getByToken(personToken);
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
 			place.owners.push(person.id);
 		}
+
+		await this.checkWriteAccess(place, personToken);
 
 		await this.prepopulatedDocumentService.augment(place);
 
@@ -155,7 +155,7 @@ export class NamedPlacesService {
 			throw new HttpException("Can't reserve a place that doesn't belong to a collection", 422);
 		}
 
-		const isAdmin = this.formPermissionsService.isAdminOf(place.collectionID, personToken);
+		const isAdmin = await this.formPermissionsService.isAdminOf(place.collectionID, personToken);
 
 		if (!isAdmin && place.reserve?.until && new Date(place.reserve.until) >= new Date()) {
 			throw new HttpException("The place is already reserved", 400);
@@ -196,27 +196,31 @@ export class NamedPlacesService {
 
 	async cancelReservation(id: string, personToken: string) {
 		const place = await this.get(id, personToken);
-		delete place.reserve;
-		return this.update(place.id, place, personToken);
-	}
-
-	private async checkWriteAccess(place: NamedPlace, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
-		if (place.collectionID) {
-			await this.formsService.checkPersonCanAccessCollectionID(place.collectionID, person);
+		if (place.reserve?.reserver !== person.id
+			&& !(place.collectionID && await this.formPermissionsService.isAdminOf(place.collectionID, personToken))
+		) {
+			throw new HttpException("You can't remove other users reservation if you are not admin", 403);
 		}
-
-		if (place.public) {
-			await this.checkEditingAsPublicAllowed(place, personToken);
-		}
+		delete place.reserve;
+		return this.store.update(place);
 	}
 
-	private async checkEditingAsPublicAllowed({ collectionID }: NamedPlace, personToken: string): Promise<void> {
-		if (!collectionID) {
+	private async checkWriteAccess(place: NamedPlace, personToken: string): Promise<void> {
+		const { collectionID, public: isPublic, owners } = place;
+		const person = await this.personsService.getByToken(personToken);
+
+		if (!collectionID && owners.includes(person.id)) {
 			return;
 		}
 
-		if (await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
+		if (!collectionID) {
+			throw new HttpException("You don't have access to this place", 403);
+		}
+
+		await this.formsService.checkPersonCanAccessCollectionID(collectionID, person);
+
+		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
 			return;
 		}
 
@@ -225,7 +229,7 @@ export class NamedPlacesService {
 		}
 		const allowedToAddPublic = await this.formsService.findFor(
 			collectionID,
-			f => f.options.allowAddingPublicNamedPlaces
+			f => f.options.namedPlaceOptions?.allowAddingPublic
 		);
 		if (!allowedToAddPublic) {
 			throw new HttpException("Adding public places for this collection isn't allowed", 403);

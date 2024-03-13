@@ -4,7 +4,7 @@ import { Request } from "express";
 import { isLangQueryDto, isPagedQueryDto, LangQueryDto, PagedDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
-import { pageResult, applyToResult  } from "src/pagination";
+import { pageResult, applyToResult } from "src/pagination";
 import { Newable } from "src/type-utils";
 import { excludePrivateProps, serializeInto as _serializeInto, SerializeOptions } from "src/serializing/serializing";
 import { plainToClass } from "class-transformer";

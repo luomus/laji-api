@@ -142,7 +142,7 @@ type HasPrepopDocFields = {
 			namedPlaceOptions: NonNullable<Form["options"]["namedPlaceOptions"]> &
 			{
 				prepopulatedDocumentFields:
-					NonNullable<Form["options"]["namedPlaceOptions"]["prepopulatedDocumentFields"]>
+					NonNullable<NonNullable<Form["options"]["namedPlaceOptions"]>["prepopulatedDocumentFields"]>
 			}
 		}
 }

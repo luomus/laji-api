@@ -4,7 +4,10 @@ import { SerializeScanner } from "src/serializing/serialize.decorator";
 import { SwaggerRemoteScanner } from "src/swagger/swagger-remote.decorator";
 
 /**
- * Makes the class a controller with our access token auth and allows usage of some of our custom decorators
+ * Makes the class a controller with our access token auth and enables usage of the following method decorators:
+ *
+ * *  `@SwaggerRemoteRef()`
+ * *  `@Serialize()`
  */
 export function LajiApiController(prefix: string | string[]) {
 	return applyDecorators(

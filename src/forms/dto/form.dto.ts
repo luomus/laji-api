@@ -34,7 +34,7 @@ export type PrepopulatedDocumentFieldFn = PrepopulatedDocumentFieldFnJoin
 export type Form = FormI & {
 	id: string;
 	options: NonNullable<FormI["options"]> & {
-		namedPlaceOptions: Omit<NonNullable<FormI["options"]>["namedPlaceOptions"], "prepopulatedDocumentFields"> &
+		namedPlaceOptions?: Omit<NonNullable<FormI["options"]>["namedPlaceOptions"], "prepopulatedDocumentFields"> &
 		{
 			prepopulatedDocumentFields?: Record<string, string | PrepopulatedDocumentFieldFn>
 		}

@@ -94,7 +94,7 @@ export class StoreService<T extends { id?: string }> {
 		if (cache) {
 			const cached = await this.cache.get<T & { id: string }>(this.withCachePrefix(id));
 			if (cached) {
-				return cached;
+				return RestClientService.applyOptions(cached, this.restClientOptions(this.config));
 			}
 		}
 		const result = await this.storeClient.get<T & { id: string }>(`${this.config.resource}/${id}`,

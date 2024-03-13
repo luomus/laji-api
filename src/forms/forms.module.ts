@@ -8,7 +8,7 @@ import { Form } from "./dto/form.dto";
 import { PersonsModule } from "src/persons/persons.module";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 import { CollectionsModule } from "src/collections/collections.module";
-import { CACHE_1_MIN } from "src/utils";
+import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 const formClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
@@ -16,7 +16,7 @@ const formClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
 	useFactory: (configService: ConfigService) => ({
 		path: configService.get("FORM_PATH") as string,
 		auth: configService.get("FORM_AUTH") as string,
-		cache: CACHE_1_MIN
+		cache: CACHE_1_H
 	}),
 	inject: [ConfigService],
 };

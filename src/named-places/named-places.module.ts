@@ -19,7 +19,7 @@ const storeResourceConfig: FactoryProvider<StoreConfig<NamedPlace>> = {
 	useFactory: () => ({
 		resource: "namedPlace", serializeInto: NamedPlace, cache: {
 			ttl: CACHE_1_H * 6,
-			keys: AllowedPageQueryKeys
+			keys: [...AllowedPageQueryKeys, "owners", "editors"]
 		}
 	})
 };

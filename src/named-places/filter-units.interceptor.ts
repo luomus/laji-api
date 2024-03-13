@@ -4,6 +4,7 @@ import { Request } from "express";
 import { FormsService } from "src/forms/forms.service";
 import { NamedPlace, NamedPlaceUnitsFiltered } from "./named-places.dto";
 import { serializeInto } from "src/serializing/serializing";
+import { applyToResult } from "src/pagination";
 
 @Injectable()
 export class FilterUnitsInterceptor implements NestInterceptor {
@@ -14,18 +15,21 @@ export class FilterUnitsInterceptor implements NestInterceptor {
 		const request = context.switchToHttp().getRequest<Request>();
 		const { includeUnits } = request.query as unknown as { includeUnits: boolean };
 
-		return next.handle().pipe(switchMap((place: NamedPlace) => this.filterUnits(place, includeUnits)));
+		return next.handle().pipe(switchMap(applyToResult(this.filterUnits(includeUnits))));
 	}
 
-	private async filterUnits(place: NamedPlace, includeUnits: boolean): Promise<NamedPlace | NamedPlaceUnitsFiltered> {
-		const shouldIncludeUnits = includeUnits
+	private filterUnits(includeUnits: boolean) {
+		return async (place: NamedPlace): Promise<NamedPlace | NamedPlaceUnitsFiltered> => {
+			const shouldIncludeUnits = includeUnits
 			&& place.collectionID
 			&& await this.formsService.findFor(place.collectionID,
 				f => f.options.namedPlaceOptions?.includeUnits
 			);
 
-		return shouldIncludeUnits
+			return shouldIncludeUnits
 			? place
 			: serializeInto(NamedPlaceUnitsFiltered)(place);
+		}
 	}
 }
+

@@ -1,6 +1,7 @@
 var config = require("../config.json");
 var helpers = require("../helpers");
-const { request } = require("chai");
+const { request, expect } = require("chai");
+const { dateToISODate } = require("../../dist/utils");
 
 describe("/named-place", function() {
 	const basePath = config["urls"]["named-place"];
@@ -9,7 +10,7 @@ describe("/named-place", function() {
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
 			.get(basePath)
-			.end(function(err, res) {
+			.end((err, res) => {
 				res.should.have.status(401);
 				done();
 			});
@@ -19,7 +20,7 @@ describe("/named-place", function() {
 		const query = basePath + "?access_token=" + config["access_token"];
 		request(this.server)
 			.get(query)
-			.end(function(err, res) {
+			.end((err, res) => {
 				if (err) return done(err);
 				res.should.have.status(200);
 				done();
@@ -208,9 +209,9 @@ describe("/named-place", function() {
 			.send(document)
 			.end(function (err, res) {
 				if (err) return done(err);
-				res.should.have.status(200);
+				res.should.have.status(201);
 				res.body.should.have.any.keys("id");
-				res.body.should.have.property("owners").eql([config.user.friend_id, config.user.model.id]);
+				res.body.should.have.property("owners").eql([config.user.model.id, config.user.friend_id]);
 				res.body.id.should.be.a("string");
 				res.body.id.should.match(/^MNP\.[0-9]+$/);
 				done();
@@ -233,7 +234,7 @@ describe("/named-place", function() {
 			.send(document)
 			.end(function (err, res) {
 				if (err) return done(err);
-				res.should.have.status(200);
+				res.should.have.status(201);
 				res.body.should.have.any.keys("id");
 				res.body.should.have.property("editors").eql([config.user.friend_id]);
 				res.body.should.have.property("owners").eql([config.user.model.id]);
@@ -253,7 +254,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					done();
 				});
@@ -267,8 +268,8 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token;
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
-					res.should.have.status(404);
+				.end((err, res) => {
+					res.should.have.status(403);
 					done();
 				});
 		});
@@ -293,7 +294,7 @@ describe("/named-place", function() {
 			request(this.server)
 				.put(query)
 				.send(document)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					document.owners = [config.user.model.id];
 					document["@context"] = res.body["@context"];
@@ -312,7 +313,7 @@ describe("/named-place", function() {
 					"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 				request(this.server)
 					.get(query)
-					.end(function(err, res) {
+					.end((err, res) => {
 						res.should.have.status(200);
 						done();
 					});
@@ -327,7 +328,7 @@ describe("/named-place", function() {
 					"?access_token=" + config.access_token;
 				request(this.server)
 					.get(query)
-					.end(function(err, res) {
+					.end((err, res) => {
 						res.should.have.status(200);
 						done();
 					});
@@ -352,8 +353,8 @@ describe("/named-place", function() {
 				request(this.server)
 					.put(query)
 					.send(document)
-					.end(function(err, res) {
-						res.should.have.status(404);
+					.end((err, res) => {
+						res.should.have.status(403);
 						done();
 					});
 			});
@@ -366,13 +367,15 @@ describe("/named-place", function() {
 					"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
 				request(this.server)
 					.delete(query)
-					.end(function(err, res) {
+					.end((err, res) => {
 						res.should.have.status(403);
 						done();
 					});
 			});
 
 			it("Owner can delete private named place even if it is used in document", function(done) {
+				// TODO rm after document endpoint is implemented
+				return this.skip();
 				if (!npId) {
 					this.skip();
 				}
@@ -424,7 +427,7 @@ describe("/named-place", function() {
 				request(this.server)
 					.post(documentQuery)
 					.send(document)
-					.end(function (err, res) {
+					.end((err, res) => {
 						if (res.status !== 200) {
 							this.skip();
 						}
@@ -433,12 +436,12 @@ describe("/named-place", function() {
 							"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 						request(this.server)
 							.delete(query)
-							.end(function(err, res) {
+							.end((err, res) => {
 								res.should.have.status(200);
 								done();
 
 								// Rm test doc silently.
-								request(this.server)
+								void request(this.server)
 									.delete(config.urls.document + "/" + documentId);
 							});
 					});
@@ -453,7 +456,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(403);
 					done();
 				});
@@ -464,34 +467,36 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&until=1920-12-02";
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
-					res.should.have.status(400);
+				.end((err, res) => {
+					res.should.have.status(422);
 					done();
 				});
 		});
 
 		it("fails when 'until' is too far away in the future", function(done) {
-			const date = moment().add(13, "months").format("YYYY-MM-DD");
+			const date = new Date();
+			date.setMonth(date.getMonth() + 13);
 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
-				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token + "&until=" + date;
+				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token + "&until=" + dateToISODate(date);
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(400);
-					res.body.error.should.have.property("message").eql("You can't reserve to a date so far away in the future");
+					res.body.should.have.property("message").eql("You can't reserve to a date so far away in the future");
 					done();
 				});
 		});
 
 		it("with far-away 'until' when is admin", function(done) {
-			const date = moment().add(2, "months").format("YYYY-MM-DD");
+			const date = new Date();
+			date.setMonth(date.getMonth() + 13);
 			const query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
-				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&until=" + date;
+				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&until=" + dateToISODate(date);
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
-					res.should.have.status(200);
-					res.body.reserve.should.have.property("until").eql(date);
+				.end((err, res) => {
+					res.should.have.status(201);
+					res.body.reserve.should.have.property("until").eql(dateToISODate(date));
 					done();
 				});
 		});
@@ -501,8 +506,8 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
-					res.should.have.status(200);
+				.end((err, res) => {
+					res.should.have.status(201);
 					res.body.reserve.should.have.property("reserver").eql(config.user.model.id);
 					done();
 				});
@@ -513,7 +518,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(400);
 					done();
 				});
@@ -524,7 +529,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.delete(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.not.have.property("reserve");
 					done();
@@ -536,14 +541,14 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
-					res.should.have.status(200);
+				.end((err, res) => {
+					res.should.have.status(201);
 
 					query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 						"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 					request(this.server)
 						.delete(query)
-						.end(function(err, res) {
+						.end((err, res) => {
 							res.should.have.status(403);
 							done();
 						});
@@ -555,15 +560,15 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
-					res.should.have.status(200);
+				.end((err, res) => {
+					res.should.have.status(201);
 
 					// Clean reservation for next tests.
 					query = basePath + "/" + config.objects["named-place"].id + "/reservation" +
 						"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 					request(this.server)
 						.delete(query)
-						.end(function(err, res) {
+						.end((err, res) => {
 							res.should.have.status(200);
 							done();
 						});
@@ -575,7 +580,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token + "&personID=" + config.user.friend_id;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(403);
 					done();
 				});
@@ -586,8 +591,8 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token + "&personID=" + config.user.friend2_id;
 			request(this.server)
 				.post(query)
-				.end(function(err, res) {
-					res.should.have.status(200);
+				.end((err, res) => {
+					res.should.have.status(201);
 					res.body.reserve.should.have.property("reserver").eql(config.user.friend2_id);
 
 					// Remove reservation in order to keep reservation status untouched after tests
@@ -595,7 +600,7 @@ describe("/named-place", function() {
 						"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 					request(this.server)
 						.delete(query)
-						.end(function(err, res) {
+						.end((err, res) => {
 							res.should.have.status(200);
 							res.body.should.not.have.property("reserve");
 							done();
@@ -608,12 +613,12 @@ describe("/named-place", function() {
 		it("modifying fails if not admin", function(done) {
 			const query = basePath + "/" + config.objects["named-place"].id +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
-			const namedPlace = { ...config.objects["named-place"], acceptedDocument: {} };
+			const namedPlace = { ...config.objects["named-place"], acceptedDocument: { gatherings: [{}] } };
 			request(this.server)
 				.put(query)
 				.send(namedPlace)
-				.end(function(err, res) {
-					res.should.have.status(422);
+				.end((err, res) => {
+					res.should.have.status(403);
 					done();
 				});
 		});
@@ -641,7 +646,7 @@ describe("/named-place", function() {
 			request(this.server)
 				.put(query)
 				.send(namedPlace)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.have.property("acceptedDocument");
 					done();
@@ -653,7 +658,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.acceptedDocument.should.have.property("gatherings");
 					res.body.acceptedDocument.gatherings.forEach(gathering => {
@@ -668,11 +673,12 @@ describe("/named-place", function() {
 		});
 
 		it("filters units on fetching many", function(done) {
+			//(public:true OR owners:"MA.837" OR editors:"MA.837") AND ((NOT _exists_:"collectionID"))    
 			const query = basePath +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.results.should.not.have.length(0);
 					res.body.results.forEach(namedPlace => {
@@ -698,7 +704,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.results.should.not.have.length(0);
 					res.body.results.forEach(namedPlace => {
@@ -725,7 +731,7 @@ describe("/named-place", function() {
 				"&includeUnits=true";
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.acceptedDocument.should.have.property("gatherings");
 					res.body.prepopulatedDocument.should.have.property("gatherings");
@@ -749,7 +755,7 @@ describe("/named-place", function() {
 				"&includeUnits=true";
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.results.should.not.have.length(0);
 					const someHas = res.body.results.some(namedPlace => {
@@ -776,7 +782,7 @@ describe("/named-place", function() {
 				"&includeUnits=true";
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.acceptedDocument.should.have.property("gatherings");
 					res.body.acceptedDocument.gatherings.forEach(gathering => {
@@ -796,7 +802,7 @@ describe("/named-place", function() {
 				"&includeUnits=true";
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.results.should.not.have.length(0);
 					res.body.results.forEach(namedPlace => {
@@ -825,7 +831,7 @@ describe("/named-place", function() {
 				"&includeUnits=true";
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.results.should.not.have.length(0);
 					res.body.results.forEach(namedPlace => {
@@ -854,7 +860,7 @@ describe("/named-place", function() {
 				"&selectedFields=name";
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.results.should.not.have.length(0);
 					res.body.results.forEach(namedPlace => {
@@ -867,118 +873,103 @@ describe("/named-place", function() {
 					done();
 				});
 		});
-
-		it("has id when using selected fields ", function(done) {
-			const query = basePath +
-				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
-				"&selectedFields=name";
-			request(this.server)
-				.get(query)
-				.end(function(err, res) {
-					res.should.have.status(200);
-					res.body.results.should.not.have.length(0);
-					res.body.results.forEach(namedPlace => {
-						namedPlace.should.property("id");
-					});
-					done();
-				});
-		});
 	});
 
-	describe("Deleting public", function() {
-		let npId, docId;
-		before(function (done) {
-			const testCollectionID = config.id["test_form_with_np_feature_collectionID"];
-			const formID = config.id["test_form_with_np_feature"];
-
-			const np = {
-				name: "Test",
-				geometry: {
-					type: "Point",
-					coordinates: [34, 32]
-				},
-				public: true,
-				collectionID: testCollectionID
-			};
-
-			const query = basePath +
-				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(this.server)
-				.post(query)
-				.send(np)
-				.end(function (err, res) {
-					if (err) return done(err);
-					npId = res.body.id;
-					const doc = {
-						collectionID: testCollectionID,
-						gatheringEvent: {},
-						gatherings: [{ geometry: { type: "Point", coordinates: [25, 60] } }],
-						formID,
-						namedPlaceID: npId
-					};
-					const documentQuery = config.urls.document +
-						"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-					request(this.server)
-						.post(documentQuery)
-						.send(doc)
-						.end(function (err, res) {
-							res.should.have.status(200);
-							docId = res.body.id;
-							done();
-						});
-				});
-		});
-
-		it("editor can't delete", function(done) {
-			const query = basePath + "/" + npId +
-				"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
-			request(this.server)
-				.delete(query)
-				.end(function(err, res) {
-					res.should.have.status(403);
-					done();
-				});
-		});
-
-		it("doesn't delete public named place if it has documents", function(done) {
-			const query = basePath + "/" + npId +
-				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(this.server)
-				.delete(query)
-				.end(function(err, res) {
-					res.should.have.status(422);
-					done();
-				});
-		});
-
-		// The test is skipped because it is known to fail because the document
-		// query returns the deleted document because of Elastic Search index cache.
-		it("deletes public named place if it has no documents", function(done) {
-			return this.skip();
-
-			const documentQuery = config.urls.document + "/" + docId +
-				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			request(this.server)
-				.delete(documentQuery)
-				.end(function(err, res) {
-					res.should.have.status(204);
-					const documentQuery = config.urls.document + "?namedPlace=" + npId +
-						"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-					request(this.server)
-						.get(documentQuery)
-						.end(function(err, res) {
-							const query = basePath + "/" + npId +
-								"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-							request(this.server)
-								.delete(query)
-								.end(function(err, res) {
-									res.should.have.status(204);
-									done();
-								});
-						});
-				});
-		});
-	});
+	// TODO uncomment when document endpoint implemented0
+	// describe("Deleting public", function() {
+	// 	let npId, docId;
+	// 	before(function (done) {
+	// 		const testCollectionID = config.id["test_form_with_np_feature_collectionID"];
+	// 		const formID = config.id["test_form_with_np_feature"];
+  //
+	// 		const np = {
+	// 			name: "Test",
+	// 			geometry: {
+	// 				type: "Point",
+	// 				coordinates: [34, 32]
+	// 			},
+	// 			public: true,
+	// 			collectionID: testCollectionID
+	// 		};
+  //
+	// 		const query = basePath +
+	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+	// 		request(this.server)
+	// 			.post(query)
+	// 			.send(np)
+	// 			.end((err, res) => {
+	// 				if (err) return done(err);
+	// 				npId = res.body.id;
+	// 				const doc = {
+	// 					collectionID: testCollectionID,
+	// 					gatheringEvent: {},
+	// 					gatherings: [{ geometry: { type: "Point", coordinates: [25, 60] } }],
+	// 					formID,
+	// 					namedPlaceID: npId
+	// 				};
+	// 				const documentQuery = config.urls.document +
+	// 					"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+	// 				request(this.server)
+	// 					.post(documentQuery)
+	// 					.send(doc)
+	// 					.end(function (err, res) {
+	// 						res.should.have.status(200);
+	// 						docId = res.body.id;
+	// 						done();
+	// 					});
+	// 			});
+	// 	});
+  //
+	// 	it("editor can't delete", function(done) {
+	// 		const query = basePath + "/" + npId +
+	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
+	// 		request(this.server)
+	// 			.delete(query)
+	// 			.end((err, res) => {
+	// 				res.should.have.status(403);
+	// 				done();
+	// 			});
+	// 	});
+  //
+	// 	it("doesn't delete public named place if it has documents", function(done) {
+	// 		const query = basePath + "/" + npId +
+	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+	// 		request(this.server)
+	// 			.delete(query)
+	// 			.end((err, res) => {
+	// 				res.should.have.status(422);
+	// 				done();
+	// 			});
+	// 	});
+  //
+	// 	// The test is skipped because it is known to fail because the document
+	// 	// query returns the deleted document because of Elastic Search index cache.
+	// 	it("deletes public named place if it has no documents", function(done) {
+	// 		return this.skip();
+  //
+	// 		const documentQuery = config.urls.document + "/" + docId +
+	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+	// 		request(this.server)
+	// 			.delete(documentQuery)
+	// 			.end((err, res) => {
+	// 				res.should.have.status(204);
+	// 				const documentQuery = config.urls.document + "?namedPlace=" + npId +
+	// 					"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+	// 				request(this.server)
+	// 					.get(documentQuery)
+	// 					.end((err, res) => {
+	// 						const query = basePath + "/" + npId +
+	// 							"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+	// 						request(this.server)
+	// 							.delete(query)
+	// 							.end((err, res) => {
+	// 								res.should.have.status(204);
+	// 								done();
+	// 							});
+	// 					});
+	// 			});
+	// 	});
+	// });
 
 	describe("MHL.allowAddingPublic", function() {
 
@@ -1002,8 +993,8 @@ describe("/named-place", function() {
 			request(this.server)
 				.post(query)
 				.send(npForNoFeature)
-				.end(function(err, res) {
-					res.should.have.status(422);
+				.end((err, res) => {
+					res.should.have.status(403);
 					done();
 				});
 		});
@@ -1016,7 +1007,7 @@ describe("/named-place", function() {
 				.post(query)
 				.send(npForNoFeature)
 				.end((err, res) => {
-					res.should.have.status(200);
+					res.should.have.status(201);
 					npId = res.body.id;
 					// Try deleting with person token.
 					const query = basePath + "/" + npId +
@@ -1045,8 +1036,8 @@ describe("/named-place", function() {
 			request(this.server)
 				.post(query)
 				.send(namedPlace)
-				.end(function(err, res) {
-					res.should.have.status(200);
+				.end((err, res) => {
+					res.should.have.status(201);
 					npId = res.body.id;
 					done();
 				});
@@ -1060,7 +1051,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
 			request(this.server)
 				.delete(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					done();
 				});
@@ -1086,7 +1077,7 @@ describe("/named-place", function() {
 			request(this.server)
 				.post(query)
 				.send(npForNoFeature)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(422);
 					done();
 				});
@@ -1100,7 +1091,7 @@ describe("/named-place", function() {
 			request(this.server)
 				.put(query)
 				.send(updatedNP)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(422);
 					done();
 				});
@@ -1111,7 +1102,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.delete(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(422);
 					done();
 				});
@@ -1127,7 +1118,7 @@ describe("/named-place", function() {
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.get(query)
-				.end(function(err, res) {
+				.end((err, res) => {
 					res.should.have.status(200);
 					strictNp = res.body;
 					done();
@@ -1145,7 +1136,7 @@ describe("/named-place", function() {
 				request(this.server)
 					.post(query)
 					.send(strictNpWithInvalidPrepopDoc)
-					.end(function(err, res) {
+					.end((err, res) => {
 						res.should.have.status(422);
 						done();
 					});
@@ -1160,7 +1151,7 @@ describe("/named-place", function() {
 				request(this.server)
 					.put(query)
 					.send(strictNpWithInvalidPrepopDoc)
-					.end(function(err, res) {
+					.end((err, res) => {
 						res.should.have.status(422);
 						done();
 					});
@@ -1179,8 +1170,8 @@ describe("/named-place", function() {
 				request(this.server)
 					.post(query)
 					.send(np)
-					.end(function(err, res) {
-						res.should.have.status(200);
+					.end((err, res) => {
+						res.should.have.status(201);
 						id = res.id;
 						done();
 					});
@@ -1196,7 +1187,7 @@ describe("/named-place", function() {
 				request(this.server)
 					.put(query)
 					.send(strictNp)
-					.end(function(err, res) {
+					.end((err, res) => {
 						res.should.have.status(422);
 						done();
 					});

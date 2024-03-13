@@ -95,6 +95,11 @@ export const getCacheKeyForQuery = <T>(query: Query<T>, config: StoreCacheOption
 			throw new Error("Primary keys must be always in a query!");
 		}
 	});
+	process.env.NODE_ENV !== "production" && (Object.keys(flattened) as (KeyOf<T>)[]).forEach(key => {
+		if (!keys.includes(key)) {
+			throw new Error(`All search terms used in a query must be configured to the cache option \`keys\`! Search term '${key}' isn't in the \`keys\`.`);
+		}
+	});
 	return parseFlattenedLiteralMapClause(flattened, keys);
 };
 

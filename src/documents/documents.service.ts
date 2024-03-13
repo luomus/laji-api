@@ -8,7 +8,7 @@ import { Document } from "./documents.dto";
 export class DocumentsService {
 	constructor(@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Document>) {}
 
-	findOne = this.store.findOne;
+	findOne = this.store.findOne.bind(this.store);
 }
 
 export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSchemaFormat): void => {

@@ -68,7 +68,7 @@ export class RestClientService<T = unknown> {
 		return this.getPath(path) + (query ? `?${query}` : "");
 	}
 
-	private shouldUseCache(options?: RestClientOptions<unknown>) {
+	private getCacheConf(options?: RestClientOptions<unknown>) {
 		if (options && "cache" in options) {
 			return options.cache;
 		}
@@ -87,7 +87,7 @@ export class RestClientService<T = unknown> {
 		// } }
 		let cachedByPath: Record<string, S>;
 		const pathAndQuery = this.getPathAndQuery(path, config);
-		if (options?.cache) {
+		if (this.getCacheConf(options)) {
 			cachedByPath = await this.cache.get<Record<string, S>>(this.getPath(path))
 				|| {} as Record<string, S>;
 			const cached = pathAndQuery in cachedByPath
@@ -102,12 +102,13 @@ export class RestClientService<T = unknown> {
 		const result = await firstValueFrom(
 			this.httpService.get<S>(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
 		);
-		if (options?.cache) {
+		const cacheConf = this.getCacheConf(options)
+		if (cacheConf) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
 			cachedByPath![pathAndQuery] = result;
 			await this.cache.set(this.getPath(path),
 				cachedByPath!,
-				typeof options.cache === "number" ? options.cache : undefined);
+				typeof cacheConf === "number" ? cacheConf : undefined);
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
 		}
 		return result;
@@ -124,7 +125,7 @@ export class RestClientService<T = unknown> {
 		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.post<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
 		), options);
-		this.shouldUseCache(options) && await this.cache.del(this.getPath(path));
+		this.getCacheConf(options) && await this.cache.del(this.getPath(path));
 		return result;
 	}
 
@@ -137,7 +138,7 @@ export class RestClientService<T = unknown> {
 		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.put<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
 		), options);
-		this.shouldUseCache(options) && await this.cache.del(this.getPath(path));
+		this.getCacheConf(options) && await this.cache.del(this.getPath(path));
 		return result;
 	}
 
@@ -145,7 +146,7 @@ export class RestClientService<T = unknown> {
 		const result = firstValueFrom(
 			this.httpService.delete(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
 		);
-		this.shouldUseCache(options) && await this.cache.del(this.getPath(path));
+		this.getCacheConf(options) && await this.cache.del(this.getPath(path));
 		return result;
 	}
 }

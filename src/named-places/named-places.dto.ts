@@ -16,7 +16,7 @@ export class NamedPlace extends OmitType(NamedPlaceClass, ["geometry"]) {
 	/** Read access, not edit access */
 	editors: string[] = [];
 
-	isEditableFor(person: Person): boolean {
+	isReadableFor(person: Person): boolean {
 		return this.owners.includes(person.id) || (this.editors?.includes(person.id));
 	}
 }

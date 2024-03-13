@@ -1,6 +1,6 @@
 import { Lang } from "./common.dto";
 import { StoreQueryResult } from "./store/store.service";
-import { isObject } from "./type-utils";
+import { MaybePromise, isObject } from "./type-utils";
 import { pipe } from "./utils";
 
 export class PaginatedDto<T> {
@@ -77,23 +77,18 @@ export const getAllFromPagedResource = async <T>(
 	return items;
 };
 
-/* eslint-disable max-len */
-type ResultApplier = {
-	<T, R>(fn: (r: T) => (result: T) => Promise<R>): (result: T) => Promise<R>;
-	<T, R>(fn: (r: T) => (result: T[]) => Promise<R>): (result: T) => Promise<R[]>;
-	<T, R>(fn: (r: T) => (result: PaginatedDto<R>) => Promise<PaginatedDto<R>>): (result: T) => Promise<PaginatedDto<R>>;
-	// <T, R>(fn: (r: T) => (result: T | T[] | PaginatedDto<R>) => Promise<R | R[] | PaginatedDto<R>>): (result: T) => Promise<R | R[] | PaginatedDto<R>>;
-}
-/* eslint-enable max-len */
-
 /**
  * Creates a function that maps the input items of a "result" with the given function.
  * The "result" is either a page, an array or a single object.
  * */
-const applyToResult: ResultApplier = <T, R>(fn: (result: T) => R ) =>
-	async (result: T | T[] | PaginatedDto<T>): Promise<R | R[] | PaginatedDto<R>> => {
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: T) => Promise<R>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: T[]) => Promise<R[]>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: PaginatedDto<T>) => Promise<PaginatedDto<R>>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: T | T[] | PaginatedDto<T>) => Promise<R | R[] | PaginatedDto<R>>)
+{
+	return async (result: T | T[] | PaginatedDto<T>): Promise<R | R[] | PaginatedDto<R>> => {
 		if (isPaginatedDto(result)) {
-			const mappedResults = [];
+			const mappedResults: R[] = [];
 			for (const r of result.results) {
 				mappedResults.push(await fn(r));
 			}
@@ -107,6 +102,7 @@ const applyToResult: ResultApplier = <T, R>(fn: (result: T) => R ) =>
 		}
 		return fn(result);
 	};
+}
 
 export { applyToResult };
 
