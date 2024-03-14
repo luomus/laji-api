@@ -1,31 +1,22 @@
 import { FactoryProvider, Module } from "@nestjs/common";
 import { DocumentsService } from "./documents.service";
-import { StoreClientModule } from "src/store/store-client/store-client.module";
+import { STORE_CLIENT, StoreClientModule } from "src/store/store-client/store-client.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { StoreConfig, StoreService } from "src/store/store.service";
+import { StoreService } from "src/store/store.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
-const storeResourceConfig: FactoryProvider<StoreConfig> = {
-	provide: "STORE_RESOURCE_CONFIG",
-	useFactory: () => ({
-		resource: "document"
-	})
-};
-
-const storeResourceServiceProvider: FactoryProvider<StoreService<never>> = {
+const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	provide: "STORE_RESOURCE_SERVICE",
-	useFactory: (storeRestClient: RestClientService<never>, cache: RedisCacheService, config: StoreConfig) =>
-		new StoreService(storeRestClient, cache, config),
+	useFactory: (client: RestClientService<never>, cache: RedisCacheService) =>
+		new StoreService(client, cache, { resource: "document" }),
 	inject: [
-		{ token: "STORE_REST_CLIENT", optional: false },
-		RedisCacheService,
-		{ token: "STORE_RESOURCE_CONFIG", optional: false }
+		{ token: STORE_CLIENT, optional: false },
+		RedisCacheService
 	],
 };
 
-
 @Module({
-	providers: [DocumentsService, storeResourceConfig, storeResourceServiceProvider],
+	providers: [DocumentsService, StoreResourceService],
 	imports: [StoreClientModule],
 	exports: [DocumentsService]
 })

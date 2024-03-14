@@ -39,7 +39,10 @@ import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 
 @Module({
 	imports: [
-		HttpModule,
+		{
+			...HttpModule.register({}),
+			global: true
+		},
 		ConfigModule.forRoot({ isGlobal: true }),
 		TypeOrmModule.forRootAsync({
 			imports: [ConfigModule],

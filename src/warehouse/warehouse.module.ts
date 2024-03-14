@@ -1,36 +1,28 @@
 import { FactoryProvider, Module } from "@nestjs/common";
 import { WarehouseService } from "./warehouse.service";
-import { HttpModule, HttpService } from "@nestjs/axios";
-import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
-// import { Cache } from "cache-manager";
-// import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { HttpService } from "@nestjs/axios";
+import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { WarehouseController } from "./warehouse.controller";
-import {RedisCacheService} from "src/redis-cache/redis-cache.service";
 
-const warehouseClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
-	provide: "WAREHOUSE_REST_CLIENT_CONFIG",
-	useFactory: (configService: ConfigService) => ({
-		path: configService.get("WAREHOUSE_PATH") as string
-	}),
-	inject: [ConfigService],
-};
+export const WAREHOUSE_CLIENT =  "WAREHOUSE_REST_CLIENT";
 
-const warehouseRestClientProvider: FactoryProvider<RestClientService<never>> = {
-	provide: "WAREHOUSE_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig<never>, cache: RedisCacheService) =>
-		new RestClientService(httpService, formClientConfig, cache),
+const WarehouseRestClient: FactoryProvider<RestClientService<never>> = {
+	provide: WAREHOUSE_CLIENT,
+	useFactory: (httpService: HttpService, config: ConfigService) =>
+		new RestClientService(httpService, {
+			name: "warehouse",
+			host: config.get<string>("WAREHOUSE_HOST")
+		}),
 	inject: [
 		HttpService,
-		{ token: "WAREHOUSE_REST_CLIENT_CONFIG", optional: false },
-		// { token: CACHE_MANAGER, optional: false }
+		ConfigService
 	],
 };
 
 @Module({
-	imports: [HttpModule],
 	controllers: [WarehouseController],
-	providers: [WarehouseService, warehouseRestClientProvider, warehouseClientConfigProvider],
-	exports: [warehouseRestClientProvider]
+	providers: [WarehouseService, WarehouseRestClient],
+	exports: [WarehouseRestClient]
 })
 export class WarehouseModule {}

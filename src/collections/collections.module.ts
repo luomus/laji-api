@@ -1,32 +1,27 @@
 import { FactoryProvider, Module } from "@nestjs/common";
 import { CollectionsService } from "./collections.service";
 import { CollectionsController } from "./collections.controller";
-import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
-import { HttpModule, HttpService } from "@nestjs/axios";
+import { RestClientService } from "src/rest-client/rest-client.service";
+import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { TriplestoreModule } from "src/triplestore/triplestore.module";
 import { LangModule } from "src/lang/lang.module";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
-const gbifClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
-	provide: "REST_CLIENT_CONFIG",
-	useFactory: (configService: ConfigService) => ({
-		path: configService.get("GBIF_PATH") as string,
-	}),
-	inject: [ConfigService],
-};
-
-const gbifRestClientProvider: FactoryProvider<RestClientService> = {
+const GbifRestClient: FactoryProvider<RestClientService> = {
 	provide: "GBIF_REST_CLIENT",
-	useFactory: (httpService: HttpService, gbifClientConfig: RestClientConfig<never>, cache: RedisCacheService) =>
-		new RestClientService(httpService, gbifClientConfig, cache),
-	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, RedisCacheService],
+	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
+		new RestClientService(httpService, {
+			name: "gbif",
+			host: config.get<string>("GBIF_HOST"),
+		}, cache),
+	inject: [HttpService, ConfigService, RedisCacheService],
 };
 
 @Module({
-	imports: [HttpModule, TriplestoreModule, LangModule],
+	imports: [TriplestoreModule, LangModule],
 	controllers: [CollectionsController],
-	providers: [CollectionsService, gbifRestClientProvider, gbifClientConfigProvider],
+	providers: [CollectionsService, GbifRestClient],
 	exports: [CollectionsService]
 })
 export class CollectionsModule {}

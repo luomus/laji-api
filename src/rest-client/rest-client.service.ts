@@ -9,7 +9,9 @@ import { CacheOptions } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 export type RestClientConfig<T> = RestClientOptions<T> & {
-	path: string;
+	/** Used for logging purposes */
+	name: string;
+	host?: string;
 	auth?: string;
 };
 
@@ -39,22 +41,26 @@ export class RestClientService<T = unknown> {
 	constructor(
 		private readonly httpService: HttpService,
 		@Inject("REST_CLIENT_CONFIG") private readonly config: RestClientConfig<T>,
-		private cache: RedisCacheService
-	) {
-	}
+		private cache?: RedisCacheService
+	) { }
 
-	private getRequesconfig(config: AxiosRequestConfig = {}) {
+	private getRequestConfig(config: AxiosRequestConfig = {}) {
 		if (!this.config.auth) {
 			return config;
 		}
 		return { ...config, headers: { Authorization: this.config.auth, ...(config.headers || {}) } };
 	}
 
-	private getPath(path?: string) {
-		if (path === undefined) {
-			return this.config.path;
+	private getHostAndPath(path?: string) {
+		if (!this.config.host) {
+			const msg = "Missing host config for " + this.config.name;
+			this.logger.error(msg);
+			throw new Error(msg);
 		}
-		return `${this.config.path}/${path}`;
+		if (path === undefined) {
+			return this.config.host;
+		}
+		return `${this.config.host}/${path}`;
 	}
 
 	static applyOptions<T>(item: T, options?: RestClientOptions<T>): T {
@@ -63,9 +69,9 @@ export class RestClientService<T = unknown> {
 			: item;
 	}
 
-	private getPathAndQuery(path?: string, config?: AxiosRequestConfig) {
+	private getURL(path?: string, config?: AxiosRequestConfig) {
 		const query = new URLSearchParams(config?.params).toString();
-		return this.getPath(path) + (query ? `?${query}` : "");
+		return this.getHostAndPath(path) + (query ? `?${query}` : "");
 	}
 
 	private getCacheConf(options?: RestClientOptions<unknown>) {
@@ -77,7 +83,7 @@ export class RestClientService<T = unknown> {
 
 	private async getWithCache<S>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>)
 	: Promise<S> {
-		// We cache a map where keys are the path without query params, and the keys are the full uri with path and query params.
+		// We cache a map where keys are the path without query params, and the keys are the full uri with host, path and query params.
 		// This way we can bust the cache by just the path.
 		//
 		// Example for cachedByPath, where this.path = "https://foo.bar/path", path = "path":
@@ -85,29 +91,29 @@ export class RestClientService<T = unknown> {
 		// "https://foo.bar/path?param1=foo": "cached example value 1",
 		// "https://foo.bar/path?param2=bar": "cached example value 2",
 		// } }
-		let cachedByPath: Record<string, S>;
-		const pathAndQuery = this.getPathAndQuery(path, config);
+		let cachedByHostAndPath: Record<string, S>;
+		const url = this.getURL(path, config);
 		if (this.getCacheConf(options)) {
-			cachedByPath = await this.cache.get<Record<string, S>>(this.getPath(path))
+			cachedByHostAndPath = await this.cache!.get<Record<string, S>>(this.getHostAndPath(path))
 				|| {} as Record<string, S>;
-			const cached = pathAndQuery in cachedByPath
-				? cachedByPath[pathAndQuery]
+			const cached = url in cachedByHostAndPath
+				? cachedByHostAndPath[url]
 				: undefined;
 			if (cached) {
-				this.logger.verbose(`Cache hit for ${pathAndQuery}`);
+				this.logger.verbose(`Cache hit for ${url}`);
 				return cached;
 			}
 		}
-		this.logger.verbose(`GET ${pathAndQuery}`);
+		this.logger.verbose(`GET ${url}`);
 		const result = await firstValueFrom(
-			this.httpService.get<S>(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
+			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r => r.data))
 		);
-		const cacheConf = this.getCacheConf(options)
+		const cacheConf = this.getCacheConf(options);
 		if (cacheConf) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
-			cachedByPath![pathAndQuery] = result;
-			await this.cache.set(this.getPath(path),
-				cachedByPath!,
+			cachedByHostAndPath![url] = result;
+			await this.cache!.set(this.getHostAndPath(path),
+				cachedByHostAndPath!,
 				typeof cacheConf === "number" ? cacheConf : undefined);
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
 		}
@@ -123,9 +129,10 @@ export class RestClientService<T = unknown> {
 		options?: RestClientOptions<S>
 	) {
 		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.post<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
+			this.httpService.post<S>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+				.pipe(map(r => r.data))
 		), options);
-		this.getCacheConf(options) && await this.cache.del(this.getPath(path));
+		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
@@ -136,17 +143,18 @@ export class RestClientService<T = unknown> {
 		options?: RestClientOptions<S>
 	) {
 		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.put<S>(this.getPath(path), body, this.getRequesconfig(config)).pipe(map(r => r.data))
+			this.httpService.put<S>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+				.pipe(map(r => r.data))
 		), options);
-		this.getCacheConf(options) && await this.cache.del(this.getPath(path));
+		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
 	async delete(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
 		const result = firstValueFrom(
-			this.httpService.delete(this.getPath(path), this.getRequesconfig(config)).pipe(map(r => r.data))
+			this.httpService.delete(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r => r.data))
 		);
-		this.getCacheConf(options) && await this.cache.del(this.getPath(path));
+		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 }

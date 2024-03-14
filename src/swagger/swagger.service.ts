@@ -14,6 +14,8 @@ import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagge
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { JSONSerializable } from "src/type-utils";
+import { WAREHOUSE_CLIENT } from "src/warehouse/warehouse.module";
+import { STORE_CLIENT } from "src/store/store-client/store-client.module";
 
 type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
@@ -26,8 +28,8 @@ export class SwaggerService {
 	warehouseSwaggerDoc?: OpenAPIObject;
 
 	constructor(
-		@Inject("STORE_REST_CLIENT") private storeClient: RestClientService<JSONSerializable>,
-		@Inject("WAREHOUSE_REST_CLIENT") private warehouseClient: RestClientService<JSONSerializable>,
+		@Inject(STORE_CLIENT) private storeClient: RestClientService<JSONSerializable>,
+		@Inject(WAREHOUSE_CLIENT) private warehouseClient: RestClientService<JSONSerializable>,
 	) {
 		this.patchGlobalSchemaRefs = this.patchGlobalSchemaRefs.bind(this);
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);

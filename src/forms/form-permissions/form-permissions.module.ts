@@ -4,44 +4,35 @@ import { MailModule } from "src/mail/mail.module";
 import { PersonsModule } from "src/persons/persons.module";
 import { FormsModule } from "../forms.module";
 import { FormPermissionsService } from "./form-permissions.service";
-import { StoreClientModule } from "src/store/store-client/store-client.module";
+import { STORE_CLIENT, StoreClientModule } from "src/store/store-client/store-client.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { StoreConfig, StoreService } from "src/store/store.service";
+import { StoreService } from "src/store/store.service";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
-const storeResourceConfig: FactoryProvider<StoreConfig> = {
-	provide: "STORE_RESOURCE_CONFIG",
-	useFactory: () => ({
-		resource: "formPermissionSingle",
-		cache: { ttl: CACHE_1_H,
-			keys: ["collectionID", "userID"],
-			primaryKeySpaces: [
-				["userID"],
-				["collectionID"],
-				["collectionID", "userID"]
-			]
-
-
-		} // Primary keys configured per query in the service.
-	})
-};
-
-const storeResourceServiceProvider: FactoryProvider<StoreService<never>> = {
+const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	provide: "STORE_RESOURCE_SERVICE",
-	useFactory: (storeRestClient: RestClientService<never>, cache: RedisCacheService, config: StoreConfig<never>) =>
-		new StoreService(storeRestClient, cache, config),
+	useFactory: (client: RestClientService<never>, cache: RedisCacheService) =>
+		new StoreService(client, cache, {
+			resource: "formPermissionSingle",
+			cache: { ttl: CACHE_1_H,
+				keys: ["collectionID", "userID"],
+				primaryKeySpaces: [
+					["userID"],
+					["collectionID"],
+					["collectionID", "userID"]
+				]
+			} // Primary keys configured per query in the service.
+		}),
 	inject: [
-		{ token: "STORE_REST_CLIENT", optional: false },
-		RedisCacheService,
-		{ token: "STORE_RESOURCE_CONFIG", optional: false }
+		{ token: STORE_CLIENT, optional: false },
+		RedisCacheService
 	],
 };
 
-
 @Module({
 	imports: [PersonsModule, StoreClientModule, forwardRef(() => FormsModule), CollectionsModule, MailModule],
-	providers: [FormPermissionsService, storeResourceServiceProvider, storeResourceConfig],
+	providers: [FormPermissionsService, StoreResourceService],
 	exports: [FormPermissionsService]
 })
 export class FormPermissionsModule {}

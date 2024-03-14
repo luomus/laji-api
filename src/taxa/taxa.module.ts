@@ -1,29 +1,22 @@
 import { FactoryProvider, Module } from "@nestjs/common";
-import { HttpModule, HttpService } from "@nestjs/axios";
-import { RestClientConfig, RestClientService } from "src/rest-client/rest-client.service";
+import { HttpService } from "@nestjs/axios";
+import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { TaxaService } from "./taxa.service";
-import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
-const taxaClientConfigProvider: FactoryProvider<RestClientConfig<never>> = {
-	provide: "REST_CLIENT_CONFIG",
-	useFactory: (configService: ConfigService) => ({
-		path: configService.get("TAXON_PATH") as string,
-		auth: configService.get("TAXON_AUTH") as string,
-	}),
-	inject: [ConfigService],
-};
-
-const taxaRestClientProvider: FactoryProvider<RestClientService<never>> = {
+const TaxaRestClient: FactoryProvider<RestClientService<never>> = {
 	provide: "TAXA_REST_CLIENT",
-	useFactory: (httpService: HttpService, formClientConfig: RestClientConfig<never>, cache: RedisCacheService) =>
-		new RestClientService(httpService, formClientConfig, cache),
-	inject: [HttpService, { token: "REST_CLIENT_CONFIG", optional: false }, RedisCacheService],
+	useFactory: (httpService: HttpService, config: ConfigService) =>
+		new RestClientService(httpService, {
+			name: "taxon",
+			host: config.get<string>("TAXON_HOST"),
+			auth: config.get<string>("TAXON_AUTH"),
+		}),
+	inject: [HttpService, ConfigService],
 };
 
 @Module({
-	imports: [HttpModule],
-	providers: [TaxaService, taxaRestClientProvider, taxaClientConfigProvider],
+	providers: [TaxaService, TaxaRestClient],
 	exports: [TaxaService]
 })
 export class TaxaModule {}

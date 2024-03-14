@@ -57,7 +57,7 @@ export class AbstractMediaService {
 		// Check that the person token is valid.
 		await this.personsService.getByToken(personToken);
 
-		const basePath = this.configService.get("MEDIA_PATH") as string;
+		const basePath = this.configService.get("MEDIA_HOST") as string;
 		const basicAuth = this.configService.get("MEDIA_AUTH") as string;
 		const auth = this.parseBasicAuth(basicAuth);
 

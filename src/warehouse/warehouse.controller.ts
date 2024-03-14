@@ -13,7 +13,7 @@ export class WarehouseController {
 	constructor(private config: ConfigService) {}
 
 	warehouseProxy = createProxyMiddleware({
-		target: this.config.get("WAREHOUSE_PATH") as string,
+		target: this.config.get("WAREHOUSE_HOST") as string,
 		changeOrigin: true,
 		pathRewrite: {
 			"^/warehouse": "/"

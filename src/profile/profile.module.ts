@@ -2,31 +2,25 @@ import { FactoryProvider, Module } from "@nestjs/common";
 import { NotificationsModule } from "src/notifications/notifications.module";
 import { PersonTokenModule } from "src/person-token/person-token.module";
 import { ProfileService } from "./profile.service";
-import { StoreClientModule } from "src/store/store-client/store-client.module";
-import { StoreConfig, StoreService } from "src/store/store.service";
+import { STORE_CLIENT, StoreClientModule } from "src/store/store-client/store-client.module";
+import { StoreService } from "src/store/store.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { Profile } from "./profile.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
-const storeResourceConfig: FactoryProvider<StoreConfig<Profile>> = {
-	provide: "STORE_RESOURCE_CONFIG",
-	useFactory: () => ({ resource: "profile", serializeInto: Profile })
-};
-
-const storeResourceServiceProvider: FactoryProvider<StoreService<never>> = {
+const StoreResourceService: FactoryProvider<StoreService<Profile>> = {
 	provide: "STORE_RESOURCE_SERVICE",
-	useFactory: (storeRestClient: RestClientService<never>, cache: RedisCacheService, config: StoreConfig) =>
-		new StoreService(storeRestClient, cache, config),
+	useFactory: (client: RestClientService<never>, cache: RedisCacheService) =>
+		new StoreService(client, cache, { resource: "profile", serializeInto: Profile }),
 	inject: [
-		{ token: "STORE_REST_CLIENT", optional: false },
-		RedisCacheService,
-		{ token: "STORE_RESOURCE_CONFIG", optional: false }
+		{ token: STORE_CLIENT, optional: false },
+		RedisCacheService
 	],
 };
 
 
 @Module({
-	providers: [ProfileService, storeResourceServiceProvider, storeResourceConfig],
+	providers: [ProfileService, StoreResourceService],
 	imports: [StoreClientModule, PersonTokenModule, NotificationsModule],
 	exports: [ProfileService]
 
