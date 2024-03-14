@@ -120,21 +120,6 @@ export class CollectionsService {
 				return collections;
 			}
 
-			// TODO hack in old api. Waiting for response if we can remove it.
-			// Doesn't work right away it commented back in, because the lang service will try
-			// to translate them. We'd need some blacklist for the translation method for this to work.
-			//
-			// // Remove language fields that are really not multilang fields.
-			// const notReallyMultiLangKeys: (keyof TriplestoreCollection)[] = [
-			// 	"temporalCoverage", "taxonomicCoverage", "collectionLocation",
-			// 	"dataLocation", "methods", "coverageBasis", "geographicCoverage"
-			// ];
-			// notReallyMultiLangKeys.forEach(prop => {
-			// 	if (prop in collection) {
-			// 		(collection as any)[prop] = pickFromMultiLang((collection as any)[prop], Lang.en);
-			// 	}
-			// });
-
 			collection.downloadRequestHandler = getInheritedProperty(
 				"downloadRequestHandler", collection, idToCollection
 			);
