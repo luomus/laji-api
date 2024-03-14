@@ -13,6 +13,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { NamedPlace } from "./named-places.dto";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { MailModule } from "src/mail/mail.module";
 
 const storeResourceConfig: FactoryProvider<StoreConfig<NamedPlace>> = {
 	provide: "STORE_RESOURCE_CONFIG",
@@ -38,7 +39,7 @@ const storeResourceServiceProvider: FactoryProvider<StoreService<never>> = {
 @Module({
 	providers: [NamedPlacesService, storeResourceConfig, storeResourceServiceProvider],
 	imports: [StoreClientModule, PersonsModule, FormsModule, FormPermissionsModule, PrepopulatedDocumentModule,
-		DocumentsModule, CollectionsModule],
+		DocumentsModule, CollectionsModule, MailModule],
 	controllers: [NamedPlacesController]
 })
 export class NamedPlacesModule {}

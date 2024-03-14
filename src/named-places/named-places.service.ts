@@ -11,6 +11,7 @@ import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
 import { dateToISODate } from "src/utils";
+import { MailService } from "src/mail/mail.service";
 
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
 
@@ -34,7 +35,8 @@ export class NamedPlacesService {
 		private formPermissionsService: FormPermissionsService,
 		private prepopulatedDocumentService: PrepopulatedDocumentService,
 		private documentService: DocumentsService,
-		private collectionsService: CollectionsService
+		private collectionsService: CollectionsService,
+		private mailService: MailService
 	) {}
 
 	async getPage(
@@ -189,9 +191,12 @@ export class NamedPlacesService {
 		const forPerson = personID
 			? await this.personsService.getByPersonId(personID)
 			: await this.personsService.getByToken(personToken);
-
 		place.reserve = { reserver: forPerson.id, until: dateToISODate(untilDate) };
-		return this.update(place.id, place, personToken);
+
+		const updated = await this.update(place.id, place, personToken);
+		const person = await this.personsService.getByToken(personToken);
+		void this.mailService.sendNamedPlaceReserved(person, { place, until: dateToISODate(untilDate) });
+		return updated;
 	}
 
 	async cancelReservation(id: string, personToken: string) {

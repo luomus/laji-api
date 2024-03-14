@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 import { CompleteMultiLang } from "src/common.dto";
+import { NamedPlace } from "src/named-places/named-places.dto";
 
 type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
@@ -64,6 +65,15 @@ export class MailService {
 			subject: `Access token for ${this.configService.get("MAIL_API_BASE")}`,
 			template: "./api-user-created",
 			context: { token }
+		});
+	}
+
+	async sendNamedPlaceReserved(user: HasEmailAddress, context: { place: NamedPlace, until: string}) {
+		return this.send({
+			to: user.emailAddress,
+			subject: "Vakiolinjan varauksen vahvistus",
+			template: "./named-place-reserved",
+			context
 		});
 	}
 }
