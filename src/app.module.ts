@@ -56,13 +56,6 @@ import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 			inject: [ConfigService]
 		}),
 		RedisCacheModule,
-		// https://github.com/dabroek/node-cache-manager-redis-store/issues/40#issuecomment-1383193211
-		// CacheModule.registerAsync({
-		// 	useFactory: async () => ({
-		// 		store: await redisStore({ ttl: 5000 })
-		// 	}),
-		// 	isGlobal: true
-		// }),
 		ScheduleModule.forRoot(),
 		FormsModule,
 		AccessTokenModule,
