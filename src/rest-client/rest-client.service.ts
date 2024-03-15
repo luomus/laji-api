@@ -36,7 +36,7 @@ export type HasMaybeSerializeInto<T> = {
 @Injectable()
 export class RestClientService<T = unknown> {
 
-	private logger = new Logger(RestClientService.name);
+	private logger = new Logger(`${RestClientService.name}/${this.config.name}`);
 
 	constructor(
 		private readonly httpService: HttpService,
