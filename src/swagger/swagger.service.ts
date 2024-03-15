@@ -82,9 +82,9 @@ export class SwaggerService {
 	/** Patches the Swagger document with controllers decorated with `@ProxyWithSwaggerMerge()` */
 	private patchRemoteSwaggers(document: OpenAPIObject) {
 		return Object.values(this.remoteSwaggers).reduce(
-			(patchedDocument, { instance, document }) => {
-				return ((instance as any).patchSwagger || (instance as any).prototype.patchSwagger)
-					.call(instance, patchedDocument, document!)},
+			(patchedDocument, { instance, document }) =>
+				((instance as any).patchSwagger || (instance as any).prototype.patchSwagger)
+					.call(instance, patchedDocument, document!),
 			document
 		);
 	}
