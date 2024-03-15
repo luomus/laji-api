@@ -28,6 +28,16 @@ $ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
 
 ### Test
 
+#### Unit tests
+
+Unit tests coverage so far only some core logic. They act as documentation for how they are supposed to work.
+
+```bash
+npm test
+```
+
+#### Integration tests
+
 Currently we rely on the e2e tests from the old api. Fill in `integration-test/config.json` and then you can run the tests:
 
 ```bash

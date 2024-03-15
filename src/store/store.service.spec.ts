@@ -24,6 +24,9 @@ describe("StoreService", () => {
 				return cache[key] ?? null;
 			},
 			del: (key: string) => {
+				delete cache[key];
+			},
+			patternDel: (key: string) => {
 				Object.keys(cache).forEach(k => {
 					if (k.match(new RegExp("^" + key.replace(/\*/g, ".*") + "$"))) {
 						delete cache[k];
