@@ -22,6 +22,11 @@ export type HasMaybeSerializeInto<T> = {
 	serializeInto?: Newable<T>;
 }
 
+const joinOverflowWithRight = (str: string, str2: string) =>
+	str.length + str2.length > 24
+		? str.substr(0, 19 - str2.length) + ".../" + str2
+		: str + "/" + str2
+
 /**
  * Abstract wrapper for a service that connects to a remote REST API. The implementing service can "provide (nestTM)"
  * this service and fill in the REST_CLIENT_CONFIG.
@@ -36,7 +41,7 @@ export type HasMaybeSerializeInto<T> = {
 @Injectable()
 export class RestClientService<T = unknown> {
 
-	private logger = new Logger(`${RestClientService.name}/${this.config.name}`);
+	private logger = new Logger(joinOverflowWithRight(RestClientService.name, this.config.name));
 
 	constructor(
 		private readonly httpService: HttpService,
