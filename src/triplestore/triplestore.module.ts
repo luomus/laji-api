@@ -4,9 +4,10 @@ import { TriplestoreService } from "./triplestore.service";
 import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
+import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 
 export const TriplestoreRestClient: FactoryProvider<RestClientService<never>> = {
-	provide: "TRIPLESTORE_REST_CLIENT",
+	provide: TRIPLESTORE_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService, {
 			name: "triplestore",

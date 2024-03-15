@@ -6,6 +6,7 @@ import * as _request from "request";
 import { PersonsService } from "../persons/persons.service";
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
+import { MEDIA_CLIENT } from "src/provider-tokens";
 
 const typeMediaClassMap: Record<MediaType, string> = {
 	[MediaType.image]: "IMAGE",
@@ -20,7 +21,7 @@ const typeMediaNameMap: Record<MediaType, string> = {
 @Injectable()
 export class AbstractMediaService {
 	constructor(
-		@Inject("MEDIA_REST_CLIENT") private mediaClient: RestClientService,
+		@Inject(MEDIA_CLIENT) private mediaClient: RestClientService,
 		private configService: ConfigService,
 		private triplestoreService: TriplestoreService,
 		private personsService: PersonsService,

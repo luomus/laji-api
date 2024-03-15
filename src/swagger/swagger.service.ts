@@ -2,7 +2,7 @@ import { Inject, Injectable, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, pipe, whitelistKeys } from "src/utils";
-import { OperationObject, ParameterObject, PathsObject, ReferenceObject, SchemaObject }
+import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
@@ -14,8 +14,11 @@ import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagge
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { JSONSerializable } from "src/type-utils";
-import { WAREHOUSE_CLIENT } from "src/warehouse/warehouse.module";
-import { STORE_CLIENT } from "src/store/store-client/store-client.module";
+import { STORE_CLIENT } from "src/provider-tokens";
+import { ModuleRef } from "@nestjs/core";
+import {
+	FetchSwagger, PatchSwagger, instancesWithRemoteSwagger
+} from "src/decorators/remote-swagger-merge.decorator";
 
 type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
@@ -25,37 +28,47 @@ type SwaggerSchema = Record<string, SchemaItem>;
 export class SwaggerService {
 
 	storeSwaggerDoc?: OpenAPIObject;
-	warehouseSwaggerDoc?: OpenAPIObject;
+	remoteSwaggers: Record<string, {
+		instance: {
+			fetchSwagger: FetchSwagger,
+			patchSwagger: PatchSwagger
+
+		},
+		document?: OpenAPIObject
+	}> = {};
 
 	constructor(
 		@Inject(STORE_CLIENT) private storeClient: RestClientService<JSONSerializable>,
-		@Inject(WAREHOUSE_CLIENT) private warehouseClient: RestClientService<JSONSerializable>,
+		private moduleRef: ModuleRef
 	) {
 		this.patchGlobalSchemaRefs = this.patchGlobalSchemaRefs.bind(this);
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);
-		this.patchWarehouse = this.patchWarehouse.bind(this);
+		this.patchRemoteSwaggers = this.patchRemoteSwaggers.bind(this);
 	}
 
 	@Interval(CACHE_30_MIN)
 	async warmup() {
 		this.storeSwaggerDoc = await this.storeClient.get("documentation-json");
-		this.warehouseSwaggerDoc = await this.warehouseClient.get("openapi-v3.json");
+		for (const entry of instancesWithRemoteSwagger) {
+			this.remoteSwaggers[entry.name] = { instance: entry.instance };
+			const controller = this.moduleRef.get(entry.instance, { strict: false });
+			this.remoteSwaggers[entry.name].document = await controller.fetchSwagger();
+		}
 	}
 
 	patch(document: OpenAPIObject) {
-		if (!this.storeSwaggerDoc || !this.warehouseSwaggerDoc) {
+		if (Object.values(this.remoteSwaggers).some(({ document }) => !document)) {
 			throw new Error("Remote swagger docs weren't loaded yet. Try again soon.");
 		}
-
 		return this.memoizedPatch(document);
 	}
 
-	// Length 0 to memoize the result regardless of the document equalness. It's identical always, just not the same instance.
+	// `length` 0 to memoize the result regardless of the document equalness. It's identical always, just not the same instance.
 	@IntelligentMemoize({ length: 0 })
 	memoizedPatch(document: OpenAPIObject) {
 		return pipe(document,
 			this.patchGlobalSchemaRefs,
-			this.patchWarehouse,
+			this.patchRemoteSwaggers,
 			this.patchRemoteRefs
 		);
 	}
@@ -66,29 +79,14 @@ export class SwaggerService {
 		return document;
 	}
 
-	private patchWarehouse(document: OpenAPIObject) {
-		const warehouseSwaggerDoc = this.warehouseSwaggerDoc!;
-		const warehousePaths = Object.keys(warehouseSwaggerDoc.paths).reduce((paths, p) => {
-			const pathItem = warehouseSwaggerDoc.paths[p];
-			for (const operationName of (["get", "put", "post", "delete"] as const)) {
-				const operation = pathItem[operationName];
-				if (!operation) {
-					continue;
-				}
-				operation.security = [ { access_token: [] } ];
-			}
-			paths[`/warehouse${p}`] = pathItem;
-			return paths;
-		}, {} as PathsObject);
-		document.paths = {
-			...document.paths,
-			...warehousePaths
-		};
-		document.components!.schemas = {
-			...document.components!.schemas,
-			...warehouseSwaggerDoc.components!.schemas
-		};
-		return document;
+	/** Patches the Swagger document with controllers decorated with `@ProxyWithSwaggerMerge()` */
+	private patchRemoteSwaggers(document: OpenAPIObject) {
+		return Object.values(this.remoteSwaggers).reduce(
+			(patchedDocument, { instance, document }) => {
+				return ((instance as any).patchSwagger || (instance as any).prototype.patchSwagger)
+					.call(instance, patchedDocument, document!)},
+			document
+		);
 	}
 
 	/**

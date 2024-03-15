@@ -6,9 +6,10 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { MetadataService } from "src/metadata/metadata.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 
 export const TriplestoreReadonlyRestClient: FactoryProvider<RestClientService<never>> = {
-	provide: "TRIPLESTORE_REST_CLIENT",
+	provide: TRIPLESTORE_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService,
 			{
@@ -28,7 +29,7 @@ const TriplestoreReadonlyService: FactoryProvider<TriplestoreService> = {
 	) =>
 		new TriplestoreService(triplestoreReadonlyClient, metadataService, cache),
 	inject: [
-		{ token: "TRIPLESTORE_REST_CLIENT", optional: false },
+		{ token: TRIPLESTORE_CLIENT, optional: false },
 		MetadataService,
 		RedisCacheService
 	],

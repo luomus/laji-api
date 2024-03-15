@@ -53,7 +53,7 @@ export class RestClientService<T = unknown> {
 
 	private getHostAndPath(path?: string) {
 		if (!this.config.host) {
-			const msg = "Missing host config for " + this.config.name;
+			const msg = `Missing host config for ${this.config.name} client`;
 			this.logger.error(msg);
 			throw new Error(msg);
 		}

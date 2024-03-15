@@ -4,10 +4,9 @@ import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { WarehouseController } from "./warehouse.controller";
+import { WAREHOUSE_CLIENT } from "src/provider-tokens";
 
-export const WAREHOUSE_CLIENT =  "WAREHOUSE_REST_CLIENT";
-
-const WarehouseRestClient: FactoryProvider<RestClientService<never>> = {
+const WarehouseClient: FactoryProvider<RestClientService<never>> = {
 	provide: WAREHOUSE_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService, {
@@ -22,7 +21,6 @@ const WarehouseRestClient: FactoryProvider<RestClientService<never>> = {
 
 @Module({
 	controllers: [WarehouseController],
-	providers: [WarehouseService, WarehouseRestClient],
-	exports: [WarehouseRestClient]
+	providers: [WarehouseService, WarehouseClient]
 })
 export class WarehouseModule {}

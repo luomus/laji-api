@@ -7,9 +7,10 @@ import { ConfigService } from "@nestjs/config";
 import { TriplestoreModule } from "src/triplestore/triplestore.module";
 import { LangModule } from "src/lang/lang.module";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { GBIF_CLIENT } from "src/provider-tokens";
 
 const GbifRestClient: FactoryProvider<RestClientService> = {
-	provide: "GBIF_REST_CLIENT",
+	provide: GBIF_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
 		new RestClientService(httpService, {
 			name: "gbif",

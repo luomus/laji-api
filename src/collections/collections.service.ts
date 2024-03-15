@@ -7,6 +7,7 @@ import { Interval } from "@nestjs/schedule";
 import { CACHE_10_MIN } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
+import { GBIF_CLIENT } from "src/provider-tokens";
 
 const GBIF_DATASET_PARENT = "HR.3777";
 
@@ -15,7 +16,7 @@ const GBIF_DATASET_PARENT = "HR.3777";
 export class CollectionsService {
 
 	constructor(
-		@Inject("GBIF_REST_CLIENT") private gbifRestClient: RestClientService<unknown>,
+		@Inject(GBIF_CLIENT) private gbifRestClient: RestClientService<unknown>,
 		private triplestoreService: TriplestoreService
 	) { }
 

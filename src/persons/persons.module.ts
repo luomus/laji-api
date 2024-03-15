@@ -1,4 +1,3 @@
-import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { PersonTokenModule } from "src/person-token/person-token.module";
 import { ProfileModule } from "src/profile/profile.module";
@@ -8,7 +7,7 @@ import { PersonsController } from "./persons.controller";
 import { PersonsService } from "./persons.service";
 
 @Module({
-	imports: [HttpModule, PersonTokenModule, ProfileModule, TriplestoreModule],
+	imports: [PersonTokenModule, ProfileModule, TriplestoreModule],
 	controllers: [PersonsController],
 	providers: [PersonsService,  IctAdminGuard],
 	exports: [IctAdminGuard, PersonsService]

@@ -10,9 +10,10 @@ import { FormPermissionsModule } from "./form-permissions/form-permissions.modul
 import { CollectionsModule } from "src/collections/collections.module";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { FORM_CLIENT } from "src/provider-tokens";
 
 const FormRestClient: FactoryProvider<RestClientService<Form>> = {
-	provide: "FORM_REST_CLIENT",
+	provide: FORM_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
 		new RestClientService(httpService, {
 			name: "form",

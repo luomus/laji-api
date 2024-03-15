@@ -3,14 +3,14 @@ import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { TaxaService } from "./taxa.service";
+import { TAXA_CLIENT } from "src/provider-tokens";
 
 const TaxaRestClient: FactoryProvider<RestClientService<never>> = {
-	provide: "TAXA_REST_CLIENT",
+	provide: TAXA_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService, {
 			name: "taxon",
-			host: config.get<string>("TAXON_HOST"),
-			auth: config.get<string>("TAXON_AUTH"),
+			host: config.get<string>("LAJI_BACKEND_HOST") + "/taxon-search"
 		}),
 	inject: [HttpService, ConfigService],
 };

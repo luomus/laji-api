@@ -1,0 +1,9 @@
+export const LAJI_AUTH_CLIENT = "LAJI_AUTH_CLIENT";
+export const TRIPLESTORE_CLIENT = "TRIPLESTORE_CLIENT";
+export const GBIF_CLIENT = "GBIF_CLIENT";
+export const MEDIA_CLIENT = "MEDIA_CLIENT";
+export const TAXA_CLIENT = "TAXA_CLIENT";
+export const FORM_CLIENT = "FORM_CLIENT";
+export const TRAIT_CLIENT = "TRAIT_CLIENT";
+export const STORE_CLIENT = "STORE_CLIENT";
+export const WAREHOUSE_CLIENT =  "WAREHOUSE_CLIENT";

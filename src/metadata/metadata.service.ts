@@ -1,4 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN } from "src/utils";
@@ -17,7 +18,7 @@ type Contexts = Record<string, ContextProperties>;
 @Injectable()
 export class MetadataService {
 	constructor(
-		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreRestClient: RestClientService<unknown>,
+		@Inject(TRIPLESTORE_CLIENT) private triplestoreRestClient: RestClientService<unknown>,
 		private cache: RedisCacheService) {}
 
 	/** Get all properties. */

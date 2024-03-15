@@ -5,9 +5,10 @@ import { ConfigService } from "@nestjs/config";
 import { HttpService } from "@nestjs/axios";
 import { PersonsModule } from "../persons/persons.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
+import { MEDIA_CLIENT } from "src/provider-tokens";
 
 const MediaRestClient: FactoryProvider<RestClientService> = {
-	provide: "MEDIA_REST_CLIENT",
+	provide: MEDIA_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService, {
 			name: "media",

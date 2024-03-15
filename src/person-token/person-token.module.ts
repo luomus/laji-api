@@ -6,9 +6,10 @@ import { Person } from "src/persons/person.dto";
 import { HttpService } from "@nestjs/axios";
 import { PersonTokenController } from "./person-token.controller";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { LAJI_AUTH_CLIENT } from "src/provider-tokens";
 
 const LajiAuthRestClient: FactoryProvider<RestClientService<Person>> = {
-	provide: "LAJI_AUTH_REST_CLIENT",
+	provide: LAJI_AUTH_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
 		new RestClientService(httpService, {
 			name: "laji-auth",

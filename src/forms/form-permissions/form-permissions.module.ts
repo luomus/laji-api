@@ -4,11 +4,12 @@ import { MailModule } from "src/mail/mail.module";
 import { PersonsModule } from "src/persons/persons.module";
 import { FormsModule } from "../forms.module";
 import { FormPermissionsService } from "./form-permissions.service";
-import { STORE_CLIENT, StoreClientModule } from "src/store/store-client/store-client.module";
+import { StoreClientModule } from "src/store/store-client/store-client.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { StoreService } from "src/store/store.service";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { STORE_CLIENT } from "src/provider-tokens";
 
 const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	provide: "STORE_RESOURCE_SERVICE",

@@ -7,6 +7,7 @@ import { CacheOptions, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 
 const BASE_URL = "http://tun.fi/";
 
@@ -35,7 +36,7 @@ const baseQuery = { format: "rdf/xml" };
 @Injectable()
 export class TriplestoreService {
 	constructor(
-		@Inject("TRIPLESTORE_REST_CLIENT") private triplestoreClient: RestClientService<JSONSerializable>,
+		@Inject(TRIPLESTORE_CLIENT) private triplestoreClient: RestClientService<JSONSerializable>,
 		private metadataService: MetadataService,
 		private cache: RedisCacheService
 	) {

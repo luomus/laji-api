@@ -4,11 +4,12 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { Lang } from "src/common.dto";
 import { Person, Role } from "src/persons/person.dto";
 import { CollectionsService } from "src/collections/collections.service";
+import { FORM_CLIENT } from "src/provider-tokens";
 
 @Injectable()
 export class FormsService {
 	constructor(
-		@Inject("FORM_REST_CLIENT") private formClient: RestClientService<Form>,
+		@Inject(FORM_CLIENT) private formClient: RestClientService<Form>,
 		private collectionsService: CollectionsService
 	) {}
 

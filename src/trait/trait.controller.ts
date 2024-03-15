@@ -1,30 +1,36 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { All, Inject, Logger, Next, Req, Res } from "@nestjs/common";
+import { All, Logger, Next, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
-import { OpenAPIObject } from "@nestjs/swagger";
 import {
-	MergesRemoteSwagger, RemoteSwaggerMerge, patchSwaggerWith
+	RemoteSwaggerMerge, MergesRemoteSwagger, patchSwaggerWith
 } from "src/decorators/remote-swagger-merge.decorator";
+import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { JSONSerializable } from "src/type-utils";
-import { WAREHOUSE_CLIENT } from "src/provider-tokens";
+import { OpenAPIObject } from "@nestjs/swagger";
 
-@RemoteSwaggerMerge("warehouse")
-export class WarehouseController implements MergesRemoteSwagger {
+@RemoteSwaggerMerge("trait")
+export class TraitController implements MergesRemoteSwagger {
 
-	private logger = new Logger(WarehouseController.name);
+	private logger = new Logger(TraitController.name);
 
 	constructor(
 		private config: ConfigService,
-		@Inject(WAREHOUSE_CLIENT) private warehouseClient: RestClientService<JSONSerializable>
-	) {}
+		private httpService: HttpService
+	) {
+		this.patchSwagger = this.patchSwagger.bind(this);
+	}
+
+	private traitClient = new RestClientService(this.httpService, {
+		name: "trait",
+		host: this.config.get<string>("LAJI_BACKEND_HOST")
+	});
 
 	warehouseProxy = createProxyMiddleware({
-		target: this.config.get<string>("WAREHOUSE_HOST"),
+		target: this.config.get<string>("LAJI_BACKEND_HOST") + "/trait",
 		changeOrigin: true,
 		pathRewrite: {
-			"^/warehouse": "/"
+			"^/trait": "/"
 		},
 		logProvider: () => ({
 			log: this.logger.log,
@@ -41,10 +47,10 @@ export class WarehouseController implements MergesRemoteSwagger {
 	}
 
 	fetchSwagger() {
-		return this.warehouseClient.get<OpenAPIObject>("openapi-v3.json");
+		return this.traitClient.get<OpenAPIObject>("openapi-v3.json");
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {
-		return patchSwaggerWith(undefined, "/warehouse")(document, remoteDoc);
+		return patchSwaggerWith("/trait")(document, remoteDoc);
 	};
 }

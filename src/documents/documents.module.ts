@@ -1,9 +1,10 @@
 import { FactoryProvider, Module } from "@nestjs/common";
 import { DocumentsService } from "./documents.service";
-import { STORE_CLIENT, StoreClientModule } from "src/store/store-client/store-client.module";
+import { StoreClientModule } from "src/store/store-client/store-client.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { StoreService } from "src/store/store.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { STORE_CLIENT } from "src/provider-tokens";
 
 const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	provide: "STORE_RESOURCE_SERVICE",

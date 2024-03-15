@@ -7,13 +7,14 @@ import { FormPermissionsModule } from "src/forms/form-permissions/form-permissio
 import { PrepopulatedDocumentModule } from "./prepopulated-document/prepopulated-document.module";
 import { DocumentsModule } from "src/documents/documents.module";
 import { CollectionsModule } from "src/collections/collections.module";
-import { STORE_CLIENT, StoreClientModule } from "src/store/store-client/store-client.module";
+import { StoreClientModule } from "src/store/store-client/store-client.module";
 import { StoreService } from "src/store/store.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { NamedPlace } from "./named-places.dto";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { MailModule } from "src/mail/mail.module";
+import { STORE_CLIENT } from "src/provider-tokens";
 
 const StoreResourceService: FactoryProvider<StoreService<NamedPlace>> = {
 	provide: "STORE_RESOURCE_SERVICE",
