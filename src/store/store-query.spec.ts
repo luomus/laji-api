@@ -1,4 +1,4 @@
-import { parseQuery, getQueryVocabulary } from "./store-query";
+import { parseQuery, getQueryVocabulary, ExistsClause } from "./store-query";
 
 
 type Schema = { foo: string | boolean | number, bar: boolean, baz: number, barbabar: number };
@@ -91,6 +91,12 @@ describe("parseQuery", () => {
 		expect(parseQuery<Schema>(not(or({ foo: 2 }, { bar: true }, { baz: exists }))))
 			.toBe("NOT (foo: 2 OR bar: true OR _exists_: \"baz\")");
 	});
+
+	it("'not()' wrapped with brackets even if singular", () => {
+		expect(parseQuery<Schema>((or({ foo: 2 }, { bar: true }, not({ baz: exists })))))
+			.toBe("foo: 2 OR bar: true OR (NOT _exists_: \"baz\")");
+	});
+
 
 	it("'and()' filters empty subclause and resolves into just the wrapped literal term", () => {
 		expect(parseQuery<Schema>(and({}, { foo: 2 }))).toBe("foo: 2");

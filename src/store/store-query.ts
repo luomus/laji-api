@@ -102,6 +102,9 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 	) =>
 		(clause: HigherClause<T, Operation> | LiteralMapClause<T, Operation>) => {
 			const parsedClause = predicate(clause);
+			if (clause.operation === "NOT") {
+				return `(${parsedClause})`;
+			}
 			if (isHigherClause(clause) && clause.length > 1
 				|| Object.keys(omit(clause, "operation")).length > 1) {
 				return `(${parsedClause})`;
