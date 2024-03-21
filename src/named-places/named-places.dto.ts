@@ -37,7 +37,7 @@ export class NamedPlaceUnitsFiltered {
 export class GetNamedPlaceDto {
 	/** Person's authentication token. Necessary for fetching non public places. */
 	personToken?: string;
-	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). */
+	/** Include units in prepopulated and accepted documents (only for forms with 'MHL.includeUnits' true). */
 	@IsOptionalBoolean()
 	includeUnits?: boolean = false;
 }
@@ -63,7 +63,7 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	@CommaSeparatedStrings() tags?: string[];
 	/** Include public named places (used only when personToken is given). Defaults to true. */
 	@IsOptionalBoolean() includePublic?: boolean = true;
-	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). Defaults to false.*/
+	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). Defaults to false. */
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }
 

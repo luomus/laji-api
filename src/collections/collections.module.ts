@@ -9,7 +9,7 @@ import { LangModule } from "src/lang/lang.module";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { GBIF_CLIENT } from "src/provider-tokens";
 
-const GbifRestClient: FactoryProvider<RestClientService> = {
+const GbifClient: FactoryProvider<RestClientService> = {
 	provide: GBIF_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
 		new RestClientService(httpService, {
@@ -22,7 +22,7 @@ const GbifRestClient: FactoryProvider<RestClientService> = {
 @Module({
 	imports: [TriplestoreModule, LangModule],
 	controllers: [CollectionsController],
-	providers: [CollectionsService, GbifRestClient],
+	providers: [CollectionsService, GbifClient],
 	exports: [CollectionsService]
 })
 export class CollectionsModule {}

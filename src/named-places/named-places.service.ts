@@ -78,7 +78,7 @@ export class NamedPlacesService {
 	}
 
 	private async getCollectionIDs(collectionID: string) {
-		const children = (await this.collectionsService.findChildren(collectionID)).map(c => c.id);
+		const children = (await this.collectionsService.findDescendants(collectionID)).map(c => c.id);
 		return [ collectionID, ...children ];
 	}
 
