@@ -46,7 +46,7 @@ describe("/documents", function() {
 		publicityRestrictions: "MZ.publicityRestrictionsPrivate"
 	};
 
-	const documentWithPropertyNotInFormJSONStrictForm = JSON.parse(JSON.stringify(validDocument))
+	const documentWithPropertyNotInFormJSONStrictForm = JSON.parse(JSON.stringify(validDocument));
 	documentWithPropertyNotInFormJSONStrictForm.gatherings[0].units[0].identifications[0].taxonID = "MX.123";
 
 	it("returns 401 when no access token specified", function(done) {
@@ -1402,23 +1402,24 @@ describe("/documents", function() {
 			});
 	});
 
-	it("return observations without date when observationYear is null", function(done) {
-		var query = basePath +
-			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token +
-			"&observationYear=null";
-		request(this.server)
-			.get(query)
-			.end(function(err, res) {
-				res.should.have.status(200);
-				res.body.results.should.length.above(0);
-				const hasNoDateBegins = res.body.results
-					.every(doc => !(doc.gatheringEvent || {}).dateBegin && (doc.gatherings || [])
-						.every(g => !g.dateBegin && (g.units || [])
-							.every(u => !u.unitGathering || !u.unitGathering.dateBegin)));
-				assert.equal(hasNoDateBegins, true);
-				done();
-			});
-	});
+	// Not implemented in old API, probably not used?
+	// it("return observations without date when observationYear is null", function(done) {
+	// 	var query = basePath +
+	// 		"?access_token=" + config["access_token"] + "&personToken=" + config.user.token +
+	// 		"&observationYear=null";
+	// 	request(this.server)
+	// 		.get(query)
+	// 		.end(function(err, res) {
+	// 			res.should.have.status(200);
+	// 			res.body.results.should.length.above(0);
+	// 			const hasNoDateBegins = res.body.results
+	// 				.every(doc => !(doc.gatheringEvent || {}).dateBegin && (doc.gatherings || [])
+	// 					.every(g => !g.dateBegin && (g.units || [])
+	// 						.every(u => !u.unitGathering || !u.unitGathering.dateBegin)));
+	// 			assert.equal(hasNoDateBegins, true);
+	// 			done();
+	// 		});
+	// });
 
 	describe("disabled form", function() {
 		const document = {

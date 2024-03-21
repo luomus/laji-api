@@ -46,7 +46,7 @@ export class DocumentsService {
 	async getPage(
 		filters: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
 		personToken: string,
-		observationYear?: string,
+		observationYear?: number,
 		page?: number,
 		pageSize = 20,
 		selectedFields?: (keyof Document)[]
@@ -86,11 +86,22 @@ export class DocumentsService {
 		return storePageAdapter(await this.store.getPage(storeQuery, page, pageSize, selectedFields));
 	}
 
+	async get(id: string, personToken: string) {
+		const document = await this.store.get(id);
+		const person = await this.personsService.getByToken(personToken);
+		if (document.creator === person.id || document.editors?.includes(person.id) || person.isImporter()) {
+			return document;
+		}
+		if (document.formID) {
+			await this.checkCanAccessForm(document.formID, personToken);
+		}
+		return document;
+	}
+
 	private async getCollectionIDs(collectionID: string) {
 		const children = (await this.collectionsService.findDescendants(collectionID)).map(c => c.id);
 		return [ collectionID, ...children ];
 	}
-
 
 	async checkCanAccessForm(formID: string,  personToken: string) {
 		const form = await this.formsService.get(formID);

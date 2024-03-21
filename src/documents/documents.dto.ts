@@ -1,5 +1,7 @@
 import { Document as DocumentI } from "@luomus/laji-schema";
 import { ApiProperty, IntersectionType } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsInt, IsOptional } from "class-validator";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
 export type Document = DocumentI & { id: string };
@@ -9,7 +11,10 @@ export class GetDocumentsDto extends IntersectionType(
 	QueryWithPersonTokenDto
 ) {
 	/** Limit the list of documents to a certain observation year */
-	observationYear: string;
+	@IsInt()
+	@Type(() => Number)
+	@IsOptional()
+	observationYear?: number;
 
 	/**	Fetch only templates */
 	@ApiProperty({ name: "templates"  })
