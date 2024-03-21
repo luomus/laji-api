@@ -18,7 +18,6 @@ export class PagedDto {
 	@Type(() => Number)
 	@IsInt()
 	pageSize?: number = 20;
-	lang?: Lang = Lang.en;
 }
 
 export const isPagedQueryDto = (maybePagedQuery: any): maybePagedQuery is PagedDto =>

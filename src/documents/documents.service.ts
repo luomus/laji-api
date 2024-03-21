@@ -1,14 +1,116 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { FormSchemaFormat, JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/forms/dto/form.dto";
-import { isObject  } from "src/type-utils";
+import { Flatten, isObject  } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "./documents.dto";
+import { Query, getQueryVocabulary } from "src/store/store-query";
+import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { PersonsService } from "src/persons/persons.service";
+import { FormsService } from "src/forms/forms.service";
+import { CollectionsService } from "src/collections/collections.service";
+import { Person } from "src/persons/person.dto";
+import { storePageAdapter } from "src/pagination";
+
+const observationYearKeys = [
+	"gatheringEvent.dateBegin",
+	"gatherings.dateBegin",
+	"gatherings.units.unitGathering.dateBegin"
+] as const;
+type ObservationYearKey = typeof observationYearKeys[number];
+type DocumentQuery = Document & Record<ObservationYearKey, string>
+const { or, and, not, exists } = getQueryVocabulary<DocumentQuery>();
+
+export const AllowedPageQueryKeys = [
+	"formID",
+	"collectionID",
+	"sourceID",
+	"isTemplate",
+	"namedPlaceID",
+] as const;
+type AllowedQueryKeys = typeof AllowedPageQueryKeys[number];
+
+const editorOrCreator = (person: Person) => or({ creator: person.id, editors: person.id });
 
 @Injectable()
 export class DocumentsService {
-	constructor(@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Document>) {}
+	constructor(
+		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Document>,
+		private personsService: PersonsService,
+		private formPermissionsService: FormPermissionsService,
+		private formsService: FormsService,
+		private collectionsService: CollectionsService,
+	) {}
 
 	findOne = this.store.findOne.bind(this.store);
+
+	async getPage(
+		filters: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
+		personToken: string,
+		observationYear?: string,
+		page?: number,
+		pageSize = 20,
+		selectedFields?: (keyof Document)[]
+	) {
+		const { formID, collectionID, isTemplate } = filters;
+
+		delete filters.isTemplate;
+		let storeQuery: Query<DocumentQuery> = and(filters);
+
+		if (formID) {
+			await this.checkCanAccessForm(formID, personToken);
+		}
+
+		const person = await this.personsService.getByToken(personToken);
+		if (collectionID) {
+			storeQuery.collectionID = await this.getCollectionIDs(collectionID);
+			const permissions = await this.formPermissionsService.getByCollectionIDAndPersonToken(
+				collectionID,
+				personToken
+			);
+			if (formID && !permissions.admins.includes(person.id)) {
+				storeQuery = and(storeQuery, editorOrCreator(person));
+			}
+		} else {
+			storeQuery = and(storeQuery, editorOrCreator(person));
+		}
+
+		if (!isTemplate) {
+			storeQuery = and(storeQuery, or({ isTemplate: false }, not({ isTemplate: exists })));
+		}
+		if (observationYear) {
+			const observationYearClause = or(observationYearKeys.reduce((dateQuery, key) =>
+				({ ...dateQuery, [key]: `[${observationYear}-01-01 TO ${observationYear}-12-31]` }),
+				{} as Record<ObservationYearKey, string>));
+			storeQuery = and(storeQuery, observationYearClause);
+		}
+		return storePageAdapter(await this.store.getPage(storeQuery, page, pageSize, selectedFields));
+	}
+
+	private async getCollectionIDs(collectionID: string) {
+		const children = (await this.collectionsService.findDescendants(collectionID)).map(c => c.id);
+		return [ collectionID, ...children ];
+	}
+
+
+	async checkCanAccessForm(formID: string,  personToken: string) {
+		const form = await this.formsService.get(formID);
+		const { collectionID } = form;
+
+		if (!collectionID) {
+			throw new HttpException("Only document owner and editors can view the document", 403);
+		}
+
+		if (form.options?.documentsViewableForAll) {
+			return true;
+		}
+
+		const hasEditRights = await this.formPermissionsService.hasEditRightsOf(collectionID, personToken);
+		if (!hasEditRights) {
+			// eslint-disable-next-line max-len
+			throw new HttpException("You don't have permission to the form and you are not the owner or an editor of the document", 403);
+		}
+		return true;
+	}
 }
 
 export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSchemaFormat): void => {

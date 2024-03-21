@@ -5,6 +5,11 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { StoreService } from "src/store/store.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { STORE_CLIENT } from "src/provider-tokens";
+import { DocumentsController } from "./documents.controller";
+import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
+import { PersonsModule } from "src/persons/persons.module";
+import { FormsModule } from "src/forms/forms.module";
+import { CollectionsModule } from "src/collections/collections.module";
 
 const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	provide: "STORE_RESOURCE_SERVICE",
@@ -18,7 +23,8 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 
 @Module({
 	providers: [DocumentsService, StoreResourceService],
-	imports: [StoreClientModule],
-	exports: [DocumentsService]
+	imports: [StoreClientModule, PersonsModule, FormPermissionsModule, FormsModule, CollectionsModule],
+	exports: [DocumentsService],
+	controllers: [DocumentsController]
 })
 export class DocumentsModule {}

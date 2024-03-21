@@ -101,6 +101,10 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 * Creating a named place with a prepopulatedDocument with null id doesn't automatically remove id id: an error is raised instead
 * Creating a named place with a prepopulatedDocument with empty gatherings doesn't try to create an empty gathering: an error is raised instead
 
+ ## Documents
+
+* GET `/documents` `observationYear` doesn't accept `null` anymore for getting documents without any date
+
 ## Access token renewal
 
 Old API checked that the renewal wasn't being spammed. New API doesn't care - the renewal endpoint isn't so particularly special that we should protect it from spamming? Or is it more delicate since it uses a db connection? Anyways a more robust & thorough spam blocking would be better.

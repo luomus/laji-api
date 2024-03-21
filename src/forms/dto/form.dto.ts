@@ -31,19 +31,22 @@ export type PrepopulatedDocumentFieldFn = PrepopulatedDocumentFieldFnJoin
 	| PrepopulatedDocumentFieldFnTaxon
 	| PrepopulatedDocumentFieldFnArea;
 
+type FormOptions = {
+	namedPlaceOptions?: Omit<NonNullable<FormI["options"]>["namedPlaceOptions"], "prepopulatedDocumentFields"> & {
+		prepopulatedDocumentFields?: Record<string, string | PrepopulatedDocumentFieldFn>
+	}
+}
+
 export type Form = FormI & {
 	id: string;
-	options: NonNullable<FormI["options"]> & {
-		namedPlaceOptions?: Omit<NonNullable<FormI["options"]>["namedPlaceOptions"], "prepopulatedDocumentFields"> &
-		{
-			prepopulatedDocumentFields?: Record<string, string | PrepopulatedDocumentFieldFn>
-		}
-	}
+	options: FormOptions
 };
 
 export type FormSchemaFormat = FormI & { schema: JSONSchemaObject };
 
-export type FormListing = Pick<Form,
+export type FormListing = Pick<Form & {
+	options: FormOptions
+},
 	"id"
 	| "logo"
 	| "title"

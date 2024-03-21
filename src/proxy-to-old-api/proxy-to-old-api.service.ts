@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Request, Response } from "express";
 import * as _request from "request";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -15,9 +15,13 @@ Querystring.prototype.rfc3986 = function (str: any) {
 
 @Injectable()
 export class ProxyToOldApiService {
+
+	private logger = new Logger(ProxyToOldApiService.name);
+
 	async redirectToOldApi(request: Request, response: Response) {
-		// Taken from https://stackoverflow.com/a/62289124
 		const oldApiRequestUrl = OLD_API + request.path;
+		this.logger.verbose(`Redirecting to old API: [${request.method}] ${oldApiRequestUrl}`);
+		// Taken from https://stackoverflow.com/a/62289124
 		const redirectedRequest = _request({
 			uri: oldApiRequestUrl,
 			method: request.method,
