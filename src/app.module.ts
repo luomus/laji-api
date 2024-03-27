@@ -36,7 +36,7 @@ import { AreaModule } from "./area/area.module";
 import { DocumentsModule } from "./documents/documents.module";
 import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.module";
 import { RedisCacheModule } from "./redis-cache/redis-cache.module";
-import { TraitModule } from './trait/trait.module';
+import { TraitModule } from "./trait/trait.module";
 
 @Module({
 	imports: [

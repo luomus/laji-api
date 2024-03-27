@@ -97,6 +97,7 @@ export const getCacheKeyForQuery = <T>(query: Query<T>, config: StoreCacheOption
 	});
 	process.env.NODE_ENV !== "production" && (Object.keys(flattened) as (KeyOf<T>)[]).forEach(key => {
 		if (!keys.includes(key)) {
+			// eslint-disable-next-line max-len
 			throw new Error(`All search terms used in a query must be configured to the cache option \`keys\`! Search term '${key}' isn't in the \`keys\`.`);
 		}
 	});
