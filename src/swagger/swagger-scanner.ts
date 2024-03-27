@@ -3,7 +3,7 @@ import { METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 import { SwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { SerializeEntry } from "src/serializing/serialize.decorator";
 
-export type SwaggerCustomizationEntry = SwaggerRemoteRefEntry | SerializeEntry;
+export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & { controller: string };
 
 export const swaggerCustomizationEntries: {
 	[path: string]: {
@@ -37,7 +37,7 @@ export function createSwaggerScanner(metadataKey: string) {
 			const existingEntries = swaggerCustomizationEntries[path]?.[(propertyKey as string)]?.[responseCode] || [];
 			swaggerCustomizationEntries[path] = {
 				...(swaggerCustomizationEntries[path] || {}),
-				[propertyKey]: { [responseCode]: [ ...existingEntries, entry ] }
+				[propertyKey]: { [responseCode]: [ ...existingEntries, { ...entry, controller: target.name }] }
 			};
 		});
 	};

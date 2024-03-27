@@ -122,10 +122,10 @@ const validateJSONPointer = (pointer: string) => {
 
 export const parseJSONPointer = <T = unknown>(
 	obj: object,
-	pointer?: string,
+	pointer: string,
 	{ safely, create }: ParseJSONPointerOptions = {}
 ) : T => {
-	if (pointer === undefined) {
+	if (pointer === "") {
 		return obj as T;
 	}
 	validateJSONPointer(pointer);
@@ -157,12 +157,27 @@ export const updateWithJSONPointer = (
 	const last = splits.pop() as string;
 	const lastContainerPointer = splits.length ? `/${splits.join("/")}` : undefined;
 
-	const lastContainer = parseJSONPointer(obj, lastContainerPointer, options);
+	const lastContainer = parseJSONPointer(obj, lastContainerPointer ?? "", options);
 	if (options?.safely && !lastContainer) {
 		return;
 	}
 	(lastContainer as any)[last] = value;
 	return;
+};
+
+const validateURIFragmentIdentifierRepresentation = (pointer: string) => {
+	if (pointer[0] !== "#") {
+		throw new Error("Invalid URI fragment identifier representation");
+	}
+};
+
+export const parseURIFragmentIdentifierRepresentation = <T = unknown>(
+	obj: object,
+	pointer: string,
+	options?: ParseJSONPointerOptions
+): T => {
+	validateURIFragmentIdentifierRepresentation(pointer);
+	return parseJSONPointer(obj, pointer.substr(1), options);
 };
 
 export const asArray = <T>(maybeArr: T | T[]): T[] =>
@@ -171,3 +186,11 @@ export const asArray = <T>(maybeArr: T | T[]): T[] =>
 export const doMaybe = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
 
 export const dateToISODate = (date: Date) => date.toISOString().split("T")[0];
+
+/** @throws Error if array is empty */
+export const lastFromArr = <T>(arr: T[]) => {
+	if (arr.length === 0) {
+		throw new Error("Array was empty");
+	}
+	return arr[arr.length - 1];
+}

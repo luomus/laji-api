@@ -11,7 +11,7 @@ describe("StoreService", () => {
 		post: () => { },
 		delete: () => { }
 	};
-	const mockRestConfig = {};
+	const mockRestConfig = { name: "mock" };
 
 	/** Mimics Redis caches search wildcard with asterisk. */
 	const createMockCache = () => {
