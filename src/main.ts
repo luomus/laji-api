@@ -43,13 +43,8 @@ export async function bootstrap() {
 		.setDescription(description)
 		.setVersion("0")
 		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")
-		.build(),
-	{
-		operationIdFactory: (
-			controllerKey: string,
-			methodKey: string
-		) => methodKey
-	});
+		.build()
+	);
 
 	SwaggerModule.setup("explorer", app, document, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
