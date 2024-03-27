@@ -146,7 +146,7 @@ export class SwaggerService {
 		const remoteDoc = this.getRemoteSwaggerDoc(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
 		schema![entry.ref] = remoteSchemas[entry.ref];
-		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchemas[entry.ref])
+		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchemas[entry.ref]);
 	}
 
 	serializeEntrySideEffectsForSchema(schema: SwaggerSchema, entry: SerializeEntry) {
@@ -193,7 +193,6 @@ export class SwaggerService {
 				}
 			} else {
 				const { $ref: ref } = iteratedRemoteSchema;
-				console.log(iteratedRemoteSchema);
 				const referencedSchemaRefName = lastFromArr(ref.split("/"));
 				if (!schema[referencedSchemaRefName]) {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(

@@ -193,4 +193,4 @@ export const lastFromArr = <T>(arr: T[]) => {
 		throw new Error("Array was empty");
 	}
 	return arr[arr.length - 1];
-}
+};

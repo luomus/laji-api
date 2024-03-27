@@ -25,7 +25,7 @@ export type HasMaybeSerializeInto<T> = {
 const joinOverflowWithRight = (str: string, str2: string) =>
 	str.length + str2.length > 24
 		? str.substr(0, 19 - str2.length) + ".../" + str2
-		: str + "/" + str2
+		: str + "/" + str2;
 
 /**
  * Abstract wrapper for a service that connects to a remote REST API. The implementing service can "provide (nestTM)"

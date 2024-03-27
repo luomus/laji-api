@@ -69,7 +69,7 @@ export class GetNamedPlacePageDto extends IntersectionType(
 
 export class ReservationDto extends QueryWithPersonTokenDto {
 	/** Id for the person (your own id will be used if you are not admin) */
-	personID?: string
+	personID?: string;
 	/** The date when the reservation expires */
-	until?: string
+	until?: string;
 }
