@@ -184,21 +184,26 @@ export class SwaggerService {
 						if (!iteratedRemoteSchema.properties![key]) {
 							continue;
 						}
-						traverseAndMerge(iteratedRemoteSchema.properties![key])
+						traverseAndMerge(iteratedRemoteSchema.properties![key]);
 					}
+				} else if (iteratedRemoteSchema.anyOf) {
+					iteratedRemoteSchema.anyOf.forEach(subSchema => traverseAndMerge(subSchema));
+				} else if (iteratedRemoteSchema.oneOf) {
+					iteratedRemoteSchema.oneOf.forEach(subSchema => traverseAndMerge(subSchema));
 				}
 			} else {
 				const { $ref: ref } = iteratedRemoteSchema;
+				console.log(iteratedRemoteSchema);
 				const referencedSchemaRefName = lastFromArr(ref.split("/"));
 				if (!schema[referencedSchemaRefName]) {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(
 						this.getRemoteSwaggerDoc(entry), ref
 					);
 					schema[referencedSchemaRefName] = referencedSchema;
-					traverseAndMerge(referencedSchema)
+					traverseAndMerge(referencedSchema);
 				}
 			}
-		}
+		};
 
 		traverseAndMerge(referencedRemoteSchema);
 	}
@@ -257,7 +262,10 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
 
-const isSchemaObject = (schema: SchemaItem): schema is SchemaObject => !!(schema as any).type;
+const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
+	!!(schema as any).type
+	|| !!(schema as any).anyOf
+	|| !!(schema as any).oneOf;
 
 const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
