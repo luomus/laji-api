@@ -39,7 +39,7 @@ export abstract class MergesRemoteSwagger {
 	abstract fetchSwagger: FetchSwagger;
 }
 
-export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") =>
+export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", fixPagination = false) =>
 	(document: OpenAPIObject, remoteDocument: OpenAPIObject): OpenAPIObject => {
 		const remotePaths = Object.keys(remoteDocument.paths).reduce((paths, p) => {
 			if (typeof pathMatcher === "string" &&  !p.startsWith(pathMatcher)) {
@@ -53,10 +53,12 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") 
 				}
 				operation.security = [ { access_token: [] } ];
 
-				const okResponseSchema = (operation as any).responses["200"]?.content?.["application/json"]?.schema;
-				if (okResponseSchema) {
-					(operation as any).responses["200"].content["application/json"].schema =
-						paginateAsNeededWith(operation, !!"items are already an array")(okResponseSchema)
+				if (fixPagination) {
+					const okResponseSchema = (operation as any).responses["200"]?.content?.["application/json"]?.schema;
+					if (okResponseSchema) {
+						(operation as any).responses["200"].content["application/json"].schema =
+							paginateAsNeededWith(operation, !!"items are already an array")(okResponseSchema)
+					}
 				}
 			}
 			paths[pathPrefix + p] = pathItem;
