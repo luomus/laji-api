@@ -1,6 +1,7 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
 import { PathsObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { paginateAsNeededWith } from "src/swagger/swagger.service";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
 export type FetchSwagger = () => Promise<OpenAPIObject>;
@@ -38,7 +39,7 @@ export abstract class MergesRemoteSwagger {
 	abstract fetchSwagger: FetchSwagger;
 }
 
-export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") =>
+export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", fixPagination = false) =>
 	(document: OpenAPIObject, remoteDocument: OpenAPIObject): OpenAPIObject => {
 		const remotePaths = Object.keys(remoteDocument.paths).reduce((paths, p) => {
 			if (typeof pathMatcher === "string" &&  !p.startsWith(pathMatcher)) {
@@ -51,6 +52,14 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") 
 					continue;
 				}
 				operation.security = [ { access_token: [] } ];
+
+				if (fixPagination) {
+					const okResponseSchema = (operation as any).responses["200"]?.content?.["application/json"]?.schema;
+					if (okResponseSchema) {
+						(operation as any).responses["200"].content["application/json"].schema =
+							paginateAsNeededWith(operation, !!"items are already an array")(okResponseSchema)
+					}
+				}
 			}
 			paths[pathPrefix + p] = pathItem;
 			return paths;

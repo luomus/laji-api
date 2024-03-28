@@ -117,3 +117,7 @@ Old API checked that the renewal wasn't being spammed. New API doesn't care - th
 
 Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
 
+
+# Blocked work
+
+* Trait DB swagger paged results https://www.pivotaltracker.com/story/show/187328917

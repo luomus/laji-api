@@ -66,7 +66,6 @@ export class SwaggerService {
 	@IntelligentMemoize({ length: 0 })
 	memoizedPatch(document: OpenAPIObject) {
 		return pipe(document,
-			// this.patchGlobalSchemaRefs,
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs
 		);
@@ -238,16 +237,10 @@ const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
 		: schema
 );
 
-const isPagedOperation = (operation: OperationObject): boolean => {
-	for (const param of (operation.parameters || [])) {
-		if ((param as ParameterObject).name === "page") {
-			return true;
-		}
-	}
-	return false;
-};
+export const isPagedOperation = (operation: OperationObject) => 
+	(operation.parameters || []).some(param => (param as ParameterObject).name === "page") || false;
 
-const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
+const asPagedResponse = (schema: SchemaItem, itemsAreAlreadyAnArray = false): SchemaObject => ({
 	type: "object",
 	properties: {
 		page: { type: "number" },
@@ -256,7 +249,7 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 		lastPage: { type: "number" },
 		prevPage: { type: "number" },
 		nextPage: { type: "number" },
-		results: { type: "array", items: schema },
+		results: { type: "array", items: itemsAreAlreadyAnArray ? (schema as any).items : schema },
 	},
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
@@ -266,11 +259,11 @@ const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
 	|| !!(schema as any).anyOf
 	|| !!(schema as any).oneOf;
 
-const isPagedSchema = (schema: SchemaItem) =>
+export const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
 
-const paginateAsNeededWith = (operation: OperationObject) =>
+export const paginateAsNeededWith = (operation: OperationObject, itemsAreAlreadyAnArray = false) =>
 	(schema?: SchemaObject | ReferenceObject) =>
 		(schema && isPagedOperation(operation) && !isPagedSchema(schema))
-			? asPagedResponse(schema)
+			? asPagedResponse(schema, itemsAreAlreadyAnArray)
 			: schema;
