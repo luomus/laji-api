@@ -36,15 +36,17 @@ export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en
 export const paginateAlreadyPaged =
 	<T>(pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nextPage">, lang = Lang.en) => pipe(
 		pagedResult,
-		addPrevAndNextPage,
+		addLastPrevAndNextPage,
 		addContextToPaged(lang)
 	);
 
-export const addPrevAndNextPage = <
-	I,
-	T extends { results: I[], currentPage: number; pageSize: number; total: number; }
->(pagedResult: T): T & { lastPage: number;  prevPage?: number; nextPage?: number; } => {
-	const result: T & { lastPage: number; prevPage?: number; nextPage?: number; } = {
+type HasLastPrevAndNext = { lastPage: number;  prevPage?: number; nextPage?: number; }
+
+export const addLastPrevAndNextPage = <
+	T,
+	R extends { results: T[], currentPage: number; pageSize: number; total: number; }
+>(pagedResult: R): R & HasLastPrevAndNext => {
+	const result: R & { lastPage: number; prevPage?: number; nextPage?: number; } = {
 		...pagedResult,
 		lastPage: Math.max(Math.ceil(pagedResult.total / pagedResult.pageSize), 1)
 	};
