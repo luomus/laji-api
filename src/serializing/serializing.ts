@@ -71,7 +71,10 @@ export const IsOptionalBoolean = () => applyDecorators(
 );
 
 export const CommaSeparatedStrings = () => applyDecorators(
-	Transform(({ value }: { value: string }) => value.split(",").filter(id => !!id)),
+	Transform(({ value }: { value: string }) => value.trim().length
+		? value.split(",").filter(id => !!id)
+		: undefined
+	),
 	ApiProperty({ type: String, required: false })
 );
 

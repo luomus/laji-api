@@ -24,27 +24,32 @@ export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en
 	}
 
 	const total = data.length;
-	const lastPage = Math.ceil(total / pageSize);
-	const  result: Omit<PaginatedDto<T>, "@context"> = {
+	const  result: Omit<PaginatedDto<T>, "@context" | "lastPage"> = {
 		total,
 		results: data.slice((page - 1) * pageSize, page * pageSize),
 		currentPage: page,
-		pageSize,
-		lastPage
+		pageSize
 	};
 	return paginateAlreadyPaged(result, lang);
 };
 
 export const paginateAlreadyPaged =
-	<T>(pagedResult: Omit<PaginatedDto<T>, "@context" | "prevPage" | "nextPage">, lang = Lang.en) => pipe(
+	<T>(pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nextPage">, lang = Lang.en) => pipe(
 		pagedResult,
-		addPrevAndNextPage,
+		addLastPrevAndNextPage,
 		addContextToPaged(lang)
 	);
 
-export const addPrevAndNextPage = <T extends { currentPage: number; lastPage: number; }>(data: T)
-	: T & { prevPage?: number; nextPage?: number; } => {
-	const result: T & { prevPage?: number; nextPage?: number; } = { ...data };
+type HasLastPrevAndNext = { lastPage: number;  prevPage?: number; nextPage?: number; }
+
+export const addLastPrevAndNextPage = <
+	T,
+	R extends { results: T[], currentPage: number; pageSize: number; total: number; }
+>(pagedResult: R): R & HasLastPrevAndNext => {
+	const result: R & { lastPage: number; prevPage?: number; nextPage?: number; } = {
+		...pagedResult,
+		lastPage: Math.max(Math.ceil(pagedResult.total / pagedResult.pageSize), 1)
+	};
 	if (result.currentPage > 1) {
 		result.prevPage = result.currentPage - 1;
 	}
@@ -111,6 +116,6 @@ function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
 export { applyToResult };
 
 export const storePageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => {
-	const { totalItems, member, currentPage, lastPage, pageSize } = result;
-	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage, lastPage });
+	const { totalItems, member, currentPage, pageSize } = result;
+	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage });
 };

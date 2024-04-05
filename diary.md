@@ -109,6 +109,10 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 
 Old API checked that the renewal wasn't being spammed. New API doesn't care - the renewal endpoint isn't so particularly special that we should protect it from spamming? Or is it more delicate since it uses a db connection? Anyways a more robust & thorough spam blocking would be better.
 
+## Store query interpreting
+
+Old API filtered out non QNames from queries. For example, when querying named place with `?municipality=all`, the municipality filter was actually dropped from the query because "all" isn't a QName. New API bypasses all values and doesn't check if the queries make sense (other than checking for injections). This is left to clients responsibility.
+
 # Database changes
 
 > :warning: Production release
