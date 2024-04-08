@@ -30,7 +30,7 @@ export class RedisCacheService implements OnApplicationShutdown {
 	}
 
 	del(key: string) {
-		return this.client.unlink(key);
+		return this.client.del(key);
 	}
 
 	async patternDel(pattern: string) {
