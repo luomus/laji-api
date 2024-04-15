@@ -1,4 +1,4 @@
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { All, Logger, Next, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
@@ -32,13 +32,14 @@ export class TraitController implements MergesRemoteSwagger {
 		pathRewrite: {
 			"^/trait": "/"
 		},
-		logProvider: () => ({
-			log: this.logger.log,
-			debug: this.logger.debug,
+		on: {
+			proxyReq: fixRequestBody
+		},
+		logger: {
 			info: this.logger.verbose,
 			warn: this.logger.warn,
 			error: this.logger.error
-		})
+		}
 	});
 
 	@All("*")

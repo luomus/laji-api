@@ -26,13 +26,11 @@ export class WarehouseController implements MergesRemoteSwagger {
 		pathRewrite: {
 			"^/warehouse": "/"
 		},
-		logProvider: () => ({
-			log: this.logger.log,
-			debug: this.logger.debug,
+		logger: {
 			info: this.logger.verbose,
 			warn: this.logger.warn,
 			error: this.logger.error
-		})
+		}
 	});
 
 	@All("*")
