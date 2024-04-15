@@ -4,8 +4,6 @@ const chai = require('chai'),
 	should = chai.should(),
 	chaiHttp = require('chai-http');
 chai.use(chaiHttp);
-const { Test } = require("@nestjs/testing");
-const { AppModule } = require("../dist/app.module");
 const { request, timeout } = require("chai");
 
 const params = {

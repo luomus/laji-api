@@ -25,4 +25,16 @@ describe("/trait", function() {
 				done();
 			});
 	});
+
+	it("POST proxy works", function(done) {
+		const url = basePath + "/rows/validate"
+			+ "?access_token=" + config.access_token;
+		request(this.server)
+			.post(url)
+			.send({})
+			.end(function(err, res) {
+				res.should.have.status(403);
+				done();
+			});
+	});
 });
