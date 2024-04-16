@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
-import * as proxy from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
 
@@ -16,12 +16,12 @@ export async function bootstrap() {
 
 	const port = configService.get("PORT") || 3004;
 
-	configService.get("EXPLORER_PROXY_TO_OLD_API") === "true" && app.use("/explorer", proxy.createProxyMiddleware({
-		target: "http://localhost:3003",
+	configService.get("EXPLORER_PROXY_TO_OLD_API") === "true" && app.use("/explorer", createProxyMiddleware({
+		target: "http://localhost:3003/explorer",
 	}));
 
 	// Backward compatible redirect from old api with version (v0) path prefix.
-	app.use("/v0", proxy.createProxyMiddleware({
+	app.use("/v0", createProxyMiddleware({
 		target: `http://localhost:${port}`,
 		pathRewrite: {
 			"^/v0": "/"
@@ -29,7 +29,7 @@ export async function bootstrap() {
 	}));
 
 	// Backward compatibity to old API signature of form permissions.
-	app.use("/formPermissions", proxy.createProxyMiddleware({
+	app.use("/formPermissions", createProxyMiddleware({
 		target: `http://localhost:${port}`,
 		pathRewrite: {
 			"^/formPermissions": "/forms/permissions"
