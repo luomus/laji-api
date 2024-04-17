@@ -22,7 +22,7 @@ export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
 	cache?: StoreCacheOptions<T> & {
 		/** Milliseconds for the cache TTL */
 		ttl?: number;
-		/** If queries use local primaryKeys (meaning that primaryKeysis defined in the query method, overriding the resource's store config),  primaryKeySpaces must list all combinations of primaryKeys configured per query in the service */
+		/** If queries use local primaryKeys (meaning that primaryKeys is defined in the query method, overriding the resource's store config),  primaryKeySpaces must list all combinations of primaryKeys configured per query in the service */
 		primaryKeySpaces?: StoreCacheOptions<T>["primaryKeys"][]
 	}
 }
@@ -192,19 +192,14 @@ export class StoreService<T extends { id?: string }> {
 		if (primaryKeys) {
 			config.primaryKeys = primaryKeys;
 		}
-		if (process.env.NODE_ENV !== "production") {
-			if (primaryKeys && !config.primaryKeySpaces) {
-				// eslint-disable-next-line max-len
-				throw new Error(`Badly configured store cache for resource ${this.config.resource}! primaryKeySpaces must be configured if query uses primaryKeys in the query.`);
-			}
-			if (config.primaryKeySpaces
-				&& config.primaryKeySpaces?.every(
-					keySpace => JSON.stringify(keySpace) !== JSON.stringify(config.primaryKeys)
-				)
-			) {
-				// eslint-disable-next-line max-len
-				throw new Error(`Badly configured store cache for resource ${this.config.resource}! primaryKeys ${config.primaryKeys} not listed in primaryKeySpaces`);
-			}
+		if (process.env.NODE_ENV !== "production" &&
+			config.primaryKeySpaces
+			&& config.primaryKeySpaces?.every(
+				keySpace => JSON.stringify(keySpace) !== JSON.stringify(config.primaryKeys)
+			)
+		) {
+			// eslint-disable-next-line max-len
+			throw new Error(`Badly configured store cache for resource ${this.config.resource}! primaryKeys ${config.primaryKeys} not listed in primaryKeySpaces`);
 		}
 		return config;
 	}
