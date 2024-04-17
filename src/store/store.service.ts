@@ -193,8 +193,9 @@ export class StoreService<T extends { id?: string }> {
 			config.primaryKeys = primaryKeys;
 		}
 		if (process.env.NODE_ENV !== "production" &&
-			config.primaryKeySpaces
-			&& config.primaryKeySpaces?.every(
+			primaryKeys
+			&& config.primaryKeySpaces
+			&& config.primaryKeySpaces.every(
 				keySpace => JSON.stringify(keySpace) !== JSON.stringify(config.primaryKeys)
 			)
 		) {
