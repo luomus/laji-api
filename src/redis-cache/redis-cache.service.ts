@@ -35,7 +35,7 @@ export class RedisCacheService implements OnApplicationShutdown {
 
 	async patternDel(pattern: string) {
 		for await (const key of this.client.scanIterator({ MATCH: pattern })) {
-			await this.client.unlink(key);
+			await this.client.del(key);
 		}
 	}
 }
