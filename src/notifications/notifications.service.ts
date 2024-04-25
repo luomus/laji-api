@@ -2,7 +2,6 @@ import { HttpException, Inject } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
-import { storePageAdapter } from "src/pagination";
 import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 import { Query } from "src/store/store-query";
@@ -22,7 +21,7 @@ export class NotificationsService {
 		if (onlyUnseen) {
 			query.seen = false;
 		}
-		return storePageAdapter(await this.store.getPage(query, page, pageSize));
+		return await this.store.getPage(query, page, pageSize);
 	}
 
 	async add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {

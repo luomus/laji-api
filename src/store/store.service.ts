@@ -1,5 +1,5 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
-import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
+import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination";
 import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doMaybe } from "src/utils";
@@ -50,16 +50,16 @@ export class StoreService<T extends { id?: string }> {
 		pageSize = 20,
 		selectedFields: MaybeArray<KeyOf<T>> = [],
 		cacheOptions?: QueryCacheOptions<T>
-	) {
+	): Promise<PaginatedDto<T>> {
 		let cacheKey: string | undefined;
 		if (this.config.cache) {
 			cacheKey = this.cacheKeyForPagedQuery(query, page, pageSize, asArray(selectedFields), cacheOptions);
-			const cached = await this.cache.get<StoreQueryResult<T>>(cacheKey);
+			const cached = await this.cache.get<PaginatedDto<T>>(cacheKey);
 			if (cached) {
 				return cached;
 			}
 		}
-		const result = await this.storeClient.get<StoreQueryResult<T>>(
+		const result = pageAdapter(await this.storeClient.get<StoreQueryResult<T>>(
 			this.config.resource,
 			{ params: {
 				q: parseQuery<T>(query),
@@ -68,7 +68,7 @@ export class StoreService<T extends { id?: string }> {
 				fields: asArray(selectedFields).join(",")
 			} },
 			doMaybe(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
-		);
+		));
 		if (this.config.cache) {
 			await this.cache.set(cacheKey!, result);
 		}
@@ -77,15 +77,15 @@ export class StoreService<T extends { id?: string }> {
 
 	async getAll(query: Query<T>, cacheOptions?: QueryCacheOptions<T>) {
 		return getAllFromPagedResource(
-			async (page: number) => storePageToPaginatedDto(await this.getPage(
+			(page: number) => this.getPage(
 				query, page, 10000, undefined, cacheOptions
-			))
+			)
 		);
 	}
 
 	async findOne(query: Query<T>, selectedFields?: MaybeArray<KeyOf<T>>, cacheOptions?: QueryCacheOptions<T>) {
 		return RestClientService.applyOptions(
-			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).member[0],
+			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).results[0],
 			this.restClientOptions(this.config)
 		);
 	}
@@ -237,8 +237,7 @@ export class StoreService<T extends { id?: string }> {
 	}
 }
 
-const storePageToPaginatedDto = <T>(page: StoreQueryResult<T>): Pick<PaginatedDto<T>,
-	"results" | "lastPage" | "currentPage"> => ({
-		...page,
-		results: page.member
-	});
+export const pageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => {
+	const { totalItems, member, currentPage, pageSize } = result;
+	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage });
+};
