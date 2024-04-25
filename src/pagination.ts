@@ -1,5 +1,4 @@
 import { Lang } from "./common.dto";
-import { StoreQueryResult } from "./store/store.service";
 import { MaybePromise, isObject } from "./type-utils";
 import { pipe } from "./utils";
 
@@ -71,7 +70,7 @@ const addContextToPaged = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "
 };
 
 export const getAllFromPagedResource = async <T>(
-	getPage: (page: number) => Promise<Pick<PaginatedDto<T>, "results" | "lastPage" | "currentPage">>
+	getPage: (page: number) => Promise<PaginatedDto<T>>
 ): Promise<T[]> => {
 	let res = await getPage(1);
 	let items = res.results;
@@ -114,8 +113,3 @@ function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
 }
 
 export { applyToResult };
-
-export const storePageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => {
-	const { totalItems, member, currentPage, pageSize } = result;
-	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage });
-};

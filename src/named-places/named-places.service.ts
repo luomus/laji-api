@@ -2,7 +2,6 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
-import { storePageAdapter } from "src/pagination";
 import { getQueryVocabulary, Query, QueryLiteralMap } from "src/store/store-query";
 import { FormsService } from "src/forms/forms.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
@@ -74,7 +73,7 @@ export class NamedPlacesService {
 			cacheConfig = { primaryKeys: ["id"] };
 		}
 
-		return storePageAdapter(await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig));
+		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
 	}
 
 	private async getCollectionIDs(collectionID: string) {

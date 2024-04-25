@@ -1,5 +1,5 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
-import { getAllFromPagedResource, PaginatedDto } from "src/pagination";
+import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination";
 import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doMaybe } from "src/utils";
@@ -22,6 +22,7 @@ export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
 	cache?: StoreCacheOptions<T> & {
 		/** Milliseconds for the cache TTL */
 		ttl?: number;
+		/** If queries use local primaryKeys (meaning that primaryKeys is defined in the query method, overriding the resource's store config),  primaryKeySpaces must list all combinations of primaryKeys configured per query in the service */
 		primaryKeySpaces?: StoreCacheOptions<T>["primaryKeys"][]
 	}
 }
@@ -49,16 +50,16 @@ export class StoreService<T extends { id?: string }> {
 		pageSize = 20,
 		selectedFields: MaybeArray<KeyOf<T>> = [],
 		cacheOptions?: QueryCacheOptions<T>
-	) {
+	): Promise<PaginatedDto<T>> {
 		let cacheKey: string | undefined;
 		if (this.config.cache) {
 			cacheKey = this.cacheKeyForPagedQuery(query, page, pageSize, asArray(selectedFields), cacheOptions);
-			const cached = await this.cache.get<StoreQueryResult<T>>(cacheKey);
+			const cached = await this.cache.get<PaginatedDto<T>>(cacheKey);
 			if (cached) {
 				return cached;
 			}
 		}
-		const result = await this.storeClient.get<StoreQueryResult<T>>(
+		const result = pageAdapter(await this.storeClient.get<StoreQueryResult<T>>(
 			this.config.resource,
 			{ params: {
 				q: parseQuery<T>(query),
@@ -67,7 +68,7 @@ export class StoreService<T extends { id?: string }> {
 				fields: asArray(selectedFields).join(",")
 			} },
 			doMaybe(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
-		);
+		));
 		if (this.config.cache) {
 			await this.cache.set(cacheKey!, result);
 		}
@@ -76,15 +77,15 @@ export class StoreService<T extends { id?: string }> {
 
 	async getAll(query: Query<T>, cacheOptions?: QueryCacheOptions<T>) {
 		return getAllFromPagedResource(
-			async (page: number) => storePageToPaginatedDto(await this.getPage(
+			(page: number) => this.getPage(
 				query, page, 10000, undefined, cacheOptions
-			))
+			)
 		);
 	}
 
 	async findOne(query: Query<T>, selectedFields?: MaybeArray<KeyOf<T>>, cacheOptions?: QueryCacheOptions<T>) {
 		return RestClientService.applyOptions(
-			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).member[0],
+			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).results[0],
 			this.restClientOptions(this.config)
 		);
 	}
@@ -191,6 +192,16 @@ export class StoreService<T extends { id?: string }> {
 		if (primaryKeys) {
 			config.primaryKeys = primaryKeys;
 		}
+		if (process.env.NODE_ENV !== "production" &&
+			primaryKeys
+			&& config.primaryKeySpaces
+			&& config.primaryKeySpaces.every(
+				keySpace => JSON.stringify(keySpace) !== JSON.stringify(config.primaryKeys)
+			)
+		) {
+			// eslint-disable-next-line max-len
+			throw new Error(`Badly configured store cache for resource ${this.config.resource}! primaryKeys ${config.primaryKeys} not listed in primaryKeySpaces`);
+		}
 		return config;
 	}
 
@@ -226,8 +237,7 @@ export class StoreService<T extends { id?: string }> {
 	}
 }
 
-const storePageToPaginatedDto = <T>(page: StoreQueryResult<T>): Pick<PaginatedDto<T>,
-	"results" | "lastPage" | "currentPage"> => ({
-		...page,
-		results: page.member
-	});
+export const pageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => {
+	const { totalItems, member, currentPage, pageSize } = result;
+	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage });
+};

@@ -23,7 +23,7 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 					["collectionID"],
 					["collectionID", "userID"]
 				]
-			} // Primary keys configured per query in the service.
+			}
 		}),
 	inject: [
 		{ token: STORE_CLIENT, optional: false },

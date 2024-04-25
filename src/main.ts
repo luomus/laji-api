@@ -30,10 +30,7 @@ export async function bootstrap() {
 
 	// Backward compatibity to old API signature of form permissions.
 	app.use("/formPermissions", createProxyMiddleware({
-		target: `http://localhost:${port}`,
-		pathRewrite: {
-			"^/formPermissions": "/forms/permissions"
-		}
+		target: `http://localhost:${port}/forms/permissions`
 	}));
 
 	app.useStaticAssets("static");

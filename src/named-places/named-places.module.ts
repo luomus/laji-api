@@ -24,7 +24,11 @@ const StoreResourceService: FactoryProvider<StoreService<NamedPlace>> = {
 			serializeInto: NamedPlace,
 			cache: {
 				ttl: CACHE_1_H * 6,
-				keys: [...AllowedPageQueryKeys, "owners", "editors"]
+				keys: [...AllowedPageQueryKeys, "owners", "editors"],
+				primaryKeySpaces: [
+					["collectionID"],
+					["id"]
+				]
 			}
 		}),
 	inject: [
