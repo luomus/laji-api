@@ -134,7 +134,7 @@ export const parseJSONPointer = <T = unknown>(
 	return splits.reduce((pointedObj, token, i) => {
 		if ((create || safely) && (!pointedObj || !(token in pointedObj))) {
 			if (create) {
-				const nextSplit = splits[i + 1];
+				const nextSplit = splits[i + 1]!;
 				(pointedObj as any)[token] = isNaN(+nextSplit) ? {} : [];
 			} else if (safely) {
 				return undefined;
@@ -185,12 +185,13 @@ export const asArray = <T>(maybeArr: T | T[]): T[] =>
 
 export const doMaybe = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
 
-export const dateToISODate = (date: Date) => date.toISOString().split("T")[0];
+// TODO check for invalid date after documents branch merge
+export const dateToISODate = (date: Date): string => date.toISOString().split("T")[0] as string;
 
 /** @throws Error if array is empty */
-export const lastFromArr = <T>(arr: T[]) => {
+export const lastFromNonEmptyArr = <T>(arr: T[]): T => {
 	if (arr.length === 0) {
 		throw new Error("Array was empty");
 	}
-	return arr[arr.length - 1];
+	return arr[arr.length - 1]!;
 };

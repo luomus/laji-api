@@ -34,7 +34,7 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 			if (key === "geometry") { // Don't validate internals of the geometry, as the type is just an empty object.
 				return;
 			}
-			recursively(data[key], (schema as JSONSchemaObject).properties[key]);
+			recursively(data[key], (schema as JSONSchemaObject).properties[key]!);
 		}); else if (Array.isArray(data)) {
 			data.forEach(item => recursively(item, (schema as JSONSchemaArray).items));
 		}

@@ -79,7 +79,7 @@ export class PrepopulatedDocumentService {
 		const fieldJSONPointers = Object.keys(prepopulatedDocumentFields);
 
 		for (const fieldJSONPointer of fieldJSONPointers) {
-			const fnDescriptorOrValuePointer = prepopulatedDocumentFields[fieldJSONPointer];
+			const fnDescriptorOrValuePointer = prepopulatedDocumentFields[fieldJSONPointer]!;
 			let value: unknown;
 			if (typeof fnDescriptorOrValuePointer === "string") {
 				value = parseJSONPointer(place, fnDescriptorOrValuePointer, { safely: true });
@@ -119,7 +119,7 @@ export class PrepopulatedDocumentService {
 			const idToArea = await this.areaService.getDictByType(type);
 			const municipalityIds = asArray(pointedValue);
 			return (await Promise.all(
-				municipalityIds.map(id => this.langService.translate(idToArea[id], Lang.fi))
+				municipalityIds.map(id => this.langService.translate(idToArea[id]!, Lang.fi))
 			)).map(m => m[key]).join(delimiter);
 		}
 	};

@@ -19,7 +19,8 @@ type Contexts = Record<string, ContextProperties>;
 export class MetadataService {
 	constructor(
 		@Inject(TRIPLESTORE_CLIENT) private triplestoreRestClient: RestClientService<unknown>,
-		private cache: RedisCacheService) {}
+		private cache: RedisCacheService
+	) {}
 
 	/** Get all properties. */
 	private getProperties() {
@@ -27,7 +28,7 @@ export class MetadataService {
 	}
 
 	/** Get a mapping between contexts' and their properties. */
-	private async getContexts() {
+	private async getContexts(): Promise<Contexts> {
 		const cached = await this.cache.get<Contexts>("properties");
 		if (cached) {
 			return cached;
@@ -35,8 +36,8 @@ export class MetadataService {
 		const contexts = (await this.getProperties()).reduce<Contexts>((contextMap, property) => {
 			const { domain } = property;
 			domain?.forEach(d => {
-				contextMap[d] = contextMap[d] || {};
-				contextMap[d][property.property] = property;
+				contextMap[d] = contextMap[d] || ({} as ContextProperties);
+				contextMap[d]![property.property] = property;
 			});
 			return contextMap;
 		}, {});
@@ -46,7 +47,11 @@ export class MetadataService {
 
 	/** Get a property map for a context. */
 	async getPropertiesForContext(context: string) {
-		return (await this.getContexts())[MetadataService.parseContext(context)];
+		const properties = (await this.getContexts())[MetadataService.parseContext(context)];
+		if (!properties) {
+			throw new Error(`Unknown context "${context}"`);
+		}
+		return properties;
 	}
 
 	static parseContext(context: string) {

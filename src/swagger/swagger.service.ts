@@ -1,7 +1,9 @@
 import { Inject, Injectable, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { CACHE_30_MIN, lastFromArr, parseURIFragmentIdentifierRepresentation, pipe, whitelistKeys } from "src/utils";
+import {
+	CACHE_30_MIN, lastFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe, whitelistKeys
+} from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
@@ -51,7 +53,7 @@ export class SwaggerService {
 		for (const entry of instancesWithRemoteSwagger) {
 			this.remoteSwaggers[entry.name] = { instance: entry.instance };
 			const controller = this.moduleRef.get(entry.instance, { strict: false });
-			this.remoteSwaggers[entry.name].document = await controller.fetchSwagger();
+			this.remoteSwaggers[entry.name]!.document = await controller.fetchSwagger();
 		}
 	}
 
@@ -90,16 +92,16 @@ export class SwaggerService {
 	 */
 	private patchRemoteRefs(document: OpenAPIObject) {
 		Object.keys(swaggerCustomizationEntries).forEach((path: string) => {
-			const methods = swaggerCustomizationEntries[path];
+			const methods = swaggerCustomizationEntries[path]!;
 			Object.keys(methods).forEach((methodName: string) => {
-				const responseCodes = methods[methodName];
+				const responseCodes = methods[methodName]!;
 				Object.keys(responseCodes).forEach((responseCode: string) => {
-					const entries = swaggerCustomizationEntries[path][methodName][responseCode];
+					const entries = swaggerCustomizationEntries[path]![methodName]![responseCode]!;
 
 					entries?.forEach(entry => {
 						this.entrySideEffectForSchema(document!.components!.schemas!, entry);
 						for (const iteratedPath of Object.keys(document.paths)) {
-							const pathItem = document.paths[iteratedPath];
+							const pathItem = document.paths[iteratedPath]!;
 							for (const operationName of (["get", "put", "post", "delete"] as const)) {
 								const operation = pathItem[operationName];
 								if (!operation) {
@@ -144,8 +146,12 @@ export class SwaggerService {
 	remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
 		const remoteDoc = this.getRemoteSwaggerDoc(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
-		schema![entry.ref] = remoteSchemas[entry.ref];
-		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchemas[entry.ref]);
+		const remoteSchema = remoteSchemas[entry.ref];
+		if (!remoteSchema) {
+			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
+		}
+		schema[entry.ref] = remoteSchema;
+		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchema);
 	}
 
 	serializeEntrySideEffectsForSchema(schema: SwaggerSchema, entry: SerializeEntry) {
@@ -183,7 +189,7 @@ export class SwaggerService {
 						if (!iteratedRemoteSchema.properties![key]) {
 							continue;
 						}
-						traverseAndMerge(iteratedRemoteSchema.properties![key]);
+						traverseAndMerge(iteratedRemoteSchema.properties![key]!);
 					}
 				} else if (iteratedRemoteSchema.anyOf) {
 					iteratedRemoteSchema.anyOf.forEach(subSchema => traverseAndMerge(subSchema));
@@ -192,7 +198,7 @@ export class SwaggerService {
 				}
 			} else {
 				const { $ref: ref } = iteratedRemoteSchema;
-				const referencedSchemaRefName = lastFromArr(ref.split("/"));
+				const referencedSchemaRefName = lastFromNonEmptyArr(ref.split("/"));
 				if (!schema[referencedSchemaRefName]) {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(
 						this.getRemoteSwaggerDoc(entry), ref
@@ -214,7 +220,11 @@ function getJsonSchema(targetConstructor: Type<unknown>) {
 	const schemas: Record<string, SchemaObject> = {};
 	factory.exploreModelSchema(targetConstructor, schemas);
 
-	return schemas[targetConstructor.name];
+	const schema = schemas[targetConstructor.name];
+	if (!schema) {
+		throw new Error(`Failed to get model JSON Schema for ${targetConstructor.name}`);
+	}
+	return schema;
 }
 
 
