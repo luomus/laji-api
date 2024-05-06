@@ -14,10 +14,11 @@ export class TaxaService {
 
 	async get(id: string): Promise<Taxon> {
 		const { matches } = (await this.taxaClient.get<QueryResponse>("", { params: { q: id } }));
-		if (!matches || matches?.length < 1) {
+		const [match] = matches;
+		if (!match) {
 			throw new HttpException("Taxon not found", 404);
 		}
-		matches[0]["@context"] = "http://tun.fi/MX.taxon";
-		return matches[0];
+		match["@context"] = "http://tun.fi/MX.taxon";
+		return match;
 	}
 }

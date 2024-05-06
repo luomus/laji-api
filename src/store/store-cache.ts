@@ -59,7 +59,7 @@ const flatten = <T>(
 	return clause.reduce((reduced, subClause) => {
 		if (subClause.operation === "NOT") {
 			if (isLiteralMapClause(subClause) && nonOperativeKeys(subClause).length === 1) {
-				const term = nonOperativeKeys(subClause)[0];
+				const term = nonOperativeKeys(subClause)[0]!;
 				if (!isExistsClause(subClause[term])) {
 					throw new Error("Cache parser cannot handle a non singular 'NOT' clause that isn't 'exists'");
 				}

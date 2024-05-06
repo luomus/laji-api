@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { LANGS, MultiLang } from "src/common.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { Collection, GbifCollectionResult, MetadataStatus, TriplestoreCollection } from "./collection.dto";
+import { Collection, GbifCollectionResult, GbifContact, MetadataStatus, TriplestoreCollection } from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
 import { CACHE_10_MIN } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
@@ -10,6 +10,8 @@ import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator
 import { GBIF_CLIENT } from "src/provider-tokens";
 
 const GBIF_DATASET_PARENT = "HR.3777";
+
+const COLL_NOT_FOUND = new HttpException("Not Found", 404, { cause: "Collection not found" });
 
 @Injectable()
 @IntelligentInMemoryCache()
@@ -28,7 +30,7 @@ export class CollectionsService {
 	async get(id: string) {
 		const collection = (await this.getIdToCollection())[id];
 		if (!collection) {
-			throw new HttpException("Not found", 404);
+			throw COLL_NOT_FOUND;
 		}
 		return collection;
 	}
@@ -62,10 +64,22 @@ export class CollectionsService {
 	@IntelligentMemoize()
 	async getParents(id: string): Promise<Collection[]> {
 		const idToCollection = await this.getIdToCollection();
-		const parents = [];
+		const parents: Collection[] = [];
 		let collection = idToCollection[id];
-		while (collection.isPartOf) {
+		if (!collection) {
+			throw COLL_NOT_FOUND;
+		}
+		while (collection) {
+			if (!collection) {
+				throw COLL_NOT_FOUND;
+			}
+			if (!collection.isPartOf) {
+				break;
+			}
 			collection = idToCollection[collection.isPartOf];
+			if (!collection) {
+				throw COLL_NOT_FOUND;
+			}
 			parents.push(collection);
 		}
 		return parents;
@@ -124,7 +138,7 @@ export class CollectionsService {
 				return;
 			}
 			collectionIdToChildIds[isPartOf] = collectionIdToChildIds[isPartOf] || [];
-			collectionIdToChildIds[isPartOf].push(collection.id);
+			collectionIdToChildIds[isPartOf]!.push(collection.id);
 		}
 
 		const idToCollection = collections.reduce<Record<string, TriplestoreCollection>>(
@@ -161,7 +175,7 @@ export class CollectionsService {
 			{ cache: CACHE_10_MIN }
 		);
 		return gbifCollections.results.map(collection => {
-			const contact = collection.contacts && collection.contacts[0] || {};
+			const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
 			return {
 				id: "gbif-dataset:" + collection.key,
 				"@context": "MY.collection",
@@ -185,7 +199,7 @@ const collectionIsHidden = (
 	collection.metadataStatus === MetadataStatus.Hidden
 		|| (
 			(collection.isPartOf && idToCollection[(collection.isPartOf as string)])
-				? collectionIsHidden(idToCollection[(collection.isPartOf as string)], idToCollection)
+				? collectionIsHidden(idToCollection[(collection.isPartOf as string)]!, idToCollection)
 				: false
 		);
 
@@ -198,7 +212,7 @@ const getInheritedProperty = <K extends keyof TriplestoreCollection>(
 		collection[property] !== undefined
 			? collection[property]
 			: ((collection.isPartOf && idToCollection[(collection.isPartOf as string)])
-				? getInheritedProperty(property, idToCollection[collection.isPartOf], idToCollection)
+				? getInheritedProperty(property, idToCollection[collection.isPartOf]!, idToCollection)
 				: undefined);
 
 const getRootParent = (collection: TriplestoreCollection, idToCollection: Record<string, TriplestoreCollection>)

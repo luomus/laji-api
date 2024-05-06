@@ -45,7 +45,7 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 			if (typeof pathMatcher === "string" &&  !p.startsWith(pathMatcher)) {
 				return paths;
 			}
-			const pathItem = remoteDocument.paths[p];
+			const pathItem = remoteDocument.paths[p]!;
 			for (const operationName of (["get", "put", "post", "delete"] as const)) {
 				const operation = pathItem[operationName];
 				if (!operation) {
@@ -57,7 +57,7 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 					const okResponseSchema = (operation as any).responses["200"]?.content?.["application/json"]?.schema;
 					if (okResponseSchema) {
 						(operation as any).responses["200"].content["application/json"].schema =
-							paginateAsNeededWith(operation, !!"items are already an array")(okResponseSchema)
+							paginateAsNeededWith(operation, !!"items are already an array")(okResponseSchema);
 					}
 				}
 			}

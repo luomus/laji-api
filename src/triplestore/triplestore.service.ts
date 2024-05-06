@@ -248,7 +248,7 @@ const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONO
 
 	return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
 		const property = properties[k];
-		let value = data[k];
+		let value: JSONSerializable = data[k]!;
 		if (!property) {
 			d[k] = value;
 			return d;
@@ -269,7 +269,7 @@ const dropPrefixes = (data: JSONObjectSerializable) => {
 	const unprefix = (k: string) => k.split(".").pop() as string;
 
 	return (Object.keys(data) as string[]).reduce<JSONObjectSerializable>((d, k) => {
-		d[unprefix(k)] = data[k];
+		d[unprefix(k)] = data[k]!;
 		return d;
 	}, {});
 };

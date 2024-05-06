@@ -1,13 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasContext, Lang, LANGS, MultiLang } from "src/common.dto";
 import { MetadataService } from "src/metadata/metadata.service";
+import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
 @Injectable()
 export class LangService {
-
-	private multiLangKeyCache: Record<string, string[]> = {};
 
 	constructor(private metadataService: MetadataService) {}
 
@@ -38,19 +37,16 @@ export class LangService {
 		)(item);
 	}
 
-	async getMultiLangKeys(context: string) {
-		if (this.multiLangKeyCache[context]) {
-			return this.multiLangKeyCache[context];
-		}
+	@IntelligentMemoize()
+	async getMultiLangKeys(context: string): Promise<string[]> {
 		const contextProperties = await this.metadataService.getPropertiesForContext(context);
 		const keys = Object.keys(contextProperties).reduce((keys, propertyKey) => {
-			const property = contextProperties[propertyKey];
+			const property = contextProperties[propertyKey]!;
 			if (property.multiLanguage) {
 				keys.push(property.shortName);
 			}
 			return keys;
 		}, [] as string[]);
-		this.multiLangKeyCache[context] = keys;
 		return keys;
 	}
 }
@@ -58,8 +54,8 @@ export class LangService {
 const getLangValueWithFallback = (multiLangValue?: MultiLang, fallbackLang = true): string | undefined => {
 	if (fallbackLang && multiLangValue) {
 		const langIdx = LANG_FALLBACKS.findIndex(lang => multiLangValue[lang]);
-		if (langIdx > 0) {
-			const fallbackLang = LANG_FALLBACKS[langIdx];
+		if (langIdx >= 0) {
+			const fallbackLang = LANG_FALLBACKS[langIdx]!;
 			return multiLangValue[fallbackLang] as string;
 		}
 	}

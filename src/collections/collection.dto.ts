@@ -84,7 +84,7 @@ export class Collection<T extends string | MultiLang = MultiLang> extends OmitTy
 	@Private() creator?: string;
 }
 
-type GbifContact = {
+export type GbifContact = {
 	firstName: string;
 	lastName: string;
 	email: string[];

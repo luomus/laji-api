@@ -84,7 +84,7 @@ export class AbstractMediaService {
 			`api/${typeMediaNameMap[type]}`, metadata
 		);
 
-		return this.get(type, data[0].id);
+		return this.get(type, data[0]!.id);
 	}
 
 	async updateMetadata<T extends MediaType>(
@@ -182,9 +182,11 @@ export class AbstractMediaService {
 		if (parts[0] !== "Basic") {
 			return {};
 		}
-
-		const result = atob(parts[1]).split(":");
-
-		return { user: result[0], pass: result[1] };
+		const base64EncodedAuth = parts[1];
+		if (!base64EncodedAuth) {
+			throw new Error("Badly configured auth");
+		}
+		const [user, pass] = atob(base64EncodedAuth).split(":");
+		return { user, pass };
 	}
 }

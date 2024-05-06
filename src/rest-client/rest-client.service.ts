@@ -125,8 +125,9 @@ export class RestClientService<T = unknown> {
 		return result;
 	}
 
-	get = async <S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>) =>
-		RestClientService.applyOptions<S>(await this.getWithCache<S>(path, config, options), options);
+	async get<S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>) {
+		return RestClientService.applyOptions<S>(await this.getWithCache<S>(path, config, options), options);
+	}
 
 	async post<S = T, R = T>(
 		path?: string,
