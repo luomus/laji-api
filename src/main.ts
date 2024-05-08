@@ -17,7 +17,7 @@ export async function bootstrap() {
 	const port = configService.get("PORT") || 3004;
 
 	configService.get("EXPLORER_PROXY_TO_OLD_API") === "true" && app.use("/explorer", createProxyMiddleware({
-		target: "http://localhost:3003/explorer",
+		target: "http://localhost:3003/explorer"
 	}));
 
 	// Backward compatible redirect from old api with version (v0) path prefix.

@@ -13,6 +13,7 @@ export type RestClientConfig<T> = RestClientOptions<T> & {
 	name: string;
 	host?: string;
 	auth?: string;
+	headers?: Record<string, string | undefined>
 };
 
 export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions;
@@ -53,7 +54,14 @@ export class RestClientService<T = unknown> {
 		if (!this.config.auth) {
 			return config;
 		}
-		return { ...config, headers: { Authorization: this.config.auth, ...(config.headers || {}) } };
+		return {
+			...config,
+			headers: {
+				Authorization: this.config.auth,
+				...(this.config.headers || {}),
+				...(config.headers || {})
+			}
+		};
 	}
 
 	private getHostAndPath(path?: string) {

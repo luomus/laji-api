@@ -183,10 +183,13 @@ export const parseURIFragmentIdentifierRepresentation = <T = unknown>(
 export const asArray = <T>(maybeArr: T | T[]): T[] =>
 	Array.isArray(maybeArr) ? maybeArr : [maybeArr];
 
-export const doMaybe = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
+export const doForDefined = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
 
 // TODO check for invalid date after documents branch merge
 export const dateToISODate = (date: Date): string => date.toISOString().split("T")[0] as string;
+
+// TS is wrong here, `Date.parse()` accepts `Date`.
+export const isValidDate = (date?: Date) => !isNaN(Date.parse(date as unknown as string));
 
 /** @throws Error if array is empty */
 export const lastFromNonEmptyArr = <T>(arr: T[]): T => {

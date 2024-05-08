@@ -1,6 +1,7 @@
 import { Lang, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { OmitType } from "@nestjs/swagger";
+import { JSONObjectSerializable } from "src/type-utils";
 
 export enum Format {
 	schema = "schema",
@@ -31,18 +32,22 @@ export type PrepopulatedDocumentFieldFn = PrepopulatedDocumentFieldFnJoin
 	| PrepopulatedDocumentFieldFnTaxon
 	| PrepopulatedDocumentFieldFnArea;
 
-type FormOptions = {
+type FormOptions = NonNullable<FormI["options"]> & {
 	namedPlaceOptions?: Omit<NonNullable<FormI["options"]>["namedPlaceOptions"], "prepopulatedDocumentFields"> & {
 		prepopulatedDocumentFields?: Record<string, string | PrepopulatedDocumentFieldFn>
 	}
 }
 
+type ValidatorLeaf = Record<string, JSONObjectSerializable | boolean>;
+export type Validators = { [prop: string]: Validators | ValidatorLeaf };
+
 export type Form = FormI & {
 	id: string;
-	options: FormOptions
+	options?: FormOptions;
+	validators: Validators;
 };
 
-export type FormSchemaFormat = FormI & { schema: JSONSchemaObject };
+export type FormSchemaFormat = Form & { schema: JSONSchemaObject };
 
 export type FormListing = Pick<Form & {
 	options: FormOptions

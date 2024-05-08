@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -9,13 +9,12 @@ import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulate
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
-import { dateToISODate } from "src/utils";
+import { isValidDate, dateToISODate } from "src/utils";
 import { MailService } from "src/mail/mail.service";
-
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
 
 export const AllowedPageQueryKeys = [
-	"id"
+	  "id"
 	, "alternativeIDs"
 	, "municipality"
 	, "birdAssociationArea"
@@ -33,7 +32,7 @@ export class NamedPlacesService {
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
 		private prepopulatedDocumentService: PrepopulatedDocumentService,
-		private documentService: DocumentsService,
+		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
 		private collectionsService: CollectionsService,
 		private mailService: MailService
 	) {}
@@ -140,7 +139,7 @@ export class NamedPlacesService {
 		await this.checkWriteAccess(existing, personToken);
 
 		if (existing.public) {
-			const hasDocuments = !!(await this.documentService.findOne({ namedPlaceID: id }, "id"));
+			const hasDocuments = await this.documentsService.existsByNamedPlaceID(id);
 			if (hasDocuments) {
 				throw new HttpException("Can't delete public place that has documents", 422);
 			}
@@ -165,7 +164,7 @@ export class NamedPlacesService {
 		let untilDate: Date;
 		if (until) {
 			untilDate = new Date(until);
-			if (isNaN(Date.parse(untilDate as unknown as string))) { // TS is wrong here, `Date.parse()` accepts `Date`.
+			if (!isValidDate(untilDate)) { // TS is wrong here, `Date.parse()` accepts `Date`.
 				throw new HttpException("'until' has bad date format, should be YYYY-MM-DD", 422);
 			}
 			if (untilDate < new Date()) {
@@ -222,7 +221,7 @@ export class NamedPlacesService {
 			throw new HttpException("You don't have access to this place", 403);
 		}
 
-		await this.formsService.checkPersonCanAccessCollectionID(collectionID, person);
+		await this.formsService.checkAccessIfDisabled(collectionID, person);
 
 		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
 			return;

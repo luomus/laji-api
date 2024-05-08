@@ -2,7 +2,7 @@ import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "sr
 import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination";
 import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
-import { asArray, doMaybe } from "src/utils";
+import { asArray, doForDefined } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";
 import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
 } from "./store-cache";
@@ -28,15 +28,15 @@ export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
 }
 
 /**
- * A service for using a specific store endpoint, applying the given options to each method, allowing caching
- * and serialization - Expect for `getPage()` and `getAll()` methods, since the whole result shouldn't be serialized.
+ * A service for using a specific store endpoint, applying the given options to each method, allowing caching and
+ * serialization (except for `getPage()` and `getAll()` methods, since the whole result shouldn't be serialized).
  * Use `findOne()` to serialize the result.
  */
 @Injectable()
 export class StoreService<T extends { id?: string }> {
 
 	private logger = new Logger(StoreService.name + "/" + this.config.resource);
-	private restClientOptions = doMaybe(omitForKeys<StoreConfig<T>>("resource", "cache"));
+	private restClientOptions = doForDefined(omitForKeys<StoreConfig<T>>("resource", "cache"));
 
 	constructor(
 		private storeClient: RestClientService<T>,
@@ -67,7 +67,7 @@ export class StoreService<T extends { id?: string }> {
 				page_size: pageSize,
 				fields: asArray(selectedFields).join(",")
 			} },
-			doMaybe(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
+			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
 		));
 		if (this.config.cache) {
 			await this.cache.set(cacheKey!, result);

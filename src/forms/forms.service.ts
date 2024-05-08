@@ -21,6 +21,7 @@ export class FormsService {
 		return this.formClient.post("", form, { params: { personToken } });
 	}
 
+	get(id: string): Promise<Form>
 	get(id: string, format: Format.json, lang?: Lang, expand?: boolean): Promise<Form>
 	get(id: string, format: Format.schema, lang?: Lang, expand?: boolean): Promise<FormSchemaFormat>
 	get(id: string, format?: Format, lang?: Lang, expand?: boolean): Promise<Form | FormSchemaFormat>
@@ -50,9 +51,8 @@ export class FormsService {
 		return (await this.getListing()).filter(f => f.collectionID === collectionID);
 	}
 
-	async checkPersonCanAccessCollectionID(collectionID: string, person: Person): Promise<void> {
-		const collectionForms = await this.findListedByCollectionID(collectionID);
-		const isDisabled = collectionForms.some(f => f?.options.disabled) || false;
+	async checkAccessIfDisabled(collectionID: string, person: Person): Promise<void> {
+		const isDisabled = this.findFor(collectionID, (f => f.options.disabled)) || false;
 
 		if (!isDisabled) {
 			return;
@@ -64,8 +64,7 @@ export class FormsService {
 	}
 
 	/** Use Array.*find* *for the collection* and it's parents with the *predicate* */
-	async findFor(collectionID: string, predicate: (f: Form) => unknown)
-		: Promise<Form | undefined> {
+	async findFor(collectionID: string, predicate: (f: FormListing) => unknown) : Promise<FormListing | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
 		const matches = forms.find(predicate);
 		if (matches) {
