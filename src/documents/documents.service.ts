@@ -215,17 +215,9 @@ export class DocumentsService {
 		validationErrorFormat?: ValidationErrorFormat
 	) {
 		const { collectionID } = document;
-
 		const person = await this.personsService.getByToken(personToken);
-		await this.formsService.checkAccessIfDisabled(collectionID, person);
 
-		if (document.namedPlaceID) {
-			try {
-				await this.namedPlacesService.get(document.namedPlaceID);
-			} catch (e) {
-				throw new HttpException("Named place not found or not public", 422);
-			}
-		}
+		await this.formsService.checkAccessIfDisabled(collectionID, person);
 
 		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
 			throw new HttpException("Insufficient rights to use this form", 403);

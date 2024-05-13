@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { FormSchemaFormat, Format, JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/forms/dto/form.dto";
 import { JSONObjectSerializable, isObject } from "src/type-utils";
 import { Populated, Document, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
@@ -8,14 +8,16 @@ import * as lajiValidate from "@luomus/laji-validate";
 import { TaxonBelongsToInformalTaxonGroupService } from "./validators/taxon-belongs-to-informal-taxon-group.service";
 import { NoExistingGatheringsInNamedPlaceService } from "./validators/no-existing-gatherings-in-named-place.service";
 import { DocumentValidator, ErrorsObj, ValidationException } from "./document-validator.utils";
+import { NamedPlacesService } from "src/named-places/named-places.service";
 
 @Injectable()
 export class DocumentValidatorService {
 
 	constructor(
 		private formsService: FormsService,
+		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		private taxonBelongsToInformalTaxonGroupService: TaxonBelongsToInformalTaxonGroupService,
-		private noExistingGatheringsInNamedPlaceService: NoExistingGatheringsInNamedPlaceService,
+		private noExistingGatheringsInNamedPlaceService: NoExistingGatheringsInNamedPlaceService
 	) {
 		this.extendLajiValidate();
 	}
@@ -28,6 +30,8 @@ export class DocumentValidatorService {
 			return;
 		}
 
+		await this.validateLinkings(document);
+
 		const form = await this.formsService.get(document.formID, Format.schema);
 		const strict = form.options?.strict !== false;
 
@@ -35,16 +39,16 @@ export class DocumentValidatorService {
 			checkHasOnlyFieldsInForm(document, form);
 		}
 
-		await this.schemaValidate(document, validationErrorFormat);
+		await this.validateAgainsSchema(document, validationErrorFormat);
 
 		if (document.publicityRestrictions === "MZ.publicityRestrictionsPrivate") {
 			return;
 		}
 
-		await this.lajiValidate(document, validationErrorFormat);
+		await this.validateAgainstForm(document, validationErrorFormat);
 	}
 
-	private async lajiValidate(
+	private async validateAgainstForm(
 		document: Document,
 		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
 	) {
@@ -80,7 +84,7 @@ export class DocumentValidatorService {
 		}
 	}
 
-	private async schemaValidate(
+	private async validateAgainsSchema(
 		document: Document,
 		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
 	) {
@@ -99,6 +103,16 @@ export class DocumentValidatorService {
 				errors[error.instancePath]!.push(message ?? "");
 			});
 			throw new ValidationException(formatErrorDetails(errors, validationErrorFormat));
+		}
+	}
+
+	private async validateLinkings(document: Document) {
+		if (document.namedPlaceID) {
+			try {
+				await this.namedPlacesService.get(document.namedPlaceID);
+			} catch (e) {
+				throw new HttpException("Named place not found or not public", 422);
+			}
 		}
 	}
 

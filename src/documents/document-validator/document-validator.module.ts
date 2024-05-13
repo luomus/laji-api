@@ -5,6 +5,7 @@ import { TaxonBelongsToInformalTaxonGroupService } from "./validators/taxon-belo
 import { NoExistingGatheringsInNamedPlaceService } from "./validators/no-existing-gatherings-in-named-place.service";
 import { TaxaModule } from "src/taxa/taxa.module";
 import { DocumentsModule } from "../documents.module";
+import { NamedPlacesModule } from "src/named-places/named-places.module";
 
 @Module({
 	providers: [
@@ -12,7 +13,7 @@ import { DocumentsModule } from "../documents.module";
 		TaxonBelongsToInformalTaxonGroupService,
 		NoExistingGatheringsInNamedPlaceService
 	],
-	imports: [FormsModule, TaxaModule, forwardRef(() => DocumentsModule)],
+	imports: [FormsModule, TaxaModule, forwardRef(() => DocumentsModule), forwardRef(() => NamedPlacesModule)],
 	exports: [DocumentValidatorService]
 })
 export class DocumentValidatorModule {}

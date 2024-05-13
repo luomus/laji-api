@@ -12,3 +12,11 @@ declare namespace lajiValidate {
 declare module "@luomus/laji-validate" {
 	export = lajiValidate;
 }
+
+declare namespace validators {
+	function geometry(geometry: any): string | undefined;
+}
+
+declare module "@luomus/laji-validate/dist/validators" {
+	export = validators
+}

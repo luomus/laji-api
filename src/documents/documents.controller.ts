@@ -14,6 +14,7 @@ import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ApiTags } from "@nestjs/swagger";
+import { PersonsService } from "src/persons/persons.service";
 
 @ApiTags("Documents")
 @LajiApiController("documents")
@@ -23,18 +24,32 @@ export class DocumentsController {
 		private documentValidatorService: DocumentValidatorService,
 		private accessTokenService: AccessTokenService,
 		private secondaryDocumentsService: SecondaryDocumentsService,
-		private formsService: FormsService
+		private formsService: FormsService,
+		private personsService: PersonsService
 	) {}
 
 	/** Validate */
 	@Post("validate")
 	@HttpCode(200)
-	async validate(@Body() document: Document, @Query() query: ValidateQueryDto): Promise<unknown> {
-		if (query.validator) {
+	async validate(
+		@Body() document: Document,
+		@Req() request: Request,
+		@Query() query: ValidateQueryDto
+	): Promise<unknown> {
+		const { validator, personToken } = query;
+		if (validator) {
 			return this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
 		} else {
+			if (!personToken) {
+				throw new HttpException("Person token is required when validating the whole document", 422);
+			}
+			const person = await this.personsService.getByToken(personToken);
+			// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
+			// error already.
+			const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
+			await this.documentsService.populateDocumentMutably(document, person, accessToken);
 			return this.documentValidatorService.validate(document);
 		}
 	}
