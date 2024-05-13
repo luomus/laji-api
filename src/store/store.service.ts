@@ -75,10 +75,10 @@ export class StoreService<T extends { id?: string }> {
 		return result;
 	}
 
-	async getAll(query: Query<T>, cacheOptions?: QueryCacheOptions<T>) {
+	async getAll(query: Query<T>, selectedFields: MaybeArray<KeyOf<T>> = [], cacheOptions?: QueryCacheOptions<T>) {
 		return getAllFromPagedResource(
 			(page: number) => this.getPage(
-				query, page, 10000, undefined, cacheOptions
+				query, page, 10000, selectedFields, cacheOptions
 			)
 		);
 	}

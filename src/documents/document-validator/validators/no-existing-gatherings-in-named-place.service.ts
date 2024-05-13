@@ -15,17 +15,13 @@ export class NoExistingGatheringsInNamedPlaceService implements DocumentValidato
 
 		const { namedPlaceID } = document;
 		if (!namedPlaceID) {
-			throw new HttpException(
-				"Unprocessable Entity",
-				422,
-				{ cause: { ".namedPlaceID": ["Could not find the named place in the document"] } }
+			throw new ValidationException(
+				{ ".namedPlaceID": ["Could not find the named place in the document"] }
 			);
 		}
 		const dateRange = this.getPeriod(form, document, path);
 		if (dateRange === false) {
-			throw new HttpException(
-				"Unprocessable Entity",
-				422,
+			throw new ValidationException(
 				{ [errorPath]: ["Date is not in correct format. Should use format YYYY-MM-DD."] }
 			);
 		}
@@ -40,18 +36,14 @@ export class NoExistingGatheringsInNamedPlaceService implements DocumentValidato
 		const { id } = document;
 		const isNewDoc = !id;
 		if (isNewDoc) {
-			throw new HttpException(
-				"Unprocessable Entity",
-				422,
+			throw new ValidationException(
 				{ [errorPath]: ["Observation already exists withing the given gathering period."] }
 			);
 		} else {
 			const namedPlaceHasDocumentsForExistingDoc =
 				await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange, id);
 			if (!namedPlaceHasDocumentsForExistingDoc) {
-				throw new HttpException(
-					"Unprocessable Entity",
-					422,
+				throw new ValidationException(
 					{ [errorPath]: ["Observation already exists withing the given gathering period."] }
 				);
 			}

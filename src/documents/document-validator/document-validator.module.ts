@@ -6,12 +6,14 @@ import { NoExistingGatheringsInNamedPlaceService } from "./validators/no-existin
 import { TaxaModule } from "src/taxa/taxa.module";
 import { DocumentsModule } from "../documents.module";
 import { NamedPlacesModule } from "src/named-places/named-places.module";
+import { NamedPlaceNotTooNearOtherPlacesService } from "./validators/named-place-not-too-near-other-places.service";
 
 @Module({
 	providers: [
 		DocumentValidatorService,
 		TaxonBelongsToInformalTaxonGroupService,
-		NoExistingGatheringsInNamedPlaceService
+		NoExistingGatheringsInNamedPlaceService,
+		NamedPlaceNotTooNearOtherPlacesService
 	],
 	imports: [FormsModule, TaxaModule, forwardRef(() => DocumentsModule), forwardRef(() => NamedPlacesModule)],
 	exports: [DocumentValidatorService]

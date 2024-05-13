@@ -9,6 +9,7 @@ import { TaxonBelongsToInformalTaxonGroupService } from "./validators/taxon-belo
 import { NoExistingGatheringsInNamedPlaceService } from "./validators/no-existing-gatherings-in-named-place.service";
 import { DocumentValidator, ErrorsObj, ValidationException } from "./document-validator.utils";
 import { NamedPlacesService } from "src/named-places/named-places.service";
+import { NamedPlaceNotTooNearOtherPlacesService } from "./validators/named-place-not-too-near-other-places.service";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -17,7 +18,8 @@ export class DocumentValidatorService {
 		private formsService: FormsService,
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		private taxonBelongsToInformalTaxonGroupService: TaxonBelongsToInformalTaxonGroupService,
-		private noExistingGatheringsInNamedPlaceService: NoExistingGatheringsInNamedPlaceService
+		private noExistingGatheringsInNamedPlaceService: NoExistingGatheringsInNamedPlaceService,
+		private namedPlaceNotTooNearOtherPlacesService: NamedPlaceNotTooNearOtherPlacesService
 	) {
 		this.extendLajiValidate();
 	}

@@ -37,14 +37,11 @@ export class NamedPlacesService {
 		private mailService: MailService
 	) {}
 
-	async getPage(
+	async getQuery(
 		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
 		personToken?: string,
 		includePublic?: boolean,
-		page?: number,
-		pageSize = 20,
-		selectedFields?: (keyof NamedPlace)[]
-	) {
+	): Promise<[Query<NamedPlace>, QueryCacheOptions<NamedPlace>]> {
 		if (typeof query.collectionID === "string") {
 			query.collectionID = await this.getCollectionIDs(query.collectionID);
 		}
@@ -72,7 +69,31 @@ export class NamedPlacesService {
 			cacheConfig = { primaryKeys: ["id"] };
 		}
 
+		return [storeQuery, cacheConfig];
+	}
+
+	async getPage(
+		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
+		personToken?: string,
+		includePublic?: boolean,
+		page?: number,
+		pageSize = 20,
+		selectedFields?: (keyof NamedPlace)[]
+	) {
+		const [storeQuery, cacheConfig] = await this.getQuery(query, personToken, includePublic);
+
 		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
+	}
+
+	async getAll(
+		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
+		personToken?: string,
+		includePublic?: boolean,
+		selectedFields?: (keyof NamedPlace)[]
+	) {
+		const [storeQuery, cacheConfig] = await this.getQuery(query, personToken, includePublic);
+
+		return await this.store.getAll(storeQuery, selectedFields, cacheConfig);
 	}
 
 	private async getCollectionIDs(collectionID: string) {

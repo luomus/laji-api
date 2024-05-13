@@ -10,9 +10,9 @@ export const getPath = (path: string | undefined, subpath: string) => {
 	return path + subpath;
 };
 
-export abstract class DocumentValidator {
+export abstract class DocumentValidator<T = Document> {
 	abstract validate(
-		document: Document,
+		document: T,
 		form: FormSchemaFormat,
 		path: string | undefined,
 		options: any
