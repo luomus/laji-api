@@ -5,11 +5,14 @@ import { Populated, Document, ValidationErrorFormat, ValidationStrategy, Validat
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
-import { TaxonBelongsToInformalTaxonGroupService } from "./validators/taxon-belongs-to-informal-taxon-group.service";
-import { NoExistingGatheringsInNamedPlaceService } from "./validators/no-existing-gatherings-in-named-place.service";
 import { DocumentValidator, ErrorsObj, ValidationException } from "./document-validator.utils";
+import { TaxonBelongsToInformalTaxonGroupService }
+	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
+import { NoExistingGatheringsInNamedPlaceService }
+	from "./validators/no-existing-gatherings-in-named-place.validator.service";
 import { NamedPlacesService } from "src/named-places/named-places.service";
-import { NamedPlaceNotTooNearOtherPlacesService } from "./validators/named-place-not-too-near-other-places.service";
+import { NamedPlaceNotTooNearOtherPlacesService }
+	from "./validators/named-place-not-too-near-other-places.validator.service";
 
 @Injectable()
 export class DocumentValidatorService {
