@@ -50,7 +50,7 @@ In old api most paged results have `@context` in the root. Pre-paged results bei
 
 ## Page sizes
 
-Default page size for all queries is 20. I didn't investigate it the page size changes per endpoint in the old API.
+Default page size for all queries is 20. I didn't investigate if the page size changes per endpoint in the old API.
 
 * `/forms` old API returned all forms with the page size equal to the forms length. New API was made to have page size 1000 by default, so the frontend works the same.
 
@@ -98,7 +98,7 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 * GET `/named-places` using `selectedFields` param doesn't automatically add 'id' to the param
 * POST `/named-places` public place without edit rights to collection gives 403, not 422
 * POST `/named-places` doesn't care about lang param
-* Creating a named place with a prepopulatedDocument with null id doesn't automatically remove id id: an error is raised instead
+* Creating a named place with a prepopulatedDocument with null id doesn't automatically remove id: an error is raised instead
 * Creating a named place with a prepopulatedDocument with empty gatherings doesn't try to create an empty gathering: an error is raised instead
 
  ## Documents
@@ -118,7 +118,7 @@ Old API checked that the renewal wasn't being spammed. New API doesn't care - th
 
 ## Store query interpreting
 
-Old API filtered out non QNames from queries. For example, when querying named place with `?municipality=all`, the municipality filter was actually dropped from the query because "all" isn't a QName. New API bypasses all values and doesn't check if the queries make sense (other than checking for injections). This is left to clients responsibility.
+Old API filtered out non QNames from queries. For example, when querying named place with `?municipality=all`, the municipality filter was actually dropped from the query because "all" isn't a QName. New API bypasses all values and doesn't check if the queries make sense (other than checking for injections). This is left to the client's responsibility.
 
 # Database changes
 
