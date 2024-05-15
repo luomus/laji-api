@@ -1,5 +1,4 @@
 import { DocumentValidator, ValidationException } from "../document-validator.utils";
-import { FormSchemaFormat } from "src/forms/dto/form.dto";
 import { Document } from "src/documents/documents.dto";
 import { TaxaService } from "src/taxa/taxa.service";
 import { Injectable } from "@nestjs/common";
@@ -16,7 +15,6 @@ export class TaxonBelongsToInformalTaxonGroupValidatorService implements Documen
 
 	async validate(
 		document: Document,
-		form: FormSchemaFormat,
 		path: string,
 		{ informalTaxonGroup }: { informalTaxonGroup: string[] }
 	) {

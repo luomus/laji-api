@@ -1,17 +1,22 @@
 import { DocumentsService } from "src/documents/documents.service";
 import { Document } from "src/documents/documents.dto";
-import { FormSchemaFormat } from "src/forms/dto/form.dto";
+import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
 import { dateToISODate, isValidDate } from "src/utils";
 import { HttpException, Injectable } from "@nestjs/common";
 import { DocumentValidator, ValidationException, getPath } from "../document-validator.utils";
+import { FormsService } from "src/forms/forms.service";
 
 @Injectable()
 export class NoExistingGatheringsInNamedPlaceValidatorService implements DocumentValidator {
 
-	constructor(private documentsService: DocumentsService) {}
+	constructor(
+		private documentsService: DocumentsService,
+		private formsService: FormsService
+	) {}
 
-	async validate(document: Document, form: FormSchemaFormat, path?: string) {
+	async validate(document: Document, path?: string) {
 		const errorPath = getPath(path, ".gatheringEvent.dateBegin");
+
 
 		const { namedPlaceID } = document;
 		if (!namedPlaceID) {
@@ -19,6 +24,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 				{ ".namedPlaceID": ["Could not find the named place in the document"] }
 			);
 		}
+		const form = await this.formsService.get(document.formID, Format.schema);
 		const dateRange = this.getPeriod(form, document, path);
 		if (dateRange === false) {
 			throw new ValidationException(

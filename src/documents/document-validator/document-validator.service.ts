@@ -138,11 +138,9 @@ export class DocumentValidatorService {
 			field,
 			...validatorOptions
 		} = options;
-		const form = await this.formsService.get(document.formID, Format.schema);
 		try {
-			console.log(validator, !!(this as any)[`${validator}Service`]);
 			await ((this as any)[`${validator}ValidatorService`] as DocumentValidator)
-				.validate(document, form, field, validatorOptions);
+				.validate(document, field, validatorOptions);
 		} catch (e) {
 			if (e.response?.details) {
 				throw new ValidationException(formatErrorDetails(e.response.details, validationErrorFormat));
@@ -213,7 +211,6 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 };
 
 const formatErrorDetails = (errors: Record<string, string[]>, targetType: ValidationErrorFormat) => {
-	console.log(targetType);
 	switch (targetType) {
 	case "jsonPath":
 		return errors;

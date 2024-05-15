@@ -1,5 +1,4 @@
 import { MaybePromise } from "src/type-utils";
-import { FormSchemaFormat } from "src/forms/dto/form.dto";
 import { Document } from "src/documents/documents.dto";
 import { HttpException } from "@nestjs/common";
 
@@ -13,7 +12,6 @@ export const getPath = (path: string | undefined, subpath: string) => {
 export abstract class DocumentValidator<T = Document> {
 	abstract validate(
 		document: T,
-		form: FormSchemaFormat,
 		path: string | undefined,
 		options: any
 	): MaybePromise<void>;

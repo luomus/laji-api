@@ -1,7 +1,6 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
-import { DocumentValidator, ValidationException, getPath } from "../document-validator.utils";
+import { DocumentValidator, ValidationException } from "../document-validator.utils";
 import { NamedPlace } from "@luomus/laji-schema/models";
-import { FormSchemaFormat } from "src/forms/dto/form.dto";
 import { NamedPlacesService } from "src/named-places/named-places.service";
 
 @Injectable()
@@ -9,7 +8,7 @@ export class UniqueNamedPlaceAlternativeIDsValidatorService implements DocumentV
 
 	constructor(@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService) {}
 
-	async validate(namedPlace: NamedPlace, form: FormSchemaFormat, path?: string) {
+	async validate(namedPlace: NamedPlace, path?: string) {
 		const { collectionID, alternativeIDs } = namedPlace;
 		if (!alternativeIDs || alternativeIDs.length < 1) {
 			return;
@@ -25,7 +24,6 @@ export class UniqueNamedPlaceAlternativeIDsValidatorService implements DocumentV
 			{ collectionID, alternativeIDs }, undefined, undefined, 1, 2, ["id"]
 		)).results;
 
-		console.log("path", path);
 		if (this.hasDuplicate(namedPlaces, namedPlace.id)) {
 			throw new ValidationException({ [path ?? ".alternativeIDs"]:
 				["There already exists a named place with one or more given alternative IDs"]
