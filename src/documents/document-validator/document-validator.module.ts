@@ -10,13 +10,16 @@ import { NoExistingGatheringsInNamedPlaceService }
 	from "./validators/no-existing-gatherings-in-named-place.validator.service";
 import { NamedPlaceNotTooNearOtherPlacesService }
 	from "./validators/named-place-not-too-near-other-places.validator.service";
+import { UniqueNamedPlaceAlternativeIDsService }
+	from "./validators/unique-named-place-alternativeIDs.validator.service";
 
 @Module({
 	providers: [
 		DocumentValidatorService,
 		TaxonBelongsToInformalTaxonGroupService,
 		NoExistingGatheringsInNamedPlaceService,
-		NamedPlaceNotTooNearOtherPlacesService
+		NamedPlaceNotTooNearOtherPlacesService,
+		UniqueNamedPlaceAlternativeIDsService
 	],
 	imports: [FormsModule, TaxaModule, forwardRef(() => DocumentsModule), forwardRef(() => NamedPlacesModule)],
 	exports: [DocumentValidatorService]

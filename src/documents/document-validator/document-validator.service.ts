@@ -13,6 +13,8 @@ import { NoExistingGatheringsInNamedPlaceService }
 import { NamedPlacesService } from "src/named-places/named-places.service";
 import { NamedPlaceNotTooNearOtherPlacesService }
 	from "./validators/named-place-not-too-near-other-places.validator.service";
+import { UniqueNamedPlaceAlternativeIDsService }
+	from "./validators/unique-named-place-alternativeIDs.validator.service";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -20,9 +22,12 @@ export class DocumentValidatorService {
 	constructor(
 		private formsService: FormsService,
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
+		// These following services are used even though TS doesn't know about it. They are called dynamically in
+		// `validateWithValidationStrategy()`.
 		private taxonBelongsToInformalTaxonGroupService: TaxonBelongsToInformalTaxonGroupService,
 		private noExistingGatheringsInNamedPlaceService: NoExistingGatheringsInNamedPlaceService,
-		private namedPlaceNotTooNearOtherPlacesService: NamedPlaceNotTooNearOtherPlacesService
+		private namedPlaceNotTooNearOtherPlacesService: NamedPlaceNotTooNearOtherPlacesService,
+		private uniqueNamedPlaceAlternativeIDsService: UniqueNamedPlaceAlternativeIDsService
 	) {
 		this.extendLajiValidate();
 	}
@@ -135,6 +140,7 @@ export class DocumentValidatorService {
 		} = options;
 		const form = await this.formsService.get(document.formID, Format.schema);
 		try {
+			console.log(validator, !!(this as any)[`${validator}Service`]);
 			await ((this as any)[`${validator}Service`] as DocumentValidator)
 				.validate(document, form, field, validatorOptions);
 		} catch (e) {
