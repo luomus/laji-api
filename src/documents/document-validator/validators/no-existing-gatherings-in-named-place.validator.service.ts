@@ -68,17 +68,9 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 
 		const periods = form.options?.periods;
 
-		if (!Array.isArray(periods)) {
-			const end = new Date(document.gatheringEvent.dateEnd as string); // TS is wrong, Date accepts undefined.
-			if (!isValidDate(end)) {
-				return { from: dateToISODate(start), to: dateToISODate(start) };
-			}
-			return { from: dateToISODate(start), to: dateToISODate(end) };
-		}
-
 		const comp = ((start.getMonth() + 1) * 100) + start.getDate();
 
-		for (const period of periods.slice().sort()) {
+		for (const period of (periods || []).slice().sort()) {
 			const ranges = period.split("/");
 			if (ranges.length !== 2) {
 				throw new HttpException(
@@ -110,6 +102,13 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 				};
 			}
 		}
-		throw new HttpException("Unprocessable Entity", 422, { [errorPath]: ["Couldn't interpret period"] });
+
+		if (!Array.isArray(periods)) {
+			const end = new Date(document.gatheringEvent.dateEnd as string); // TS is wrong, Date accepts undefined.
+			if (!isValidDate(end)) {
+				return { from: dateToISODate(start), to: dateToISODate(start) };
+			}
+			return { from: dateToISODate(start), to: dateToISODate(end) };
+		}
 	}
 }

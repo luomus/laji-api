@@ -52,7 +52,6 @@ describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 			try {
 				await service.validate(document as any, "", { informalTaxonGroup: informalTaxonGroups });
 			} catch (error) {
-				console.log(error.getResponse().details);
 				expect(error.getResponse()).toEqual({
 					statusCode: 422,
 					message: "Unprocessable Entity",
