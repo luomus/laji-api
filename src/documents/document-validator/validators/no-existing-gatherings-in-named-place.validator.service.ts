@@ -6,7 +6,7 @@ import { HttpException, Injectable } from "@nestjs/common";
 import { DocumentValidator, ValidationException, getPath } from "../document-validator.utils";
 
 @Injectable()
-export class NoExistingGatheringsInNamedPlaceService implements DocumentValidator {
+export class NoExistingGatheringsInNamedPlaceValidatorService implements DocumentValidator {
 
 	constructor(private documentsService: DocumentsService) {}
 

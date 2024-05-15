@@ -5,7 +5,7 @@ import { NamedPlace } from "@luomus/laji-schema/models";
 import { NamedPlacesService } from "src/named-places/named-places.service";
 
 @Injectable()
-export class NamedPlaceNotTooNearOtherPlacesService implements DocumentValidator<NamedPlace> {
+export class NamedPlaceNotTooNearOtherPlacesValidatorService implements DocumentValidator<NamedPlace> {
 
 	constructor(@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService) {}
 

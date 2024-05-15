@@ -5,7 +5,7 @@ import { FormSchemaFormat } from "src/forms/dto/form.dto";
 import { NamedPlacesService } from "src/named-places/named-places.service";
 
 @Injectable()
-export class UniqueNamedPlaceAlternativeIDsService implements DocumentValidator<NamedPlace> {
+export class UniqueNamedPlaceAlternativeIDsValidatorService implements DocumentValidator<NamedPlace> {
 
 	constructor(@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService) {}
 

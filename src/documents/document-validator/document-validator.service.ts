@@ -6,14 +6,14 @@ import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
 import { DocumentValidator, ErrorsObj, ValidationException } from "./document-validator.utils";
-import { TaxonBelongsToInformalTaxonGroupService }
+import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
-import { NoExistingGatheringsInNamedPlaceService }
+import { NoExistingGatheringsInNamedPlaceValidatorService }
 	from "./validators/no-existing-gatherings-in-named-place.validator.service";
 import { NamedPlacesService } from "src/named-places/named-places.service";
-import { NamedPlaceNotTooNearOtherPlacesService }
+import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 	from "./validators/named-place-not-too-near-other-places.validator.service";
-import { UniqueNamedPlaceAlternativeIDsService }
+import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
 
 @Injectable()
@@ -24,10 +24,10 @@ export class DocumentValidatorService {
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		// These following services are used even though TS doesn't know about it. They are called dynamically in
 		// `validateWithValidationStrategy()`.
-		private taxonBelongsToInformalTaxonGroupService: TaxonBelongsToInformalTaxonGroupService,
-		private noExistingGatheringsInNamedPlaceService: NoExistingGatheringsInNamedPlaceService,
-		private namedPlaceNotTooNearOtherPlacesService: NamedPlaceNotTooNearOtherPlacesService,
-		private uniqueNamedPlaceAlternativeIDsService: UniqueNamedPlaceAlternativeIDsService
+		private taxonBelongsToInformalTaxonGroupValidatorService: TaxonBelongsToInformalTaxonGroupValidatorService,
+		private noExistingGatheringsInNamedPlaceValidatorService: NoExistingGatheringsInNamedPlaceValidatorService,
+		private namedPlaceNotTooNearOtherPlacesValidatorService: NamedPlaceNotTooNearOtherPlacesValidatorService,
+		private uniqueNamedPlaceAlternativeIDsValidatorService: UniqueNamedPlaceAlternativeIDsValidatorService
 	) {
 		this.extendLajiValidate();
 	}
@@ -141,7 +141,7 @@ export class DocumentValidatorService {
 		const form = await this.formsService.get(document.formID, Format.schema);
 		try {
 			console.log(validator, !!(this as any)[`${validator}Service`]);
-			await ((this as any)[`${validator}Service`] as DocumentValidator)
+			await ((this as any)[`${validator}ValidatorService`] as DocumentValidator)
 				.validate(document, form, field, validatorOptions);
 		} catch (e) {
 			if (e.response?.details) {

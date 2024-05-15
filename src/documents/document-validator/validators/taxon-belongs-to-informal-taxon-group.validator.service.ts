@@ -10,7 +10,7 @@ interface DocumentTaxon {
 }
 
 @Injectable()
-export class TaxonBelongsToInformalTaxonGroupService implements DocumentValidator {
+export class TaxonBelongsToInformalTaxonGroupValidatorService implements DocumentValidator {
 
 	constructor(private taxaService: TaxaService) {}
 

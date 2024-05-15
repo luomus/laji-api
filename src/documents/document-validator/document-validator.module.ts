@@ -4,22 +4,22 @@ import { FormsModule } from "src/forms/forms.module";
 import { TaxaModule } from "src/taxa/taxa.module";
 import { DocumentsModule } from "../documents.module";
 import { NamedPlacesModule } from "src/named-places/named-places.module";
-import { TaxonBelongsToInformalTaxonGroupService }
+import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
-import { NoExistingGatheringsInNamedPlaceService }
+import { NoExistingGatheringsInNamedPlaceValidatorService }
 	from "./validators/no-existing-gatherings-in-named-place.validator.service";
-import { NamedPlaceNotTooNearOtherPlacesService }
+import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 	from "./validators/named-place-not-too-near-other-places.validator.service";
-import { UniqueNamedPlaceAlternativeIDsService }
+import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
 
 @Module({
 	providers: [
 		DocumentValidatorService,
-		TaxonBelongsToInformalTaxonGroupService,
-		NoExistingGatheringsInNamedPlaceService,
-		NamedPlaceNotTooNearOtherPlacesService,
-		UniqueNamedPlaceAlternativeIDsService
+		TaxonBelongsToInformalTaxonGroupValidatorService,
+		NoExistingGatheringsInNamedPlaceValidatorService,
+		NamedPlaceNotTooNearOtherPlacesValidatorService,
+		UniqueNamedPlaceAlternativeIDsValidatorService
 	],
 	imports: [FormsModule, TaxaModule, forwardRef(() => DocumentsModule), forwardRef(() => NamedPlacesModule)],
 	exports: [DocumentValidatorService]
