@@ -128,7 +128,6 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
 
-
 # Blocked work
 
 * Trait DB swagger paged results https://www.pivotaltracker.com/story/show/187328917

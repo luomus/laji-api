@@ -69,15 +69,15 @@ export class DocumentsController {
 		);
 	}
 
-	/** Get a document by id */
+	/** Get a document */
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
 	get(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto): Promise<Document> {
 		return this.documentsService.get(id, personToken);
 	}
 
-	/** Create a new document and persist it or return validation errors */
-	@Post(":id")
+	/** Create a new document */
+	@Post()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
 	async create(
 		@Body() document: UnpopulatedDocument | SecondaryDocumentOperation,
