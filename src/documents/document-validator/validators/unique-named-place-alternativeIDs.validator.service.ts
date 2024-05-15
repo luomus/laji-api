@@ -8,7 +8,7 @@ export class UniqueNamedPlaceAlternativeIDsValidatorService implements DocumentV
 
 	constructor(@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService) {}
 
-	async validate(namedPlace: NamedPlace, path?: string) {
+	async validate(namedPlace: Pick<NamedPlace, "id" | "collectionID" | "alternativeIDs">, path?: string) {
 		const { collectionID, alternativeIDs } = namedPlace;
 		if (!alternativeIDs || alternativeIDs.length < 1) {
 			return;
