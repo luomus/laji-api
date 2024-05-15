@@ -110,6 +110,7 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 
  * `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used.
  * `/documents/validate/` valid response has no body. In the old API it was `{}`.
+ * `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
 
 ## Access token renewal
 
