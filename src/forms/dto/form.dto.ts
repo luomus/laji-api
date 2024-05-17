@@ -49,6 +49,8 @@ export type Form = FormI & {
 
 export type FormSchemaFormat = Form & { schema: JSONSchemaObject };
 
+export const isFormSchemaFormat = (form: Form | FormSchemaFormat): form is FormSchemaFormat => !!(form as any).schema;
+
 export type FormListing = Pick<Form & {
 	options: FormOptions
 },
@@ -149,3 +151,4 @@ export function isJSONSchemaEnumOneOf(jsonSchema: JSONSchema): jsonSchema is JSO
 	return !!(jsonSchema as any).oneOf;
 }
 
+export type Hashed<T> = T & { "$id": string }

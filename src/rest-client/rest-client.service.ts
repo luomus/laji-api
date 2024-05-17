@@ -16,7 +16,9 @@ export type RestClientConfig<T> = RestClientOptions<T> & {
 	headers?: Record<string, string | undefined>
 };
 
-export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions;
+export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions & {
+	transformer?: (result: T) => T;
+};
 
 export type HasMaybeSerializeInto<T> = {
 	/** A class that that the result will be serialized into. */
@@ -119,7 +121,9 @@ export class RestClientService<T = unknown> {
 		}
 		this.logger.verbose(`GET ${url}`);
 		const result = await firstValueFrom(
-			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r => r.data))
+			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r =>
+				options?.transformer ? options.transformer(r.data) : r.data
+			))
 		);
 		const cacheConf = this.getCacheConf(options);
 		if (cacheConf) {
