@@ -35,9 +35,11 @@ export class FormsService {
 			lang: formatLangParam(lang),
 			expand
 		} }, {
+			// We add $id property, which is a hash of the schema so document validation knows when to compile a new
+			// validator..
 			transformer: (form) => {
 				if (isFormSchemaFormat(form)) {
-					(form as Hashed<FormSchemaFormat>).$id = hash.update(JSON.stringify(form)).digest("hex");
+					(form as Hashed<FormSchemaFormat>).$id = hash.update(JSON.stringify(form.schema)).digest("hex");
 				}
 				return form;
 			}

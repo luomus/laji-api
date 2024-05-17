@@ -1,5 +1,6 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
-import { FormSchemaFormat, Format, Hashed, JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/forms/dto/form.dto";
+import { FormSchemaFormat, Format, Hashed, JSONSchema, JSONSchemaArray, JSONSchemaObject }
+from "src/forms/dto/form.dto";
 import { JSONObjectSerializable, isObject } from "src/type-utils";
 import { Populated, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
 import { Document } from "@luomus/laji-schema";
@@ -171,9 +172,8 @@ export class DocumentValidatorService {
 
 const ajv = new Ajv({ allErrors: true });
 
-const getAjvValidator = (form: Hashed<FormSchemaFormat>) => {
-	return ajv.getSchema(form.$id) || ajv.compile(form);
-};
+const getAjvValidator = (form: Hashed<FormSchemaFormat>) => 
+	ajv.getSchema(form.$id) || ajv.compile(form);
 
 export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSchemaFormat): void => {
 	// Keys not usually listed in form fields but are always valid.
