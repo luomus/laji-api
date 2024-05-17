@@ -1,7 +1,9 @@
 import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
-import { Flatten, KeyOf } from "src/type-utils";
+import { Flatten, KeyOf, WithNonNullableKeys } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
-import { Document, Populated, SecondaryDocument, UnpopulatedDocument, ValidationErrorFormat } from "./documents.dto";
+import { Document } from "@luomus/laji-schema";
+import { Populated, ValidationErrorFormat }
+	from "./documents.dto";
 import { Query, getQueryVocabulary } from "src/store/store-query";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { PersonsService } from "src/persons/persons.service";
@@ -22,7 +24,6 @@ const dateRangeKeys = [
 	"gatherings.units.unitGathering.dateBegin"
 ] as const;
 type DateRangeKey = typeof dateRangeKeys[number];
-// type DocumentQuery = Document & Record<DateRangeKey, string>
 
 /** Allowed filters for the external API of the document service */
 export const allowedQueryKeys = [
@@ -67,8 +68,6 @@ export class DocumentsService {
 		@Inject(forwardRef(() => DocumentValidatorService))
 		private documentValidatorService: DocumentValidatorService
 	) {}
-
-	// findOne = this.store.findOne.bind(this.store);
 
 	async getPageByObservationYear(
 		query: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
@@ -140,20 +139,54 @@ export class DocumentsService {
 	}
 
 	async create(
-		unpopulatedDocument: UnpopulatedDocument,
+		unpopulatedDocument: Document,
 		personToken: string,
 		accessToken: string,
 		validationErrorFormat?: ValidationErrorFormat
 	) {
 		const person = await this.personsService.getByToken(personToken);
-		const document = await this.populateDocumentMutably(unpopulatedDocument, person, accessToken);
+		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
 		if (document.id) {
 			throw new HttpException("You should not specify ID when adding primary data!", 406);
 		}
 		await this.validate(document, personToken, validationErrorFormat);
-		const created = await this.store.create(document);
+		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, personToken);
 		return created;
+	}
+
+	async update(
+		unpopulatedDocument: Document,
+		personToken: string,
+		accessToken: string,
+		validationErrorFormat?: ValidationErrorFormat
+	) {
+		const person = await this.personsService.getByToken(personToken);
+		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
+		document.dateEdited = new Date().toISOString();
+		const { id } = document;
+		if (!id) {
+			throw new HttpException("Can't update document without id", 406);
+		}
+		const existingDocument = await this.store.get(id);
+		await this.checkAccessIfLocked(existingDocument, personToken);
+		await this.validate(document, personToken, validationErrorFormat);
+		const updated = await this.store.update(document as Document & { id: string });
+		await this.namedPlaceSideEffects(updated, personToken);
+		return updated;
+	}
+
+	private async checkAccessIfLocked(document: Document, personToken: string) {
+		const { collectionID, locked } = document;
+		if (!collectionID || !locked) {
+			return;
+		}
+		const person = await this.personsService.getByToken(personToken);
+		const permissions =
+			await this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
+		if (!permissions?.admins.includes(person.id)) {
+			throw new HttpException("Editing a locked document is not allowed", 403);
+		}
 	}
 
 	async deriveCollectionIDMutably<T extends { formID?: string }>(mutableTarget: T)
@@ -166,9 +199,7 @@ export class DocumentsService {
 		return mutableTarget as T & { formID: string, collectionID: string };
 	}
 
-	async populateDocumentMutably
-	<T extends UnpopulatedDocument | SecondaryDocument>
-	(document: T, person: Person, accessToken: string): Promise<Populated<T>> {
+	async populateMutably<T extends Document>(document: T, person: Person, accessToken: string): Promise<Populated<T>> {
 		const apiUser = await this.apiUsersService.getByAccessToken(accessToken);
 
 		const { systemID } = apiUser;
@@ -184,33 +215,32 @@ export class DocumentsService {
 
 		await this.deriveCollectionIDMutably(document);
 
-		const now = new Date().toISOString();
-		const dateProps: KeyOf<Pick<Document, "dateEdited" | "dateCreated">>[] = ["dateEdited", "dateCreated"];
-		if (person.isImporter()) {
-			dateProps.forEach(key => {
-				if (!document[key]) {
-					document[key] = now;
-				}
-			});
-		} else {
-			dateProps.forEach(key => {
-				document[key] = now;
-			});
-			document.creator = person.id;
-			document.editor = person.id;
-		}
 		if (!document.publicityRestrictions) {
 			document.publicityRestrictions = "MZ.publicityRestrictionsPublic";
 		}
+
+		if (!person.isImporter()) {
+			document.creator = person.id;
+			document.editor = person.id;
+		}
+
+		const now = new Date().toISOString();
+		const dateProps: KeyOf<Pick<Document, "dateEdited" | "dateCreated">>[] = ["dateEdited", "dateCreated"];
+		dateProps.forEach(key => {
+			if (!person.isImporter() || !document[key]) {
+				document[key] = now;
+			}
+		});
+
 		return document as Populated<T>;
-	}
+	};
 
 	// TODO logic not yet copied from old api, need to double check:
 	// * validation population against existing document; should be implemented in update method
 	// * old api does 'linking', id checking etc in `prerareDocument`. Is it handled by store?
 	// * thrown errors not formatted with validation error format
 	async validate(
-		document: Document,
+		document: Populated<Document>,
 		personToken: string,
 		validationErrorFormat?: ValidationErrorFormat
 	) {
@@ -251,7 +281,7 @@ export class DocumentsService {
 				|| isValidDate(placeDate) && isValidDate(docCounted) && (docCounted as Date) >= (placeDate as Date)
 			) {
 				if (documentHasNewNamedPlaceNote(document, place)) {
-					place.notes = getDocumentNotes(document);
+					place.notes = document.gatheringEvent?.namedPlaceNotes;
 				}
 				try {
 					await this.prepopulatedDocumentService.assignFor(place, document);
@@ -263,7 +293,7 @@ export class DocumentsService {
 				}
 			}
 		} else if (documentHasNewNamedPlaceNote(document, place)) {
-			place.notes = getDocumentNotes(document);
+			place.notes = document.gatheringEvent?.namedPlaceNotes;
 			await this.namedPlacesService.update(place.id, place, personToken);
 		}
 	}
@@ -292,7 +322,6 @@ export class DocumentsService {
 		}
 		return true;
 	}
-
 }
 
 function getDateCounted(document: Pick<Document, "gatheringEvent" | "gatherings">): Date | undefined {
@@ -316,11 +345,8 @@ function getDateCounted(document: Pick<Document, "gatheringEvent" | "gatherings"
 	}
 }
 
-
-const getDocumentNotes = (document: Document) => document.gatheringEvent?.namedPlaceNotes;
-
 const documentHasNewNamedPlaceNote = (document: Document, place: NamedPlace) => {
-	const notes = getDocumentNotes(document);
+	const notes = document.gatheringEvent?.namedPlaceNotes;
 	if (notes && notes !== place.notes) {
 		return notes;
 	}

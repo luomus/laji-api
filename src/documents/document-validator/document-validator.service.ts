@@ -1,7 +1,8 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { FormSchemaFormat, Format, JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/forms/dto/form.dto";
 import { JSONObjectSerializable, isObject } from "src/type-utils";
-import { Populated, Document, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
+import { Populated, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
+import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
@@ -33,7 +34,7 @@ export class DocumentValidatorService {
 	}
 
 	async validate(
-		document: Document,
+		document: Populated<Document>,
 		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
 	) {
 		if (document.isTemplate) {
@@ -59,7 +60,7 @@ export class DocumentValidatorService {
 	}
 
 	private async validateAgainstForm(
-		document: Document,
+		document: Populated<Document>,
 		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
 	) {
 		const { validators } = await this.formsService.get(document.formID, Format.schema);
@@ -95,7 +96,7 @@ export class DocumentValidatorService {
 	}
 
 	private async validateAgainsSchema(
-		document: Document,
+		document: Populated<Document>,
 		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
 	) {
 		const form = await this.formsService.get(document.formID, Format.schema);
@@ -126,7 +127,7 @@ export class DocumentValidatorService {
 		}
 	}
 
-	async validateWithValidationStrategy(document: Document, options: {
+	async validateWithValidationStrategy<T = Document>(item: T, options: {
 		validator: ValidationStrategy,
 		field?: string,
 		informalTaxonGroup?: string[],
@@ -139,8 +140,8 @@ export class DocumentValidatorService {
 			...validatorOptions
 		} = options;
 		try {
-			await ((this as any)[`${validator}ValidatorService`] as DocumentValidator)
-				.validate(document, field, validatorOptions);
+			await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
+				.validate(item, field, validatorOptions);
 		} catch (e) {
 			if (e.response?.details) {
 				throw new ValidationException(formatErrorDetails(e.response.details, validationErrorFormat));
@@ -171,7 +172,7 @@ export class DocumentValidatorService {
 const ajv = new Ajv({ allErrors: true });
 
 const getAjvValidator = (form: FormSchemaFormat) => {
-	const validate = ajv.getSchema<Populated<Document>>(form.id);
+	const validate = ajv.getSchema(form.id);
 	if (validate) {
 		return validate;
 	}
@@ -233,8 +234,3 @@ const errorsToObj = (errors: Record<string, string[]>) =>
 		pointer[last] = errors[path]!;
 		return result;
 	}, {} as ErrorsObj);
-
-/** Both The camel and the kebab are in lower case. */
-const camelCaseToKebabCase = (camelCase: string) => {
-	return camelCase.replace(/([A-Z])/g, match => "-" + match.toLowerCase());
-};

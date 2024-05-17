@@ -1,5 +1,5 @@
 import { DocumentsService } from "src/documents/documents.service";
-import { Document } from "src/documents/documents.dto";
+import { Document } from "@luomus/laji-schema";
 import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
 import { dateToISODate, isValidDate } from "src/utils";
 import { HttpException, Injectable } from "@nestjs/common";
@@ -17,14 +17,18 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 	async validate(document: Document, path?: string) {
 		const errorPath = getPath(path, ".gatheringEvent.dateBegin");
 
-
-		const { namedPlaceID } = document;
+		const { formID, namedPlaceID } = document;
+		if (!formID) {
+			throw new ValidationException(
+				{ ".formID": ["Missing formID"] }
+			);
+		}
 		if (!namedPlaceID) {
 			throw new ValidationException(
 				{ ".namedPlaceID": ["Could not find the named place in the document"] }
 			);
 		}
-		const form = await this.formsService.get(document.formID, Format.schema);
+		const form = await this.formsService.get(formID, Format.schema);
 		const dateRange = this.getPeriod(form, document, path);
 		if (dateRange === false) {
 			throw new ValidationException(

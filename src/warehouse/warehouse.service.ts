@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { WAREHOUSE_CLIENT } from "src/provider-tokens";
 import { ConfigService } from "@nestjs/config";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { Document } from "../documents/documents.dto";
+import { Document } from "@luomus/laji-schema";
 
 // TODO This is how the requests are done by old API. Ask from Esko if there's a better way to do this since the
 // swagger typings don't work for the used. There's a push DELETE endpoint so this delete via POST seems weird.

@@ -1,10 +1,10 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeys, DocumentsService } from "./documents.service";
-import { Body, Get, HttpCode, HttpException, Param, Post, Query, Req } from "@nestjs/common";
+import { Body, Get, HttpCode, HttpException, Param, Post, Put, Query, Req } from "@nestjs/common";
 import { CreateDocumentDto, GetDocumentsDto, isSecondaryDocument, isSecondaryDocumentDelete, SecondaryDocumentOperation,
-	UnpopulatedDocument, ValidateQueryDto, ValidationStrategy } from "./documents.dto";
+	ValidateQueryDto, ValidationStrategy } from "./documents.dto";
 import { PaginatedDto } from "src/pagination";
-import { Document } from "./documents.dto";
+import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";
 import { QueryWithPersonTokenDto } from "src/common.dto";
@@ -49,8 +49,8 @@ export class DocumentsController {
 			// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
 			// error already.
 			const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
-			await this.documentsService.populateDocumentMutably(document, person, accessToken);
-			return this.documentValidatorService.validate(document);
+			const populatedDocument = await this.documentsService.populateMutably(document, person, accessToken);
+			return this.documentValidatorService.validate(populatedDocument);
 		}
 	}
 
@@ -80,7 +80,7 @@ export class DocumentsController {
 	@Post()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
 	async create(
-		@Body() document: UnpopulatedDocument | SecondaryDocumentOperation,
+		@Body() document: Document | SecondaryDocumentOperation,
 		@Req() request: Request,
 		@Query() { personToken, validationErrorFormat }: CreateDocumentDto
 	): Promise<Document> {
@@ -100,7 +100,36 @@ export class DocumentsController {
 		}
 
 		return this.documentsService.create(
-			document as UnpopulatedDocument,
+			document as Document,
+			personToken,
+			accessToken,
+			validationErrorFormat
+		);
+	}
+
+	/** Update an existing document */
+	@Put(":id")
+	@SwaggerRemoteRef({ source: "store", ref: "document" })
+	async update(
+		@Body() document: Document | SecondaryDocumentOperation,
+		@Req() request: Request,
+		@Query() { personToken, validationErrorFormat }: CreateDocumentDto
+	): Promise<Document> {
+		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
+		// error already.
+		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
+		if (!document.formID) {
+			throw new HttpException("Missing required property formID", 422);
+		}
+
+		const form = await this.formsService.get(document.formID);
+		if (!form?.options?.secondaryCopy) {
+			// eslint-disable-next-line max-len
+			throw new HttpException("This document is for a form that is for secondary data. Use the POST endpoint instead if PUT.", 422);
+		}
+
+		return this.documentsService.update(
+			document as Document,
 			personToken,
 			accessToken,
 			validationErrorFormat

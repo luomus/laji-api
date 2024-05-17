@@ -108,9 +108,10 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 
  ## Documents validation
 
- * `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used.
- * `/documents/validate/` valid response has no body. In the old API it was `{}`.
- * `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
+ * POST `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used.
+ * POST `/documents/validate/` valid response has no body. In the old API it was `{}`.
+ * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
+ * PUT `/documents/` editing a locked document throws 403, not 422.
 
 ## Access token renewal
 

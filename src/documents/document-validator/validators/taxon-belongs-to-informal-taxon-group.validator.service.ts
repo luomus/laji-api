@@ -1,5 +1,5 @@
 import { DocumentValidator, ValidationException } from "../document-validator.utils";
-import { Document } from "src/documents/documents.dto";
+import { Document } from "@luomus/laji-schema";
 import { TaxaService } from "src/taxa/taxa.service";
 import { Injectable } from "@nestjs/common";
 

@@ -1,5 +1,5 @@
 import { MaybePromise } from "src/type-utils";
-import { Document } from "src/documents/documents.dto";
+import { Document } from "@luomus/laji-schema";
 import { HttpException } from "@nestjs/common";
 
 export const getPath = (path: string | undefined, subpath: string) => {

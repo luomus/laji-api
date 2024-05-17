@@ -1,14 +1,11 @@
-import { Document as DocumentI } from "@luomus/laji-schema";
+import { Document } from "@luomus/laji-schema";
 import { HttpException } from "@nestjs/common";
 import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, IsOptional } from "class-validator";
 import { LangQueryDto, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
-
-export type Document = Populated<DocumentI>
-
-export type UnpopulatedDocument = DocumentI;
+import { WithNonNullableKeys } from "src/type-utils";
 
 export class GetDocumentsDto extends IntersectionType(
 	PagedDto,
@@ -53,15 +50,13 @@ export class CreateDocumentDto extends IntersectionType(
 	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.remote;
 }
 
-export const isNewPrimaryDocument = (unknown: DocumentI | SecondaryDocumentOperation)
+export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is NewPrimaryDocument =>
 	!(unknown as any).delete && !("id" in unknown);
 
-export type NewPrimaryDocument = Omit<DocumentI, "id">;
+export type NewPrimaryDocument = Omit<Document, "id">;
 
-export type SecondaryDocument = Document & {
-	id: string;
-}
+export type SecondaryDocument = Document & {"id": string };
 
 export type SecondaryDocumentDelete = {
 	id: string;
@@ -71,11 +66,11 @@ export type SecondaryDocumentDelete = {
 
 export type SecondaryDocumentOperation = SecondaryDocument | SecondaryDocumentDelete;
 
-export const isSecondaryDocument = (unknown: DocumentI | SecondaryDocumentOperation)
+export const isSecondaryDocument = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is SecondaryDocument =>
 	!(unknown as any).delete && "id" in unknown;
 
-export const isSecondaryDocumentDelete = (unknown: DocumentI | SecondaryDocumentOperation)
+export const isSecondaryDocumentDelete = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is SecondaryDocumentDelete => {
 	if (!(unknown as any).delete) {
 		return false;
@@ -89,17 +84,22 @@ export const isSecondaryDocumentDelete = (unknown: DocumentI | SecondaryDocument
 	return true;
 };
 
-export type Populated<T> = T & {
-	sourceID: NonNullable<DocumentI["sourceID"]>
-	dateCreated: NonNullable<DocumentI["dateCreated"]>
-	dateEdited: NonNullable<DocumentI["dateEdited"]>
-	formID: NonNullable<DocumentI["formID"]>
-	collectionID: NonNullable<DocumentI["collectionID"]>
-}
+export type Populated<T extends Document> = WithNonNullableKeys<T,
+	"sourceID"
+	| "formID"
+	| "collectionID"
+	| "publicityRestrictions"
+	| "creator"
+	| "editor"
+	| "dateCreated"
+	| "dateEdited"
+>;
+
+export type DatePopulated<T extends Document> = WithNonNullableKeys<T, "dateCreated" | "dateEdited">;
 
 export enum ValidationStrategy {
 	noExistingGatheringsInNamedPlace = "noExistingGatheringsInNamedPlace",
-	 wbcNamedPlaceExists = "wbcNamedPlaceExists",
+	wbcNamedPlaceExists = "wbcNamedPlaceExists",
 	overlapWithNamedPlace = "overlapWithNamedPlace",
 	uniqueNamedPlaceAlternativeIDs = "uniqueNamedPlaceAlternativeIDs",
 	namedPlaceNotTooNearOtherPlaces = "namedPlaceNotTooNearOtherPlaces",

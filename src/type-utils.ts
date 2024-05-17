@@ -37,3 +37,7 @@ export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<{ [K: string]:
 
 /** `keyof T` excluding number an symbol. Useful when the domain deals only with string keys. */
 export type KeyOf<T> = keyof T & string;
+
+export type WithNonNullableKeys<T, K extends keyof T> = T & {
+	[P in K]-?: NonNullable<T[P]>;
+};
