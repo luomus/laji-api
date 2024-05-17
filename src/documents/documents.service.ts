@@ -1,5 +1,5 @@
 import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
-import { Flatten, KeyOf, WithNonNullableKeys } from "src/type-utils";
+import { Flatten, KeyOf } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
 import { Populated, ValidationErrorFormat }
@@ -162,7 +162,7 @@ export class DocumentsService {
 		validationErrorFormat?: ValidationErrorFormat
 	) {
 		const person = await this.personsService.getByToken(personToken);
-		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
+		const document = await this.populateMutably(unpopulatedDocument, person, accessToken, false);
 		document.dateEdited = new Date().toISOString();
 		const { id } = document;
 		if (!id) {
@@ -199,7 +199,12 @@ export class DocumentsService {
 		return mutableTarget as T & { formID: string, collectionID: string };
 	}
 
-	async populateMutably<T extends Document>(document: T, person: Person, accessToken: string): Promise<Populated<T>> {
+	async populateMutably<T extends Document>(
+		document: T,
+		person: Person,
+		accessToken: string,
+		overwriteSourceID = true
+	) : Promise<Populated<T>> {
 		const apiUser = await this.apiUsersService.getByAccessToken(accessToken);
 
 		const { systemID } = apiUser;
@@ -207,7 +212,11 @@ export class DocumentsService {
 			throw new HttpException("No valid systemID could be found for the api user", 422);
 		}
 
-		document.sourceID = systemID;
+		if (overwriteSourceID) {
+			document.sourceID = systemID;
+		} else if (!document.sourceID) {
+			document.sourceID = systemID;
+		}
 
 		if (!document.formID) {
 			throw new HttpException("Missing required param formID", 422);
@@ -237,7 +246,7 @@ export class DocumentsService {
 
 	// TODO logic not yet copied from old api, need to double check:
 	// * validation population against existing document; should be implemented in update method
-	// * old api does 'linking', id checking etc in `prerareDocument`. Is it handled by store?
+	// * old api does 'linking', id checking etc in `prepareDocument`. Is it handled by store?
 	// * thrown errors not formatted with validation error format
 	async validate(
 		document: Populated<Document>,
