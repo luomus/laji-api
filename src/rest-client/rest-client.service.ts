@@ -17,6 +17,10 @@ export type RestClientConfig<T> = RestClientOptions<T> & {
 };
 
 export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions & {
+	/**
+	 * Perform a transformation for the resource fetched with a GET request. Useful for making transformations before
+	 * caching.
+	 */
 	transformer?: (result: T) => T;
 };
 
