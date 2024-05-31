@@ -1,4 +1,4 @@
-import { parseQuery, getQueryVocabulary, ExistsClause } from "./store-query";
+import { parseQuery, getQueryVocabulary } from "./store-query";
 
 
 type Schema = { foo: string | boolean | number, bar: boolean, baz: number, barbabar: number };

@@ -1,8 +1,9 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeys, DocumentsService } from "./documents.service";
 import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req } from "@nestjs/common";
-import { BatchJobQueryDto, CreateDocumentDto, GetDocumentsDto, isSecondaryDocument, isSecondaryDocumentDelete, SecondaryDocument,
-	SecondaryDocumentOperation, ValidateQueryDto, ValidationErrorFormat, ValidationStatusResponse, ValidationStrategy } from "./documents.dto";
+import { BatchJobQueryDto, CreateDocumentDto, GetDocumentsDto, isSecondaryDocument, isSecondaryDocumentDelete,
+	SecondaryDocument, SecondaryDocumentOperation, ValidateQueryDto, ValidationErrorFormat, ValidationStatusResponse,
+	ValidationStrategy } from "./documents.dto";
 import { PaginatedDto } from "src/pagination";
 import { Document } from "@luomus/laji-schema/classes";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";

@@ -162,8 +162,7 @@ export class DocumentValidatorService {
 					validationErrorFormat: ValidationErrorFormat,
 					field?: string
 				}
-				& JSONObjectSerializable,
-				request: { body: string }
+				& JSONObjectSerializable
 			) => {
 				return this.validateWithValidationStrategy(options.body, options);
 			}
