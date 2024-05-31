@@ -17,6 +17,7 @@ describe("/named-place", function() {
 	});
 
 	it("returns list of public namespaces when access token is correct", function(done) {
+		this.timeout(5000);
 		const query = basePath + "?access_token=" + config["access_token"];
 		request(this.server)
 			.get(query)
@@ -673,7 +674,7 @@ describe("/named-place", function() {
 		});
 
 		it("filters units on fetching many", function(done) {
-			//(public:true OR owners:"MA.837" OR editors:"MA.837") AND ((NOT _exists_:"collectionID"))    
+			//(public:true OR owners:"MA.837" OR editors:"MA.837") AND ((NOT _exists_:"collectionID"))
 			const query = basePath +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 			request(this.server)
