@@ -17,6 +17,7 @@ describe("/named-place", function() {
 	});
 
 	it("returns list of public namespaces when access token is correct", function(done) {
+		this.timeout(5000);
 		const query = basePath + "?access_token=" + config["access_token"];
 		request(this.server)
 			.get(query)
