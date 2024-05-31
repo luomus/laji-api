@@ -65,7 +65,7 @@ export class FormsService {
 	}
 
 	async checkAccessIfDisabled(collectionID: string, person: Person): Promise<void> {
-		const isDisabled = this.findFor(collectionID, (f => f.options.disabled)) || false;
+		const isDisabled = await this.findFor(collectionID, (f => f.options.disabled)) || false;
 
 		if (!isDisabled) {
 			return;
