@@ -44,14 +44,12 @@ describe("/notifications", function() {
 		await request(this.server).post(query);
 
 		// Notification is created in background when friend request is made, so we wait for that.
-		await new Promise(resolve => setTimeout(resolve, 100));
-
-		var query = basePath + "/" + token + "?access_token=" + accessToken + "&page=" + (lengthBeforeNew + 1) + "&pageSize=1";
-		const notificationsRes = await request(this.server).get(query);
-		addedNotification = notificationsRes.body.results && notificationsRes.body.results[0];
-
-		if (!addedNotification) {
-			throw new Error("added notification not found");
+		await new Promise(resolve => setTimeout(resolve, 500));
+		while (!addedNotification) {
+			var query = basePath + "/" + token + "?access_token=" + accessToken + "&page=" + (lengthBeforeNew + 1) + "&pageSize=1";
+			const notificationsRes = await request(this.server).get(query);
+			addedNotification = notificationsRes.body.results && notificationsRes.body.results[0];
+			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 
 		var query = basePath + "/" + addedNotification.id + "?access_token=" + accessToken + "&personToken=" + token;
