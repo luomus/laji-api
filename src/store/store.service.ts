@@ -7,6 +7,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
 } from "./store-cache";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { AxiosRequestConfig } from "axios";
+import { StoreDeleteResponse } from "./store.dto";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -39,7 +41,7 @@ export class StoreService<T extends { id?: string }> {
 	private restClientOptions = doForDefined(omitForKeys<StoreConfig<T>>("resource", "cache"));
 
 	constructor(
-		private storeClient: RestClientService<T>,
+		private client: RestClientService<T>,
 		private readonly cache: RedisCacheService,
 		private config: StoreConfig<T>
 	) {}
@@ -59,7 +61,7 @@ export class StoreService<T extends { id?: string }> {
 				return cached;
 			}
 		}
-		const result = pageAdapter(await this.storeClient.get<StoreQueryResult<T>>(
+		const result = pageAdapter(await this.client.get<StoreQueryResult<T>>(
 			this.config.resource,
 			{ params: {
 				q: parseQuery<T>(query),
@@ -98,7 +100,7 @@ export class StoreService<T extends { id?: string }> {
 				return RestClientService.applyOptions(cached, this.restClientOptions(this.config));
 			}
 		}
-		const result = await this.storeClient.get<T & { id: string }>(`${this.config.resource}/${id}`,
+		const result = await this.client.get<T & { id: string }>(`${this.config.resource}/${id}`,
 			undefined,
 			this.restClientOptions(this.config));
 		if (cache) {
@@ -108,7 +110,7 @@ export class StoreService<T extends { id?: string }> {
 	}
 
 	async create(item: Partial<T>) {
-		const result = await this.storeClient.post<T & { id: string }, Partial<T>>(
+		const result = await this.client.post<T & { id: string }, Partial<T>>(
 			this.config.resource,
 			item,
 			undefined,
@@ -121,8 +123,18 @@ export class StoreService<T extends { id?: string }> {
 		return result;
 	}
 
-	async update<TT extends T & {id: string}>(item: TT) {
-		const result = await this.storeClient.put<T & { id: string }, TT>(
+	async flushCache(item: T) {
+		if (!this.config.cache) {
+			return;
+		}
+		if (item.id) {
+			await this.cache.del(this.withCachePrefix(item.id));
+		}
+		await this.bustCacheForResult(item);
+	}
+
+	async update<Existing extends T & {id: string}>(item: Existing) {
+		const result = await this.client.put<Existing, Existing>(
 			`${this.config.resource}/${item.id}`,
 			item,
 			undefined,
@@ -146,7 +158,11 @@ export class StoreService<T extends { id?: string }> {
 		}
 
 		const path = `${this.config.resource}/${id}`;
-		const result = await this.storeClient.delete(path, undefined, this.restClientOptions(this.config));
+		const result = await this.client.delete<StoreDeleteResponse>(
+			path,
+			undefined,
+			this.restClientOptions(this.config)
+		);
 
 		if (cache) {
 			await this.cache.del(this.withCachePrefix(id));
@@ -159,6 +175,11 @@ export class StoreService<T extends { id?: string }> {
 			await this.bustCacheForResult(existing);
 		}
 		return result;
+	}
+
+	post<Out = T, In = T>(path = "", body?: any, config?: AxiosRequestConfig) {
+		const pathWithResource = `${this.config.resource}/${path}`;
+		return this.client.post<Out, In>(pathWithResource, body, config);
 	}
 
 	private withCachePrefix(key: string) {

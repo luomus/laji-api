@@ -145,36 +145,37 @@ export class RestClientService<T = unknown> {
 		return RestClientService.applyOptions<S>(await this.getWithCache<S>(path, config, options), options);
 	}
 
-	async post<S = T, R = T>(
+	async post<Out = T, In = T>(
 		path?: string,
-		body?: R, config?: AxiosRequestConfig,
-		options?: RestClientOptions<S>
+		body?: In, config?: AxiosRequestConfig,
+		options?: RestClientOptions<Out>
 	) {
 		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.post<S>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+			this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		), options);
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
-	async put<S = T, R = T>(
+	async put<Out = T, In = T>(
 		path?: string,
-		body?: R,
+		body?: In,
 		config?: AxiosRequestConfig,
-		options?: RestClientOptions<S>
+		options?: RestClientOptions<Out>
 	) {
 		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.put<S>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+			this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		), options);
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
-	async delete(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
+	async delete<Out = unknown>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
 		const result = firstValueFrom(
-			this.httpService.delete(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r => r.data))
+			this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
+				.pipe(map(r => r.data))
 		);
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;

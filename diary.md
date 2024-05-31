@@ -113,6 +113,11 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
  * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
  * PUT `/documents/` editing a locked document throws 403, not 422.
 
+ ## Documents batch job
+
+ * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd
+   party clients
+
 ## Access token renewal
 
 Old API checked that the renewal wasn't being spammed. New API doesn't care - the renewal endpoint isn't so particularly special that we should protect it from spamming? Or is it more delicate since it uses a db connection? Anyways a more robust & thorough spam blocking would be better.

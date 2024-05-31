@@ -1,11 +1,12 @@
 import { Document } from "@luomus/laji-schema";
 import { HttpException } from "@nestjs/common";
-import { ApiProperty, IntersectionType, PartialType } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { ApiHideProperty, ApiProperty, IntersectionType, PartialType, getSchemaPath } from "@nestjs/swagger";
+import { Exclude, Type } from "class-transformer";
 import { IsInt, IsOptional } from "class-validator";
 import { LangQueryDto, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
 import { WithNonNullableKeys } from "src/type-utils";
+import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 
 export class GetDocumentsDto extends IntersectionType(
 	PagedDto,
@@ -71,18 +72,36 @@ export const isSecondaryDocument = (unknown: Document | SecondaryDocumentOperati
 	!(unknown as any).delete && "id" in unknown;
 
 export const isSecondaryDocumentDelete = (unknown: Document | SecondaryDocumentOperation)
-	: unknown is SecondaryDocumentDelete => {
-	if (!(unknown as any).delete) {
-		return false;
-	}
-	if (!("id" in unknown)) {
-		throw new HttpException("Secondary document deletion missing id", 422);
-	}
-	if (!unknown.formID) {
-		throw new HttpException("Secondary document deletion missing formID", 422);
+	: unknown is SecondaryDocumentDelete =>
+	(unknown as any).delete
+		&& ("id" in unknown)
+		&& !unknown.formID;
+
+export const isSecondaryDocumentOperation = (document: Document | SecondaryDocumentOperation)
+	: document is SecondaryDocumentOperation => {
+	if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
+		throw new HttpException("Doesn't look like a secondary document. It should have an 'id' property", 422);
 	}
 	return true;
 };
+
+export type PopulatedSecondaryDocumentOperation =
+	Populated<SecondaryDocument>
+	| (SecondaryDocumentDelete & { formID: string; collectionID: string });
+
+export type SecondaryDocumentDeleteResponse = Pick<Document,
+	"formID"
+	| "id"
+	| "sourceID"
+	| "collectionID"
+	| "creator"
+	| "editor"
+	| "dateEdited"
+	| "dateCreated"
+	| "publicityRestrictions"> & {
+	delete: true
+}
+
 
 export type Populated<T extends Document> = WithNonNullableKeys<T,
 	"sourceID"
@@ -125,4 +144,43 @@ export class ValidateQueryDto extends IntersectionType(
 	type?: ValidationType = ValidationType.error;
 	/** Format of validation error details */
 	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
+}
+
+export class BatchJobQueryDto extends IntersectionType(QueryWithPersonTokenDto) {
+	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
+}
+
+export type BatchJob = {
+	id: string;
+	processed: number;
+	personID: string;
+	documents: (Populated<Document> | PopulatedSecondaryDocumentOperation)[];
+	errors: (ValidationException | null)[];
+	import?: boolean;
+}
+
+class ValidationStatus {
+	processed: number;
+	total: number;
+	percentage: number;
+}
+
+export class ValidationStatusResponse implements Omit<BatchJob, "errors" | "processed" | "documents"> {
+	id: string;
+	status: ValidationStatus;
+	documents?: Document[];
+	/** If true, the job's documents are validated and we are now in the phase of sending them to the store */
+	import?: boolean;
+	@ApiHideProperty() @Exclude() personID: string;
+
+	@ApiProperty({
+		type: "array",
+		items: {
+			oneOf: [
+				{ $ref: getSchemaPath(ErrorsObj) },
+				{ type: "null" }
+			]
+		}
+	})
+	errors?: (ErrorsObj | null)[] = [];
 }

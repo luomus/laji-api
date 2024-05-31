@@ -247,7 +247,7 @@ const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
 		: schema
 );
 
-export const isPagedOperation = (operation: OperationObject) => 
+export const isPagedOperation = (operation: OperationObject) =>
 	(operation.parameters || []).some(param => (param as ParameterObject).name === "page") || false;
 
 const asPagedResponse = (schema: SchemaItem, itemsAreAlreadyAnArray = false): SchemaObject => ({

@@ -183,6 +183,7 @@ export const parseURIFragmentIdentifierRepresentation = <T = unknown>(
 export const asArray = <T>(maybeArr: T | T[]): T[] =>
 	Array.isArray(maybeArr) ? maybeArr : [maybeArr];
 
+/** Returns a function that applies the given predicate to the input, if it's not undefined. */
 export const doForDefined = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
 
 // TODO check for invalid date after documents branch merge
@@ -197,4 +198,12 @@ export const lastFromNonEmptyArr = <T>(arr: T[]): T => {
 		throw new Error("Array was empty");
 	}
 	return arr[arr.length - 1]!;
+};
+
+/** @throws Error if array is empty */
+export const firstFromNonEmptyArr = <T>(arr: T[]): T => {
+	if (arr.length === 0) {
+		throw new Error("Array was empty");
+	}
+	return arr[0]!;
 };

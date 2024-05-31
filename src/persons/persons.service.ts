@@ -43,7 +43,7 @@ export class PersonsService {
 }
 
 const ImporterPerson: Person = serializeInto(Person)({
-	id: "",
+	id: "IMPORTER",
 	fullName: "Importer",
 	emailAddress: "",
 	"@context": "",

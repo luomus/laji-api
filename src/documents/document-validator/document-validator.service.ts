@@ -1,13 +1,14 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { FormSchemaFormat, Format, Hashed, JSONSchema, JSONSchemaArray, JSONSchemaObject }
-from "src/forms/dto/form.dto";
+	from "src/forms/dto/form.dto";
 import { JSONObjectSerializable, isObject } from "src/type-utils";
 import { Populated, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
 import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
-import { DocumentValidator, ErrorsObj, ValidationException } from "./document-validator.utils";
+import { DocumentValidator, ValidationException, formatErrorDetails, isValidationException }
+	from "./document-validator.utils";
 import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
 import { NoExistingGatheringsInNamedPlaceValidatorService }
@@ -51,7 +52,7 @@ export class DocumentValidatorService {
 			checkHasOnlyFieldsInForm(document, form);
 		}
 
-		await this.validateAgainsSchema(document, validationErrorFormat);
+		await this.validateAgainstSchema(document, validationErrorFormat);
 
 		if (document.publicityRestrictions === "MZ.publicityRestrictionsPrivate") {
 			return;
@@ -96,7 +97,7 @@ export class DocumentValidatorService {
 		}
 	}
 
-	private async validateAgainsSchema(
+	private async validateAgainstSchema(
 		document: Populated<Document>,
 		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
 	) {
@@ -144,8 +145,8 @@ export class DocumentValidatorService {
 			await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
 				.validate(item, field, validatorOptions);
 		} catch (e) {
-			if (e.response?.details) {
-				throw new ValidationException(formatErrorDetails(e.response.details, validationErrorFormat));
+			if (isValidationException(e)) {
+				throw new ValidationException(formatErrorDetails(e.getDetails(), validationErrorFormat));
 			}
 			throw e;
 		}
@@ -172,8 +173,8 @@ export class DocumentValidatorService {
 
 const ajv = new Ajv({ allErrors: true });
 
-const getAjvValidator = (form: Hashed<FormSchemaFormat>) => 
-	ajv.getSchema(form.$id) || ajv.compile(form);
+const getAjvValidator = (form: Hashed<FormSchemaFormat>) =>
+	ajv.getSchema(form.$id) || ajv.compile(form.schema);
 
 export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSchemaFormat): void => {
 	// Keys not usually listed in form fields but are always valid.
@@ -205,27 +206,3 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 	};
 	recursively(data, form.schema);
 };
-
-const formatErrorDetails = (errors: Record<string, string[]>, targetType: ValidationErrorFormat) => {
-	switch (targetType) {
-	case "jsonPath":
-		return errors;
-	default:
-		return errorsToObj(errors);
-	}
-};
-
-const errorsToObj = (errors: Record<string, string[]>) =>
-	Object.keys(errors).reduce((result, path) => {
-		const parts = path.split(/[.\[\]]/).filter(value => value !== "");
-		const last = parts.pop() as string;
-		let pointer = result;
-		parts.forEach(part => {
-			if (!pointer[part]) {
-				pointer[part] = {};
-			}
-			pointer = pointer[part] as ErrorsObj;
-		});
-		pointer[last] = errors[path]!;
-		return result;
-	}, {} as ErrorsObj);

@@ -18,6 +18,7 @@ import { ApiUsersModule } from "src/api-users/api-users.module";
 import { AccessTokenModule } from "src/access-token/access-token.module";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { DocumentValidatorModule } from "./document-validator/document-validator.module";
+import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 
 const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	provide: "STORE_RESOURCE_SERVICE",
@@ -41,7 +42,7 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 };
 
 @Module({
-	providers: [DocumentsService, StoreResourceService, SecondaryDocumentsService],
+	providers: [DocumentsService, StoreResourceService, SecondaryDocumentsService, DocumentsBatchService],
 	imports: [
 		StoreClientModule, PersonsModule, FormPermissionsModule, FormsModule, CollectionsModule, WarehouseModule,
 		forwardRef(() => NamedPlacesModule), PrepopulatedDocumentModule, ApiUsersModule, AccessTokenModule,

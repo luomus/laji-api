@@ -36,13 +36,13 @@ export const allowedQueryKeys = [
 type AllowedQueryKeys = typeof allowedQueryKeys[number];
 
 /** All possible keys that the constructed store queries can have. */
-export const documentQueryKeys = [...allowedQueryKeys, "creator", "editors", ...dateRangeKeys] as const;
+export const documentQueryKeys = [...allowedQueryKeys, ...dateRangeKeys, "creator", "editors"] as const;
 type DocumentQuery = Pick<Document, Exclude<typeof documentQueryKeys[number], DateRangeKey>>
 	& Record<DateRangeKey, string>;
 
 const { or, and, not, exists } = getQueryVocabulary<DocumentQuery>();
 
-const editorOrCreator = (person: Person) => or({ creator: person.id, editors: person.id });
+const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });
 
 const DEFAULT_COLLECTION = "HR.1747";
 
@@ -52,7 +52,7 @@ export class DocumentsService {
 	private logger = new Logger(DocumentsService.name);
 
 	constructor(
-		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Document>,
+		@Inject("STORE_RESOURCE_SERVICE") public store: StoreService<Document>,
 		private personsService: PersonsService,
 		private formPermissionsService: FormPermissionsService,
 		private formsService: FormsService,
@@ -69,7 +69,7 @@ export class DocumentsService {
 		private documentValidatorService: DocumentValidatorService
 	) {}
 
-	async getPageByObservationYear(
+	async getPage(
 		query: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
 		personToken: string,
 		observationYear?: number,
@@ -83,7 +83,7 @@ export class DocumentsService {
 		let cacheConfig: QueryCacheOptions<Document>;
 
 		if (formID) {
-			await this.checkCanAccessForm(formID, personToken);
+			await this.checkHasReadRightsTo(formID, personToken);
 		}
 
 		const person = await this.personsService.getByToken(personToken);
@@ -95,11 +95,11 @@ export class DocumentsService {
 			);
 			cacheConfig = { primaryKeys: ["collectionID"] };
 			if (formID && !permissions?.admins.includes(person.id)) {
-				storeQuery = and(storeQuery, editorOrCreator(person));
+				storeQuery = and(storeQuery, editorOrCreatorClause(person));
 				cacheConfig = { primaryKeys: ["creator"] };
 			}
 		} else {
-			storeQuery = and(storeQuery, editorOrCreator(person));
+			storeQuery = and(storeQuery, editorOrCreatorClause(person));
 			cacheConfig = { primaryKeys: ["creator"] };
 		}
 
@@ -133,7 +133,7 @@ export class DocumentsService {
 			return document;
 		}
 		if (document.formID) {
-			await this.checkCanAccessForm(document.formID, personToken);
+			await this.checkHasReadRightsTo(document.formID, personToken);
 		}
 		return document;
 	}
@@ -156,6 +156,7 @@ export class DocumentsService {
 	}
 
 	async update(
+		id: string,
 		unpopulatedDocument: Document,
 		personToken: string,
 		accessToken: string,
@@ -164,16 +165,33 @@ export class DocumentsService {
 		const person = await this.personsService.getByToken(personToken);
 		const document = await this.populateMutably(unpopulatedDocument, person, accessToken, false);
 		document.dateEdited = new Date().toISOString();
-		const { id } = document;
-		if (!id) {
-			throw new HttpException("Can't update document without id", 406);
-		}
+
 		const existingDocument = await this.store.get(id);
 		await this.checkAccessIfLocked(existingDocument, personToken);
+		await this.formsService.checkAccessIfDisabled(existingDocument.collectionID!, person);
+		if (!await this.formPermissionsService.hasEditRightsOf(existingDocument.collectionID!, personToken)) {
+			throw new HttpException("Insufficient rights to use this form", 403);
+		}
+
 		await this.validate(document, personToken, validationErrorFormat);
 		const updated = await this.store.update(document as Document & { id: string });
 		await this.namedPlaceSideEffects(updated, personToken);
 		return updated;
+	}
+
+	async delete(
+		id: string,
+		personToken: string
+	) {
+		const person = await this.personsService.getByToken(personToken);
+		const existingDocument = await this.store.get(id);
+		await this.checkAccessIfLocked(existingDocument, personToken);
+		await this.formsService.checkAccessIfDisabled(existingDocument.collectionID!, person);
+		if (!await this.formPermissionsService.hasEditRightsOf(existingDocument.collectionID!, personToken)) {
+			throw new HttpException("Insufficient rights to use this form", 403);
+		}
+
+		return this.store.delete(id);
 	}
 
 	private async checkAccessIfLocked(document: Document, personToken: string) {
@@ -253,10 +271,12 @@ export class DocumentsService {
 		personToken: string,
 		validationErrorFormat?: ValidationErrorFormat
 	) {
-		const { collectionID } = document;
+		const { collectionID, formID } = document;
 		const person = await this.personsService.getByToken(personToken);
 
 		await this.formsService.checkAccessIfDisabled(collectionID, person);
+
+		await this.checkHasReadRightsTo(formID, personToken);
 
 		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
 			throw new HttpException("Insufficient rights to use this form", 403);
@@ -265,7 +285,7 @@ export class DocumentsService {
 		await this.documentValidatorService.validate(document, validationErrorFormat);
 	}
 
-	private async namedPlaceSideEffects(document: Document & { id: string }, personToken: string) {
+	async namedPlaceSideEffects(document: Document & { id: string }, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		if (person.isImporter()
 			|| document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
@@ -312,7 +332,7 @@ export class DocumentsService {
 		return [ collectionID, ...children ];
 	}
 
-	async checkCanAccessForm(formID: string, personToken: string) {
+	async checkHasReadRightsTo(formID: string, personToken: string) {
 		const form = await this.formsService.get(formID);
 		const { collectionID } = form;
 

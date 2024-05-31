@@ -7,8 +7,6 @@ import { CollectionsService } from "src/collections/collections.service";
 import { FORM_CLIENT } from "src/provider-tokens";
 import { createHash } from "crypto";
 
-const hash = createHash("md5");
- 
 @Injectable()
 export class FormsService {
 	constructor(
@@ -36,10 +34,13 @@ export class FormsService {
 			expand
 		} }, {
 			// We add $id property, which is a hash of the schema so document validation knows when to compile a new
-			// validator..
+			// validator.
 			transformer: (form) => {
 				if (isFormSchemaFormat(form)) {
-					(form as Hashed<FormSchemaFormat>).$id = hash.update(JSON.stringify(form.schema)).digest("hex");
+					(form as Hashed<FormSchemaFormat>).$id =
+						createHash("md5")
+							.update(JSON.stringify(form.schema))
+							.digest("hex");
 				}
 				return form;
 			}
