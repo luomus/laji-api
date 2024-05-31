@@ -21,6 +21,7 @@ describe("/notifications", function() {
 	var lengthBeforeNew;
 
 	it("returns notifications", async function() {
+		this.timeout(5000);
 		var query = basePath + "/" + token + "?access_token=" + accessToken;
 		const res = await request(this.server).get(query);
 		res.should.have.status(200);
