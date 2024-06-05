@@ -10,6 +10,7 @@ export class Audio implements AudioI {
 	@Expose() captureDateTime?: string;
 	@Expose() capturerVerbatim?: string[];
 	@ApiHideProperty() documentURI?: string[];
+	@Expose() flacURL?: string;
 	@Expose() fullURL: string;
 	@Expose() id?: string;
 	@Expose() intellectualOwner: string;
