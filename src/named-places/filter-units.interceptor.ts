@@ -29,7 +29,7 @@ export class FilterUnitsInterceptor implements NestInterceptor {
 			return shouldIncludeUnits
 				? place
 				: serializeInto(NamedPlaceUnitsFiltered)(place);
-		}
+		};
 	}
 }
 
