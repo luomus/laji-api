@@ -35,7 +35,7 @@ export class WarehouseController implements MergesRemoteSwagger {
 
 	@All("*")
 	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
-		this.warehouseProxy(req, res, next);
+		void this.warehouseProxy(req, res, next);
 	}
 
 	fetchSwagger() {

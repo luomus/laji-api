@@ -7,7 +7,7 @@ const errorMissingPersonToken = "INVALID TOKEN";
 const errorOnlyOwn = "Can only update audio uploaded by the user";
 const errorOnlyOwnDelete = "Can only delete audio uploaded by the user";
 
-const itemProperties = [
+const commonProperties = [
   "@context",
   "id",
   "intellectualRights",
@@ -20,14 +20,23 @@ const itemProperties = [
   "capturerVerbatim",
   "fullURL",
   "keyword",
-  "wavURL",
   "mp3URL"
+];
+const wavItemProperties = [
+  ...commonProperties,
+  "wavURL"
+];
+const flacItemProperties = [
+  ...commonProperties,
+  "flacURL"
 ];
 
 describe("/audio", function() {
   var basePath = config.urls.audio;
   var audioTmpId;
   var audioId;
+  var flacAudioTmpId;
+  var flacAudioId;
 
   it("returns 401 when no access token specified", function(done) {
     request(this.server)
@@ -112,7 +121,7 @@ describe("/audio", function() {
         res.should.have.status(200);
         helpers.isPagedResult(res.body, pageSize, true);
         res.body[helpers.params.results].filter((audio) => {
-          helpers.toHaveOnlyKeys(audio, itemProperties);
+          helpers.toHaveOnlyKeys(audio, wavItemProperties);
           audio.should.have.any.keys("id");
         });
         done();
@@ -170,7 +179,7 @@ describe("/audio", function() {
           if (err) return done(err);
           res.should.have.status(201);
           res.body.should.be.a("object");
-          helpers.toHaveOnlyKeys(res.body, itemProperties);
+          helpers.toHaveOnlyKeys(res.body, wavItemProperties);
           res.body.should.include({
             intellectualRights: rights,
             intellectualOwner: owner,
@@ -202,7 +211,7 @@ describe("/audio", function() {
           if (err) return done(err);
           res.should.have.status(200);
           res.body.should.be.a("object");
-          helpers.toHaveOnlyKeys(res.body, itemProperties);
+          helpers.toHaveOnlyKeys(res.body, wavItemProperties);
           res.body.should.have.property("intellectualRights").eql(meta.intellectualRights);
           res.body.should.have.property("intellectualOwner").eql(meta.intellectualOwner);
           res.body.should.have.property("uploadedBy").eql(config.user.model.id);
@@ -289,6 +298,68 @@ describe("/audio", function() {
         .delete(query)
         .end(function(err, res) {
           res.should.have.status(204);
+          done();
+        });
+    });
+  });
+
+  describe("flac audio", function() {
+	it("returns a temp id when adding flac audio", function(done) {
+      var query = basePath +
+        "?access_token=" + config.access_token + "&personToken=" + config.user.token;
+      request(this.server)
+        .post(query)
+        .attach("audio", fs.readFileSync(__dirname + "/bat.flac"), "bat.flac")
+        .end(function(err, res) {
+          if (err) return done(err);
+          res.should.have.status(200);
+          res.body.should.be.a("array");
+          res.body.should.have.lengthOf(1);
+          res.body[0].should.have.keys("name", "filename", "id", "expires");
+          flacAudioTmpId = res.body[0].id;
+          done();
+        });
+    });
+
+    it("returns a meta object for flac audio", function(done) {
+      if (!flacAudioTmpId) {
+        this.skip();
+      }
+      this.timeout(5000);
+      const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
+      const owner = "Viltsu testaaja";
+      var query = basePath + "/" + flacAudioTmpId +
+        "?access_token=" + config.access_token + "&personToken=" + config.user.token;
+      request(this.server)
+        .post(query)
+        .send({intellectualRights: rights, intellectualOwner: owner})
+        .end(function(err, res) {
+          if (err) return done(err);
+          res.should.have.status(201);
+          res.body.should.be.a("object");
+          helpers.toHaveOnlyKeys(res.body, flacItemProperties);
+          res.body.should.include({
+            intellectualRights: rights,
+            intellectualOwner: owner,
+            uploadedBy: config.user.model.id
+          });
+          flacAudioId = res.body.id;
+          done();
+        });
+    });
+
+    it("returns flac", function(done) {
+      if (!flacAudioId) {
+        this.skip();
+      }
+      var query = basePath + "/" + flacAudioId + "/flac" +
+        "?access_token=" + config.access_token;
+	  request(this.server)
+        .get(query)
+        .end(function(err, res) {
+          if (err) return done(err);
+          res.should.have.status(200);
+          res.should.have.header("content-type", "audio/flac");
           done();
         });
     });

@@ -90,6 +90,14 @@ export class AudioController {
 		});
 	}
 
+	/** Fetch flac by id */
+	@Get(":id/flac")
+	findFlac(@Param("id") id: string, @Res() res: Response) {
+		void this.abstractMediaService.getURL(MediaType.audio, id, "flacURL").then(url => {
+			res.redirect(url);
+		});
+	}
+
 	/** Upload audio metadata */
 	@Post(":tempId")
 	@UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
