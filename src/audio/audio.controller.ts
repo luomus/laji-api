@@ -93,7 +93,7 @@ export class AudioController {
 	/** Fetch flac by id */
 	@Get(":id/flac")
 	findFlac(@Param("id") id: string, @Res() res: Response) {
-		this.abstractMediaService.getURL(MediaType.audio, id, "flacURL").then(url => {
+		void this.abstractMediaService.getURL(MediaType.audio, id, "flacURL").then(url => {
 			res.redirect(url);
 		});
 	}

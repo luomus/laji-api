@@ -8,27 +8,27 @@ const errorOnlyOwn = "Can only update audio uploaded by the user";
 const errorOnlyOwnDelete = "Can only delete audio uploaded by the user";
 
 const commonProperties = [
-  '@context',
-  'id',
-  'intellectualRights',
-  'intellectualOwner',
-  'uploadedBy',
-  'thumbnailURL',
-  'taxonVerbatim',
-  'LuomusIntellectualRights',
-  'captureDateTime',
-  'capturerVerbatim',
-  'fullURL',
-  'keyword',
-  'mp3URL'
+  "@context",
+  "id",
+  "intellectualRights",
+  "intellectualOwner",
+  "uploadedBy",
+  "thumbnailURL",
+  "taxonVerbatim",
+  "LuomusIntellectualRights",
+  "captureDateTime",
+  "capturerVerbatim",
+  "fullURL",
+  "keyword",
+  "mp3URL"
 ];
 const wavItemProperties = [
   ...commonProperties,
-  'wavURL'
+  "wavURL"
 ];
 const flacItemProperties = [
   ...commonProperties,
-  'flacURL'
+  "flacURL"
 ];
 
 describe("/audio", function() {
@@ -304,39 +304,39 @@ describe("/audio", function() {
   });
 
   describe("flac audio", function() {
-	it('returns a temp id when adding flac audio', function(done) {
+	it("returns a temp id when adding flac audio", function(done) {
       var query = basePath +
-        '?access_token=' + config.access_token + '&personToken=' + config.user.token;
+        "?access_token=" + config.access_token + "&personToken=" + config.user.token;
       request(this.server)
         .post(query)
-        .attach('audio', fs.readFileSync(__dirname + '/bat.flac'), 'bat.flac')
+        .attach("audio", fs.readFileSync(__dirname + "/bat.flac"), "bat.flac")
         .end(function(err, res) {
           if (err) return done(err);
           res.should.have.status(200);
-          res.body.should.be.a('array');
+          res.body.should.be.a("array");
           res.body.should.have.lengthOf(1);
-          res.body[0].should.have.keys('name', 'filename', 'id', 'expires');
+          res.body[0].should.have.keys("name", "filename", "id", "expires");
           flacAudioTmpId = res.body[0].id;
           done();
         });
     });
 
-    it('returns a meta object for flac audio', function(done) {
+    it("returns a meta object for flac audio", function(done) {
       if (!flacAudioTmpId) {
         this.skip();
       }
       this.timeout(5000);
-      const rights = 'MZ.intellectualRightsCC-BY-SA-4.0';
-      const owner = 'Viltsu testaaja';
-      var query = basePath + '/' + flacAudioTmpId +
-        '?access_token=' + config.access_token + '&personToken=' + config.user.token;
+      const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
+      const owner = "Viltsu testaaja";
+      var query = basePath + "/" + flacAudioTmpId +
+        "?access_token=" + config.access_token + "&personToken=" + config.user.token;
       request(this.server)
         .post(query)
         .send({intellectualRights: rights, intellectualOwner: owner})
         .end(function(err, res) {
           if (err) return done(err);
           res.should.have.status(201);
-          res.body.should.be.a('object');
+          res.body.should.be.a("object");
           helpers.toHaveOnlyKeys(res.body, flacItemProperties);
           res.body.should.include({
             intellectualRights: rights,
@@ -348,18 +348,18 @@ describe("/audio", function() {
         });
     });
 
-    it('returns flac', function(done) {
+    it("returns flac", function(done) {
       if (!flacAudioId) {
         this.skip();
       }
-      var query = basePath + '/' + flacAudioId + '/flac' +
-        '?access_token=' + config.access_token;
+      var query = basePath + "/" + flacAudioId + "/flac" +
+        "?access_token=" + config.access_token;
 	  request(this.server)
         .get(query)
         .end(function(err, res) {
           if (err) return done(err);
           res.should.have.status(200);
-          res.should.have.header('content-type', 'audio/flac');
+          res.should.have.header("content-type", "audio/flac");
           done();
         });
     });
