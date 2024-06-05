@@ -3,7 +3,7 @@ import { checkHasOnlyFieldsInForm } from "src/documents/documents.service";
 import { Form, Format, PrepopulatedDocumentFieldFn, PrepopulatedDocumentFieldFnArea, PrepopulatedDocumentFieldFnJoin,
 	PrepopulatedDocumentFieldFnTaxon } from "src/forms/dto/form.dto";
 import { FormsService } from "src/forms/forms.service";
-import { Document } from "@luomus/laji-schema";
+import { Document } from "@luomus/laji-schema/dto";
 import { NamedPlace } from "../named-places.dto";
 import { MaybeArray } from "src/type-utils";
 import { LangService } from "src/lang/lang.service";
