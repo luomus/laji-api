@@ -47,7 +47,7 @@ export class DocumentsBatchService {
 			errors: new Array(documents.length)
 		};
 		await this.updateJobInCache(job);
-		
+
 		const processes = asChunks(documents, CHUNK_SIZE).map(async (documentChunks, idx) => {
 			const chunkErrors = await Promise.all(
 				await this.createValidationProcess(documentChunks, job, personToken, accessToken)
