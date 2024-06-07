@@ -2,8 +2,7 @@ import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/c
 import { Flatten, KeyOf } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
-import { Populated, ValidationErrorFormat }
-	from "./documents.dto";
+import { DocumentCountItemResponse, Populated, ValidationErrorFormat } from "./documents.dto";
 import { Query, getQueryVocabulary } from "src/store/store-query";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { PersonsService } from "src/persons/persons.service";
@@ -14,7 +13,7 @@ import { NamedPlacesService } from "src/named-places/named-places.service";
 import { isValidDate } from "src/utils";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { PrepopulatedDocumentService } from "src/named-places/prepopulated-document/prepopulated-document.service";
-import { QueryCacheOptions } from "src/store/store-cache";
+import { QueryCacheOptions, StoreCacheOptions } from "src/store/store-cache";
 import { ApiUsersService } from "src/api-users/api-users.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 
@@ -46,6 +45,17 @@ const editorOrCreatorClause = (person: Person) => or({ creator: person.id, edito
 
 const DEFAULT_COLLECTION = "HR.1747";
 
+type StoreCountAggregateResponse = {
+	aggregations: {
+		by_year: {
+			buckets: {
+				key_as_string: string
+				doc_count: number
+			}[]
+		}
+	}
+}
+
 @Injectable()
 export class DocumentsService {
 
@@ -69,14 +79,11 @@ export class DocumentsService {
 		private documentValidatorService: DocumentValidatorService
 	) {}
 
-	async getPage(
-		query: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
+	async getClauseForPublicQuery(
+		query: {[prop in AllowedQueryKeys]?: Flatten<Document[prop]>},
 		personToken: string,
 		observationYear?: number,
-		page?: number,
-		pageSize = 20,
-		selectedFields?: (keyof Document)[]
-	) {
+	): Promise<[Query<DocumentQuery>, Partial<StoreCacheOptions<Document>>]>  {
 		const { formID, collectionID, isTemplate } = query;
 		delete query.isTemplate;
 		let storeQuery: Query<DocumentQuery> = and(query);
@@ -94,7 +101,9 @@ export class DocumentsService {
 				personToken
 			);
 			cacheConfig = { primaryKeys: ["collectionID"] };
-			if (formID && !permissions?.admins.includes(person.id)) {
+			const viewableForAll = (await this.formsService.findListedByCollectionID(collectionID))
+				.some(f => f.options?.documentsViewableForAll);
+			if (!viewableForAll && !permissions?.admins.includes(person.id)) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person));
 				cacheConfig = { primaryKeys: ["creator"] };
 			}
@@ -112,6 +121,18 @@ export class DocumentsService {
 				dateRangeClause({ from: `${observationYear}-01-01`, to: `${observationYear}-12-31]` })
 			);
 		}
+		return [storeQuery, cacheConfig];
+	}
+
+	async getPage(
+		query: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
+		personToken: string,
+		observationYear?: number,
+		page?: number,
+		pageSize = 20,
+		selectedFields?: (keyof Document)[]
+	) {
+		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, personToken, observationYear);
 		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
 	}
 
@@ -350,6 +371,34 @@ export class DocumentsService {
 			throw new HttpException("You don't have permission to the form and you are not the owner or an editor of the document", 403);
 		}
 		return true;
+	}
+
+	async getCount(
+		personToken: string,
+		collectionID?: string,
+		namedPlaceID?: string,
+		formID?: string
+	): Promise<DocumentCountItemResponse[]> {
+		const [query, cacheConfig] = await this.getClauseForPublicQuery(
+			{ collectionID, namedPlaceID, formID },
+			personToken
+		);
+		const search = {
+			aggs: {
+				by_year: {
+					date_histogram: {
+						field: "gatheringEvent.dateBegin",
+						interval: "year"
+					}
+				}
+			}
+		};
+
+		const data = await this.store.search<StoreCountAggregateResponse>(query, search, cacheConfig);
+		return data.aggregations.by_year.buckets
+			.map(doc => ({ year: doc.key_as_string.substring(0, 4), count: doc.doc_count }))
+			.filter(doc => !!doc.count)
+			.sort((a, b) => a.year.localeCompare(b.year));
 	}
 }
 

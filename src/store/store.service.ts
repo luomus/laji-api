@@ -1,6 +1,6 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination";
-import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
+import { JSONObjectSerializable, KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doForDefined } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";
@@ -92,6 +92,32 @@ export class StoreService<T extends { id?: string }> {
 		);
 	}
 
+	async search<Out = JSONObjectSerializable>(
+		query: Query<T>,
+		body: JSONObjectSerializable,
+		cacheOptions?: QueryCacheOptions<T>
+	): Promise<Out> {
+		let cacheKey: string | undefined;
+		if (this.config.cache) {
+			cacheKey = this.cacheKeyForSearch(query, body, cacheOptions);
+			const cached = await this.cache.get<Out>(cacheKey);
+			if (cached) {
+				return cached;
+			}
+		}
+		const result = await this.client.post<Out, JSONObjectSerializable>(
+			`${this.config.resource}/_search`,
+			body,
+			{ params: {
+				q: parseQuery<T>(query)
+			} },
+			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
+		);
+		if (this.config.cache) {
+			await this.cache.set(cacheKey!, result);
+		}
+		return result;
+	}
 	async get(id: string): Promise<T & { id: string }> {
 		const { cache } = this.config;
 		if (cache) {
@@ -255,6 +281,21 @@ export class StoreService<T extends { id?: string }> {
 				this.getCacheConfig(config)
 			)) + pagedSuffix;
 		});
+	}
+
+	private cacheKeyForSearch(
+		query: Query<T>,
+		body: JSONObjectSerializable,
+		queryCacheOptions: Pick<QueryCacheOptions<T>, "primaryKeys"> = {}
+	) {
+		if (!this.config.cache) {
+			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
+		}
+		const suffix = `:${[JSON.stringify(body)]}`;
+		const config = this.getCacheConfig(queryCacheOptions.primaryKeys);
+		const queryCacheKey = getCacheKeyForQuery(query, config);
+		const cacheSpaceToken = this.tokenizePrimaryKeys(config.primaryKeys);
+		return this.withCachePrefix(cacheSpaceToken + ":" + queryCacheKey) + suffix;
 	}
 }
 

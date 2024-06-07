@@ -22,6 +22,10 @@ describe("parseQuery", () => {
 		expect(parseQuery<Schema>({ foo: 2 })).toBe("foo: 2");
 	});
 
+	it("filters undefined", () => {
+		expect(parseQuery<Schema>({ foo: 2, bar: undefined })).toBe("foo: 2");
+	});
+
 	it("parses 'exists' correct", () => {
 		expect(parseQuery<Schema>({ foo: exists })).toBe("_exists_: \"foo\"");
 	});

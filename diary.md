@@ -103,8 +103,10 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 
  ## Documents
 
+* Checking if form has `documentsViewableForAll` option is checked from the collectionID, not from the formID.
 * GET `/documents` `observationYear` doesn't accept `null` anymore for getting documents without any date
 * Document `dateCreated` & `dateEdited` uses zulu date (eg if clock in Finland is 17.25:09 on 21.3.2024, it's `2024-03-21T15:25:09.850Z` instead of `2024-03-21T17:25:09+02:00`)
+* Document `/count/byYear` includes `formID` in the query.
 
  ## Documents validation
 

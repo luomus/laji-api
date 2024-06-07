@@ -184,3 +184,22 @@ export class ValidationStatusResponse implements Omit<BatchJob, "errors" | "proc
 	})
 	errors?: (ErrorsObj | null)[] = [];
 }
+
+export class GetCountDto extends IntersectionType(
+	QueryWithPersonTokenDto)
+{
+	/** Limit the list of documents to a certain collection */
+	collectionID?: string;
+
+	/** Limit the list of documents to a certain named place */
+	namedPlace?: string;
+
+	/** Limit the list of documents to a certain form */
+	formID?: string;
+}
+
+export class DocumentCountItemResponse {
+	year: string;
+	count: number;
+
+}

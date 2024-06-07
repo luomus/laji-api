@@ -133,6 +133,11 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 
 	const parseLiteralMapClause = (clause: LiteralMapClause<T, Operation>): string => {
 		const { operation = "AND", ...wrappedClause } = clause;
+		Object.keys(wrappedClause).forEach((k: keyof Omit<LiteralMapClause<T, Operation>, "operation">) => {
+			if (wrappedClause[k] === undefined) {
+				delete wrappedClause[k];
+			}
+		})
 		if (!Object.keys(wrappedClause).length) {
 			return "";
 		}

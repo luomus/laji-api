@@ -1,9 +1,9 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeys, DocumentsService } from "./documents.service";
 import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req } from "@nestjs/common";
-import { BatchJobQueryDto, CreateDocumentDto, GetDocumentsDto, isSecondaryDocument, isSecondaryDocumentDelete,
-	SecondaryDocument, SecondaryDocumentOperation, ValidateQueryDto, ValidationErrorFormat, ValidationStatusResponse,
-	ValidationStrategy } from "./documents.dto";
+import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
+	isSecondaryDocument, isSecondaryDocumentDelete, SecondaryDocument, SecondaryDocumentOperation, ValidateQueryDto,
+	ValidationErrorFormat, ValidationStatusResponse, ValidationStrategy } from "./documents.dto";
 import { PaginatedDto } from "src/pagination";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -218,6 +218,18 @@ export class DocumentsController {
 		@Query() { personToken }: QueryWithPersonTokenDto
 	): Promise<StoreDeleteResponse> {
 		return this.documentsService.delete(id, personToken);
+	}
+
+	/** Get count of documents by type (currently just "byYear") */
+	@Get("count/byYear")
+	getCount(@Query() query: GetCountDto): Promise<DocumentCountItemResponse[]> {
+		const { personToken, collectionID, namedPlace, formID } = query;
+		return this.documentsService.getCount(
+			personToken,
+			collectionID,
+			namedPlace,
+			formID
+		);
 	}
 
 
