@@ -2,8 +2,9 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { allowedQueryKeys, DocumentsService } from "./documents.service";
 import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
-	isSecondaryDocument, isSecondaryDocumentDelete, SecondaryDocument, SecondaryDocumentOperation, ValidateQueryDto,
-	ValidationErrorFormat, ValidationStatusResponse, ValidationStrategy } from "./documents.dto";
+	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
+	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat, ValidationStatusResponse,
+	ValidationStrategy } from "./documents.dto";
 import { PaginatedDto } from "src/pagination";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -222,9 +223,9 @@ export class DocumentsController {
 
 	/** Get count of documents by type (currently just "byYear") */
 	@Get("count/byYear")
-	getCount(@Query() query: GetCountDto): Promise<DocumentCountItemResponse[]> {
+	getCountByYear(@Query() query: GetCountDto): Promise<DocumentCountItemResponse[]> {
 		const { personToken, collectionID, namedPlace, formID } = query;
-		return this.documentsService.getCount(
+		return this.documentsService.getCountByYear(
 			personToken,
 			collectionID,
 			namedPlace,
@@ -232,6 +233,11 @@ export class DocumentsController {
 		);
 	}
 
+	/** Get the median date of documents for a named place */
+	@Get("stat")
+	getStatistics(@Query() query: QueryWithNamedPlaceDto): Promise<StatisticsResponse> {
+		return this.documentsService.getStatistics(query.namedPlace);
+	}
 
 	private getAccessToken(request: Request) {
 		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an

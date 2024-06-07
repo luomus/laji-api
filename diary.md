@@ -107,6 +107,7 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 * GET `/documents` `observationYear` doesn't accept `null` anymore for getting documents without any date
 * Document `dateCreated` & `dateEdited` uses zulu date (eg if clock in Finland is 17.25:09 on 21.3.2024, it's `2024-03-21T15:25:09.850Z` instead of `2024-03-21T17:25:09+02:00`)
 * Document `/count/byYear` includes `formID` in the query.
+* Document `/count/stats` doesn't check for `personToken` and it queries for all named places instead of the first 10.
 
  ## Documents validation
 

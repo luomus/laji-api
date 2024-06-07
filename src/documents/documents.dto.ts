@@ -185,14 +185,17 @@ export class ValidationStatusResponse implements Omit<BatchJob, "errors" | "proc
 	errors?: (ErrorsObj | null)[] = [];
 }
 
+export class QueryWithNamedPlaceDto {
+	/** Limit the list of documents to a certain named place */
+	namedPlace: string;
+}
+
 export class GetCountDto extends IntersectionType(
+	PartialType(QueryWithNamedPlaceDto),
 	QueryWithPersonTokenDto)
 {
 	/** Limit the list of documents to a certain collection */
 	collectionID?: string;
-
-	/** Limit the list of documents to a certain named place */
-	namedPlace?: string;
 
 	/** Limit the list of documents to a certain form */
 	formID?: string;
@@ -201,5 +204,8 @@ export class GetCountDto extends IntersectionType(
 export class DocumentCountItemResponse {
 	year: string;
 	count: number;
+}
 
+export class StatisticsResponse {
+	dateMedian: string;
 }

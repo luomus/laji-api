@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/c
 import { Flatten, KeyOf } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
-import { DocumentCountItemResponse, Populated, ValidationErrorFormat } from "./documents.dto";
+import { DocumentCountItemResponse, Populated, StatisticsResponse, ValidationErrorFormat } from "./documents.dto";
 import { Query, getQueryVocabulary } from "src/store/store-query";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { PersonsService } from "src/persons/persons.service";
@@ -373,7 +373,7 @@ export class DocumentsService {
 		return true;
 	}
 
-	async getCount(
+	async getCountByYear(
 		personToken: string,
 		collectionID?: string,
 		namedPlaceID?: string,
@@ -399,6 +399,20 @@ export class DocumentsService {
 			.map(doc => ({ year: doc.key_as_string.substring(0, 4), count: doc.doc_count }))
 			.filter(doc => !!doc.count)
 			.sort((a, b) => a.year.localeCompare(b.year));
+	}
+
+	async getStatistics(namedPlaceID: string): Promise<StatisticsResponse> {
+		const documents = await this.store.getAll({ namedPlaceID }, "id", { primaryKeys: ["namedPlaceID"] });
+		const dates: string[] = [];
+		documents.forEach(document => {
+			if (document.gatheringEvent?.dateBegin) {
+				dates.push(document.gatheringEvent.dateBegin.slice(5));
+			}
+		});
+		dates.sort();
+		const mid = Math.floor(dates.length / 2);
+
+		return { dateMedian: dates[mid] as string };
 	}
 }
 
