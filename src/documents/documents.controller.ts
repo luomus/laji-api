@@ -32,10 +32,6 @@ export class DocumentsController {
 		private documentsBatchService: DocumentsBatchService
 	) {}
 
-	// POST /batch validates documents, creates job ID
-	// POST /batch/:jobid create validated documents by id
-	// GET /batch/:jobid/status returns job status
-
 	/**
 	 * Starts a batch job that validates the documents. Use the returned job id to get the status of the job with GET
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
@@ -57,6 +53,9 @@ export class DocumentsController {
 	 * errors match the documents array indices, null meaning valid and an object.
 	 * */
 	@Get("batch/:jobID")
+	// Makes the ValidationStatusResponse use store documents' swagger def. Modifies the definition which is referenced by
+	// other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only once.
+	@SwaggerRemoteRef({ source: "store", ref: "document", replacePointer: "/properties/documents/items" })
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
