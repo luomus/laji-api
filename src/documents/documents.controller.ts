@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeys, DocumentsService } from "./documents.service";
-import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req } from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req, UseFilters } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat, ValidationStatusResponse,
@@ -19,8 +19,11 @@ import { ApiTags } from "@nestjs/swagger";
 import { PersonsService } from "src/persons/persons.service";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
+import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
+import { ValidationException } from "./document-validator/document-validator.utils";
 
 @ApiTags("Documents")
+@UseFilters(ValidatiorErrorFormatFilter)
 @LajiApiController("documents")
 export class DocumentsController {
 	constructor(
@@ -158,7 +161,7 @@ export class DocumentsController {
 		// error already.
 		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
 		if (!document.formID) {
-			throw new HttpException("Missing required property formID", 422);
+			throw new ValidationException({ ".formID": ["Missing required param formID"] });
 		}
 		const form = await this.formsService.get(document.formID);
 		if (!form?.options?.secondaryCopy) {
@@ -176,8 +179,7 @@ export class DocumentsController {
 		return this.documentsService.create(
 			document as Document,
 			personToken,
-			accessToken,
-			validationErrorFormat
+			accessToken
 		);
 	}
 
@@ -188,7 +190,7 @@ export class DocumentsController {
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,
 		@Req() request: Request,
-		@Query() { personToken, validationErrorFormat }: CreateDocumentDto
+		@Query() { personToken }: CreateDocumentDto
 	): Promise<Document> {
 		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
 		// error already.
@@ -207,8 +209,7 @@ export class DocumentsController {
 			id,
 			document as Document,
 			personToken,
-			accessToken,
-			validationErrorFormat
+			accessToken
 		);
 	}
 

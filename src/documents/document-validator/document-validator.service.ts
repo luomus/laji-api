@@ -7,7 +7,7 @@ import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
-import { DocumentValidator, ValidationException, formatErrorDetails, isValidationException }
+import { DocumentValidator, ValidationException }
 	from "./document-validator.utils";
 import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
@@ -35,10 +35,7 @@ export class DocumentValidatorService {
 		this.extendLajiValidate();
 	}
 
-	async validate(
-		document: Populated<Document>,
-		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
-	) {
+	async validate(document: Populated<Document>) {
 		if (document.isTemplate) {
 			return;
 		}
@@ -52,19 +49,16 @@ export class DocumentValidatorService {
 			checkHasOnlyFieldsInForm(document, form);
 		}
 
-		await this.validateAgainstSchema(document, validationErrorFormat);
+		await this.validateAgainstSchema(document);
 
 		if (document.publicityRestrictions === "MZ.publicityRestrictionsPrivate") {
 			return;
 		}
 
-		await this.validateAgainstForm(document, validationErrorFormat);
+		await this.validateAgainstForm(document);
 	}
 
-	private async validateAgainstForm(
-		document: Populated<Document>,
-		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
-	) {
+	private async validateAgainstForm(document: Populated<Document>) {
 		const { validators } = await this.formsService.get(document.formID, Format.schema);
 		try {
 			await lajiValidate.async(document, validators);
@@ -93,14 +87,11 @@ export class DocumentValidatorService {
 				}
 				return errors;
 			}, {} as Record<string, string[]>);
-			throw new ValidationException(formatErrorDetails(errors, validationErrorFormat));
+			throw new ValidationException(errors);
 		}
 	}
 
-	private async validateAgainstSchema(
-		document: Populated<Document>,
-		validationErrorFormat: ValidationErrorFormat = ValidationErrorFormat.remote
-	) {
+	private async validateAgainstSchema(document: Populated<Document>) {
 		const form = await this.formsService.get(document.formID, Format.schema);
 		const validator = getAjvValidator(form);
 		if (!validator(document)) {
@@ -115,7 +106,7 @@ export class DocumentValidatorService {
 				}
 				errors[error.instancePath]!.push(message ?? "");
 			});
-			throw new ValidationException(formatErrorDetails(errors, validationErrorFormat));
+			throw new ValidationException(errors);
 		}
 	}
 
@@ -136,20 +127,9 @@ export class DocumentValidatorService {
 		validationErrorFormat?: ValidationErrorFormat,
 		type?: ValidationType
 	}) {
-		const  { validator,
-			validationErrorFormat = ValidationErrorFormat.object,
-			field,
-			...validatorOptions
-		} = options;
-		try {
-			await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
-				.validate(item, field, validatorOptions);
-		} catch (e) {
-			if (isValidationException(e)) {
-				throw new ValidationException(formatErrorDetails(e.getDetails(), validationErrorFormat));
-			}
-			throw e;
-		}
+		const  { validator, field, ...validatorOptions } = options;
+		await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
+			.validate(item, field, validatorOptions);
 	}
 
 	private extendLajiValidate() {

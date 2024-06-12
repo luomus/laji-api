@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/c
 import { Flatten, KeyOf } from "src/type-utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
-import { DocumentCountItemResponse, Populated, StatisticsResponse, ValidationErrorFormat } from "./documents.dto";
+import { DocumentCountItemResponse, Populated, StatisticsResponse } from "./documents.dto";
 import { Query, getQueryVocabulary } from "src/store/store-query";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { PersonsService } from "src/persons/persons.service";
@@ -16,6 +16,7 @@ import { PrepopulatedDocumentService } from "src/named-places/prepopulated-docum
 import { QueryCacheOptions, StoreCacheOptions } from "src/store/store-cache";
 import { ApiUsersService } from "src/api-users/api-users.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
+import { ValidationException } from "./document-validator/document-validator.utils";
 
 const dateRangeKeys = [
 	"gatheringEvent.dateBegin",
@@ -162,15 +163,14 @@ export class DocumentsService {
 	async create(
 		unpopulatedDocument: Document,
 		personToken: string,
-		accessToken: string,
-		validationErrorFormat?: ValidationErrorFormat
+		accessToken: string
 	) {
 		const person = await this.personsService.getByToken(personToken);
 		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
 		if (document.id) {
 			throw new HttpException("You should not specify ID when adding primary data!", 406);
 		}
-		await this.validate(document, personToken, validationErrorFormat);
+		await this.validate(document, personToken);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, personToken);
 		return created;
@@ -180,8 +180,7 @@ export class DocumentsService {
 		id: string,
 		unpopulatedDocument: Document,
 		personToken: string,
-		accessToken: string,
-		validationErrorFormat?: ValidationErrorFormat
+		accessToken: string
 	) {
 		const person = await this.personsService.getByToken(personToken);
 		const document = await this.populateMutably(unpopulatedDocument, person, accessToken, false);
@@ -194,7 +193,7 @@ export class DocumentsService {
 			throw new HttpException("Insufficient rights to use this form", 403);
 		}
 
-		await this.validate(document, personToken, validationErrorFormat);
+		await this.validate(document, personToken);
 		const updated = await this.store.update(document as Document & { id: string });
 		await this.namedPlaceSideEffects(updated, personToken);
 		return updated;
@@ -224,14 +223,14 @@ export class DocumentsService {
 		const permissions =
 			await this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
 		if (!permissions?.admins.includes(person.id)) {
-			throw new HttpException("Editing a locked document is not allowed", 403);
+			throw new ValidationException({ ".locked": ["Editing a locked document is not allowed"] });
 		}
 	}
 
 	async deriveCollectionIDMutably<T extends { formID?: string }>(mutableTarget: T)
 		: Promise<T & { formID: string, collectionID: string }> {
 		if (!mutableTarget.formID) {
-			throw new HttpException("Missing required param formID", 422);
+			throw new ValidationException({ ".formID": ["Missing required param formID"] });
 		}
 		(mutableTarget as any).collectionID = (await this.formsService.get(mutableTarget.formID)).collectionID
 			|| DEFAULT_COLLECTION;
@@ -255,10 +254,6 @@ export class DocumentsService {
 			document.sourceID = systemID;
 		} else if (!document.sourceID) {
 			document.sourceID = systemID;
-		}
-
-		if (!document.formID) {
-			throw new HttpException("Missing required param formID", 422);
 		}
 
 		await this.deriveCollectionIDMutably(document);
@@ -289,8 +284,7 @@ export class DocumentsService {
 	// * thrown errors not formatted with validation error format
 	async validate(
 		document: Populated<Document>,
-		personToken: string,
-		validationErrorFormat?: ValidationErrorFormat
+		personToken: string
 	) {
 		const { collectionID, formID } = document;
 		const person = await this.personsService.getByToken(personToken);
@@ -303,7 +297,7 @@ export class DocumentsService {
 			throw new HttpException("Insufficient rights to use this form", 403);
 		}
 
-		await this.documentValidatorService.validate(document, validationErrorFormat);
+		await this.documentValidatorService.validate(document);
 	}
 
 	async namedPlaceSideEffects(document: Document & { id: string }, personToken: string) {
