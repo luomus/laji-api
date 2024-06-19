@@ -37,6 +37,8 @@ import { DocumentsModule } from "./documents/documents.module";
 import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.module";
 import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 import { TraitModule } from "./trait/trait.module";
+import { ErrorSignatureBackwardCompatibilityFilter }
+from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
 
 @Module({
 	imports: [
@@ -103,6 +105,10 @@ import { TraitModule } from "./trait/trait.module";
 		{
 			provide: APP_PIPE,
 			useValue: new ValidationPipe({ transform: true })
+		},
+		{
+			provide: APP_FILTER,
+			useClass: ErrorSignatureBackwardCompatibilityFilter
 		},
 		LajiAuthClientService
 	],

@@ -7,7 +7,7 @@ import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
-import { DocumentValidator, ValidationException }
+import { DocumentValidator, ErrorsObj, ValidationException }
 	from "./document-validator.utils";
 import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
@@ -18,6 +18,7 @@ import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 	from "./validators/named-place-not-too-near-other-places.validator.service";
 import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
+import { dotNotationToJSONPointer } from "src/utils";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -63,30 +64,10 @@ export class DocumentValidatorService {
 		try {
 			await lajiValidate.async(document, validators);
 		} catch (e) {
-			const errors = Object.keys(e).reduce((errors, key) => {
-				if (Array.isArray(e[key])) {
-					if (typeof e[key][0] === "string") {
-						const path1 = key.startsWith(".") ? key : "." + key;
-						if (!errors[path1]) {
-							errors[path1] = [];
-						}
-						errors[path1]!.push(...e[key]);
-					} else if (typeof e[key][0] === "object") {
-						e[key].map((obj: Record<string, string | string[]>) => {
-							Object.keys(obj).map((path) => {
-								const path1 = path.startsWith(".") ? path : "." + path;
-								if (!errors[path1]) {
-									errors[path1] = [];
-								}
-								errors[path1]!.push(...obj[path]!);
-							});
-						});
-					} else {
-						console.error("Could not interpret the error message");
-					}
-				}
-				return errors;
-			}, {} as Record<string, string[]>);
+			const errors = Object.keys(e).reduce((jsonPointerErrors, dotNotationKey) => {
+				jsonPointerErrors[dotNotationToJSONPointer(dotNotationKey)] = e[dotNotationKey];
+				return jsonPointerErrors;
+			}, {} as ErrorsObj);
 			throw new ValidationException(errors);
 		}
 	}
@@ -129,7 +110,11 @@ export class DocumentValidatorService {
 	}) {
 		const  { validator, field, ...validatorOptions } = options;
 		await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
-			.validate(item, field, validatorOptions);
+			.validate(item,
+				field === undefined ? undefined
+					: dotNotationToJSONPointer(field),
+				validatorOptions
+			);
 	}
 
 	private extendLajiValidate() {

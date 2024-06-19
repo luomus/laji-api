@@ -47,7 +47,7 @@ export class TaxonBelongsToInformalTaxonGroupValidatorService implements Documen
 		}, [] as DocumentTaxon[]);
 
 		function getPath(gatheringIdx: number, unitIdx: number) {
-			return ".gatherings[" + gatheringIdx + "].units[" + unitIdx + "].unitFact.autocompleteSelectedTaxonID";
+			return `/gatherings/${gatheringIdx}/units/${unitIdx}/unitFact/autocompleteSelectedTaxonID`;
 		}
 	}
 

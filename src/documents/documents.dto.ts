@@ -41,7 +41,9 @@ export class GetDocumentsDto extends IntersectionType(
 export enum ValidationErrorFormat {
 	remote = "remote",
 	object = "object",
-	jsonPointer = "jsonPointer"
+	jsonPointer = "jsonPointer",
+	jsonPath = "jsonPath",
+	dotNotation = "dotNotation"
 }
 
 export class CreateDocumentDto extends IntersectionType(

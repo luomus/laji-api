@@ -3,9 +3,10 @@ import { ValidationException, formatErrorDetails } from "../document-validator/d
 import { Request } from "express";
 import { ValidationErrorFormat } from "../documents.dto";
 import { BaseExceptionFilter } from "@nestjs/core";
+import { ErrorSignatureBackwardCompatibilityFilter } from "src/error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
 
 @Catch(ValidationException)
-export class ValidatiorErrorFormatFilter<T> extends BaseExceptionFilter {
+export class ValidatiorErrorFormatFilter<T> extends ErrorSignatureBackwardCompatibilityFilter<T> {
 
 	catch(e: T, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();

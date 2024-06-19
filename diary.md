@@ -27,6 +27,8 @@ to:
 }
 ```
 
+Backward compatibility is maintained at the moment though.
+
 Error messages might change.
 
 ## JSON-LD
@@ -115,8 +117,8 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
  * POST `/documents/validate/` valid response has no body. In the old API it was `{}`.
  * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
  * PUT `/documents/` editing a locked document throws 403, not 422.
- * Removed `jsonPath` validationErrorFormat, since it wasn't really JSON Path. 
  * Added `jsonPointer` validationErrorFormat.
+ * Added `dotNotation` validationErrorFormat.
  * POST `/documents/validate` document with MZ.publicityRestrictionsPrivate skips form validations
 
  ## Documents batch job
@@ -147,3 +149,12 @@ Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopb
 # Blocked work
 
 * Trait DB swagger paged results https://www.pivotaltracker.com/story/show/187328917
+
+# Migration work after prod release
+
+* Drop support for document endpoint validationErrorFormat.jsonPath, because:
+	* It's not really JSON path, because it doesn't start with "$".
+	* JSON path is misleading to use, because it can target multiple items.
+* Remove "errors" wrapper in document validation responses. Should use an array instead. Reasons:
+	* Using the object notation, it would be impossible to target a property that has the name "errors"
+	* Unnecessary; adds to complexity.

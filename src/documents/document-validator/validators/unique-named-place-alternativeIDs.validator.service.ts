@@ -25,7 +25,7 @@ export class UniqueNamedPlaceAlternativeIDsValidatorService implements DocumentV
 		)).results;
 
 		if (this.hasDuplicate(namedPlaces, namedPlace.id)) {
-			throw new ValidationException({ [path ?? ".alternativeIDs"]:
+			throw new ValidationException({ [path ?? "/alternativeIDs"]:
 				["There already exists a named place with one or more given alternative IDs"]
 			});
 		}

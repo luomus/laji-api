@@ -56,8 +56,8 @@ describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 					statusCode: 422,
 					message: "Unprocessable Entity",
 					details: {
-						".gatherings[0].units[0].unitFact.autocompleteSelectedTaxonID":
-							[ "Taxon does not belong to given informal taxon groups." ]
+						"/gatherings/0/units/0/unitFact/autocompleteSelectedTaxonID":
+						{ errors: ["Taxon does not belong to given informal taxon groups."] }
 					}
 				});
 			}
