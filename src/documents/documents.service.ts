@@ -18,14 +18,7 @@ import { ApiUsersService } from "src/api-users/api-users.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
 
-const dateRangeKeys = [
-	"gatheringEvent.dateBegin",
-	"gatherings.dateBegin",
-	"gatherings.units.unitGathering.dateBegin"
-] as const;
-type DateRangeKey = typeof dateRangeKeys[number];
-
-/** Allowed filters for the external API of the document service */
+/** Allowed query keys of the external API of the document service */
 export const allowedQueryKeys = [
 	"formID",
 	"collectionID",
@@ -35,14 +28,19 @@ export const allowedQueryKeys = [
 ] as const;
 type AllowedQueryKeys = typeof allowedQueryKeys[number];
 
-/** All possible keys that the constructed store queries can have. */
+const dateRangeKeys = [
+	"gatheringEvent.dateBegin",
+	"gatherings.dateBegin",
+	"gatherings.units.unitGathering.dateBegin"
+] as const;
+type DateRangeKey = typeof dateRangeKeys[number];
+
+/** All keys that the internally constructed store queries can have. */
 export const documentQueryKeys = [...allowedQueryKeys, ...dateRangeKeys, "creator", "editors"] as const;
 type DocumentQuery = Pick<Document, Exclude<typeof documentQueryKeys[number], DateRangeKey>>
 	& Record<DateRangeKey, string>;
 
 const { or, and, not, exists } = getQueryVocabulary<DocumentQuery>();
-
-const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });
 
 const DEFAULT_COLLECTION = "HR.1747";
 
@@ -85,14 +83,13 @@ export class DocumentsService {
 		personToken: string,
 		observationYear?: number,
 	): Promise<[Query<DocumentQuery>, Partial<StoreCacheOptions<Document>>]>  {
-		const { formID, collectionID, isTemplate } = query;
+		// Allow simple search query terms as they are, but remove `isTemplate` & `collectionID` because they are added to
+		// the query with more complex logic.
+		const { collectionID, isTemplate } = query;
 		delete query.isTemplate;
+		delete query.collectionID;
 		let storeQuery: Query<DocumentQuery> = and(query);
 		let cacheConfig: QueryCacheOptions<Document>;
-
-		if (formID) {
-			await this.checkHasReadRightsTo(formID, personToken);
-		}
 
 		const person = await this.personsService.getByToken(personToken);
 		if (collectionID) {
@@ -101,21 +98,27 @@ export class DocumentsService {
 				collectionID,
 				personToken
 			);
-			cacheConfig = { primaryKeys: ["collectionID"] };
+			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
 			const viewableForAll = (await this.formsService.findListedByCollectionID(collectionID))
 				.some(f => f.options?.documentsViewableForAll);
-			if (!viewableForAll && !permissions?.admins.includes(person.id)) {
+			if (!viewableForAll || !(
+				permissions?.editors.includes(person.id)
+				|| permissions?.admins.includes(person.id)
+			)) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person));
-				cacheConfig = { primaryKeys: ["creator"] };
+				cacheConfig = { primaryKeys: ["creator", "isTemplate"] };
 			}
 		} else {
 			storeQuery = and(storeQuery, editorOrCreatorClause(person));
-			cacheConfig = { primaryKeys: ["creator"] };
+			cacheConfig = { primaryKeys: ["creator", "isTemplate"] };
 		}
 
 		if (!isTemplate) {
 			storeQuery = and(storeQuery, or({ isTemplate: false }, not({ isTemplate: exists })));
+		} else {
+			storeQuery = and(storeQuery, { isTemplate: true });
 		}
+
 		if (observationYear) {
 			storeQuery = and(
 				storeQuery,
@@ -126,7 +129,7 @@ export class DocumentsService {
 	}
 
 	async getPage(
-		query: {[prop in AllowedQueryKeys]: Flatten<Partial<Document[prop]>>},
+		query: {[prop in AllowedQueryKeys]?: Flatten<Partial<Document[prop]>>},
 		personToken: string,
 		observationYear?: number,
 		page?: number,
@@ -150,13 +153,7 @@ export class DocumentsService {
 
 	async get(id: string, personToken: string) {
 		const document = await this.store.get(id);
-		const person = await this.personsService.getByToken(personToken);
-		if (document.creator === person.id || document.editors?.includes(person.id) || person.isImporter()) {
-			return document;
-		}
-		if (document.formID) {
-			await this.checkHasReadRightsTo(document.formID, personToken);
-		}
+		await this.checkHasReadRightsTo(document, personToken);
 		return document;
 	}
 
@@ -165,11 +162,18 @@ export class DocumentsService {
 		personToken: string,
 		accessToken: string
 	) {
-		const person = await this.personsService.getByToken(personToken);
-		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
-		if (document.id) {
+		if (unpopulatedDocument.id) {
 			throw new HttpException("You should not specify ID when adding primary data!", 406);
 		}
+
+		const person = await this.personsService.getByToken(personToken);
+		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
+
+		if (!person.isImporter()) {
+			document.creator = person.id;
+			document.editor = person.id;
+		}
+
 		await this.validate(document, personToken);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, personToken);
@@ -183,14 +187,36 @@ export class DocumentsService {
 		accessToken: string
 	) {
 		const person = await this.personsService.getByToken(personToken);
-		const document = await this.populateMutably(unpopulatedDocument, person, accessToken, false);
-		document.dateEdited = new Date().toISOString();
 
-		const existingDocument = await this.store.get(id);
-		await this.checkAccessIfLocked(existingDocument, personToken);
-		await this.formsService.checkAccessIfDisabled(existingDocument.collectionID!, person);
-		if (!await this.formPermissionsService.hasEditRightsOf(existingDocument.collectionID!, personToken)) {
-			throw new HttpException("Insufficient rights to use this form", 403);
+		const existing = await this.store.get(id);
+		// TODO remove after store handles POST/PUT properly with separate methods.
+		if (!unpopulatedDocument.id) {
+			throw new HttpException("You should provide the document ID in the body", 422);
+		}
+
+		if (!person.isImporter()) {
+			if (!unpopulatedDocument.creator) {
+				throw new HttpException("Missing creator", 422);
+			}
+			if (unpopulatedDocument.creator !== existing.creator) {
+				throw new ValidationException({ "/creator": ["Cannot update a document with a different creator"]  });
+			}
+			if (existing.isTemplate && !unpopulatedDocument.isTemplate) {
+				throw new HttpException("Can't make a template a non-template", 422);
+			}
+		}
+
+		const document = await this.populateMutably(unpopulatedDocument, person, accessToken, false);
+
+		if (!person.isImporter()) {
+			document.editor = person.id;
+		}
+
+		await this.checkWriteAccess(existing, personToken, true);
+
+		document.dateEdited = new Date().toISOString();
+		if (existing.dateCreated) {
+			document.dateCreated = existing.dateCreated;
 		}
 
 		await this.validate(document, personToken);
@@ -199,38 +225,60 @@ export class DocumentsService {
 		return updated;
 	}
 
+	private async checkWriteAccess(document: Document, personToken: string, operationAllowedForEditor = false) {
+		const person = await this.personsService.getByToken(personToken);
+		const { collectionID } = document;
+		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
+		if (!(await this.canAccessIfLocked(document, personToken))) {
+			throw new ValidationException({ "/locked": ["Editing a locked document is not allowed"] });
+		}
+		if (collectionID) {
+			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
+				throw new HttpException("Insufficient rights to use this form", 403);
+			}
+			const permissions =
+				await this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
+			if (permissions?.admins.includes(person.id)) {
+				return;
+			}
+		}
+		if (document.creator === person.id) {
+			return;
+		}
+		if (!operationAllowedForEditor && !document.editors?.includes(person.id)) {
+			throw new HttpException("You are not owner of this document", 403);
+		}
+		throw new HttpException("You are not owner or editor of this document", 403);
+	}
+
 	async delete(
 		id: string,
 		personToken: string
 	) {
-		const person = await this.personsService.getByToken(personToken);
 		const existingDocument = await this.store.get(id);
-		await this.checkAccessIfLocked(existingDocument, personToken);
-		await this.formsService.checkAccessIfDisabled(existingDocument.collectionID!, person);
-		if (!await this.formPermissionsService.hasEditRightsOf(existingDocument.collectionID!, personToken)) {
-			throw new HttpException("Insufficient rights to use this form", 403);
-		}
-
+		await this.checkWriteAccess(existingDocument, personToken);
 		return this.store.delete(id);
 	}
 
-	private async checkAccessIfLocked(document: Document, personToken: string) {
+	private async canAccessIfLocked(document: Document, personToken: string) {
 		const { collectionID, locked } = document;
 		if (!collectionID || !locked) {
-			return;
+			return true;
 		}
 		const person = await this.personsService.getByToken(personToken);
 		const permissions =
 			await this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
 		if (!permissions?.admins.includes(person.id)) {
-			throw new ValidationException({ ".locked": ["Editing a locked document is not allowed"] });
+			return false;
 		}
+
+		return true;
 	}
 
 	async deriveCollectionIDMutably<T extends { formID?: string }>(mutableTarget: T)
 		: Promise<T & { formID: string, collectionID: string }> {
 		if (!mutableTarget.formID) {
-			throw new ValidationException({ ".formID": ["Missing required param formID"] });
+			throw new ValidationException({ "/formID": ["Missing required property formID"] });
 		}
 		(mutableTarget as any).collectionID = (await this.formsService.get(mutableTarget.formID)).collectionID
 			|| DEFAULT_COLLECTION;
@@ -262,11 +310,6 @@ export class DocumentsService {
 			document.publicityRestrictions = "MZ.publicityRestrictionsPublic";
 		}
 
-		if (!person.isImporter()) {
-			document.creator = person.id;
-			document.editor = person.id;
-		}
-
 		const now = new Date().toISOString();
 		const dateProps: KeyOf<Pick<Document, "dateEdited" | "dateCreated">>[] = ["dateEdited", "dateCreated"];
 		dateProps.forEach(key => {
@@ -281,17 +324,16 @@ export class DocumentsService {
 	// TODO logic not yet copied from old api, need to double check:
 	// * validation population against existing document; should be implemented in update method
 	// * old api does 'linking', id checking etc in `prepareDocument`. Is it handled by store?
-	// * thrown errors not formatted with validation error format
 	async validate(
 		document: Populated<Document>,
 		personToken: string
 	) {
-		const { collectionID, formID } = document;
+		const { collectionID } = document;
 		const person = await this.personsService.getByToken(personToken);
 
-		await this.formsService.checkAccessIfDisabled(collectionID, person);
+		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
-		await this.checkHasReadRightsTo(formID, personToken);
+		await this.checkHasReadRightsTo(document, personToken);
 
 		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
 			throw new HttpException("Insufficient rights to use this form", 403);
@@ -347,24 +389,44 @@ export class DocumentsService {
 		return [ collectionID, ...children ];
 	}
 
-	async checkHasReadRightsTo(formID: string, personToken: string) {
-		const form = await this.formsService.get(formID);
-		const { collectionID } = form;
+	async checkHasReadRightsTo(document: Document, personToken: string) {
+		const person = await this.personsService.getByToken(personToken);
+
+		if (document.isTemplate && document.creator !== person.id) {
+			throw new HttpException("Cannot access someone elses template", 403);
+		}
+
+		if (document.creator === person.id || document.editors?.includes(person.id) || person.isImporter()) {
+			return;
+		}
+
+		const { formID, collectionID } = document;
+		
+		if (!formID) {
+			throw new HttpException("Can't check read rights for a document missing formID", 403);
+		}
 
 		if (!collectionID) {
-			throw new HttpException("Only document owner and editors can view the document", 403);
+			throw new HttpException("Can't check read rights for a document missing collectionID", 403);
 		}
 
-		if (form.options?.documentsViewableForAll) {
-			return true;
+		const form = await this.formsService.get(formID);
+
+		const documentsViewableForAll = collectionID
+			? (await this.formsService.findListedByCollectionID(collectionID))
+				.some(f => f.options?.documentsViewableForAll)
+			: form.options?.documentsViewableForAll;
+
+		if (documentsViewableForAll) {
+			const hasEditRights = await this.formPermissionsService.hasEditRightsOf(collectionID, personToken);
+			if (!hasEditRights) {
+				// eslint-disable-next-line max-len
+				throw new HttpException("You don't have permission to the form and you are not the owner or an editor of the document", 403);
+			}
+			return;
 		}
 
-		const hasEditRights = await this.formPermissionsService.hasEditRightsOf(collectionID, personToken);
-		if (!hasEditRights) {
-			// eslint-disable-next-line max-len
-			throw new HttpException("You don't have permission to the form and you are not the owner or an editor of the document", 403);
-		}
-		return true;
+		throw new HttpException("Only document owner and editors can view the document", 403);
 	}
 
 	async getCountByYear(
@@ -410,7 +472,7 @@ export class DocumentsService {
 	}
 }
 
-function getDateCounted(document: Pick<Document, "gatheringEvent" | "gatherings">): Date | undefined {
+const getDateCounted = (document: Pick<Document, "gatheringEvent" | "gatherings">): Date | undefined  => {
 	if (document.gatheringEvent) {
 		const date = document.gatheringEvent.dateEnd || document.gatheringEvent.dateBegin;
 		if (date) {
@@ -429,7 +491,7 @@ function getDateCounted(document: Pick<Document, "gatheringEvent" | "gatherings"
 			}
 		}, undefined);
 	}
-}
+};
 
 const documentHasNewNamedPlaceNote = (document: Document, place: NamedPlace) => {
 	const notes = document.gatheringEvent?.namedPlaceNotes;
@@ -444,3 +506,5 @@ const dateRangeClause = (dateRange: { from: string, to: string }) => {
 		{} as Record<DateRangeKey, string>));
 	return dateRangeClause;
 };
+
+const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });

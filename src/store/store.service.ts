@@ -118,6 +118,7 @@ export class StoreService<T extends { id?: string }> {
 		}
 		return result;
 	}
+
 	async get(id: string): Promise<T & { id: string }> {
 		const { cache } = this.config;
 		if (cache) {

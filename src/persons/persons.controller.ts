@@ -67,7 +67,7 @@ export class PersonsController {
 	/*
 	 * Request person to be your friend
 	 */
-	@Post(":personToken/friends/:profileKey") 
+	@Post(":personToken/friends/:profileKey")
 	addFriendRequest(@Param("personToken") personToken: string, @Param("profileKey") profileKey: string) {
 		return this.profileService.addFriendRequest(personToken, profileKey);
 	}
@@ -75,7 +75,7 @@ export class PersonsController {
 	/*
 	 * Accept friend request
 	 */
-	@Put(":personToken/friends/:personId") 
+	@Put(":personToken/friends/:personId")
 	acceptFriendRequest(@Param("personToken") personToken: string, @Param("personId") personId: string) {
 		return this.profileService.acceptFriendRequest(personToken, personId);
 	}
@@ -83,7 +83,7 @@ export class PersonsController {
 	/*
 	 * Remove a friend request or a friend
 	 */
-	@Delete(":personToken/friends/:personId") 
+	@Delete(":personToken/friends/:personId")
 	removeFriend(
 		@Param("personToken") personToken: string,
 		@Param("personId") personId: string,

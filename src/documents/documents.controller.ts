@@ -113,6 +113,26 @@ export class DocumentsController {
 				);
 			}
 
+			if (!document.formID) {
+				throw new ValidationException({ "/formID": ["Missing required param formID"] });
+			}
+
+			const form = await this.formsService.get(document.formID);
+
+			if (form?.options?.secondaryCopy) {
+				if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
+					throw new HttpException(
+						"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
+						422);
+				}
+				const populated = await this.secondaryDocumentsService.populateMutably(
+					document as SecondaryDocument,
+					person,
+					accessToken
+				);
+				return this.secondaryDocumentsService.validate(populated, personToken) as unknown as Promise<Document>;
+			}
+
 			const populatedDocument = await this.documentsService.populateMutably(document, person, accessToken);
 			return this.documentValidatorService.validate(populatedDocument);
 		}
@@ -122,7 +142,7 @@ export class DocumentsController {
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
 	getPage(@Query() query: GetDocumentsDto): Promise<PaginatedDto<Document>> {
-		const { personToken, page, pageSize, selectedFields, observationYear, ...q } = query;
+		const { personToken, page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
 			whitelistKeys(q, allowedQueryKeys),
 			personToken,
@@ -140,11 +160,12 @@ export class DocumentsController {
 		return this.documentsService.get(id, personToken);
 	}
 
+	// TODO need to add swagger customization to get the whole MY.document schema for the body.
 	/** Create a new document */
 	@Post()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
 	async create(
-		@Body() document: Document | SecondaryDocumentOperation,
+		@Body() document: Document,
 		@Req() request: Request,
 		@Query() { personToken, validationErrorFormat }: CreateDocumentDto
 	): Promise<Document> {
@@ -161,10 +182,10 @@ export class DocumentsController {
 		// error already.
 		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
 		if (!document.formID) {
-			throw new ValidationException({ ".formID": ["Missing required param formID"] });
+			throw new ValidationException({ "/formID": ["Missing required param formID"] });
 		}
 		const form = await this.formsService.get(document.formID);
-		if (!form?.options?.secondaryCopy) {
+		if (form?.options?.secondaryCopy) {
 			if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
 				throw new HttpException(
 					"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
@@ -196,7 +217,7 @@ export class DocumentsController {
 		// error already.
 		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
 		if (!document.formID) {
-			throw new HttpException("Missing required property formID", 422);
+			throw new ValidationException({ "/formID": ["Missing required property formID"] });
 		}
 
 		const form = await this.formsService.get(document.formID);
@@ -246,3 +267,13 @@ export class DocumentsController {
 		return this.accessTokenService.findAccessTokenFromRequest(request)!;
 	}
 }
+
+/**
+ * Renames `templates` as `isTemplate`. This would be better to handle in the GetDocumentsDto, but due to a bug in the
+ * decorators we have to do it here. The `templates` name is inherited from the old API.
+ */
+const fixTemplatesQueryParam = <T extends { templates?: boolean }>(query: T) => {
+	(query as any).isTemplate = query.templates;
+	delete query.templates;
+	return query as unknown as Omit<T, "templates"> & { isTemplate: boolean };
+};

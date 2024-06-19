@@ -53,9 +53,8 @@ export class SecondaryDocumentsService {
 		if (!createOrDelete.id) {
 			throw new HttpException("Secondary document must have id", 422);
 		}
-		if (isSecondaryDocumentDelete(createOrDelete)) {
-			await this.documentsService.checkHasReadRightsTo(createOrDelete.formID, personToken);
-		} else {
+		 // TODO no validation whatsoever... Ask from Esko if personToken access is checked on warehouse.
+		if (isSecondaryDocument(createOrDelete)) {
 			await this.documentsService.validate(createOrDelete, personToken);
 		}
 	}

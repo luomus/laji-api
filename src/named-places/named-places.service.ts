@@ -140,6 +140,10 @@ export class NamedPlacesService {
 
 	async update(id: string, place: NamedPlace, personToken: string) {
 		const existing = await this.get(id, personToken);
+		// TODO remove after store handles POST/PUT properly with separate methods.
+		if (!place.id) {
+			throw new HttpException("You should provide the ID in the body", 422);
+		}
 
 		await this.checkWriteAccess(existing, personToken);
 
@@ -242,7 +246,7 @@ export class NamedPlacesService {
 			throw new HttpException("You don't have access to this place", 403);
 		}
 
-		await this.formsService.checkAccessIfDisabled(collectionID, person);
+		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
 		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
 			return;

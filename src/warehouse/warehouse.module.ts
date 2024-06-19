@@ -8,12 +8,12 @@ import { WarehouseService } from "./warehouse.service";
 
 const WarehouseRestClient: FactoryProvider<RestClientService<never>> = {
 	provide: WAREHOUSE_CLIENT,
-	useFactory: (httpService: HttpService, config: ConfigService) =>
+	useFactory: (httpService: HttpService, config: ConfigService) => 
 		new RestClientService(httpService, {
 			name: "warehouse",
 			host: config.get<string>("WAREHOUSE_HOST"),
-			headers: {
-				access_token: config.get<string>("WAREHOUSE_TOKEN")
+			params: {
+				access_token: config.get<string>("SECONDARY_TOKEN") as string
 			}
 		}),
 	inject: [

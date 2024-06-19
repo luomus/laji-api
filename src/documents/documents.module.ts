@@ -29,8 +29,8 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 				ttl: CACHE_10_MIN,
 				keys: documentQueryKeys,
 				primaryKeySpaces: [
-					["collectionID"],
-					["creator"],
+					["collectionID", "isTemplate"],
+					["creator", "isTemplate"],
 					["namedPlaceID"]
 				]
 			}

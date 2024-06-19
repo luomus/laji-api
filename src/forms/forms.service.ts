@@ -64,7 +64,10 @@ export class FormsService {
 		return (await this.getListing()).filter(f => f.collectionID === collectionID);
 	}
 
-	async checkAccessIfDisabled(collectionID: string, person: Person): Promise<void> {
+	async checkWriteAccessIfDisabled(collectionID: string | undefined, person: Person): Promise<void> {
+		if (!collectionID) {
+			return;
+		}
 		const isDisabled = await this.findFor(collectionID, (f => f.options.disabled)) || false;
 
 		if (!isDisabled) {

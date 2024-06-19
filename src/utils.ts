@@ -93,7 +93,7 @@ export const dictionarifyByKey = <T>(objects: T[], key: keyof T) =>
 		return map;
 	}, {});
 
-/** Removes keys not in the whitelist from given object. Note that it performs this immutably for performance reasons! */
+/** Removes keys not in the whitelist from given object. Note that it performs this mutably for performance reasons! */
 export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whitelist: Readonly<(keyof T)[]>) => {
 	const knownKeys = dictionarify(Object.getOwnPropertyNames(obj));
 	whitelist && Object.keys(knownKeys).forEach(prop => {

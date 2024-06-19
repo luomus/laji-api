@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
-import { Newable } from "src/type-utils";
+import { JSONObjectSerializable, Newable } from "src/type-utils";
 import { serializeInto } from "src/serializing/serializing";
 import { CacheOptions } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -13,7 +13,8 @@ export type RestClientConfig<T> = RestClientOptions<T> & {
 	name: string;
 	host?: string;
 	auth?: string;
-	headers?: Record<string, string | undefined>
+	headers?: Record<string, string | undefined>;
+	params?: JSONObjectSerializable;
 };
 
 export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions & {
@@ -57,15 +58,20 @@ export class RestClientService<T = unknown> {
 	) { }
 
 	private getRequestConfig(config: AxiosRequestConfig = {}) {
-		if (!this.config.auth) {
-			return config;
+		const { auth } = this.config;
+		const headers = { ...(this.config.headers || {}) };
+		if (auth) {
+			headers.Authorization = auth;
 		}
 		return {
 			...config,
 			headers: {
-				Authorization: this.config.auth,
-				...(this.config.headers || {}),
+				...headers,
 				...(config.headers || {})
+			},
+			params: {
+				...(this.config.params || {}),
+				...(config.params || {})
 			}
 		};
 	}
@@ -111,7 +117,7 @@ export class RestClientService<T = unknown> {
 		// "https://foo.bar/path?param2=bar": "cached example value 2",
 		// } }
 		let cachedByHostAndPath: Record<string, S>;
-		const url = this.getURL(path, config);
+		const url = this.getURL(path, this.getRequestConfig(config));
 		if (this.getCacheConf(options)) {
 			cachedByHostAndPath = await this.cache!.get<Record<string, S>>(this.getHostAndPath(path))
 				|| {} as Record<string, S>;
@@ -119,7 +125,7 @@ export class RestClientService<T = unknown> {
 				? cachedByHostAndPath[url]
 				: undefined;
 			if (cached) {
-				this.logger.verbose(`Cache hit for ${url}`);
+				this.logger.verbose(`GET (CACHED) ${url}`);
 				return cached;
 			}
 		}
@@ -150,6 +156,7 @@ export class RestClientService<T = unknown> {
 		body?: In, config?: AxiosRequestConfig,
 		options?: RestClientOptions<Out>
 	) {
+		this.logger.verbose(`POST ${this.getURL(path, this.getRequestConfig(config))}`);
 		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
@@ -164,6 +171,7 @@ export class RestClientService<T = unknown> {
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<Out>
 	) {
+		this.logger.verbose(`PUT ${this.getURL(path, this.getRequestConfig(config))}`);
 		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
@@ -173,6 +181,7 @@ export class RestClientService<T = unknown> {
 	}
 
 	async delete<Out = unknown>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
+		this.logger.verbose(`DELETE ${this.getURL(path, this.getRequestConfig(config))}`);
 		const result = firstValueFrom(
 			this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
 				.pipe(map(r => r.data))

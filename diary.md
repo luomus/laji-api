@@ -115,11 +115,18 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
  * POST `/documents/validate/` valid response has no body. In the old API it was `{}`.
  * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
  * PUT `/documents/` editing a locked document throws 403, not 422.
+ * Removed `jsonPath` validationErrorFormat, since it wasn't really JSON Path. 
+ * Added `jsonPointer` validationErrorFormat.
+ * POST `/documents/validate` document with MZ.publicityRestrictionsPrivate skips form validations
 
  ## Documents batch job
 
  * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd
    party clients
+
+ ## TODO
+
+ * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`.... This logic is inherited from the old API.
 
 ## Access token renewal
 

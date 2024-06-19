@@ -20,26 +20,40 @@ export abstract class DocumentValidator<T = Document> {
 
 export class ErrorsObj { [path: string]: ErrorsObj | string[] };
 
+/**
+ * Errors are in this format originally:
+ *
+ * { "/formID": ["Missing required param formID"] }.
+ *
+ * This function transforms them to be like this:
+ *
+ * { "/formID": { errors: ["Missing required param formID"] } }.
+ *
+ * Transformation is done mutably.
+ */
+const formatDetails = (details: ErrorsObj | string[]) => {
+	if (details instanceof Array) {
+		return { errors: details };
+	} else {
+		Object.keys(details).forEach(k => {
+			details[k] = formatDetails(details[k] as ErrorsObj | string[]);
+		});
+		return details;
+	}
+};
+
 export class ValidationException extends HttpException {
 	constructor(details: ErrorsObj) {
+		formatDetails(details);
 		super({ statusCode: 422, message: "Unprocessable Entity", details }, 422);
-	}
-
-	getDetails() {
-		const response = this.getResponse();
-		if (typeof response === "string") {
-			throw new Error("Weird ValidationException, 'response' should be an object, not a string");
-		}
-		return (response as any).details;
 	}
 }
 
-
 export const isValidationException = (e: any): e is ValidationException => !!e?.response?.details;
 
-const errorsToObj = (errors: Record<string, string[]>) =>
+const jsonPointerFormatToObjectFormat = (errors: Record<string, string[]>) =>
 	Object.keys(errors).reduce((result, path) => {
-		const parts = path.split(/[.\[\]]/).filter(value => value !== "");
+		const parts = path.split(/\//).filter(value => value !== "");
 		const last = parts.pop() as string;
 		let pointer = result;
 		parts.forEach(part => {
@@ -52,12 +66,14 @@ const errorsToObj = (errors: Record<string, string[]>) =>
 		return result;
 	}, {} as ErrorsObj);
 
-export const formatErrorDetails = (errors: Record<string, string[]>, targetType: ValidationErrorFormat) => {
+export const formatErrorDetails = (
+	errors: Record<string, string[]>,
+	targetType: ValidationErrorFormat = ValidationErrorFormat.jsonPointer
+) => {
 	switch (targetType) {
-	case "jsonPath":
+	case "jsonPointer":
 		return errors;
 	default:
-		return errorsToObj(errors);
+		return jsonPointerFormatToObjectFormat(errors);
 	}
 };
-

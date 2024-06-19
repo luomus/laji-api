@@ -55,7 +55,7 @@ export class DocumentsBatchService {
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
 		// The validation error format parameter doesn't matter, since there are no errors yet.
-		const status = exposeJobStatus(job, ValidationErrorFormat.jsonPath);
+		const status = exposeJobStatus(job);
 		void this.process(processes, job);
 		return status;
 	}
@@ -237,7 +237,7 @@ const asChunks = <T>(items: T[], chunkSize: number) => {
 
 const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, jobID].join(":");
 
-const exposeJobStatus = (job: BatchJob, validationErrorFormat: ValidationErrorFormat) => {
+const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat) => {
 	const { processed, ...restOfJob } = job;
 	const exposedJob = serializeInto(ValidationStatusResponse)(restOfJob);
 	const total = job.documents.length;

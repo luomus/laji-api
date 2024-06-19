@@ -18,20 +18,22 @@ export class GetDocumentsDto extends IntersectionType(
 	@IsOptional()
 	observationYear?: number;
 
+	// `@ApiProperty()` would be the best way to handle the query param renaming, but for some reason when it's combined
+	// with @IsOptionalBoolean(), the value is always false. Thus, the renaming is done in the controller.
+	// @ApiProperty({ name: "templates" })
 	/**	Fetch only templates */
-	@ApiProperty({ name: "templates" })
 	@IsOptionalBoolean()
-	isTemplate: boolean = false;
+	templates?: boolean = false;
 
 	/** Limit the list of documents to a certain named place */
 	@ApiProperty({ name: "namedPlace" })
-	namedPlaceID: string;
+	namedPlaceID?: string;
 	/** Collection id. Child collections are also fetched. */
-	collectionID: string;
+	collectionID?: string;
 	/** Limit the list of documents to a certain source application. */
-	sourceID: string;
-	/** Use this form's features for the request. Doesn't limit the limit of documents to this form ID! */
-	formID: string;
+	sourceID?: string;
+	/** Use this form's features for the request. */
+	formID?: string;
 	/** Comma separated list of field names to include in the response */
 	@CommaSeparatedStrings() selectedFields?: (keyof Document)[];
 }
@@ -39,7 +41,7 @@ export class GetDocumentsDto extends IntersectionType(
 export enum ValidationErrorFormat {
 	remote = "remote",
 	object = "object",
-	jsonPath = "jsonPath"
+	jsonPointer = "jsonPointer"
 }
 
 export class CreateDocumentDto extends IntersectionType(
@@ -74,8 +76,7 @@ export const isSecondaryDocument = (unknown: Document | SecondaryDocumentOperati
 export const isSecondaryDocumentDelete = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is SecondaryDocumentDelete =>
 	(unknown as any).delete
-		&& ("id" in unknown)
-		&& !unknown.formID;
+		&& ("id" in unknown);
 
 export const isSecondaryDocumentOperation = (document: Document | SecondaryDocumentOperation)
 	: document is SecondaryDocumentOperation => {

@@ -61,7 +61,7 @@ export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOp
 
 const optionalBooleanMapper = new Map([
 	  ["true", true],
-	  ["false", false],
+	  ["false", false]
 ]);
 
 export const IsOptionalBoolean = () => applyDecorators(
