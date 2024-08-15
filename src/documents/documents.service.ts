@@ -127,7 +127,7 @@ export class DocumentsService {
 		if (observationYear) {
 			storeQuery = and(
 				storeQuery,
-				dateRangeClause({ from: `${observationYear}-01-01`, to: `${observationYear}-12-31]` })
+				dateRangeClause({ from: `${observationYear}-01-01`, to: `${observationYear}-12-31` })
 			);
 		}
 		return [storeQuery, cacheConfig];

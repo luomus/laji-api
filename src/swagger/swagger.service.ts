@@ -173,7 +173,8 @@ export class SwaggerService {
 
 	/**
 	 * A remote ref might have references to the remote document's schema. This method finds those and merges them to our
-	 * patched document. */
+	 * patched document.
+	 * */
 	private mergeReferencedRefsFromRemote(
 		schema: SwaggerSchema,
 		entry: SwaggerRemoteRefEntry,
