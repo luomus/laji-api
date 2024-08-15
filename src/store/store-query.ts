@@ -155,7 +155,7 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 			if (wrappedClause[k] === undefined) {
 				delete wrappedClause[k];
 			}
-		})
+		});
 		if (!Object.keys(wrappedClause).length) {
 			return "";
 		}

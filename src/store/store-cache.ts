@@ -1,8 +1,6 @@
 import { KeyOf, MaybeArray } from "src/type-utils";
 import { Query, HigherClause, LiteralMapClause, Operation, Literal, ExistsClause,
-	isExistsClause, exists, isLiteralMapClause,
-	isRangeClause,
-	RangeClause} from "./store-query";
+	isExistsClause, exists, isLiteralMapClause, isRangeClause, RangeClause } from "./store-query";
 import { asArray } from "src/utils";
 
 const parseLiteralsOr = (clause: Literal[], separator = ";") => clause.sort().join(separator);

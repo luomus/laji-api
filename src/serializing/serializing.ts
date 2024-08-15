@@ -1,4 +1,4 @@
-import { ClassConstructor, classToPlain, ClassTransformOptions, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
+import { instanceToPlain, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
 import { isObject, Newable } from "src/type-utils";
 import { whitelistKeys } from "src/utils";
 import { getPrivateDecorator } from "./private.decorator";
@@ -26,7 +26,7 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 
 	const plainItem = item.construct === Object
 		? item
-		: classToPlain(item);
+		: instanceToPlain(item);
 	const instance = plainToInstance(Class, plainItem, { enableImplicitConversion: true });
 	(excludePrefix || filterNulls) && Object.keys(instance as any).forEach(k => {
 		if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {

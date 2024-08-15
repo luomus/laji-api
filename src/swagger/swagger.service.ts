@@ -228,7 +228,7 @@ function getJsonSchema(targetConstructor: Type<unknown>) {
 
 const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | ReferenceObject): SchemaObject => {
 	if ("$ref" in schema) {
-		return parseURIFragmentIdentifierRepresentation(document, (schema as any).$ref)
+		return parseURIFragmentIdentifierRepresentation(document, (schema as any).$ref);
 	} else {
 		return schema;
 	}
@@ -237,7 +237,7 @@ const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | Ref
 const applyEntry = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
 	(schema: SchemaItem): SchemaItem | undefined => {
 		if (isSwaggerRemoteRefEntry(entry)) {
-			return replaceWithRemote(entry, schema, document)
+			return replaceWithRemote(entry, schema, document);
 		} else if (isSerializeEntry(entry)) {
 			return replaceWithSerialized(entry, schema);
 		}
@@ -245,7 +245,7 @@ const applyEntry = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =
 	};
 
 const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, document: OpenAPIObject) => {
-	const replacement = { "$ref": `#/components/schemas/${entry.ref}` }
+	const replacement = { "$ref": `#/components/schemas/${entry.ref}` };
 	if (entry.replacePointer) {
 		const schemaDef = getSchemaDefinition(document, schema);
 		updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
