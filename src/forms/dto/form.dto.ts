@@ -45,6 +45,7 @@ export type Form = FormI & {
 	id: string;
 	options?: FormOptions;
 	validators: Validators;
+	warnings?: Validators;
 };
 
 export type FormSchemaFormat = Form & { schema: JSONSchemaObject };

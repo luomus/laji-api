@@ -107,6 +107,7 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 
 * Checking if form has `documentsViewableForAll` option is checked from the collectionID, not from the formID.
 * GET `/documents` `observationYear` doesn't accept `null` anymore for getting documents without any date
+* GET `/documents` `observationYear` queries only with `gatheringEvent.date{Begin,end}`, not with `$.gatherings[*].dateBegin` or `$.gatherings[*].units[*].unitGathering.dateBegin`
 * Document `dateCreated` & `dateEdited` uses zulu date (eg if clock in Finland is 17.25:09 on 21.3.2024, it's `2024-03-21T15:25:09.850Z` instead of `2024-03-21T17:25:09+02:00`)
 * Document `/count/byYear` includes `formID` in the query.
 * Document `/count/stats` doesn't check for `personToken` and it queries for all named places instead of the first 10.
@@ -120,6 +121,7 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
  * Added `jsonPointer` validationErrorFormat.
  * Added `dotNotation` validationErrorFormat.
  * POST `/documents/validate` document with MZ.publicityRestrictionsPrivate skips form validations
+ * Document validation error message doesn't include `"Name": "Error"`
 
  ## Documents batch job
 

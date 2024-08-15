@@ -1,7 +1,7 @@
 import { Document } from "@luomus/laji-schema";
 import { HttpException } from "@nestjs/common";
 import { ApiHideProperty, ApiProperty, IntersectionType, PartialType, getSchemaPath } from "@nestjs/swagger";
-import { Exclude, Type } from "class-transformer";
+import { Exclude, Expose, Type } from "class-transformer";
 import { IsInt, IsOptional } from "class-validator";
 import { LangQueryDto, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
@@ -26,7 +26,8 @@ export class GetDocumentsDto extends IntersectionType(
 	templates?: boolean = false;
 
 	/** Limit the list of documents to a certain named place */
-	@ApiProperty({ name: "namedPlace" })
+	@ApiProperty({ name: "namedPlace" }) // Need both decorators for renaming.
+	@Expose({ name: "namedPlace" })
 	namedPlaceID?: string;
 	/** Collection id. Child collections are also fetched. */
 	collectionID?: string;

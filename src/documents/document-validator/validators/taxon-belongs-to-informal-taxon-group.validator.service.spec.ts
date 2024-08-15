@@ -57,7 +57,7 @@ describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 					message: "Unprocessable Entity",
 					details: {
 						"/gatherings/0/units/0/unitFact/autocompleteSelectedTaxonID":
-						{ errors: ["Taxon does not belong to given informal taxon groups."] }
+						 ["Taxon does not belong to given informal taxon groups."]
 					}
 				});
 			}

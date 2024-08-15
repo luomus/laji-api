@@ -45,21 +45,21 @@ export class TaxonBelongsToInformalTaxonGroupValidatorService implements Documen
 			});
 			return documentTaxa;
 		}, [] as DocumentTaxon[]);
-
-		function getPath(gatheringIdx: number, unitIdx: number) {
-			return `/gatherings/${gatheringIdx}/units/${unitIdx}/unitFact/autocompleteSelectedTaxonID`;
-		}
 	}
 
 	private async validateDocumentTaxon(documentTaxon: DocumentTaxon, informalTaxonGroups: string[]) {
 		const taxon = await this.taxaService.get(documentTaxon.taxonId, "informalTaxonGroups");
 		if (
 			!taxon.informalGroups
-			|| taxon.informalGroups.some(({ id }) => !informalTaxonGroups.includes(id))
+			|| !taxon.informalGroups.some(({ id }) => informalTaxonGroups.includes(id))
 		) {
 			throw new ValidationException({
 				[documentTaxon.path]: ["Taxon does not belong to given informal taxon groups."]
 			});
 		}
 	}
+}
+
+function getPath(gatheringIdx: number, unitIdx: number) {
+	return `/gatherings/${gatheringIdx}/units/${unitIdx}/unitFact/autocompleteSelectedTaxonID`;
 }

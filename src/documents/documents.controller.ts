@@ -1,5 +1,5 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { allowedQueryKeys, DocumentsService } from "./documents.service";
+import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.service";
 import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req, UseFilters } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
@@ -16,7 +16,6 @@ import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ApiTags } from "@nestjs/swagger";
-import { PersonsService } from "src/persons/persons.service";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
 import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
@@ -32,7 +31,6 @@ export class DocumentsController {
 		private accessTokenService: AccessTokenService,
 		private secondaryDocumentsService: SecondaryDocumentsService,
 		private formsService: FormsService,
-		private personsService: PersonsService,
 		private documentsBatchService: DocumentsBatchService
 	) {}
 
@@ -88,22 +86,24 @@ export class DocumentsController {
 		@Req() request: Request,
 		@Query() query: ValidateQueryDto
 	): Promise<unknown> {
-		const { validator, personToken, validationErrorFormat } = query;
+		const { validator, personToken, validationErrorFormat, type } = query;
 		if (validator) {
 			return this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
 		} else {
-			if (!personToken) {
-				throw new HttpException("Person token is required when validating the whole document", 422);
-			}
-			const person = await this.personsService.getByToken(personToken);
 			const accessToken = this.getAccessToken(request);
 
 			// Backward compatibility with old API, where batch jobs are handled by this endpoint.
 			if (document instanceof Array) {
+				if (!personToken) {
+					throw new HttpException("Person token is required for batch operation", 422);
+				}
 				return this.documentsBatchService.start(document, personToken, accessToken);
 			} else if ((document as any)._jobID) {
+				if (!personToken) {
+					throw new HttpException("Person token is required for batch operation", 422);
+				}
 				return this.documentsBatchService.getStatus(
 					(document as any)._jobID,
 					personToken,
@@ -127,14 +127,17 @@ export class DocumentsController {
 				}
 				const populated = await this.secondaryDocumentsService.populateMutably(
 					document as SecondaryDocument,
-					person,
+					undefined,
 					accessToken
 				);
+				if (!personToken) {
+					throw new HttpException("Person token is for batch operation", 422);
+				}
 				return this.secondaryDocumentsService.validate(populated, personToken) as unknown as Promise<Document>;
 			}
 
-			const populatedDocument = await this.documentsService.populateMutably(document, person, accessToken);
-			return this.documentValidatorService.validate(populatedDocument);
+			const populatedDocument = await this.documentsService.populateMutably(document, undefined, accessToken);
+			return this.documentValidatorService.validate(populatedDocument, type!);
 		}
 	}
 
@@ -144,7 +147,7 @@ export class DocumentsController {
 	getPage(@Query() query: GetDocumentsDto): Promise<PaginatedDto<Document>> {
 		const { personToken, page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
-			whitelistKeys(q, allowedQueryKeys),
+			whitelistKeys(q, allowedQueryKeysForExternalAPI),
 			personToken,
 			observationYear,
 			page,

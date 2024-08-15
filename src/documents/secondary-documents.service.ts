@@ -33,7 +33,7 @@ export class SecondaryDocumentsService {
 		return populatedCreateOrDelete;
 	}
 
-	async populateMutably(createOrDelete: SecondaryDocumentOperation, person: Person, accessToken: string)
+	async populateMutably(createOrDelete: SecondaryDocumentOperation, person: Person | undefined, accessToken: string)
 		: Promise<PopulatedSecondaryDocumentOperation>
 	{
 		const populated = (isSecondaryDocumentDelete(createOrDelete)

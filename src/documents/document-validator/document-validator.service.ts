@@ -36,7 +36,7 @@ export class DocumentValidatorService {
 		this.extendLajiValidate();
 	}
 
-	async validate(document: Populated<Document>) {
+	async validate(document: Populated<Document>, type?: ValidationType) {
 		if (document.isTemplate) {
 			return;
 		}
@@ -56,13 +56,13 @@ export class DocumentValidatorService {
 			return;
 		}
 
-		await this.validateAgainstForm(document);
+		await this.validateAgainstForm(document, type);
 	}
 
-	private async validateAgainstForm(document: Populated<Document>) {
-		const { validators } = await this.formsService.get(document.formID, Format.schema);
+	private async validateAgainstForm(document: Populated<Document>, type = ValidationType.error) {
+		const { validators, warnings } = await this.formsService.get(document.formID, Format.schema);
 		try {
-			await lajiValidate.async(document, validators);
+			await lajiValidate.async(document, type === ValidationType.error ? validators : warnings);
 		} catch (e) {
 			const errors = Object.keys(e).reduce((jsonPointerErrors, dotNotationKey) => {
 				jsonPointerErrors[dotNotationToJSONPointer(dotNotationKey)] = e[dotNotationKey];
@@ -109,7 +109,7 @@ export class DocumentValidatorService {
 		type?: ValidationType
 	}) {
 		const  { validator, field, ...validatorOptions } = options;
-		await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
+		return ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
 			.validate(item,
 				field === undefined ? undefined
 					: dotNotationToJSONPointer(field),
@@ -121,15 +121,25 @@ export class DocumentValidatorService {
 		lajiValidate.extend(lajiValidate.validators.remote, {
 			fetch: async (
 				path: string,
-				options: {
-					body: Document,
+				query: {
 					validator: ValidationStrategy,
 					validationErrorFormat: ValidationErrorFormat,
 					field?: string
 				}
-				& JSONObjectSerializable
+				& JSONObjectSerializable,
+				request: { body: string }
 			) => {
-				return this.validateWithValidationStrategy(options.body, options);
+				try {
+					await this.validateWithValidationStrategy(JSON.parse(request.body), query);
+					return { status: 200 };
+				} catch (error) {
+					return {
+						status: error.status || 500,
+						json: () => ({ error: error.response }),
+						// error: error.response,
+						// _body: JSON.stringify(error)
+					};
+				}
 			}
 		});
 	}

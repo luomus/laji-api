@@ -3,7 +3,7 @@ import { parseQuery, getQueryVocabulary } from "./store-query";
 
 type Schema = { foo: string | boolean | number, bar: boolean, baz: number, barbabar: number };
 
-const { and, or, exists, not } = getQueryVocabulary<Schema>();
+const { and, or, exists, not, range } = getQueryVocabulary<Schema>();
 
 describe("parseQuery", () => {
 	it("surrounds string with quotes", () => {
@@ -28,6 +28,10 @@ describe("parseQuery", () => {
 
 	it("parses 'exists' correct", () => {
 		expect(parseQuery<Schema>({ foo: exists })).toBe("_exists_: \"foo\"");
+	});
+
+	it("parses 'range' correct", () => {
+		expect(parseQuery<Schema>({ foo: range("0", "1") })).toBe("foo: [0 TO 1]");
 	});
 
 	it("joins object properties with AND", () => {

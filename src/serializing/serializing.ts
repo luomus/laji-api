@@ -1,4 +1,4 @@
-import { classToPlain, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
+import { ClassConstructor, classToPlain, ClassTransformOptions, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
 import { isObject, Newable } from "src/type-utils";
 import { whitelistKeys } from "src/utils";
 import { getPrivateDecorator } from "./private.decorator";

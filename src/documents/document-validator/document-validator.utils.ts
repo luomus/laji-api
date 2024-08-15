@@ -6,7 +6,7 @@ import { isJSONPointer } from "src/utils";
 
 export const getPath = (path: string | undefined, subpath: string) => {
 	if (!isJSONPointer(subpath)) {
-		throw new Error(`Bad JSON pointer:${subpath}`);
+		throw new Error(`Bad JSON pointer: ${subpath}`);
 	}
 	if (path === undefined || !path.length) {
 		return subpath;
@@ -24,33 +24,10 @@ export abstract class DocumentValidator<T = Document> {
 
 export class ErrorsObj { [path: string]: ErrorsObj | string[] };
 
-// TODO after prod release remove formatting.
-/**
- * Errors are in this format originally:
- *
- * { "/formID": ["Missing required param formID"] }.
- *
- * This function transforms them to be like this:
- *
- * { "/formID": { errors: ["Missing required param formID"] } }.
- *
- * Transformation is done mutably.
- */
-const formatDetails = (details: ErrorsObj | string[]) => {
-	if (details instanceof Array) {
-		return { errors: details };
-	} else {
-		Object.keys(details).forEach(k => {
-			details[k] = formatDetails(details[k] as ErrorsObj | string[]);
-		});
-		return details;
-	}
-};
-
 /** The `details` must be a map of JSON pointers and error message arrays. */
 export class ValidationException extends HttpException {
 	constructor(details: ErrorsObj) {
-		formatDetails(details);
+		// formatDetails(details);
 		super({ statusCode: 422, message: "Unprocessable Entity", details }, 422);
 	}
 }

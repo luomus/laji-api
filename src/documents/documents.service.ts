@@ -19,28 +19,33 @@ import { DocumentValidatorService } from "./document-validator/document-validato
 import { ValidationException } from "./document-validator/document-validator.utils";
 
 /** Allowed query keys of the external API of the document service */
-export const allowedQueryKeys = [
+export const allowedQueryKeysForExternalAPI = [
 	"formID",
 	"collectionID",
 	"sourceID",
 	"isTemplate",
-	"namedPlaceID",
+	"namedPlaceID"
 ] as const;
-type AllowedQueryKeys = typeof allowedQueryKeys[number];
+type AllowedQueryKeysForExternalAPI = typeof allowedQueryKeysForExternalAPI[number];
 
 const dateRangeKeys = [
 	"gatheringEvent.dateBegin",
-	"gatherings.dateBegin",
-	"gatherings.units.unitGathering.dateBegin"
+	"gatheringEvent.dateEnd",
 ] as const;
 type DateRangeKey = typeof dateRangeKeys[number];
 
 /** All keys that the internally constructed store queries can have. */
-export const documentQueryKeys = [...allowedQueryKeys, ...dateRangeKeys, "creator", "editors"] as const;
+export const documentQueryKeys = [
+	...allowedQueryKeysForExternalAPI,
+	...dateRangeKeys,
+	"creator",
+	"editors",
+	"id"
+] as const;
 type DocumentQuery = Pick<Document, Exclude<typeof documentQueryKeys[number], DateRangeKey>>
 	& Record<DateRangeKey, string>;
 
-const { or, and, not, exists } = getQueryVocabulary<DocumentQuery>();
+const { or, and, not, exists, range } = getQueryVocabulary<DocumentQuery>();
 
 const DEFAULT_COLLECTION = "HR.1747";
 
@@ -79,7 +84,7 @@ export class DocumentsService {
 	) {}
 
 	async getClauseForPublicQuery(
-		query: {[prop in AllowedQueryKeys]?: Flatten<Document[prop]>},
+		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Document[prop]>},
 		personToken: string,
 		observationYear?: number,
 	): Promise<[Query<DocumentQuery>, Partial<StoreCacheOptions<Document>>]>  {
@@ -129,7 +134,7 @@ export class DocumentsService {
 	}
 
 	async getPage(
-		query: {[prop in AllowedQueryKeys]?: Flatten<Partial<Document[prop]>>},
+		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Partial<Document[prop]>>},
 		personToken: string,
 		observationYear?: number,
 		page?: number,
@@ -141,7 +146,9 @@ export class DocumentsService {
 	}
 
 	async existsByNamedPlaceID(namedPlaceID: string, dateRange?: { from: string, to: string }, id?: string) {
-		let query: Query<Document> = { namedPlaceID };
+		 // TODO the typings are problematic for query terms that are not keys of the resource, e.g.,
+		// "gatheringEvent.dateBegin"
+		let query: Query<any> = { namedPlaceID };
 		if (id) {
 			query.id = id;
 		}
@@ -287,7 +294,7 @@ export class DocumentsService {
 
 	async populateMutably<T extends Document>(
 		document: T,
-		person: Person,
+		person: Person | undefined,
 		accessToken: string,
 		overwriteSourceID = true
 	) : Promise<Populated<T>> {
@@ -313,7 +320,7 @@ export class DocumentsService {
 		const now = new Date().toISOString();
 		const dateProps: KeyOf<Pick<Document, "dateEdited" | "dateCreated">>[] = ["dateEdited", "dateCreated"];
 		dateProps.forEach(key => {
-			if (!person.isImporter() || !document[key]) {
+			if (!person?.isImporter() || !document[key]) {
 				document[key] = now;
 			}
 		});
@@ -500,11 +507,13 @@ const documentHasNewNamedPlaceNote = (document: Document, place: NamedPlace) => 
 	}
 };
 
-const dateRangeClause = (dateRange: { from: string, to: string }) => {
-	const dateRangeClause = or(dateRangeKeys.reduce((dateQuery, key) =>
-		({ ...dateQuery, [key]: `[${dateRange.from} TO ${dateRange.to}]` }),
-		{} as Record<DateRangeKey, string>));
-	return dateRangeClause;
-};
+const dateRangeClause = (dateRange: { from: string, to: string }) => 
+	or(
+		{ "gatheringEvent.dateBegin": range(dateRange.from, dateRange.to) },
+		and({
+			"gatheringEvent.dateBegin": range("*", dateRange.to),
+			"gatheringEvent.dateEnd": range(dateRange.from, "*")
+		})
+	);
 
 const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });

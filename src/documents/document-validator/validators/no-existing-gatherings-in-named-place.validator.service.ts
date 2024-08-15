@@ -14,8 +14,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		private formsService: FormsService
 	) {}
 
-	async validate(document: Document, path?: string) {
-		const errorPath = getPath(path, "/gatheringEvent/dateBegin");
+	async validate(document: Document, path = "/gatheringEvent/dateBegin") {
 
 		const { formID, namedPlaceID } = document;
 		if (!formID) {
@@ -32,7 +31,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const dateRange = this.getPeriod(form, document, path);
 		if (dateRange === false) {
 			throw new ValidationException(
-				{ [errorPath]: ["Date is not in correct format. Should use format YYYY-MM-DD."] }
+				{ [path]: ["Date is not in correct format. Should use format YYYY-MM-DD."] }
 			);
 		}
 
@@ -47,14 +46,14 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const isNewDoc = !id;
 		if (isNewDoc) {
 			throw new ValidationException(
-				{ [errorPath]: ["Observation already exists withing the given gathering period."] }
+				{ [path]: ["Observation already exists withing the given gathering period."] }
 			);
 		} else {
 			const namedPlaceHasDocumentsForExistingDoc =
 				await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange, id);
 			if (!namedPlaceHasDocumentsForExistingDoc) {
 				throw new ValidationException(
-					{ [errorPath]: ["Observation already exists withing the given gathering period."] }
+					{ [path]: ["Observation already exists withing the given gathering period."] }
 				);
 			}
 		}
