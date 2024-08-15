@@ -38,7 +38,7 @@ import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.mo
 import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 import { TraitModule } from "./trait/trait.module";
 import { ErrorSignatureBackwardCompatibilityFilter }
-from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
+	from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
 
 @Module({
 	imports: [
@@ -89,11 +89,6 @@ from "./error-signature-backward-compatibility/error-signature-backward-compatib
 	],
 	controllers: [AppController],
 	providers: [
-		ProxyToOldApiService,
-		{
-			provide: APP_FILTER,
-			useClass: ProxyToOldApiFilter
-		},
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: SerializingInterceptor
@@ -109,6 +104,11 @@ from "./error-signature-backward-compatibility/error-signature-backward-compatib
 		{
 			provide: APP_FILTER,
 			useClass: ErrorSignatureBackwardCompatibilityFilter
+		},
+		ProxyToOldApiService,
+		{
+			provide: APP_FILTER,
+			useClass: ProxyToOldApiFilter
 		},
 		LajiAuthClientService
 	],

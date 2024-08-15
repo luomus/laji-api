@@ -5,7 +5,6 @@ import { AppModule } from "./app.module";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
-import { ErrorSignatureBackwardCompatibilityFilter } from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
 
 export async function bootstrap() {
 	console.log("Old API must be running at localhost:3003\n");
