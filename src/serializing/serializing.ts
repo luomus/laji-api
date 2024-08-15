@@ -1,4 +1,4 @@
-import { classToPlain, Exclude, Expose, plainToClass, plainToInstance, Transform } from "class-transformer";
+import { ClassConstructor, classToPlain, ClassTransformOptions, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
 import { isObject, Newable } from "src/type-utils";
 import { whitelistKeys } from "src/utils";
 import { getPrivateDecorator } from "./private.decorator";
@@ -27,7 +27,7 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	const plainItem = item.construct === Object
 		? item
 		: classToPlain(item);
-	const instance = plainToClass(Class, plainItem, { enableImplicitConversion: true });
+	const instance = plainToInstance(Class, plainItem, { enableImplicitConversion: true });
 	(excludePrefix || filterNulls) && Object.keys(instance as any).forEach(k => {
 		if (typeof excludePrefix === "string" &&  k.startsWith(excludePrefix)) {
 			delete (instance as any)[k];
@@ -61,7 +61,7 @@ export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOp
 
 const optionalBooleanMapper = new Map([
 	  ["true", true],
-	  ["false", false],
+	  ["false", false]
 ]);
 
 export const IsOptionalBoolean = () => applyDecorators(

@@ -7,7 +7,7 @@ import { PersonsModule } from "../persons/persons.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { MEDIA_CLIENT } from "src/provider-tokens";
 
-const MediaRestClient: FactoryProvider<RestClientService> = {
+const MediaClient: FactoryProvider<RestClientService> = {
 	provide: MEDIA_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService, {
@@ -20,7 +20,7 @@ const MediaRestClient: FactoryProvider<RestClientService> = {
 
 @Module({
 	imports: [TriplestoreModule, PersonsModule],
-	providers: [AbstractMediaService, MediaRestClient],
+	providers: [AbstractMediaService, MediaClient],
 	exports: [AbstractMediaService]
 })
 export class AbstractMediaModule {}

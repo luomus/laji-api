@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
-import { Newable } from "src/type-utils";
+import { JSONObjectSerializable, Newable } from "src/type-utils";
 import { serializeInto } from "src/serializing/serializing";
 import { CacheOptions } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -13,9 +13,17 @@ export type RestClientConfig<T> = RestClientOptions<T> & {
 	name: string;
 	host?: string;
 	auth?: string;
+	headers?: Record<string, string | undefined>;
+	params?: JSONObjectSerializable;
 };
 
-export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions;
+export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions & {
+	/**
+	 * Perform a transformation for the resource fetched with a GET request. Useful for making transformations before
+	 * caching.
+	 */
+	transformer?: (result: T) => T;
+};
 
 export type HasMaybeSerializeInto<T> = {
 	/** A class that that the result will be serialized into. */
@@ -50,10 +58,22 @@ export class RestClientService<T = unknown> {
 	) { }
 
 	private getRequestConfig(config: AxiosRequestConfig = {}) {
-		if (!this.config.auth) {
-			return config;
+		const { auth } = this.config;
+		const headers = { ...(this.config.headers || {}) };
+		if (auth) {
+			headers.Authorization = auth;
 		}
-		return { ...config, headers: { Authorization: this.config.auth, ...(config.headers || {}) } };
+		return {
+			...config,
+			headers: {
+				...headers,
+				...(config.headers || {})
+			},
+			params: {
+				...(this.config.params || {}),
+				...(config.params || {})
+			}
+		};
 	}
 
 	private getHostAndPath(path?: string) {
@@ -97,7 +117,7 @@ export class RestClientService<T = unknown> {
 		// "https://foo.bar/path?param2=bar": "cached example value 2",
 		// } }
 		let cachedByHostAndPath: Record<string, S>;
-		const url = this.getURL(path, config);
+		const url = this.getURL(path, this.getRequestConfig(config));
 		if (this.getCacheConf(options)) {
 			cachedByHostAndPath = await this.cache!.get<Record<string, S>>(this.getHostAndPath(path))
 				|| {} as Record<string, S>;
@@ -105,13 +125,15 @@ export class RestClientService<T = unknown> {
 				? cachedByHostAndPath[url]
 				: undefined;
 			if (cached) {
-				this.logger.verbose(`Cache hit for ${url}`);
+				this.logger.verbose(`GET (CACHED) ${url}`);
 				return cached;
 			}
 		}
 		this.logger.verbose(`GET ${url}`);
 		const result = await firstValueFrom(
-			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r => r.data))
+			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r =>
+				options?.transformer ? options.transformer(r.data) : r.data
+			))
 		);
 		const cacheConf = this.getCacheConf(options);
 		if (cacheConf) {
@@ -129,36 +151,40 @@ export class RestClientService<T = unknown> {
 		return RestClientService.applyOptions<S>(await this.getWithCache<S>(path, config, options), options);
 	}
 
-	async post<S = T, R = T>(
+	async post<Out = T, In = T>(
 		path?: string,
-		body?: R, config?: AxiosRequestConfig,
-		options?: RestClientOptions<S>
+		body?: In, config?: AxiosRequestConfig,
+		options?: RestClientOptions<Out>
 	) {
+		this.logger.verbose(`POST ${this.getURL(path, this.getRequestConfig(config))}`);
 		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.post<S>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+			this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		), options);
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
-	async put<S = T, R = T>(
+	async put<Out = T, In = T>(
 		path?: string,
-		body?: R,
+		body?: In,
 		config?: AxiosRequestConfig,
-		options?: RestClientOptions<S>
+		options?: RestClientOptions<Out>
 	) {
+		this.logger.verbose(`PUT ${this.getURL(path, this.getRequestConfig(config))}`);
 		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.put<S>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+			this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		), options);
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
-	async delete(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
+	async delete<Out = unknown>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
+		this.logger.verbose(`DELETE ${this.getURL(path, this.getRequestConfig(config))}`);
 		const result = firstValueFrom(
-			this.httpService.delete(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r => r.data))
+			this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
+				.pipe(map(r => r.data))
 		);
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;

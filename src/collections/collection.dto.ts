@@ -1,13 +1,8 @@
-import { IsOptionalBoolean } from "src/serializing/serializing";
 import { Private } from "src/serializing/private.decorator";
-import { PagedDto, Lang, MultiLang, HasContext } from "../common.dto";
-import { OmitType } from "@nestjs/swagger";
+import { PagedDto, MultiLang, HasContext, LangQueryDto } from "../common.dto";
+import { IntersectionType, OmitType } from "@nestjs/swagger";
 
-export class FindCollectionsDto extends PagedDto {
-	lang?: Lang = Lang.en;
-	@IsOptionalBoolean()
-	langFallback?: boolean = true;
-}
+export class FindCollectionsDto extends IntersectionType(PagedDto, LangQueryDto) {};
 
 export enum MetadataStatus {
 	Hidden = "MY.metadataStatusHidden"

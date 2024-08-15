@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -9,13 +9,12 @@ import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulate
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
-import { dateToISODate } from "src/utils";
+import { isValidDate, dateToISODate } from "src/utils";
 import { MailService } from "src/mail/mail.service";
-
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
 
 export const AllowedPageQueryKeys = [
-	"id"
+	  "id"
 	, "alternativeIDs"
 	, "municipality"
 	, "birdAssociationArea"
@@ -33,19 +32,16 @@ export class NamedPlacesService {
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,
 		private prepopulatedDocumentService: PrepopulatedDocumentService,
-		private documentService: DocumentsService,
+		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
 		private collectionsService: CollectionsService,
 		private mailService: MailService
 	) {}
 
-	async getPage(
+	async getQuery(
 		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
 		personToken?: string,
 		includePublic?: boolean,
-		page?: number,
-		pageSize = 20,
-		selectedFields?: (keyof NamedPlace)[]
-	) {
+	): Promise<[Query<NamedPlace>, QueryCacheOptions<NamedPlace>]> {
 		if (typeof query.collectionID === "string") {
 			query.collectionID = await this.getCollectionIDs(query.collectionID);
 		}
@@ -73,11 +69,35 @@ export class NamedPlacesService {
 			cacheConfig = { primaryKeys: ["id"] };
 		}
 
+		return [storeQuery, cacheConfig];
+	}
+
+	async getPage(
+		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
+		personToken?: string,
+		includePublic?: boolean,
+		page?: number,
+		pageSize = 20,
+		selectedFields?: (keyof NamedPlace)[]
+	) {
+		const [storeQuery, cacheConfig] = await this.getQuery(query, personToken, includePublic);
+
 		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
 	}
 
+	async getAll(
+		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
+		personToken?: string,
+		includePublic?: boolean,
+		selectedFields?: (keyof NamedPlace)[]
+	) {
+		const [storeQuery, cacheConfig] = await this.getQuery(query, personToken, includePublic);
+
+		return await this.store.getAll(storeQuery, selectedFields, cacheConfig);
+	}
+
 	private async getCollectionIDs(collectionID: string) {
-		const children = (await this.collectionsService.findChildren(collectionID)).map(c => c.id);
+		const children = (await this.collectionsService.findDescendants(collectionID)).map(c => c.id);
 		return [ collectionID, ...children ];
 	}
 
@@ -120,6 +140,10 @@ export class NamedPlacesService {
 
 	async update(id: string, place: NamedPlace, personToken: string) {
 		const existing = await this.get(id, personToken);
+		// TODO remove after store handles POST/PUT properly with separate methods.
+		if (!place.id) {
+			throw new HttpException("You should provide the ID in the body", 422);
+		}
 
 		await this.checkWriteAccess(existing, personToken);
 
@@ -140,7 +164,7 @@ export class NamedPlacesService {
 		await this.checkWriteAccess(existing, personToken);
 
 		if (existing.public) {
-			const hasDocuments = !!(await this.documentService.findOne({ namedPlaceID: id }, "id"));
+			const hasDocuments = await this.documentsService.existsByNamedPlaceID(id);
 			if (hasDocuments) {
 				throw new HttpException("Can't delete public place that has documents", 422);
 			}
@@ -165,7 +189,7 @@ export class NamedPlacesService {
 		let untilDate: Date;
 		if (until) {
 			untilDate = new Date(until);
-			if (isNaN(Date.parse(untilDate as unknown as string))) { // TS is wrong here, `Date.parse()` accepts `Date`.
+			if (!isValidDate(untilDate)) { // TS is wrong here, `Date.parse()` accepts `Date`.
 				throw new HttpException("'until' has bad date format, should be YYYY-MM-DD", 422);
 			}
 			if (untilDate < new Date()) {
@@ -222,7 +246,7 @@ export class NamedPlacesService {
 			throw new HttpException("You don't have access to this place", 403);
 		}
 
-		await this.formsService.checkPersonCanAccessCollectionID(collectionID, person);
+		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
 		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
 			return;

@@ -1,4 +1,4 @@
-import { FactoryProvider, Module } from "@nestjs/common";
+import { FactoryProvider, Module, forwardRef } from "@nestjs/common";
 import { AllowedPageQueryKeys, NamedPlacesService } from "./named-places.service";
 import { NamedPlacesController } from "./named-places.controller";
 import { PersonsModule } from "src/persons/persons.module";
@@ -40,7 +40,8 @@ const StoreResourceService: FactoryProvider<StoreService<NamedPlace>> = {
 @Module({
 	providers: [NamedPlacesService, StoreResourceService],
 	imports: [StoreClientModule, PersonsModule, FormsModule, FormPermissionsModule, PrepopulatedDocumentModule,
-		DocumentsModule, CollectionsModule, MailModule],
-	controllers: [NamedPlacesController]
+		forwardRef(() => DocumentsModule), CollectionsModule, MailModule],
+	controllers: [NamedPlacesController],
+	exports: [NamedPlacesService]
 })
 export class NamedPlacesModule {}

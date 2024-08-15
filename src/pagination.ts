@@ -85,14 +85,14 @@ export const getAllFromPagedResource = async <T>(
  * Creates a function that maps the input items of a "result" with the given function.
  * The "result" is either a page, an array or a single object.
  * */
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: T) =>
-	Promise<R>)
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: T[]) =>
-	Promise<R[]>)
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: PaginatedDto<T>) =>
-	Promise<PaginatedDto<R>>)
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>): ((result: T | T[] | PaginatedDto<T>) =>
-	Promise<R | R[] | PaginatedDto<R>>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+	: ((result: T) => Promise<R>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+	: ((result: T[]) => Promise<R[]>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+	: ((result: PaginatedDto<T>) => Promise<PaginatedDto<R>>)
+function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+	: ((result: T | T[] | PaginatedDto<T>) => Promise<R | R[] | PaginatedDto<R>>)
 {
 	return async (result: T | T[] | PaginatedDto<T>): Promise<R | R[] | PaginatedDto<R>> => {
 		if (isPaginatedDto(result)) {

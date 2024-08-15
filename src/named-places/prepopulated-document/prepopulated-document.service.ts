@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { checkHasOnlyFieldsInForm } from "src/documents/documents.service";
+import { checkHasOnlyFieldsInForm } from "src/documents/document-validator/document-validator.service";
 import { Form, Format, PrepopulatedDocumentFieldFn, PrepopulatedDocumentFieldFnArea, PrepopulatedDocumentFieldFnJoin,
 	PrepopulatedDocumentFieldFnTaxon } from "src/forms/dto/form.dto";
 import { FormsService } from "src/forms/forms.service";
-import { Document } from "@luomus/laji-schema/dto";
+import { Document } from "@luomus/laji-schema";
 import { NamedPlace } from "../named-places.dto";
 import { MaybeArray } from "src/type-utils";
-import { LangService } from "src/lang/lang.service";
+import { LangService, translateMaybeMultiLang } from "src/lang/lang.service";
 import { asArray, parseJSONPointer, updateWithJSONPointer } from "src/utils";
 import { TaxaService } from "src/taxa/taxa.service";
 import { Lang } from "src/common.dto";
@@ -23,7 +23,6 @@ export class PrepopulatedDocumentService {
 		private areaService: AreaService
 	) { }
 
-
 	async augment(place: NamedPlace) {
 		const prepopulatedDocument = await this.getAugmentedFor(place);
 		if (prepopulatedDocument) {
@@ -37,7 +36,7 @@ export class PrepopulatedDocumentService {
 			return;
 		}
 		const strictForm = await this.formsService.findFor(collectionID,
-			form => form.options?.strict !== false // Defaults to true.
+			form => form.options?.strict !== false
 		);
 		if (!strictForm) {
 			return;
@@ -46,7 +45,7 @@ export class PrepopulatedDocumentService {
 		checkHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
 	}
 
-	private async assignFor(place: NamedPlace, document: Document): Promise<void> {
+	async assignFor(place: NamedPlace, document: Document): Promise<void> {
 		const updateAcceptedDocument = place.collectionID
 			&& !place.prepopulatedDocument
 			&& !place.acceptedDocument
@@ -108,9 +107,12 @@ export class PrepopulatedDocumentService {
 			{ taxonProp = "vernacularName" },
 			pointedValue: string
 		) : Promise<string | undefined> => {
-			const taxon = await this.langService.translate(await this.taxaService.get(pointedValue), Lang.fi);
-			const value = taxon[taxonProp as keyof Taxon];
-			return value as string;
+			const taxon = await this.taxaService.get(pointedValue);
+			const value = translateMaybeMultiLang(taxon[taxonProp as keyof Taxon], Lang.fi);
+			if (value instanceof Array) {
+				throw new Error("Can't resolve into an array value");
+			}
+			return value;
 		},
 		area: async (
 			{ type = "ML.municipality", key = "name", delimiter = ", " },
@@ -139,10 +141,12 @@ type PrepopulatedDocumentFieldFnMap = {
 type HasPrepopDocFields = {
 	options: Form["options"]
 		& {
-			namedPlaceOptions: NonNullable<Form["options"]["namedPlaceOptions"]> &
+			namedPlaceOptions: NonNullable<NonNullable<Form["options"]>["namedPlaceOptions"]> &
 			{
 				prepopulatedDocumentFields:
-					NonNullable<NonNullable<Form["options"]["namedPlaceOptions"]>["prepopulatedDocumentFields"]>
+					NonNullable<
+						NonNullable<NonNullable<Form["options"]>["namedPlaceOptions"]
+					>["prepopulatedDocumentFields"]>
 			}
 		}
 }

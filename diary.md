@@ -27,6 +27,8 @@ to:
 }
 ```
 
+Backward compatibility is maintained at the moment though.
+
 Error messages might change.
 
 ## JSON-LD
@@ -50,7 +52,7 @@ In old api most paged results have `@context` in the root. Pre-paged results bei
 
 ## Page sizes
 
-Default page size for all queries is 20. I didn't investigate it the page size changes per endpoint in the old API.
+Default page size for all queries is 20. I didn't investigate if the page size changes per endpoint in the old API.
 
 * `/forms` old API returned all forms with the page size equal to the forms length. New API was made to have page size 1000 by default, so the frontend works the same.
 
@@ -98,8 +100,37 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 * GET `/named-places` using `selectedFields` param doesn't automatically add 'id' to the param
 * POST `/named-places` public place without edit rights to collection gives 403, not 422
 * POST `/named-places` doesn't care about lang param
-* Creating a named place with a prepopulatedDocument with null id doesn't automatically remove id id: an error is raised instead
+* Creating a named place with a prepopulatedDocument with null id doesn't automatically remove id: an error is raised instead
 * Creating a named place with a prepopulatedDocument with empty gatherings doesn't try to create an empty gathering: an error is raised instead
+
+ ## Documents
+
+* Checking if form has `documentsViewableForAll` option is checked from the collectionID, not from the formID.
+* GET `/documents` `observationYear` doesn't accept `null` anymore for getting documents without any date
+* GET `/documents` `observationYear` queries only with `gatheringEvent.date{Begin,end}`, not with `$.gatherings[*].dateBegin` or `$.gatherings[*].units[*].unitGathering.dateBegin`
+* Document `dateCreated` & `dateEdited` uses zulu date (eg if clock in Finland is 17.25:09 on 21.3.2024, it's `2024-03-21T15:25:09.850Z` instead of `2024-03-21T17:25:09+02:00`)
+* Document `/count/byYear` includes `formID` in the query.
+* Document `/count/stats` doesn't check for `personToken` and it queries for all named places instead of the first 10.
+
+ ## Documents validation
+
+ * POST `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used.
+ * POST `/documents/validate/` valid response has no body. In the old API it was `{}`.
+ * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
+ * PUT `/documents/` editing a locked document throws 403, not 422.
+ * Added `jsonPointer` validationErrorFormat.
+ * Added `dotNotation` validationErrorFormat.
+ * POST `/documents/validate` document with MZ.publicityRestrictionsPrivate skips form validations
+ * Document validation error message doesn't include `"Name": "Error"`
+
+ ## Documents batch job
+
+ * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd
+   party clients
+
+ ## TODO
+
+ * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`.... This logic is inherited from the old API.
 
 ## Access token renewal
 
@@ -107,7 +138,7 @@ Old API checked that the renewal wasn't being spammed. New API doesn't care - th
 
 ## Store query interpreting
 
-Old API filtered out non QNames from queries. For example, when querying named place with `?municipality=all`, the municipality filter was actually dropped from the query because "all" isn't a QName. New API bypasses all values and doesn't check if the queries make sense (other than checking for injections). This is left to clients responsibility.
+Old API filtered out non QNames from queries. For example, when querying named place with `?municipality=all`, the municipality filter was actually dropped from the query because "all" isn't a QName. New API bypasses all values and doesn't check if the queries make sense (other than checking for injections). This is left to the client's responsibility.
 
 # Database changes
 
@@ -117,7 +148,15 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
 
-
 # Blocked work
 
 * Trait DB swagger paged results https://www.pivotaltracker.com/story/show/187328917
+
+# Migration work after prod release
+
+* Drop support for document endpoint validationErrorFormat.jsonPath, because:
+	* It's not really JSON path, because it doesn't start with "$".
+	* JSON path is misleading to use, because it can target multiple items.
+* Remove "errors" wrapper in document validation responses. Should use an array instead. Reasons:
+	* Using the object notation, it would be impossible to target a property that has the name "errors"
+	* Unnecessary; adds to complexity.

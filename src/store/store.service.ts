@@ -1,12 +1,14 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination";
-import { KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
+import { JSONObjectSerializable, KeyOf, MaybeArray, omitForKeys } from "src/type-utils";
 import { parseQuery, Query } from "./store-query";
-import { asArray, doMaybe } from "src/utils";
+import { asArray, doForDefined } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";
 import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
 } from "./store-cache";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+import { AxiosRequestConfig } from "axios";
+import { StoreDeleteResponse } from "./store.dto";
 
 export type StoreQueryResult<T> = {
 	member: T[];
@@ -28,18 +30,18 @@ export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
 }
 
 /**
- * A service for using a specific store endpoint, applying the given options to each method, allowing caching
- * and serialization - Expect for `getPage()` and `getAll()` methods, since the whole result shouldn't be serialized.
+ * A service for using a specific store endpoint, applying the given options to each method, allowing caching and
+ * serialization (except for `getPage()` and `getAll()` methods, since the whole result shouldn't be serialized).
  * Use `findOne()` to serialize the result.
  */
 @Injectable()
 export class StoreService<T extends { id?: string }> {
 
 	private logger = new Logger(StoreService.name + "/" + this.config.resource);
-	private restClientOptions = doMaybe(omitForKeys<StoreConfig<T>>("resource", "cache"));
+	private restClientOptions = doForDefined(omitForKeys<StoreConfig<T>>("resource", "cache"));
 
 	constructor(
-		private storeClient: RestClientService<T>,
+		private client: RestClientService<T>,
 		private readonly cache: RedisCacheService,
 		private config: StoreConfig<T>
 	) {}
@@ -59,7 +61,7 @@ export class StoreService<T extends { id?: string }> {
 				return cached;
 			}
 		}
-		const result = pageAdapter(await this.storeClient.get<StoreQueryResult<T>>(
+		const result = pageAdapter(await this.client.get<StoreQueryResult<T>>(
 			this.config.resource,
 			{ params: {
 				q: parseQuery<T>(query),
@@ -67,7 +69,7 @@ export class StoreService<T extends { id?: string }> {
 				page_size: pageSize,
 				fields: asArray(selectedFields).join(",")
 			} },
-			doMaybe(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
+			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
 		));
 		if (this.config.cache) {
 			await this.cache.set(cacheKey!, result);
@@ -75,10 +77,10 @@ export class StoreService<T extends { id?: string }> {
 		return result;
 	}
 
-	async getAll(query: Query<T>, cacheOptions?: QueryCacheOptions<T>) {
+	async getAll(query: Query<T>, selectedFields: MaybeArray<KeyOf<T>> = [], cacheOptions?: QueryCacheOptions<T>) {
 		return getAllFromPagedResource(
 			(page: number) => this.getPage(
-				query, page, 10000, undefined, cacheOptions
+				query, page, 10000, selectedFields, cacheOptions
 			)
 		);
 	}
@@ -90,6 +92,33 @@ export class StoreService<T extends { id?: string }> {
 		);
 	}
 
+	async search<Out = JSONObjectSerializable>(
+		query: Query<T>,
+		body: JSONObjectSerializable,
+		cacheOptions?: QueryCacheOptions<T>
+	): Promise<Out> {
+		let cacheKey: string | undefined;
+		if (this.config.cache) {
+			cacheKey = this.cacheKeyForSearch(query, body, cacheOptions);
+			const cached = await this.cache.get<Out>(cacheKey);
+			if (cached) {
+				return cached;
+			}
+		}
+		const result = await this.client.post<Out, JSONObjectSerializable>(
+			`${this.config.resource}/_search`,
+			body,
+			{ params: {
+				q: parseQuery<T>(query)
+			} },
+			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
+		);
+		if (this.config.cache) {
+			await this.cache.set(cacheKey!, result);
+		}
+		return result;
+	}
+
 	async get(id: string): Promise<T & { id: string }> {
 		const { cache } = this.config;
 		if (cache) {
@@ -98,7 +127,7 @@ export class StoreService<T extends { id?: string }> {
 				return RestClientService.applyOptions(cached, this.restClientOptions(this.config));
 			}
 		}
-		const result = await this.storeClient.get<T & { id: string }>(`${this.config.resource}/${id}`,
+		const result = await this.client.get<T & { id: string }>(`${this.config.resource}/${id}`,
 			undefined,
 			this.restClientOptions(this.config));
 		if (cache) {
@@ -108,7 +137,7 @@ export class StoreService<T extends { id?: string }> {
 	}
 
 	async create(item: Partial<T>) {
-		const result = await this.storeClient.post<T & { id: string }, Partial<T>>(
+		const result = await this.client.post<T & { id: string }, Partial<T>>(
 			this.config.resource,
 			item,
 			undefined,
@@ -121,8 +150,18 @@ export class StoreService<T extends { id?: string }> {
 		return result;
 	}
 
-	async update<TT extends T & {id: string}>(item: TT) {
-		const result = await this.storeClient.put<T & { id: string }, TT>(
+	async flushCache(item: T) {
+		if (!this.config.cache) {
+			return;
+		}
+		if (item.id) {
+			await this.cache.del(this.withCachePrefix(item.id));
+		}
+		await this.bustCacheForResult(item);
+	}
+
+	async update<Existing extends T & {id: string}>(item: Existing) {
+		const result = await this.client.put<Existing, Existing>(
 			`${this.config.resource}/${item.id}`,
 			item,
 			undefined,
@@ -146,7 +185,11 @@ export class StoreService<T extends { id?: string }> {
 		}
 
 		const path = `${this.config.resource}/${id}`;
-		const result = await this.storeClient.delete(path, undefined, this.restClientOptions(this.config));
+		const result = await this.client.delete<StoreDeleteResponse>(
+			path,
+			undefined,
+			this.restClientOptions(this.config)
+		);
 
 		if (cache) {
 			await this.cache.del(this.withCachePrefix(id));
@@ -159,6 +202,11 @@ export class StoreService<T extends { id?: string }> {
 			await this.bustCacheForResult(existing);
 		}
 		return result;
+	}
+
+	post<Out = T, In = T>(path = "", body?: any, config?: AxiosRequestConfig) {
+		const pathWithResource = `${this.config.resource}/${path}`;
+		return this.client.post<Out, In>(pathWithResource, body, config);
 	}
 
 	private withCachePrefix(key: string) {
@@ -234,6 +282,21 @@ export class StoreService<T extends { id?: string }> {
 				this.getCacheConfig(config)
 			)) + pagedSuffix;
 		});
+	}
+
+	private cacheKeyForSearch(
+		query: Query<T>,
+		body: JSONObjectSerializable,
+		queryCacheOptions: Pick<QueryCacheOptions<T>, "primaryKeys"> = {}
+	) {
+		if (!this.config.cache) {
+			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
+		}
+		const suffix = `:${[JSON.stringify(body)]}`;
+		const config = this.getCacheConfig(queryCacheOptions.primaryKeys);
+		const queryCacheKey = getCacheKeyForQuery(query, config);
+		const cacheSpaceToken = this.tokenizePrimaryKeys(config.primaryKeys);
+		return this.withCachePrefix(cacheSpaceToken + ":" + queryCacheKey) + suffix;
 	}
 }
 

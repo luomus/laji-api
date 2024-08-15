@@ -1,10 +1,11 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { Form, FormListing, FormSchemaFormat, Format } from "./dto/form.dto";
+import { Form, FormListing, FormSchemaFormat, Format, Hashed, isFormSchemaFormat } from "./dto/form.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { Lang } from "src/common.dto";
 import { Person, Role } from "src/persons/person.dto";
 import { CollectionsService } from "src/collections/collections.service";
 import { FORM_CLIENT } from "src/provider-tokens";
+import { createHash } from "crypto";
 
 @Injectable()
 export class FormsService {
@@ -21,16 +22,29 @@ export class FormsService {
 		return this.formClient.post("", form, { params: { personToken } });
 	}
 
+	get(id: string): Promise<Form>
 	get(id: string, format: Format.json, lang?: Lang, expand?: boolean): Promise<Form>
-	get(id: string, format: Format.schema, lang?: Lang, expand?: boolean): Promise<FormSchemaFormat>
-	get(id: string, format?: Format, lang?: Lang, expand?: boolean): Promise<Form | FormSchemaFormat>
+	get(id: string, format: Format.schema, lang?: Lang, expand?: boolean): Promise<Hashed<FormSchemaFormat>>
+	get(id: string, format?: Format, lang?: Lang, expand?: boolean): Promise<Form | Hashed<FormSchemaFormat>>
 	get(id: string, format: Format = Format.json, lang: Lang = Lang.en, expand = true)
-		: Promise<Form | FormSchemaFormat> {
-		return this.formClient.get(id, { params: {
+		: Promise<Form | Hashed<FormSchemaFormat>> {
+		return this.formClient.get<Form | FormSchemaFormat>(id, { params: {
 			format,
 			lang: formatLangParam(lang),
 			expand
-		} }
+		} }, {
+			// We add $id property, which is a hash of the schema so document validation knows when to compile a new
+			// validator.
+			transformer: (form) => {
+				if (isFormSchemaFormat(form)) {
+					(form as Hashed<FormSchemaFormat>).$id =
+						createHash("md5")
+							.update(JSON.stringify(form.schema))
+							.digest("hex");
+				}
+				return form;
+			}
+		}
 		);
 	}
 
@@ -50,9 +64,11 @@ export class FormsService {
 		return (await this.getListing()).filter(f => f.collectionID === collectionID);
 	}
 
-	async checkPersonCanAccessCollectionID(collectionID: string, person: Person): Promise<void> {
-		const collectionForms = await this.findListedByCollectionID(collectionID);
-		const isDisabled = collectionForms.some(f => f?.options.disabled) || false;
+	async checkWriteAccessIfDisabled(collectionID: string | undefined, person: Person): Promise<void> {
+		if (!collectionID) {
+			return;
+		}
+		const isDisabled = await this.findFor(collectionID, (f => f.options.disabled)) || false;
 
 		if (!isDisabled) {
 			return;
@@ -64,8 +80,7 @@ export class FormsService {
 	}
 
 	/** Use Array.*find* *for the collection* and it's parents with the *predicate* */
-	async findFor(collectionID: string, predicate: (f: Form) => unknown)
-		: Promise<Form | undefined> {
+	async findFor(collectionID: string, predicate: (f: FormListing) => unknown) : Promise<FormListing | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
 		const matches = forms.find(predicate);
 		if (matches) {

@@ -93,8 +93,8 @@ export const dictionarifyByKey = <T>(objects: T[], key: keyof T) =>
 		return map;
 	}, {});
 
-/** Removes given keys from given object. Note that it performs this immutably for performance reasons! */
-export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whitelist: (keyof T)[]) => {
+/** Removes keys not in the whitelist from given object. Note that it performs this mutably for performance reasons! */
+export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whitelist: Readonly<(keyof T)[]>) => {
 	const knownKeys = dictionarify(Object.getOwnPropertyNames(obj));
 	whitelist && Object.keys(knownKeys).forEach(prop => {
 		if (!whitelist.includes(prop)) {
@@ -183,10 +183,14 @@ export const parseURIFragmentIdentifierRepresentation = <T = unknown>(
 export const asArray = <T>(maybeArr: T | T[]): T[] =>
 	Array.isArray(maybeArr) ? maybeArr : [maybeArr];
 
-export const doMaybe = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
+/** Returns a function that applies the given predicate to the input, if it's not undefined. */
+export const doForDefined = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
 
 // TODO check for invalid date after documents branch merge
 export const dateToISODate = (date: Date): string => date.toISOString().split("T")[0] as string;
+
+// TS is wrong here, `Date.parse()` accepts `Date`.
+export const isValidDate = (date?: Date) => !isNaN(Date.parse(date as unknown as string));
 
 /** @throws Error if array is empty */
 export const lastFromNonEmptyArr = <T>(arr: T[]): T => {
@@ -195,3 +199,30 @@ export const lastFromNonEmptyArr = <T>(arr: T[]): T => {
 	}
 	return arr[arr.length - 1]!;
 };
+
+/** @throws Error if array is empty */
+export const firstFromNonEmptyArr = <T>(arr: T[]): T => {
+	if (arr.length === 0) {
+		throw new Error("Array was empty");
+	}
+	return arr[0]!;
+};
+
+export const dotNotationToJSONPointer = (pointer: string) => {
+	const splits = pointer.split(/[.\[\]]/).filter(value => value !== "");
+	return "/" + splits.join("/");
+};
+
+export const isJSONPointer = (pointer: string) => 
+	pointer === "" || pointer[0] === "/";
+
+// export const jsonPointerToJsonPath = (pointer: string) => {
+// 	const splits = pointer.split("/");
+// 	splits.shift();
+// 	return splits.reduce((path, item) => {
+// 		if (!isNaN(+item)) {
+// 			return path + `[${item}]`;
+// 		}
+// 		return path + `.${item}`;
+// 	}, "");
+// };

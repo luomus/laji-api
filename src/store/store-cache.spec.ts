@@ -3,7 +3,7 @@ import { getCacheKeyForQuery, getCacheKeyForResource } from "./store-cache";
 
 type Schema = { collectionID: string, public: boolean, owner: string };
 
-const { and, or, exists, not } = getQueryVocabulary<Schema>();
+const { and, or, exists, not, range } = getQueryVocabulary<Schema>();
 
 const keys = ["collectionID", "public", "owner"] as (keyof Schema)[];
 
@@ -35,6 +35,11 @@ describe("Store query cache", () => {
 		it("exists as asterisk", () => {
 			expect(getCacheKeyForQuery<Schema>({ collectionID: exists, owner: "bilbo" }, config))
 				.toBe("key_collectionID:;*;key_owner:;bilbo;key_public:;*;");
+		});
+
+		it("range as is", () => {
+			expect(getCacheKeyForQuery<Schema>({ collectionID: range("0", "1"), owner: "bilbo" }, config))
+				.toBe("key_collectionID:;[0 TO 1];key_owner:;bilbo;key_public:;*;");
 		});
 
 		it("flattens AND", () => {

@@ -1,11 +1,14 @@
 import { KeyOf, MaybeArray } from "src/type-utils";
 import { Query, HigherClause, LiteralMapClause, Operation, Literal, ExistsClause,
-	isExistsClause, exists, isLiteralMapClause } from "./store-query";
+	isExistsClause, exists, isLiteralMapClause,
+	isRangeClause,
+	RangeClause} from "./store-query";
 import { asArray } from "src/utils";
 
 const parseLiteralsOr = (clause: Literal[], separator = ";") => clause.sort().join(separator);
 const parseLiteral = (clause: Literal) => "" + clause;
 const parseExistsClause = () => "*";
+const parseRangeClause = (clause: RangeClause) => clause.value;
 const parseNotExistsClause = () => "_NOT_EXISTS_";
 
 const nonOperativeKeys = <T>(clause: LiteralMapClause<T, Operation>) =>
@@ -24,6 +27,8 @@ const parseLiteralValue = (clause?: MaybeArray<Literal>, separator?: string): st
 const parseLiteralMapValue = (clause?: MaybeArray<Literal> | ExistsClause, separator?: string): string => {
 	if (isExistsClause(clause)) {
 		return parseExistsClause();
+	} else if (isRangeClause(clause)) {
+		return parseRangeClause(clause);
 	}
 	return parseLiteralValue(clause, separator);
 };

@@ -18,11 +18,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:e2e-old": "mocha --require integration-test/setup.js ./integration-test/{form-permission,forms,collection,person,notifications,api-user,audio,image,warehouse,named-place,trait}/tests.js --exit",
+    "test:e2e-old": "mocha --require integration-test/setup.js ./integration-test/{form-permission,forms,collection,person,notifications,api-user,audio,image,warehouse,named-place,trait,document}/tests.js ./integration-test/document/validate-tests.js --exit",
     "test:e2e-old:ci": "npm run test:e2e-old -- -R xunit --grep @no-ci --invert"
   },
   "dependencies": {
     "@luomus/laji-schema": "^2.0.34",
+    "@luomus/laji-validate": "^0.0.121",
     "@nestjs-modules/mailer": "^1.9.1",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^10.2.4",
@@ -32,6 +33,7 @@
     "@nestjs/schedule": "^3.0.3",
     "@nestjs/swagger": "^7.1.10",
     "@nestjs/typeorm": "^10.0.0",
+    "ajv": "^8.12.0",
     "axios": "^1.5.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
@@ -96,6 +98,6 @@
     "testEnvironment": "node"
   },
   "volta": {
-    "node": "16.20.2"
+    "node": "18.19.1"
   }
 }

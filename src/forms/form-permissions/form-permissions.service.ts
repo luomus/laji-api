@@ -7,7 +7,7 @@ import { MailService } from "src/mail/mail.service";
 import { Person, Role } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { StoreService } from "src/store/store.service";
-import { Form, Format } from "../dto/form.dto";
+import { FormListing, Format } from "../dto/form.dto";
 import { FormsService } from "../forms.service";
 import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto
 } from "./dto/form-permission.dto";
@@ -26,7 +26,7 @@ export class FormPermissionsService {
 
 	async getByPersonToken(personToken: string): Promise<FormPermissionPersonDto> {
 		const person = await this.personsService.getByToken(personToken);
-		const entities = await this.store.getAll({ userID: person.id }, { primaryKeys: ["userID"] });
+		const entities = await this.store.getAll({ userID: person.id }, undefined, { primaryKeys: ["userID"] });
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
 			...entitiesToPermissionLists(entities, "collectionID")
@@ -45,20 +45,21 @@ export class FormPermissionsService {
 	private async findByCollectionID(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
 		return entitiesToPermissionLists(
-			await this.store.getAll({ collectionID }, { primaryKeys: ["collectionID"] }),
+			await this.store.getAll({ collectionID }, undefined, { primaryKeys: ["collectionID"] }),
 			"userID");
 	}
 
-	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string): Promise<FormPermissionDto> {
+	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string)
+		: Promise<FormPermissionDto | null> {
 		const person = await this.personsService.getByToken(personToken);
 		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
 
-	private async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
+	private async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto | null> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
 		if (!formWithPermissionFeature?.collectionID) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
+			return null;
 		}
 
 		const permissions = await this.findByCollectionID(formWithPermissionFeature.collectionID);
@@ -76,7 +77,7 @@ export class FormPermissionsService {
 		return { collectionID, ...permissions };
 	}
 
-	private async findFormWithPermissionFeature(collectionID: string): Promise<Form | undefined> {
+	private async findFormWithPermissionFeature(collectionID: string) {
 		return this.formService.findFor(
 			collectionID,
 			form => form.options.restrictAccess || form.options.hasAdmins
@@ -86,6 +87,10 @@ export class FormPermissionsService {
 	async requestAccess(collectionID: string, personToken: string) {
 		const person = await this.personsService.getByToken(personToken);
 		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
+
+		if (!permissions) {
+			throw new HttpException("Form does not have restrict feature enabled", 404);
+		}
 
 		if (hasEditRightsOf(permissions, person)) {
 			throw new HttpException("You already have access to this form", 406);
@@ -116,6 +121,10 @@ export class FormPermissionsService {
 
 		const authorPermissions = await this.getByCollectionIDAndPerson(collectionID, author);
 
+		if (!authorPermissions) {
+			throw new HttpException("Form does not have restrict feature enabled", 404);
+		}
+
 		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
 		}
@@ -144,6 +153,7 @@ export class FormPermissionsService {
 	private async findExistingEntity(collectionID: string, personID: string) {
 		const permissions = await this.store.getAll(
 			{ collectionID, userID: personID },
+			undefined,
 			{ primaryKeys: ["collectionID", "userID"] }
 		);
 		const existing = permissions.pop();
@@ -167,6 +177,10 @@ export class FormPermissionsService {
 
 		const authorPermissions = await this.getByCollectionIDAndPerson(collectionID, author);
 
+		if (!authorPermissions) {
+			throw new HttpException("Form does not have restrict feature enabled", 404);
+		}
+
 		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
 		}
@@ -186,6 +200,9 @@ export class FormPermissionsService {
 			collectionID,
 			personToken
 		);
+		if (!permissions) {
+			throw new HttpException("Form does not have restrict feature enabled", 404);
+		}
 		const person = await this.personsService.getByToken(personToken);
 		return isAdminOf(permissions, person);
 	}
@@ -231,7 +248,11 @@ export class FormPermissionsService {
 		return { fi, sv, en };
 	}
 
-	private async getFormTitleForLang(collectionID: string, form: Form | undefined, lang: Lang): Promise<string> {
+	private async getFormTitleForLang(
+		collectionID: string,
+		form: FormListing | undefined,
+		lang: Lang
+	): Promise<string> {
 		if (form?.options.shortTitleFromCollectionName && collectionID) {
 			const collection = await this.langService.translate<Collection<MultiLang>, Collection<string>>(
 				await this.collectionsService.get(collectionID),
@@ -257,8 +278,9 @@ const isAdminOf = (permissions: PermissionLists, person: Person) =>
 	person.role?.some(r => r === Role.Admin)
 		|| permissions.admins?.includes(person.id);
 
-const hasEditRightsOf = (permissions: FormPermissionDto, person: Person) =>
-	isAdminOf(permissions, person)
+const hasEditRightsOf = (permissions: FormPermissionDto | null, person: Person) =>
+	!permissions
+		|| isAdminOf(permissions, person)
 		|| permissions.editors.includes(person.id);
 
 const hasRequested = (permissions: FormPermissionDto, person: Person) =>

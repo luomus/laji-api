@@ -1,4 +1,6 @@
-import { Taxon as TaxonI } from "@luomus/laji-schema";
-import { HasContext } from "src/common.dto";
+import { InformalTaxonGroup } from "@luomus/laji-schema/models";
 
-export type Taxon = TaxonI & HasContext;
+export type Taxon = {
+	vernacularName?: string;
+	informalGroups?: (InformalTaxonGroup & { id: NonNullable<InformalTaxonGroup["id"]> })[];
+};

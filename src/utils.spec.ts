@@ -1,4 +1,5 @@
-import { parseJSONPointer, parseURIFragmentIdentifierRepresentation, updateWithJSONPointer } from "./utils";
+import { dotNotationToJSONPointer, parseJSONPointer, parseURIFragmentIdentifierRepresentation, updateWithJSONPointer }
+	from "./utils";
 
 describe("utils", () => {
 	const obj = {
@@ -9,7 +10,7 @@ describe("utils", () => {
 
 	// Our implementation is partial, excluding functionality that we don't use, to keep complexity small.
 	// For example, we don't care about escaping ~1, ~0.
-	describe("parseJSONPointer", () => {
+	describe("parseJSONPointer()", () => {
 
 		it("parses empty as whole obj", () => {
 			expect(parseJSONPointer(obj, "")).toBe(obj);
@@ -44,7 +45,7 @@ describe("utils", () => {
 		});
 	});
 
-	describe("updateWithJSONPointer", () => {
+	describe("updateWithJSONPointer()", () => {
 
 		it("updates value in path", () => {
 			const obj2 = { a: "foo" };
@@ -81,7 +82,7 @@ describe("utils", () => {
 		});
 	});
 
-	describe("parseURIFragmentIdentifierRepresentation", () => {
+	describe("parseURIFragmentIdentifierRepresentation()", () => {
 
 		it("parses empty as whole obj", () => {
 			expect(parseURIFragmentIdentifierRepresentation(obj, "#")).toBe(obj);
@@ -117,6 +118,38 @@ describe("utils", () => {
 
 		it("safely option returns undefined for nonexistent property deeply", () => {
 			expect(parseURIFragmentIdentifierRepresentation(obj, "#/not/existent", { safely: true })).toBe(undefined);
+		});
+	});
+
+	describe("dotNotationToJSONPointer()", () => {
+		it("converts empty string to root pointer", () => {
+			expect(dotNotationToJSONPointer("")).toBe("/");
+		});
+
+		it("converts single depth property", () => {
+			expect(dotNotationToJSONPointer("foo")).toBe("/foo");
+		});
+
+		it("converts nested property", () => {
+			expect(dotNotationToJSONPointer("foo.bar")).toBe("/foo/bar");
+		});
+
+		it("converts array index notation", () => {
+			expect(dotNotationToJSONPointer("foo[0]")).toBe("/foo/0");
+		});
+
+		it("converts complex nested structure", () => {
+			expect(dotNotationToJSONPointer("foo[0].bar.baz[3]")).toBe("/foo/0/bar/baz/3");
+		});
+
+		it("ignores empty segments", () => {
+			expect(dotNotationToJSONPointer("foo..bar")).toBe("/foo/bar");
+			expect(dotNotationToJSONPointer("foo[0].bar..baz")).toBe("/foo/0/bar/baz");
+		});
+
+		it("handles properties with spaces", () => {
+			expect(dotNotationToJSONPointer("foo. bar")).toBe("/foo/ bar");
+			expect(dotNotationToJSONPointer(" foo.bar")).toBe("/ foo/bar");
 		});
 	});
 });

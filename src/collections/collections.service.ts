@@ -18,7 +18,7 @@ const COLL_NOT_FOUND = new HttpException("Not Found", 404, { cause: "Collection 
 export class CollectionsService {
 
 	constructor(
-		@Inject(GBIF_CLIENT) private gbifRestClient: RestClientService<unknown>,
+		@Inject(GBIF_CLIENT) private gbifClient: RestClientService<unknown>,
 		private triplestoreService: TriplestoreService
 	) { }
 
@@ -35,16 +35,33 @@ export class CollectionsService {
 		return collection;
 	}
 
+	@IntelligentMemoize()
 	async findChildren(id: string) {
 		return (await this.getIdToChildren())[id] || [];
 	}
 
+	@IntelligentMemoize()
+	async findDescendants(id: string): Promise<Collection[]> {
+		const idToChildren = await this.getIdToChildren();
+		const children  = idToChildren[id];
+		if (!children) {
+			return [];
+		}
+		return [
+			...children,
+			...await children.reduce(async (children, collection) =>
+				(await children).concat(await this.findDescendants(collection.id)), Promise.resolve([] as Collection[]))
+		];
+	}
+
+	@IntelligentMemoize()
 	async findRoots() {
 		return (await this.findCollections()).filter(collection =>
 			!collection.isPartOf
 		);
 	}
 
+	@IntelligentMemoize()
 	async getParents(id: string): Promise<Collection[]> {
 		const idToCollection = await this.getIdToCollection();
 		const parents: Collection[] = [];
@@ -68,6 +85,7 @@ export class CollectionsService {
 		return parents;
 	}
 
+	@IntelligentMemoize()
 	async findCollections(ids?: string[])
 		: Promise<Collection[]> {
 		const collections = [];
@@ -151,7 +169,7 @@ export class CollectionsService {
 	}
 
 	private async getGbifCollections(): Promise<Collection<MultiLang>[]> {
-		const gbifCollections = await this.gbifRestClient.get<GbifCollectionResult>(
+		const gbifCollections = await this.gbifClient.get<GbifCollectionResult>(
 			"installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset",
 			{ params: { limit: 1000 } },
 			{ cache: CACHE_10_MIN }

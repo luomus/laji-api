@@ -1,9 +1,8 @@
 import { Inject, Injectable, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import {
-	CACHE_30_MIN, lastFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe, whitelistKeys
-} from "src/utils";
+import { CACHE_30_MIN, lastFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe, updateWithJSONPointer,
+	whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
@@ -118,7 +117,7 @@ export class SwaggerService {
 
 								const schema: SchemaItem | undefined = pipe(
 									existingSchema,
-									applyEntry(entry),
+									applyEntry(entry, document),
 									paginateAsNeededWith(operation)
 								);
 								if (schema) {
@@ -227,19 +226,33 @@ function getJsonSchema(targetConstructor: Type<unknown>) {
 	return schema;
 }
 
-
-const applyEntry = (entry: SwaggerCustomizationEntry) => (schema?: SchemaItem): SchemaItem | undefined => {
-	if (isSwaggerRemoteRefEntry(entry)) {
-		return replaceWithRemote(entry);
-	} else if (isSerializeEntry(entry)) {
-		return replaceWithSerialized(entry, schema);
+const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | ReferenceObject): SchemaObject => {
+	if ("$ref" in schema) {
+		return parseURIFragmentIdentifierRepresentation(document, (schema as any).$ref)
+	} else {
+		return schema;
 	}
-	return schema;
 };
 
-const replaceWithRemote = (entry: SwaggerRemoteRefEntry) => (
-	{ "$ref": `#/components/schemas/${entry.ref}` }
-);
+const applyEntry = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
+	(schema: SchemaItem): SchemaItem | undefined => {
+		if (isSwaggerRemoteRefEntry(entry)) {
+			return replaceWithRemote(entry, schema, document)
+		} else if (isSerializeEntry(entry)) {
+			return replaceWithSerialized(entry, schema);
+		}
+		return schema;
+	};
+
+const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, document: OpenAPIObject) => {
+	const replacement = { "$ref": `#/components/schemas/${entry.ref}` }
+	if (entry.replacePointer) {
+		const schemaDef = getSchemaDefinition(document, schema);
+		updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
+	} else {
+		return replacement;
+	}
+};
 
 const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
 	entry.schemaDefinitionName
@@ -247,7 +260,7 @@ const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
 		: schema
 );
 
-export const isPagedOperation = (operation: OperationObject) => 
+export const isPagedOperation = (operation: OperationObject) =>
 	(operation.parameters || []).some(param => (param as ParameterObject).name === "page") || false;
 
 const asPagedResponse = (schema: SchemaItem, itemsAreAlreadyAnArray = false): SchemaObject => ({

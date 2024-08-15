@@ -6,7 +6,7 @@ import { LajiAuthClientService } from "./laji-auth-client.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { LAJI_AUTH_CLIENT } from "src/provider-tokens";
 
-const lajiAuthRestClient: FactoryProvider<RestClientService<never>> = {
+const lajiAuthClient: FactoryProvider<RestClientService<never>> = {
 	provide: LAJI_AUTH_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService) =>
 		new RestClientService(httpService, {
@@ -17,6 +17,6 @@ const lajiAuthRestClient: FactoryProvider<RestClientService<never>> = {
 };
 
 @Module({
-	providers: [LajiAuthClientService, lajiAuthRestClient]
+	providers: [LajiAuthClientService, lajiAuthClient]
 })
 export class LajiAuthClientModule {}

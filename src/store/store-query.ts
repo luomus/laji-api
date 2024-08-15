@@ -25,13 +25,31 @@ export const exists = new ExistsClause;
 export const isExistsClause = (literal: unknown)
 	: literal is ExistsClause => isObject(literal) && literal.operation === "EXISTS";
 
-export type LiteralMapClause<
-	T,
-	OP extends Operation,
-> = Partial<{[prop in KeyOf<T>]: MaybeArray<Flatten<T[prop]> & Literal> | ExistsClause}> & { operation?: OP };
+export class RangeClause {
+	value: string;
+	constructor(from: string, to: string) {
+		this.value =  `[${from} TO ${to}]`;
+	}
+	get operation() { return "RANGE" as const; }
+}
+
+export const range = (from: string, to: string) => new RangeClause(from, to);
+
+export const isRangeClause = (literal: unknown)
+	: literal is RangeClause => isObject(literal) && literal.operation === "RANGE";
+
+export type LiteralMapClause< T, OP extends Operation> = Partial<{[prop in KeyOf<T>]:
+	MaybeArray<Flatten<T[prop]> & Literal>
+	| ExistsClause
+	| RangeClause
+}> & { operation?: OP };
 
 export const isLiteralsClause = (
-	clause: MaybeArray<Literal> | HigherClause<never, never> | LiteralMapClause<never, never> | ExistsClause
+	clause: MaybeArray<Literal>
+	| HigherClause<never, never>
+	| LiteralMapClause<never, never>
+	| ExistsClause
+	| RangeClause
 ): clause is MaybeArray<Literal> => {
 	if (!Array.isArray(clause)) {
 		return false;
@@ -102,6 +120,9 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 	) =>
 		(clause: HigherClause<T, Operation> | LiteralMapClause<T, Operation>) => {
 			const parsedClause = predicate(clause);
+			if (clause.operation === "NOT") {
+				return `(${parsedClause})`;
+			}
 			if (isHigherClause(clause) && clause.length > 1
 				|| Object.keys(omit(clause, "operation")).length > 1) {
 				return `(${parsedClause})`;
@@ -130,6 +151,11 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 
 	const parseLiteralMapClause = (clause: LiteralMapClause<T, Operation>): string => {
 		const { operation = "AND", ...wrappedClause } = clause;
+		Object.keys(wrappedClause).forEach((k: keyof Omit<LiteralMapClause<T, Operation>, "operation">) => {
+			if (wrappedClause[k] === undefined) {
+				delete wrappedClause[k];
+			}
+		})
 		if (!Object.keys(wrappedClause).length) {
 			return "";
 		}
@@ -140,6 +166,8 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 			const subClause = clause[k]!;
 			if (isExistsClause(subClause)) {
 				return `_exists_: "${k}"`;
+			} else if (isRangeClause(subClause)) {
+				return `${k}: ${subClause.value}`;
 			}
 			return `${k}: ${Array.isArray(subClause) ? parseLiteralsOr(subClause) : parseLiteral(subClause)}`;
 		}).join(` ${operation} `);
@@ -179,5 +207,6 @@ export const getQueryVocabulary = <T>() => ({
 	and: and<T>,
 	or: or<T>,
 	not: not<T>,
-	exists
+	exists,
+	range
 });

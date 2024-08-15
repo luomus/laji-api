@@ -12,7 +12,7 @@ import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { FORM_CLIENT } from "src/provider-tokens";
 
-const FormRestClient: FactoryProvider<RestClientService<Form>> = {
+const FormClient: FactoryProvider<RestClientService<Form>> = {
 	provide: FORM_CLIENT,
 	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
 		new RestClientService(httpService, {
@@ -27,7 +27,7 @@ const FormRestClient: FactoryProvider<RestClientService<Form>> = {
 @Module({
 	imports: [PersonsModule, forwardRef(() => FormPermissionsModule), CollectionsModule],
 	controllers: [FormsController],
-	providers: [FormsService, FormRestClient],
+	providers: [FormsService, FormClient],
 	exports: [FormsService]
 })
 export class FormsModule {}

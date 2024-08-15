@@ -15,6 +15,7 @@ import { AccessToken } from "src/access-token/access-token.entity";
 		MailModule
 	],
 	providers: [ApiUsersService],
-	controllers: [ApiUsersController]
+	controllers: [ApiUsersController],
+	exports: [ApiUsersService]
 })
 export class ApiUsersModule {}

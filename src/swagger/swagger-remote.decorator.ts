@@ -5,12 +5,16 @@ export type SwaggerRemoteRefEntry = {
 	/** The remote source */
 	source: "store",
 	/** The name of the schema object in the remote OpenAPI document's schemas */
-	ref: string
+	ref: string,
+	/**
+	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
+	 * Uses JSON pointer notation.
+	 */
+	replacePointer?: string;
 };
 
 export const isSwaggerRemoteRefEntry = (entry: unknown): entry is SwaggerRemoteRefEntry =>
 	isObject(entry) && "source" in entry && "ref" in entry;
-
 
 const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
 
@@ -28,4 +32,3 @@ export function SwaggerRemoteRef(entry: SwaggerRemoteRefEntry) {
 }
 
 export const SwaggerRemoteScanner = createSwaggerScanner(SWAGGER_REMOTE_METADATA);
-

@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasContext, Lang, LANGS, MultiLang } from "src/common.dto";
 import { MetadataService } from "src/metadata/metadata.service";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
+import { isObject } from "src/type-utils";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
@@ -94,3 +95,22 @@ function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en, langFall
 	}
 	return getLangValueWithFallback(multiLangValue);
 }
+
+
+interface TranslateMaybeMultiLang {
+	(value: MultiLang, lang: Lang): string | undefined;
+	<T>(value: T, lang: Lang): T;
+}
+
+/**
+ * If given value is a multilang object, it's lang value is returned. Otherwise, the value is returned as-is. 
+ *
+ * This function is meant for data without LD-JSON context. Use the lang service for contextual data.
+ */
+export const translateMaybeMultiLang: TranslateMaybeMultiLang  =
+	<T extends MultiLang | unknown>(value: T, lang: Lang): string | undefined | T => {
+		if (isObject(value) && LANGS.some(lang => lang in value)) {
+			return value[lang] as string | undefined;
+		}
+		return value as T;
+	};
