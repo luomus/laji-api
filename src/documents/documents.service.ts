@@ -106,10 +106,10 @@ export class DocumentsService {
 			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
 			const viewableForAll = (await this.formsService.findListedByCollectionID(collectionID))
 				.some(f => f.options?.documentsViewableForAll);
-			if (!viewableForAll || !(
-				permissions?.editors.includes(person.id)
-				|| permissions?.admins.includes(person.id)
-			)) {
+			if (
+				!permissions?.admins.includes(person.id)
+				&& (!viewableForAll || !permissions?.editors.includes(person.id))
+			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person));
 				cacheConfig = { primaryKeys: ["creator", "isTemplate"] };
 			}
