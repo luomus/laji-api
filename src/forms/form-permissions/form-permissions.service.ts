@@ -59,24 +59,25 @@ export class FormPermissionsService {
 	}
 
 	async findByCollectionIDAndPersonToken(collectionID: string, personToken: string)
-		: Promise<FormPermissionDto | null> {
+		: Promise<FormPermissionDto | undefined> {
 		const person = await this.personsService.getByToken(personToken);
 		return this.findByCollectionIDAndPerson(collectionID, person);
 	}
 
 	async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
-		if (permissions === null) {
+		if (!permissions) {
 			throw new HttpException("Form does not have restrict feature enabled", 404);
 		}
 		return permissions;
 	}
 
-	private async findByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto | null> {
+	private async findByCollectionIDAndPerson(collectionID: string, person: Person)
+		: Promise<FormPermissionDto | undefined> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
 		if (!formWithPermissionFeature?.collectionID) {
-			return null;
+			return;
 		}
 
 		const permissions = await this.findByCollectionID(formWithPermissionFeature.collectionID);
@@ -280,7 +281,7 @@ const isAdminOf = (permissions: PermissionLists, person: Person) =>
 	person.role?.some(r => r === Role.Admin)
 		|| permissions.admins?.includes(person.id);
 
-const hasEditRightsOf = (permissions: FormPermissionDto | null, person: Person) =>
+const hasEditRightsOf = (permissions: FormPermissionDto | undefined, person: Person) =>
 	!permissions
 		|| isAdminOf(permissions, person)
 		|| permissions.editors.includes(person.id);
