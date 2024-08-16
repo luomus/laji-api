@@ -244,7 +244,7 @@ export class DocumentsService {
 				throw new HttpException("Insufficient rights to use this form", 403);
 			}
 			const permissions =
-				await this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
+				await this.formPermissionsService.findByCollectionIDAndPersonToken(collectionID, personToken);
 			if (permissions?.admins.includes(person.id)) {
 				return;
 			}
@@ -274,7 +274,7 @@ export class DocumentsService {
 		}
 		const person = await this.personsService.getByToken(personToken);
 		const permissions =
-			await this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
+			await this.formPermissionsService.findByCollectionIDAndPersonToken(collectionID, personToken);
 		if (!permissions?.admins.includes(person.id)) {
 			return false;
 		}

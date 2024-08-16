@@ -211,7 +211,7 @@ export class FormPermissionsService {
 	}
 
 	async hasEditRightsOf(collectionID: string, personToken: string) {
-		const permissions = await this.getByCollectionIDAndPersonToken(
+		const permissions = await this.findByCollectionIDAndPersonToken(
 			collectionID,
 			personToken
 		);
