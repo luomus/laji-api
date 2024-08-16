@@ -99,7 +99,7 @@ export class DocumentsService {
 		const person = await this.personsService.getByToken(personToken);
 		if (collectionID) {
 			storeQuery.collectionID = await this.getCollectionIDs(collectionID);
-			const permissions = await this.formPermissionsService.getByCollectionIDAndPersonToken(
+			const permissions = await this.formPermissionsService.findByCollectionIDAndPersonToken(
 				collectionID,
 				personToken
 			);

@@ -50,12 +50,29 @@ export class FormPermissionsService {
 	}
 
 	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string)
-		: Promise<FormPermissionDto | null> {
-		const person = await this.personsService.getByToken(personToken);
-		return this.getByCollectionIDAndPerson(collectionID, person);
+		: Promise<FormPermissionDto> {
+		const permissions = await this.findByCollectionIDAndPersonToken(collectionID, personToken);
+		if (!permissions) {
+			throw new HttpException("Form does not have restrict feature enabled", 404);
+		}
+		return permissions;
 	}
 
-	private async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto | null> {
+	async findByCollectionIDAndPersonToken(collectionID: string, personToken: string)
+		: Promise<FormPermissionDto | null> {
+		const person = await this.personsService.getByToken(personToken);
+		return this.findByCollectionIDAndPerson(collectionID, person);
+	}
+
+	async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
+		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
+		if (permissions === null) {
+			throw new HttpException("Form does not have restrict feature enabled", 404);
+		}
+		return permissions;
+	}
+
+	private async findByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto | null> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
 		if (!formWithPermissionFeature?.collectionID) {
@@ -88,10 +105,6 @@ export class FormPermissionsService {
 		const person = await this.personsService.getByToken(personToken);
 		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
 
-		if (!permissions) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
-		}
-
 		if (hasEditRightsOf(permissions, person)) {
 			throw new HttpException("You already have access to this form", 406);
 		}
@@ -120,10 +133,6 @@ export class FormPermissionsService {
 		}
 
 		const authorPermissions = await this.getByCollectionIDAndPerson(collectionID, author);
-
-		if (!authorPermissions) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
-		}
 
 		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
@@ -177,10 +186,6 @@ export class FormPermissionsService {
 
 		const authorPermissions = await this.getByCollectionIDAndPerson(collectionID, author);
 
-		if (!authorPermissions) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
-		}
-
 		if (!isAdminOf(authorPermissions, author)) {
 			throw new HttpException("Insufficient rights to allow form access", 403);
 		}
@@ -200,9 +205,6 @@ export class FormPermissionsService {
 			collectionID,
 			personToken
 		);
-		if (!permissions) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
-		}
 		const person = await this.personsService.getByToken(personToken);
 		return isAdminOf(permissions, person);
 	}
