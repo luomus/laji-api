@@ -4,7 +4,7 @@ import { DocumentValidatorService } from "../document-validator/document-validat
 import { DocumentsService } from "../documents.service";
 import { PersonsService } from "src/persons/persons.service";
 import { BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
-	ValidationErrorFormat, ValidationStatusResponse, isSecondaryDocumentDelete } from "../documents.dto";
+	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete } from "../documents.dto";
 import { ValidationException, formatErrorDetails, isValidationException }
 	from "../document-validator/document-validator.utils";
 import { firstFromNonEmptyArr, uuid } from "src/utils";
@@ -35,7 +35,7 @@ export class DocumentsBatchService {
 		documents: Document[],
 		personToken: string,
 		accessToken: string
-	): Promise<ValidationStatusResponse>  {
+	): Promise<BatchJobValidationStatusResponse>  {
 		const person = await this.personsService.getByToken(personToken);
 
 		const job: BatchJob = {
@@ -64,7 +64,7 @@ export class DocumentsBatchService {
 		jobID: string,
 		personToken: string,
 		validationErrorFormat: ValidationErrorFormat
-	): Promise<ValidationStatusResponse> {
+	): Promise<BatchJobValidationStatusResponse> {
 		const person = await this.personsService.getByToken(personToken);
 		const job = await this.cache.get<BatchJob>(getCacheKey(jobID, person));
 		if (!job) {
@@ -78,7 +78,7 @@ export class DocumentsBatchService {
 		jobID: string,
 		personToken: string,
 		validationErrorFormat: ValidationErrorFormat
-	): Promise<ValidationStatusResponse> {
+	): Promise<BatchJobValidationStatusResponse> {
 		const person = await this.personsService.getByToken(personToken);
 		let job = await this.cache.get<BatchJob | undefined>(getCacheKey(jobID, person));
 
@@ -239,7 +239,7 @@ const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, job
 
 const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat) => {
 	const { processed, ...restOfJob } = job;
-	const exposedJob = serializeInto(ValidationStatusResponse)(restOfJob);
+	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(restOfJob);
 	const total = job.documents.length;
 	exposedJob.status = {
 		processed,

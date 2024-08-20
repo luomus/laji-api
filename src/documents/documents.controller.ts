@@ -3,8 +3,8 @@ import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.se
 import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req, UseFilters } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
-	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat, ValidationStatusResponse,
-	ValidationStrategy } from "./documents.dto";
+	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
+	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto } from "./documents.dto";
 import { PaginatedDto } from "src/pagination";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -44,7 +44,7 @@ export class DocumentsController {
 		@Body() documents: Document[],
 		@Req() request: Request,
 		@Query() query: QueryWithPersonTokenDto
-	): Promise<ValidationStatusResponse> {
+	): Promise<BatchJobValidationStatusResponse> {
 		const { personToken } = query;
 		const accessToken = this.getAccessToken(request);
 		return this.documentsBatchService.start(documents, personToken, accessToken);
@@ -55,14 +55,15 @@ export class DocumentsController {
 	 * errors match the documents array indices, null meaning valid and an object.
 	 * */
 	@Get("batch/:jobID")
-	// Makes the ValidationStatusResponse use store documents' swagger def. Modifies the definition which is referenced by
-	// other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only once.
+	// Makes the BatchJobValidationStatusResponse use store documents' swagger def. Modifies the definition which is
+	// referenced by other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only
+	// once.
 	@SwaggerRemoteRef({ source: "store", ref: "document", replacePointer: "/properties/documents/items" })
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
 		@Query() { personToken, validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto
-	): Promise<ValidationStatusResponse> {
+	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.getStatus(jobID, personToken, validationErrorFormat);
 	}
 
@@ -74,7 +75,7 @@ export class DocumentsController {
 	async completeBatchJob(
 		@Param("jobID") jobID: string,
 		@Query() { personToken, validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto
-	): Promise<ValidationStatusResponse> {
+	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.complete(jobID, personToken, validationErrorFormat);
 	}
 
@@ -100,12 +101,12 @@ export class DocumentsController {
 					throw new HttpException("Person token is required for batch operation", 422);
 				}
 				return this.documentsBatchService.start(document, personToken, accessToken);
-			} else if ((document as any)._jobID) {
+			} else if (isBatchJobDto(document)) {
 				if (!personToken) {
 					throw new HttpException("Person token is required for batch operation", 422);
 				}
 				return this.documentsBatchService.getStatus(
-					(document as any)._jobID,
+					document.id,
 					personToken,
 					 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 					// typings bit awkward.
@@ -172,11 +173,11 @@ export class DocumentsController {
 		@Req() request: Request,
 		@Query() { personToken, validationErrorFormat }: CreateDocumentDto
 	): Promise<Document> {
-		if ((document as any)._jobID) {
+		if (isBatchJobDto(document)) {
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 			// 	// typings bit awkward.
 			return this.documentsBatchService.complete(
-				(document as any)._jobID,
+				document.id,
 				personToken,
 				validationErrorFormat!
 			) as any;

@@ -163,15 +163,15 @@ export type BatchJob = {
 	import?: boolean;
 }
 
-class ValidationStatus {
+class BatchJobValidationStatus {
 	processed: number;
 	total: number;
 	percentage: number;
 }
 
-export class ValidationStatusResponse implements Omit<BatchJob, "errors" | "processed" | "documents"> {
+export class BatchJobValidationStatusResponse implements Omit<BatchJob, "errors" | "processed" | "documents"> {
 	id: string;
-	status: ValidationStatus;
+	status: BatchJobValidationStatus;
 	documents?: Document[];
 	/** If true, the job's documents are validated and we are now in the phase of sending them to the store */
 	import?: boolean;
@@ -188,6 +188,9 @@ export class ValidationStatusResponse implements Omit<BatchJob, "errors" | "proc
 	})
 	errors?: (ErrorsObj | null)[] = [];
 }
+
+export const isBatchJobDto = (job: any): job is { id: string, status: BatchJobValidationStatus } =>
+	job.id && job.status;
 
 export class QueryWithNamedPlaceDto {
 	/** Limit the list of documents to a certain named place */
