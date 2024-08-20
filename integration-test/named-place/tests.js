@@ -876,101 +876,100 @@ describe("/named-place", function() {
 		});
 	});
 
-	// TODO uncomment when document endpoint implemented0
-	// describe("Deleting public", function() {
-	// 	let npId, docId;
-	// 	before(function (done) {
-	// 		const testCollectionID = config.id["test_form_with_np_feature_collectionID"];
-	// 		const formID = config.id["test_form_with_np_feature"];
-  //
-	// 		const np = {
-	// 			name: "Test",
-	// 			geometry: {
-	// 				type: "Point",
-	// 				coordinates: [34, 32]
-	// 			},
-	// 			public: true,
-	// 			collectionID: testCollectionID
-	// 		};
-  //
-	// 		const query = basePath +
-	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-	// 		request(this.server)
-	// 			.post(query)
-	// 			.send(np)
-	// 			.end((err, res) => {
-	// 				if (err) return done(err);
-	// 				npId = res.body.id;
-	// 				const doc = {
-	// 					collectionID: testCollectionID,
-	// 					gatheringEvent: {},
-	// 					gatherings: [{ geometry: { type: "Point", coordinates: [25, 60] } }],
-	// 					formID,
-	// 					namedPlaceID: npId
-	// 				};
-	// 				const documentQuery = config.urls.document +
-	// 					"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-	// 				request(this.server)
-	// 					.post(documentQuery)
-	// 					.send(doc)
-	// 					.end(function (err, res) {
-	// 						res.should.have.status(200);
-	// 						docId = res.body.id;
-	// 						done();
-	// 					});
-	// 			});
-	// 	});
-  //
-	// 	it("editor can't delete", function(done) {
-	// 		const query = basePath + "/" + npId +
-	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
-	// 		request(this.server)
-	// 			.delete(query)
-	// 			.end((err, res) => {
-	// 				res.should.have.status(403);
-	// 				done();
-	// 			});
-	// 	});
-  //
-	// 	it("doesn't delete public named place if it has documents", function(done) {
-	// 		const query = basePath + "/" + npId +
-	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-	// 		request(this.server)
-	// 			.delete(query)
-	// 			.end((err, res) => {
-	// 				res.should.have.status(422);
-	// 				done();
-	// 			});
-	// 	});
-  //
-	// 	// The test is skipped because it is known to fail because the document
-	// 	// query returns the deleted document because of Elastic Search index cache.
-	// 	it("deletes public named place if it has no documents", function(done) {
-	// 		return this.skip();
-  //
-	// 		const documentQuery = config.urls.document + "/" + docId +
-	// 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-	// 		request(this.server)
-	// 			.delete(documentQuery)
-	// 			.end((err, res) => {
-	// 				res.should.have.status(204);
-	// 				const documentQuery = config.urls.document + "?namedPlace=" + npId +
-	// 					"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-	// 				request(this.server)
-	// 					.get(documentQuery)
-	// 					.end((err, res) => {
-	// 						const query = basePath + "/" + npId +
-	// 							"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-	// 						request(this.server)
-	// 							.delete(query)
-	// 							.end((err, res) => {
-	// 								res.should.have.status(204);
-	// 								done();
-	// 							});
-	// 					});
-	// 			});
-	// 	});
-	// });
+	describe("Deleting public", function() {
+		let npId, docId;
+		before(function (done) {
+			const testCollectionID = config.id["test_form_with_np_feature_collectionID"];
+			const formID = config.id["test_form_with_np_feature"];
+
+			const np = {
+				name: "Test",
+				geometry: {
+					type: "Point",
+					coordinates: [34, 32]
+				},
+				public: true,
+				collectionID: testCollectionID
+			};
+
+			const query = basePath +
+				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+			request(this.server)
+				.post(query)
+				.send(np)
+				.end((err, res) => {
+					if (err) return done(err);
+					npId = res.body.id;
+					const doc = {
+						collectionID: testCollectionID,
+						gatheringEvent: {},
+						gatherings: [{ geometry: { type: "Point", coordinates: [25, 60] } }],
+						formID,
+						namedPlaceID: npId
+					};
+					const documentQuery = config.urls.document +
+						"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+					request(this.server)
+						.post(documentQuery)
+						.send(doc)
+						.end((err, res) => {
+							res.should.have.status(201);
+							docId = res.body.id;
+							done();
+						});
+				});
+		});
+
+		it("editor can't delete", function(done) {
+			const query = basePath + "/" + npId +
+				"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
+			request(this.server)
+				.delete(query)
+				.end((err, res) => {
+					res.should.have.status(403);
+					done();
+				});
+		});
+
+		it("doesn't delete public named place if it has documents", function(done) {
+			const query = basePath + "/" + npId +
+				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+			request(this.server)
+				.delete(query)
+				.end((err, res) => {
+					res.should.have.status(422);
+					done();
+				});
+		});
+
+		// The test is skipped because it is known to fail because the document
+		// query returns the deleted document because of Elastic Search index cache.
+		it("deletes public named place if it has no documents", function(done) {
+			return this.skip();
+
+			const documentQuery = config.urls.document + "/" + docId +
+				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+			request(this.server)
+				.delete(documentQuery)
+				.end((err, res) => {
+					res.should.have.status(204);
+					const documentQuery = config.urls.document + "?namedPlace=" + npId +
+						"&access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+					request(this.server)
+						.get(documentQuery)
+						.end((err, res) => {
+							const query = basePath + "/" + npId +
+								"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
+							request(this.server)
+								.delete(query)
+								.end((err, res) => {
+									res.should.have.status(204);
+									done();
+								});
+						});
+				});
+		});
+	});
 
 	describe("MHL.allowAddingPublic", function() {
 

@@ -259,7 +259,7 @@ export class NamedPlacesService {
 		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
 			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
-		const allowedToAddPublic = await this.formsService.findFor(
+		const allowedToAddPublic = !!await this.formsService.findFor(
 			collectionID,
 			f => f.options.namedPlaceOptions?.allowAddingPublic
 		);

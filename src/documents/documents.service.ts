@@ -359,7 +359,7 @@ export class DocumentsService {
 			return;
 		}
 
-		const form = await this.formsService.get(document.id);
+		const form = await this.formsService.get(document.formID);
 		if (!form.options?.useNamedPlaces) {
 			return;
 		}
@@ -408,7 +408,7 @@ export class DocumentsService {
 		}
 
 		const { formID, collectionID } = document;
-		
+
 		if (!formID) {
 			throw new HttpException("Can't check read rights for a document missing formID", 403);
 		}
@@ -507,7 +507,7 @@ const documentHasNewNamedPlaceNote = (document: Document, place: NamedPlace) => 
 	}
 };
 
-const dateRangeClause = (dateRange: { from: string, to: string }) => 
+const dateRangeClause = (dateRange: { from: string, to: string }) =>
 	or(
 		{ "gatheringEvent.dateBegin": range(dateRange.from, dateRange.to) },
 		and({
