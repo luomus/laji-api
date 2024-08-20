@@ -417,6 +417,10 @@ export class DocumentsService {
 			throw new HttpException("Can't check read rights for a document missing collectionID", 403);
 		}
 
+		if (await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
+			return;
+		}
+
 		const form = await this.formsService.get(formID);
 
 		const documentsViewableForAll = collectionID
