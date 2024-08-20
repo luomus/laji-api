@@ -97,6 +97,10 @@ export class NamedPlacesService {
 	}
 
 	private async getCollectionIDs(collectionID: string) {
+		const forms = await this.formsService.findListedByCollectionID(collectionID);
+		if (forms.some(f => f?.options.namedPlaceOptions?.includeDescendantCollections === false)) {
+			return collectionID;
+		}
 		const children = (await this.collectionsService.findDescendants(collectionID)).map(c => c.id);
 		return [ collectionID, ...children ];
 	}

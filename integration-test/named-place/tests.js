@@ -1195,4 +1195,24 @@ describe("/named-place", function() {
 			});
 		});
 	});
+
+	describe("MHL.includeDescendantCollections", function() {
+		it("form with feature makes the form not return named places of descendant collections", function (done) {
+			const collectionID = config.id["collection_with_include_descendant_collection_feature_false"];
+			const query = basePath + "/" +
+				"?access_token=" + config.access_token + "&personToken=" + config.user.token +
+				"&collectionID=" + collectionID;
+			"&pageSize=100000";
+			request(this.server)
+				.get(query)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.results.forEach(place => {
+						place.should.have.property("collectionID").eql(collectionID);
+					});
+					done();
+				});
+		});
+
+	});
 });
