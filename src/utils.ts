@@ -209,20 +209,12 @@ export const firstFromNonEmptyArr = <T>(arr: T[]): T => {
 };
 
 export const dotNotationToJSONPointer = (pointer: string) => {
+	if (pointer === "") {
+		return "";
+	}
 	const splits = pointer.split(/[.\[\]]/).filter(value => value !== "");
 	return "/" + splits.join("/");
 };
 
 export const isJSONPointer = (pointer: string) => 
 	pointer === "" || pointer[0] === "/";
-
-// export const jsonPointerToJsonPath = (pointer: string) => {
-// 	const splits = pointer.split("/");
-// 	splits.shift();
-// 	return splits.reduce((path, item) => {
-// 		if (!isNaN(+item)) {
-// 			return path + `[${item}]`;
-// 		}
-// 		return path + `.${item}`;
-// 	}, "");
-// };

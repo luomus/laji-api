@@ -132,7 +132,7 @@ export class DocumentsBatchService {
 
 				formIDs.add(populatedDocument.formID);
 				if (formIDs.size > 1) {
-					throw new ValidationException({ "/": ["All documents must have the same formID"] });
+					throw new ValidationException({ "": ["All documents must have the same formID"] });
 				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument)) {
@@ -146,7 +146,7 @@ export class DocumentsBatchService {
 				job.processed++;
 				return isValidationException(e)
 					? e
-					: new ValidationException({ "/": [`Failed due to internal error: ${e.message}`] });
+					: new ValidationException({ "": [`Failed due to internal error: ${e.message}`] });
 			}
 		});
 	}
@@ -161,7 +161,7 @@ export class DocumentsBatchService {
 				);
 			} catch (e) {
 				job.errors = Array(job.documents.length).fill(
-					new ValidationException({ "/": ["Upload to the warehouse failed"] })
+					new ValidationException({ "": ["Upload to the warehouse failed"] })
 				);
 			}
 		} else {
@@ -189,7 +189,7 @@ export class DocumentsBatchService {
 				if (e.error) {
 					message += ` Combined error is: ${e.error}`;
 				}
-				job.errors = Array(job.documents.length).fill(new ValidationException({ "/": [message] }));
+				job.errors = Array(job.documents.length).fill(new ValidationException({ "": [message] }));
 			}
 		}
 

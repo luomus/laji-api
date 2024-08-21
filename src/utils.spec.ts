@@ -123,7 +123,7 @@ describe("utils", () => {
 
 	describe("dotNotationToJSONPointer()", () => {
 		it("converts empty string to root pointer", () => {
-			expect(dotNotationToJSONPointer("")).toBe("/");
+			expect(dotNotationToJSONPointer("")).toBe("");
 		});
 
 		it("converts single depth property", () => {
