@@ -176,10 +176,7 @@ export class DocumentsService {
 		const person = await this.personsService.getByToken(personToken);
 		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
 
-		if (!person.isImporter()) {
-			document.creator = person.id;
-			document.editor = person.id;
-		}
+		populateCreatorAndEditor(document, person);
 
 		await this.validate(document, personToken);
 		const created = await this.store.create(document) as Document & { id: string };
@@ -193,13 +190,14 @@ export class DocumentsService {
 		personToken: string,
 		accessToken: string
 	) {
-		const person = await this.personsService.getByToken(personToken);
-
-		const existing = await this.store.get(id);
 		// TODO remove after store handles POST/PUT properly with separate methods.
 		if (!unpopulatedDocument.id) {
 			throw new HttpException("You should provide the document ID in the body", 422);
 		}
+
+		const person = await this.personsService.getByToken(personToken);
+
+		const existing = await this.store.get(id);
 
 		if (!person.isImporter()) {
 			if (!unpopulatedDocument.creator) {
@@ -521,3 +519,12 @@ const dateRangeClause = (dateRange: { from: string, to: string }) =>
 	);
 
 const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });
+
+export const populateCreatorAndEditor = <T extends { creator?: string; editor?: string }>
+	(document: T, person: Person): T => {
+	if (!person.isImporter()) {
+		document.creator = person.id;
+		document.editor = person.id;
+	}
+	return document;
+};

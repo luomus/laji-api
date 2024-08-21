@@ -23,6 +23,14 @@ describe("/documents/batch", function() {
 			}
 		);
 
+		let countBeforeSend;
+
+		before(async function () {
+			countBeforeSend = (await request(this.server)
+				.get(`${basePath}/count/byYear?access_token=${config.access_token}&personToken=${config.user.token}`).send()
+			).body.find(countResponse => countResponse.year === "2024").count;
+		});
+
 		let id;
 
 		it("returns 401 when no access token specified", async function() {
@@ -148,6 +156,8 @@ describe("/documents/batch", function() {
 			expect(res.body.status.processed).to.equal(documents.length);
 		});
 
+		let createdDocuments;
+
 		it("job status contains updated documents and errors after completing creation", async function() {
 			if (!id) {
 				this.skip();
@@ -167,8 +177,22 @@ describe("/documents/batch", function() {
 			res.body.errors.forEach(e => expect(e).to.equal(null));
 			res.body.documents.forEach(d => expect(d.id).not.to.equal(undefined));
 
+			createdDocuments = res.body.documents;
+		});
+
+		it("created documents are gettable", async function() {
+			if (!id) {
+				this.skip();
+			}
+
+			countAfterSend = (await request(this.server)
+				.get(`${basePath}/count/byYear?access_token=${config.access_token}&personToken=${config.user.token}`).send()
+			).body.find(countResponse => countResponse.year === "2024").count;
+
+			expect(countAfterSend).to.equal(countBeforeSend + documents.length);
+
 			// Silently remove documents.
-			res.body.documents.forEach(d => {
+			createdDocuments.forEach(d => {
 				void request(this.server)
 					.delete(`${basePath}/${d.id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 					.send();

@@ -150,7 +150,7 @@ export class StoreService<T extends { id?: string }> {
 		return result;
 	}
 
-	async flushCache(item: T) {
+	async flushCache(item: Partial<T>) {
 		if (!this.config.cache) {
 			return;
 		}
@@ -217,7 +217,7 @@ export class StoreService<T extends { id?: string }> {
 		return primaryKeys.sort().join(";");
 	}
 
-	private async bustCacheForResult(result: T) {
+	private async bustCacheForResult(result: Partial<T>) {
 		for (const cacheKey of this.cacheKeysForPagedResource(result)) {
 			await this.cache.patternDel(cacheKey);
 		}

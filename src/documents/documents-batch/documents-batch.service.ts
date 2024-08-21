@@ -1,7 +1,7 @@
 import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { Document } from "@luomus/laji-schema";
 import { DocumentValidatorService } from "../document-validator/document-validator.service";
-import { DocumentsService } from "../documents.service";
+import { DocumentsService, populateCreatorAndEditor } from "../documents.service";
 import { PersonsService } from "src/persons/persons.service";
 import { BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
 	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete } from "../documents.dto";
@@ -126,6 +126,10 @@ export class DocumentsBatchService {
 					? this.secondaryDocumentsService.populateMutably(document, person, accessToken)
 					: this.documentsService.populateMutably(document, person, accessToken));
 
+				if (!isSecondaryDocumentDelete(populatedDocument)) {
+					populateCreatorAndEditor(populatedDocument, person);
+				}
+
 				formIDs.add(populatedDocument.formID);
 				if (formIDs.size > 1) {
 					throw new ValidationException({ "/": ["All documents must have the same formID"] });
@@ -162,9 +166,24 @@ export class DocumentsBatchService {
 			}
 		} else {
 			try {
-				job.documents = await this.documentsService.store.post<Document[], Document[]>(
+				job.documents = await this.documentsService.store.post<Populated<Document>[], Populated<Document>[]>(
 					undefined, job.documents as Populated<Document>[]
-				) as Populated<Document>[];
+				);
+
+				const docsWithNamedPlace = job.documents.filter(
+					document => (document as Document).namedPlaceID
+				) as (Document | SecondaryDocument)[];
+
+				job.processed = job.documents.length - docsWithNamedPlace.length;
+				await this.updateJobInCache(job);
+
+				const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async documentChunks =>
+					await this.createSideEffectProcess(
+						documentChunks, job as BatchJob<Populated<Document>>, personToken
+					)
+				);
+				await this.process(processes, job);
+				await this.flushDocumentsCache(job as BatchJob<Populated<Document>>, docsWithNamedPlace);
 			} catch (e) {
 				let message = "Upload to store failed.";
 				if (e.error) {
@@ -174,28 +193,17 @@ export class DocumentsBatchService {
 			}
 		}
 
-		const docsWithNamedPlace = job.documents.filter(
-			document => (document as Document).namedPlaceID
-		) as (Document | SecondaryDocument)[];
-
-		job.processed = job.documents.length - docsWithNamedPlace.length;
-		await this.updateJobInCache(job);
-
-		const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async documentChunks =>
-			await this.createSideEffectProcess(documentChunks, job, personToken));
-		await this.process(processes, job);
-		await this.flushDocumentsCache(job, docsWithNamedPlace);
 		await this.updateJobInCache(job);
 	}
 
-	private async flushDocumentsCache(job: BatchJob, docsWithNamedPlace: (Document | SecondaryDocument)[]) {
+	private async flushDocumentsCache(job: BatchJob<Populated<Document>>, docsWithNamedPlace: Document[]) {
 		// Check if there are primary documents in the query, and flush the document cache with one of them. All the
 		// documents have the same collectionID & creator, which are used as `primaryKeySpace`s for the document cache, so
 		// this should sync the cache correct.
-		const storeDocument = job.documents.find(d => !d.id && (d as Document).creator) as (Document | undefined);
-		if (storeDocument) {
-			const { collectionID, creator } = storeDocument;
-			await this.documentsService.store.flushCache({ collectionID, creator, gatherings: [{ }] });
+		const documentSample = job.documents.find(d => d.creator) as (Document | undefined);
+		if (documentSample) {
+			const { collectionID, creator } = documentSample;
+			await this.documentsService.store.flushCache({ collectionID, creator });
 		}
 
 		// `namedPlaceID` is also in the `primaryKeySpace` for documents. Unfortunately we must bust the cache for each place.
@@ -207,7 +215,11 @@ export class DocumentsBatchService {
 		}
 	}
 
-	private async createSideEffectProcess(documents: Document[], job: BatchJob, personToken: string) {
+	private async createSideEffectProcess(
+		documents: Document[],
+		job: BatchJob<Populated<Document>>,
+		personToken: string
+	) {
 		await Promise.all(documents.map(async document => {
 			try {
 				await this.documentsService.namedPlaceSideEffects(

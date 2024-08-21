@@ -154,11 +154,14 @@ export class BatchJobQueryDto extends IntersectionType(QueryWithPersonTokenDto) 
 	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
 }
 
-export type BatchJob = {
+export type BatchJob<
+	T extends Populated<Document> | PopulatedSecondaryDocumentOperation
+	= Populated<Document> | PopulatedSecondaryDocumentOperation
+> = {
 	id: string;
 	processed: number;
 	personID: string;
-	documents: (Populated<Document> | PopulatedSecondaryDocumentOperation)[];
+	documents: T[];
 	errors: (ValidationException | null)[];
 	import?: boolean;
 }

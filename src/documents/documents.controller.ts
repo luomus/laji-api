@@ -175,7 +175,7 @@ export class DocumentsController {
 	): Promise<Document> {
 		if (isBatchJobDto(document)) {
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-			// 	// typings bit awkward.
+			// 	// typings a bit awkward.
 			return this.documentsBatchService.complete(
 				document.id,
 				personToken,
