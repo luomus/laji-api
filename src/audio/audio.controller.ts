@@ -18,6 +18,8 @@ import { createQueryParamsInterceptor } from "../interceptors/query-params/query
 import { Request, Response } from "express";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
+import { PersonToken } from "src/decorators/person-token.decorator";
+import { Person } from "src/persons/person.dto";
 
 @LajiApiController("audio")
 @ApiTags("Audio")
@@ -38,8 +40,13 @@ export class AudioController {
 	@ApiOkResponse({
 		type: FileUploadResponse
 	})
-	async upload(@Query() { personToken }: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
-		const proxy = await this.abstractMediaService.getUploadProxy(MediaType.audio, personToken);
+	async upload(
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() __: Person, // Checks that the person token is valid.
+		@Req() req: Request,
+		@Res() res: Response
+	) {
+		const proxy = await this.abstractMediaService.getUploadProxy(MediaType.audio);
 		req.pipe(proxy).pipe(res);
 	}
 
@@ -54,16 +61,19 @@ export class AudioController {
 	@Put(":id")
 	@UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
 	updateMetadata(
-		@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio
+		@Param("id") id: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person,
+		@Body() audio: Audio
 	): Promise<Audio> {
-		return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, personToken);
+		return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, person);
 	}
 
 	/** Delete audio */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.abstractMediaService.deleteMedia(MediaType.audio, id, personToken);
+	delete(@Param("id") id: string, @Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
+		return this.abstractMediaService.deleteMedia(MediaType.audio, id, person);
 	}
 
 	/** Fetch mp3 by id */
@@ -102,8 +112,11 @@ export class AudioController {
 	@Post(":tempId")
 	@UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
 	async uploadMetadata(
-		@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() audio: Audio
+		@Param("tempId") tempId: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person,
+		@Body() audio: Audio
 	): Promise<Audio> {
-		return this.abstractMediaService.uploadMetadata(MediaType.audio, tempId, audio, personToken);
+		return this.abstractMediaService.uploadMetadata(MediaType.audio, tempId, audio, person);
 	}
 }

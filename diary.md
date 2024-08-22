@@ -31,6 +31,11 @@ Backward compatibility is maintained at the moment though.
 
 Error messages might change.
 
+## Image / audio API
+
+* metadata POST missing `personToken` doesn't include `status: "INVALID_TOKEN"`. Instead, it's just 400 with a message
+  about the missing token ("personToken is required").
+
 ## JSON-LD
 
 ###  @context path

@@ -24,8 +24,7 @@ export class FormPermissionsService {
 		private langService: LangService
 	) {}
 
-	async getByPersonToken(personToken: string): Promise<FormPermissionPersonDto> {
-		const person = await this.personsService.getByToken(personToken);
+	async getByPerson(person: Person): Promise<FormPermissionPersonDto> {
 		const entities = await this.store.getAll({ userID: person.id }, undefined, { primaryKeys: ["userID"] });
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
@@ -49,21 +48,6 @@ export class FormPermissionsService {
 			"userID");
 	}
 
-	async getByCollectionIDAndPersonToken(collectionID: string, personToken: string)
-		: Promise<FormPermissionDto> {
-		const permissions = await this.findByCollectionIDAndPersonToken(collectionID, personToken);
-		if (!permissions) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
-		}
-		return permissions;
-	}
-
-	async findByCollectionIDAndPersonToken(collectionID: string, personToken: string)
-		: Promise<FormPermissionDto | undefined> {
-		const person = await this.personsService.getByToken(personToken);
-		return this.findByCollectionIDAndPerson(collectionID, person);
-	}
-
 	async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
 		if (!permissions) {
@@ -72,7 +56,7 @@ export class FormPermissionsService {
 		return permissions;
 	}
 
-	private async findByCollectionIDAndPerson(collectionID: string, person: Person)
+	async findByCollectionIDAndPerson(collectionID: string, person: Person)
 		: Promise<FormPermissionDto | undefined> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
@@ -102,8 +86,7 @@ export class FormPermissionsService {
 		);
 	}
 
-	async requestAccess(collectionID: string, personToken: string) {
-		const person = await this.personsService.getByToken(personToken);
+	async requestAccess(collectionID: string, person: Person) {
 		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
 
 		if (hasEditRightsOf(permissions, person)) {
@@ -125,8 +108,7 @@ export class FormPermissionsService {
 		return this.getByCollectionIDAndPerson(collectionID, person);
 	}
 
-	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", personToken: string) {
-		const author = await this.personsService.getByToken(personToken);
+	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", author: Person) {
 		const customer = await this.personsService.getByPersonId(personID);
 
 		if (!customer) {
@@ -177,8 +159,7 @@ export class FormPermissionsService {
 		return existing;
 	}
 
-	async revokeAccess(collectionID: string, personID: string, personToken: string) {
-		const author = await this.personsService.getByToken(personToken);
+	async revokeAccess(collectionID: string, personID: string, author: Person) {
 		const customer = await this.personsService.getByPersonId(personID);
 
 		if (!customer) {
@@ -201,21 +182,13 @@ export class FormPermissionsService {
 		return this.getByCollectionIDAndPerson(collectionID, author);
 	}
 
-	async isAdminOf(collectionID: string, personToken: string) {
-		const permissions = await this.getByCollectionIDAndPersonToken(
-			collectionID,
-			personToken
-		);
-		const person = await this.personsService.getByToken(personToken);
+	async isAdminOf(collectionID: string, person: Person) {
+		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
 		return isAdminOf(permissions, person);
 	}
 
-	async hasEditRightsOf(collectionID: string, personToken: string) {
-		const permissions = await this.findByCollectionIDAndPersonToken(
-			collectionID,
-			personToken
-		);
-		const person = await this.personsService.getByToken(personToken);
+	async hasEditRightsOf(collectionID: string, person: Person) {
+		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
 		return hasEditRightsOf(permissions, person);
 	}
 

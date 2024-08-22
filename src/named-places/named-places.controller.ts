@@ -8,6 +8,8 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serializing/serializing";
 import { PaginatedDto } from "src/pagination";
 import { QueryWithPersonTokenDto } from "src/common.dto";
+import { PersonToken } from "src/decorators/person-token.decorator";
+import { Person } from "src/persons/person.dto";
 
 @ApiTags("Named places")
 @LajiApiController("named-places")
@@ -17,28 +19,39 @@ export class NamedPlacesController {
 	/** Reserve an existing named place */
 	@Post(":id/reservation")
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
-	reserve(@Param("id") id: string, @Query() { personToken, personID, until }: ReservationDto): Promise<NamedPlace> {
-		return this.namedPlacesService.reserve(id, personToken, personID, until);
+	reserve(
+		@Param("id") id: string,
+		@Query() { personID, until }: ReservationDto,
+		@PersonToken() person: Person
+	) : Promise<NamedPlace> {
+		return this.namedPlacesService.reserve(id, person, personID, until);
 	}
 
 	/** Cancel a reservation for a named place */
 	@Delete(":id/reservation")
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
-	cancelReservation(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.namedPlacesService.cancelReservation(id, personToken);
+	cancelReservation(
+		@Param("id") id: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
+	) {
+		return this.namedPlacesService.cancelReservation(id, person);
 	}
 
 	/** Get a page of named places */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
 	@UseInterceptors(FilterUnitsInterceptor)
-	getPage(@Query() query: GetNamedPlacePageDto): Promise<PaginatedDto<NamedPlace>> {
-		const { personToken, page, pageSize, selectedFields, includePublic, ...q } = query;
+	getPage(
+		@Query() query: GetNamedPlacePageDto,
+		@PersonToken({ required: false }) person?: Person
+	): Promise<PaginatedDto<NamedPlace>> {
+		const { page, pageSize, selectedFields, includePublic, ...q } = query;
 		(q as Record<string, unknown>).id = q.idIn;
 		const safeQuery = pickAndSerialize(NamedPlace, q, ...AllowedPageQueryKeys);
 		return this.namedPlacesService.getPage(
 			safeQuery,
-			personToken,
+			person,
 			includePublic,
 			page,
 			pageSize,
@@ -50,15 +63,23 @@ export class NamedPlacesController {
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
 	@UseInterceptors(FilterUnitsInterceptor)
-	get(@Param("id") id: string, @Query() { personToken }: GetNamedPlaceDto): Promise<NamedPlace> {
-		return this.namedPlacesService.get(id, personToken);
+	get(
+		@Param("id") id: string,
+		@Query() _: GetNamedPlaceDto,
+		@PersonToken({ required: false }) person: Person
+	): Promise<NamedPlace> {
+		return this.namedPlacesService.get(id, person);
 	}
 
 	/** Create a new named place */
 	@Post()
 	@SwaggerRemoteRef({ source: "store", ref: "namedPlace" })
-	create(@Body() place: NamedPlace, @Query() { personToken }: QueryWithPersonTokenDto): Promise<NamedPlace>  {
-		return this.namedPlacesService.create(place, personToken);
+	create(
+		@Body() place: NamedPlace,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
+	): Promise<NamedPlace>  {
+		return this.namedPlacesService.create(place, person);
 	}
 
 	/** Update an existing named place */
@@ -67,14 +88,18 @@ export class NamedPlacesController {
 	update(
 		@Param("id") id: string,
 		@Body() place: NamedPlace,
-		@Query() { personToken }: QueryWithPersonTokenDto
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
 	): Promise<NamedPlace>  {
-		return this.namedPlacesService.update(id, place, personToken);
+		return this.namedPlacesService.update(id, place, person);
 	}
 
 	/** Delete a named place */
 	@Delete(":id")
-	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.namedPlacesService.delete(id, personToken);
+	delete(@Param("id") id: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
+	) {
+		return this.namedPlacesService.delete(id, person);
 	}
 }

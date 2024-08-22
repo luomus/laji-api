@@ -11,6 +11,7 @@ import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
 import { isValidDate, dateToISODate } from "src/utils";
 import { MailService } from "src/mail/mail.service";
+import { Person } from "src/persons/person.dto";
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
 
 export const AllowedPageQueryKeys = [
@@ -39,7 +40,7 @@ export class NamedPlacesService {
 
 	async getQuery(
 		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
-		personToken?: string,
+		person?: Person,
 		includePublic?: boolean,
 	): Promise<[Query<NamedPlace>, QueryCacheOptions<NamedPlace>]> {
 		if (typeof query.collectionID === "string") {
@@ -49,8 +50,7 @@ export class NamedPlacesService {
 		let storeQuery: Query<NamedPlace>;
 		let cacheConfig: QueryCacheOptions<NamedPlace> = { primaryKeys: [ "collectionID" ] };
 
-		if (personToken) {
-			const person = await this.personsService.getByToken(personToken);
+		if (person) {
 			const readAllowedClause = or({ owners: person.id, editors: person.id });
 			if (includePublic) {
 				readAllowedClause.public = true;
@@ -74,24 +74,24 @@ export class NamedPlacesService {
 
 	async getPage(
 		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
-		personToken?: string,
+		person?: Person,
 		includePublic?: boolean,
 		page?: number,
 		pageSize = 20,
 		selectedFields?: (keyof NamedPlace)[]
 	) {
-		const [storeQuery, cacheConfig] = await this.getQuery(query, personToken, includePublic);
+		const [storeQuery, cacheConfig] = await this.getQuery(query, person, includePublic);
 
 		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
 	}
 
 	async getAll(
 		query: QueryLiteralMap<Pick<NamedPlace, typeof AllowedPageQueryKeys[number]>, "AND">,
-		personToken?: string,
+		person?: Person,
 		includePublic?: boolean,
 		selectedFields?: (keyof NamedPlace)[]
 	) {
-		const [storeQuery, cacheConfig] = await this.getQuery(query, personToken, includePublic);
+		const [storeQuery, cacheConfig] = await this.getQuery(query, person, includePublic);
 
 		return await this.store.getAll(storeQuery, selectedFields, cacheConfig);
 	}
@@ -105,18 +105,16 @@ export class NamedPlacesService {
 		return [ collectionID, ...children ];
 	}
 
-	async get(id: string, personToken?: string) {
+	async get(id: string, person?: Person) {
 		const place = await this.store.get(id);
 
 		if (place.public) {
 			return place;
 		}
 
-		if (!personToken) {
+		if (!person) {
 			throw new HttpException("You must provide a personToken when fetching private named places", 403);
 		}
-
-		const person = await this.personsService.getByToken(personToken);
 
 		if (!place.isReadableFor(person)) {
 			throw new HttpException("You are not an editor or an owner of the place", 403);
@@ -125,33 +123,31 @@ export class NamedPlacesService {
 		return place;
 	}
 
-	async create(place: NamedPlace, personToken: string) {
+	async create(place: NamedPlace, person: Person) {
 		if (place.id) {
 			throw new HttpException("You should not specify ID when adding!", 406);
 		}
 
-		const person = await this.personsService.getByToken(personToken);
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
 			place.owners.push(person.id);
 		}
 
-		await this.checkWriteAccess(place, personToken);
+		await this.checkWriteAccess(place, person);
 
 		await this.prepopulatedDocumentService.augment(place);
 
 		return this.store.create(place);
 	}
 
-	async update(id: string, place: NamedPlace, personToken: string) {
-		const existing = await this.get(id, personToken);
+	async update(id: string, place: NamedPlace, person: Person) {
+		const existing = await this.get(id, person);
 		// TODO remove after store handles POST/PUT properly with separate methods.
 		if (!place.id) {
 			throw new HttpException("You should provide the ID in the body", 422);
 		}
 
-		await this.checkWriteAccess(existing, personToken);
+		await this.checkWriteAccess(existing, person);
 
-		const person = await this.personsService.getByToken(personToken);
 		if (!person.isImporter()
 			&& existing.owners.includes(person.id)
 			&& !place.owners.includes(person.id)
@@ -163,9 +159,9 @@ export class NamedPlacesService {
 		return this.store.update(place);
 	}
 
-	async delete(id: string, personToken: string) {
-		const existing = await this.get(id, personToken);
-		await this.checkWriteAccess(existing, personToken);
+	async delete(id: string, person: Person) {
+		const existing = await this.get(id, person);
+		await this.checkWriteAccess(existing, person);
 
 		if (existing.public) {
 			const hasDocuments = await this.documentsService.existsByNamedPlaceID(id);
@@ -177,14 +173,14 @@ export class NamedPlacesService {
 		return this.store.delete(id);
 	}
 
-	async reserve(id: string, personToken: string, personID?: string, until?: string) {
+	async reserve(id: string, person: Person, personID?: string, until?: string) {
 		const place = await this.get(id);
 
 		if (!place.collectionID) {
 			throw new HttpException("Can't reserve a place that doesn't belong to a collection", 422);
 		}
 
-		const isAdmin = await this.formPermissionsService.isAdminOf(place.collectionID, personToken);
+		const isAdmin = await this.formPermissionsService.isAdminOf(place.collectionID, person);
 
 		if (!isAdmin && place.reserve?.until && new Date(place.reserve.until) >= new Date()) {
 			throw new HttpException("The place is already reserved", 400);
@@ -217,20 +213,18 @@ export class NamedPlacesService {
 
 		const forPerson = personID
 			? await this.personsService.getByPersonId(personID)
-			: await this.personsService.getByToken(personToken);
+			: person;
 		place.reserve = { reserver: forPerson.id, until: dateToISODate(untilDate) };
 
-		const updated = await this.update(place.id, place, personToken);
-		const person = await this.personsService.getByToken(personToken);
+		const updated = await this.update(place.id, place, person);
 		void this.mailService.sendNamedPlaceReserved(person, { place, until: dateToISODate(untilDate) });
 		return updated;
 	}
 
-	async cancelReservation(id: string, personToken: string) {
-		const place = await this.get(id, personToken);
-		const person = await this.personsService.getByToken(personToken);
+	async cancelReservation(id: string, person: Person) {
+		const place = await this.get(id, person);
 		if (place.reserve?.reserver !== person.id
-			&& !(place.collectionID && await this.formPermissionsService.isAdminOf(place.collectionID, personToken))
+			&& !(place.collectionID && await this.formPermissionsService.isAdminOf(place.collectionID, person))
 		) {
 			throw new HttpException("You can't remove other users reservation if you are not admin", 403);
 		}
@@ -238,9 +232,8 @@ export class NamedPlacesService {
 		return this.store.update(place);
 	}
 
-	private async checkWriteAccess(place: NamedPlace, personToken: string): Promise<void> {
+	private async checkWriteAccess(place: NamedPlace, person: Person): Promise<void> {
 		const { collectionID, public: isPublic, owners } = place;
-		const person = await this.personsService.getByToken(personToken);
 
 		if (!collectionID && owners.includes(person.id)) {
 			return;
@@ -252,11 +245,11 @@ export class NamedPlacesService {
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
-		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
+		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
 
-		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
+		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
 			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
 		const allowedToAddPublic = !!await this.formsService.findFor(

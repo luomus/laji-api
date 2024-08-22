@@ -54,10 +54,7 @@ export class AbstractMediaService {
 		return result[urlKey] as string;
 	}
 
-	async getUploadProxy(type: MediaType, personToken: string): Promise<_request.Request> {
-		// Check that the person token is valid.
-		await this.personsService.getByToken(personToken);
-
+	async getUploadProxy(type: MediaType): Promise<_request.Request> {
 		const basePath = this.configService.get("MEDIA_HOST") as string;
 		const basicAuth = this.configService.get("MEDIA_AUTH") as string;
 		const auth = this.parseBasicAuth(basicAuth);
@@ -71,13 +68,11 @@ export class AbstractMediaService {
 	}
 
 	async uploadMetadata<T extends MediaType>(
-		type: T, tempId: string, media: Media<T>, personToken: string
+		type: T, tempId: string, media: Media<T>, person: Person
 	): Promise<Media<T>> {
 		if (!media.intellectualRights) {
 			throw new HttpException("Intellectual rights is required", 422);
 		}
-
-		const person = await this.personsService.getByToken(personToken);
 
 		const metadata = this.newMetadata(media, person, tempId);
 		const data = await this.mediaClient.post<MetaUploadResponse[]>(
@@ -88,9 +83,8 @@ export class AbstractMediaService {
 	}
 
 	async updateMetadata<T extends MediaType>(
-		type: T, id: string, media: Media<T>, personToken: string
+		type: T, id: string, media: Media<T>, person: Person
 	): Promise<Media<T>> {
-		const person = await this.personsService.getByToken(personToken);
 		const current = await this.get(type, id);
 
 		if (current.uploadedBy !== person.id) {
@@ -114,8 +108,7 @@ export class AbstractMediaService {
 		return this.get(type, id);
 	}
 
-	async deleteMedia<T extends MediaType>(type: T, id: string, personToken: string): Promise<void> {
-		const person = await this.personsService.getByToken(personToken);
+	async deleteMedia<T extends MediaType>(type: T, id: string, person: Person): Promise<void> {
 		const current = await this.get(type, id);
 
 		if (current.uploadedBy !== person.id) {

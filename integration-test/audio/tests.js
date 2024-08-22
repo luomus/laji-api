@@ -3,7 +3,6 @@ var config = require("../config.json");
 var helpers = require("../helpers");
 const { request } = require("chai");
 
-const errorMissingPersonToken = "INVALID TOKEN";
 const errorOnlyOwn = "Can only update audio uploaded by the user";
 const errorOnlyOwnDelete = "Can only delete audio uploaded by the user";
 
@@ -62,7 +61,6 @@ describe("/audio", function() {
       .send({ intellectualRights: "MZ.intellectualRightsCC-BY-SA-4.0" })
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.include({code: errorMissingPersonToken});
         done();
       });
   });
@@ -73,7 +71,6 @@ describe("/audio", function() {
       .send({})
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.include({code: errorMissingPersonToken});
         done();
       });
   });
@@ -83,7 +80,6 @@ describe("/audio", function() {
       .delete(basePath + "/" + config.id.audio_others + "?access_token=" + config["access_token"])
       .end(function(err, res) {
         res.should.have.status(400);
-        res.body.should.include({code: errorMissingPersonToken});
         done();
       });
   });

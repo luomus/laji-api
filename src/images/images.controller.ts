@@ -18,6 +18,8 @@ import { Image } from "./image.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
+import { PersonToken } from "src/decorators/person-token.decorator";
+import { Person } from "src/persons/person.dto";
 
 @LajiApiController("images")
 @ApiTags("Image")
@@ -36,8 +38,13 @@ export class ImagesController {
 	/** Upload image and get temporary id */
 	@Post()
 	@ApiOkResponse({ type: FileUploadResponse })
-	async upload(@Query() { personToken }: QueryWithPersonTokenDto, @Req() req: Request, @Res() res: Response) {
-		const proxy = await this.abstractMediaService.getUploadProxy(MediaType.image, personToken);
+	async upload(
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() __: Person, // Checks that the person token is valid.
+		@Req() req: Request,
+		@Res() res: Response
+	) {
+		const proxy = await this.abstractMediaService.getUploadProxy(MediaType.image);
 		req.pipe(proxy).pipe(res);
 	}
 
@@ -52,16 +59,19 @@ export class ImagesController {
 	@Put(":id")
 	@UseInterceptors(createQueryParamsInterceptor(undefined, Image))
 	updateMetadata(
-		@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image
+		@Param("id") id: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person,
+		@Body() image: Image
 	): Promise<Image> {
-		return this.abstractMediaService.updateMetadata(MediaType.image, id, image, personToken);
+		return this.abstractMediaService.updateMetadata(MediaType.image, id, image, person);
 	}
 
 	/** Delete image */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	delete(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.abstractMediaService.deleteMedia(MediaType.image, id, personToken);
+	delete(@Param("id") id: string, @Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
+		return this.abstractMediaService.deleteMedia(MediaType.image, id, person);
 	}
 
 	/** Fetch large image by id */
@@ -92,9 +102,12 @@ export class ImagesController {
 	@Post(":tempId")
 	@UseInterceptors(createQueryParamsInterceptor(undefined, Image))
 	async uploadMetadata(
-		@Param("tempId") tempId: string, @Query() { personToken }: QueryWithPersonTokenDto, @Body() image: Image
+		@Param("tempId") tempId: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person,
+		@Body() image: Image
 	): Promise<Image> {
-		return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, personToken);
+		return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, person);
 	}
 }
 

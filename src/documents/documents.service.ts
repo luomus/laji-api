@@ -5,7 +5,6 @@ import { Document } from "@luomus/laji-schema";
 import { DocumentCountItemResponse, Populated, StatisticsResponse } from "./documents.dto";
 import { Query, getQueryVocabulary } from "src/store/store-query";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
-import { PersonsService } from "src/persons/persons.service";
 import { FormsService } from "src/forms/forms.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { Person } from "src/persons/person.dto";
@@ -67,7 +66,6 @@ export class DocumentsService {
 
 	constructor(
 		@Inject("STORE_RESOURCE_SERVICE") public store: StoreService<Document>,
-		private personsService: PersonsService,
 		private formPermissionsService: FormPermissionsService,
 		private formsService: FormsService,
 		private collectionsService: CollectionsService,
@@ -85,7 +83,7 @@ export class DocumentsService {
 
 	async getClauseForPublicQuery(
 		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Document[prop]>},
-		personToken: string,
+		person: Person,
 		observationYear?: number,
 	): Promise<[Query<DocumentQuery>, Partial<StoreCacheOptions<Document>>]>  {
 		// Allow simple search query terms as they are, but remove `isTemplate` & `collectionID` because they are added to
@@ -96,12 +94,11 @@ export class DocumentsService {
 		let storeQuery: Query<DocumentQuery> = and(query);
 		let cacheConfig: QueryCacheOptions<Document>;
 
-		const person = await this.personsService.getByToken(personToken);
 		if (collectionID) {
 			storeQuery.collectionID = await this.getCollectionIDs(collectionID);
-			const permissions = await this.formPermissionsService.findByCollectionIDAndPersonToken(
+			const permissions = await this.formPermissionsService.findByCollectionIDAndPerson(
 				collectionID,
-				personToken
+				person
 			);
 			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
 			const viewableForAll = (await this.formsService.findListedByCollectionID(collectionID))
@@ -135,13 +132,13 @@ export class DocumentsService {
 
 	async getPage(
 		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Partial<Document[prop]>>},
-		personToken: string,
+		person: Person,
 		observationYear?: number,
 		page?: number,
 		pageSize = 20,
 		selectedFields?: (keyof Document)[]
 	) {
-		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, personToken, observationYear);
+		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, person, observationYear);
 		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
 	}
 
@@ -158,44 +155,41 @@ export class DocumentsService {
 		return !!(await this.store.findOne(query, undefined, { primaryKeys: ["namedPlaceID"] }));
 	}
 
-	async get(id: string, personToken: string) {
+	async get(id: string, person: Person) {
 		const document = await this.store.get(id);
-		await this.checkHasReadRightsTo(document, personToken);
+		await this.checkHasReadRightsTo(document, person);
 		return document;
 	}
 
 	async create(
 		unpopulatedDocument: Document,
-		personToken: string,
+		person: Person,
 		accessToken: string
 	) {
 		if (unpopulatedDocument.id) {
 			throw new HttpException("You should not specify ID when adding primary data!", 406);
 		}
 
-		const person = await this.personsService.getByToken(personToken);
 		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
 
 		populateCreatorAndEditor(document, person);
 
-		await this.validate(document, personToken);
+		await this.validate(document, person);
 		const created = await this.store.create(document) as Document & { id: string };
-		await this.namedPlaceSideEffects(created, personToken);
+		await this.namedPlaceSideEffects(created, person);
 		return created;
 	}
 
 	async update(
 		id: string,
 		unpopulatedDocument: Document,
-		personToken: string,
+		person: Person,
 		accessToken: string
 	) {
 		// TODO remove after store handles POST/PUT properly with separate methods.
 		if (!unpopulatedDocument.id) {
 			throw new HttpException("You should provide the document ID in the body", 422);
 		}
-
-		const person = await this.personsService.getByToken(personToken);
 
 		const existing = await this.store.get(id);
 
@@ -217,32 +211,31 @@ export class DocumentsService {
 			document.editor = person.id;
 		}
 
-		await this.checkWriteAccess(existing, personToken, true);
+		await this.checkWriteAccess(existing, person, true);
 
 		document.dateEdited = new Date().toISOString();
 		if (existing.dateCreated) {
 			document.dateCreated = existing.dateCreated;
 		}
 
-		await this.validate(document, personToken);
+		await this.validate(document, person);
 		const updated = await this.store.update(document as Document & { id: string });
-		await this.namedPlaceSideEffects(updated, personToken);
+		await this.namedPlaceSideEffects(updated, person);
 		return updated;
 	}
 
-	private async checkWriteAccess(document: Document, personToken: string, operationAllowedForEditor = false) {
-		const person = await this.personsService.getByToken(personToken);
+	private async checkWriteAccess(document: Document, person: Person, operationAllowedForEditor = false) {
 		const { collectionID } = document;
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
-		if (!(await this.canAccessIfLocked(document, personToken))) {
+		if (!(await this.canAccessIfLocked(document, person))) {
 			throw new ValidationException({ "/locked": ["Editing a locked document is not allowed"] });
 		}
 		if (collectionID) {
-			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
+			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
 				throw new HttpException("Insufficient rights to use this form", 403);
 			}
 			const permissions =
-				await this.formPermissionsService.findByCollectionIDAndPersonToken(collectionID, personToken);
+				await this.formPermissionsService.findByCollectionIDAndPerson(collectionID, person);
 			if (permissions?.admins.includes(person.id)) {
 				return;
 			}
@@ -258,21 +251,20 @@ export class DocumentsService {
 
 	async delete(
 		id: string,
-		personToken: string
+		person: Person
 	) {
 		const existingDocument = await this.store.get(id);
-		await this.checkWriteAccess(existingDocument, personToken);
+		await this.checkWriteAccess(existingDocument, person);
 		return this.store.delete(id);
 	}
 
-	private async canAccessIfLocked(document: Document, personToken: string) {
+	private async canAccessIfLocked(document: Document, person: Person) {
 		const { collectionID, locked } = document;
 		if (!collectionID || !locked) {
 			return true;
 		}
-		const person = await this.personsService.getByToken(personToken);
 		const permissions =
-			await this.formPermissionsService.findByCollectionIDAndPersonToken(collectionID, personToken);
+			await this.formPermissionsService.findByCollectionIDAndPerson(collectionID, person);
 		if (!permissions?.admins.includes(person.id)) {
 			return false;
 		}
@@ -331,24 +323,22 @@ export class DocumentsService {
 	// * old api does 'linking', id checking etc in `prepareDocument`. Is it handled by store?
 	async validate(
 		document: Populated<Document>,
-		personToken: string
+		person: Person
 	) {
 		const { collectionID } = document;
-		const person = await this.personsService.getByToken(personToken);
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
-		await this.checkHasReadRightsTo(document, personToken);
+		await this.checkHasReadRightsTo(document, person);
 
-		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, personToken)) {
+		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
 			throw new HttpException("Insufficient rights to use this form", 403);
 		}
 
 		await this.documentValidatorService.validate(document);
 	}
 
-	async namedPlaceSideEffects(document: Document & { id: string }, personToken: string) {
-		const person = await this.personsService.getByToken(personToken);
+	async namedPlaceSideEffects(document: Document & { id: string }, person: Person) {
 		if (person.isImporter()
 			|| document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
 			|| !document.formID
@@ -385,7 +375,7 @@ export class DocumentsService {
 			}
 		} else if (documentHasNewNamedPlaceNote(document, place)) {
 			place.notes = document.gatheringEvent?.namedPlaceNotes;
-			await this.namedPlacesService.update(place.id, place, personToken);
+			await this.namedPlacesService.update(place.id, place, person);
 		}
 	}
 
@@ -394,9 +384,7 @@ export class DocumentsService {
 		return [ collectionID, ...children ];
 	}
 
-	async checkHasReadRightsTo(document: Document, personToken: string) {
-		const person = await this.personsService.getByToken(personToken);
-
+	async checkHasReadRightsTo(document: Document, person: Person) {
 		if (document.isTemplate && document.creator !== person.id) {
 			throw new HttpException("Cannot access someone elses template", 403);
 		}
@@ -415,7 +403,7 @@ export class DocumentsService {
 			throw new HttpException("Can't check read rights for a document missing collectionID", 403);
 		}
 
-		if (await this.formPermissionsService.isAdminOf(collectionID, personToken)) {
+		if (await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
 
@@ -427,7 +415,7 @@ export class DocumentsService {
 			: form.options?.documentsViewableForAll;
 
 		if (documentsViewableForAll) {
-			const hasEditRights = await this.formPermissionsService.hasEditRightsOf(collectionID, personToken);
+			const hasEditRights = await this.formPermissionsService.hasEditRightsOf(collectionID, person);
 			if (!hasEditRights) {
 				// eslint-disable-next-line max-len
 				throw new HttpException("You don't have permission to the form and you are not the owner or an editor of the document", 403);
@@ -439,14 +427,14 @@ export class DocumentsService {
 	}
 
 	async getCountByYear(
-		personToken: string,
+		person: Person,
 		collectionID?: string,
 		namedPlaceID?: string,
 		formID?: string
 	): Promise<DocumentCountItemResponse[]> {
 		const [query, cacheConfig] = await this.getClauseForPublicQuery(
 			{ collectionID, namedPlaceID, formID },
-			personToken
+			person
 		);
 		const search = {
 			aggs: {

@@ -3,7 +3,6 @@ import { DocumentsService, populateCreatorAndEditor } from "./documents.service"
 import { WarehouseService } from "src/warehouse/warehouse.service";
 import { PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentDelete, SecondaryDocumentOperation,
 	isSecondaryDocument, isSecondaryDocumentDelete } from "./documents.dto";
-import { PersonsService } from "src/persons/persons.service";
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 
@@ -13,20 +12,18 @@ export class SecondaryDocumentsService {
 	constructor(
 		private warehouseService: WarehouseService,
 		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
-		private personsService: PersonsService,
 		private config: ConfigService
 	) {}
 
-	async create(createOrDelete: SecondaryDocumentDelete, personToken: string, accessToken: string)
+	async create(createOrDelete: SecondaryDocumentDelete, person: Person, accessToken: string)
 		: Promise<SecondaryDocumentDelete>
-	async create(createOrDelete: SecondaryDocument, personToken: string, accessToken: string)
+	async create(createOrDelete: SecondaryDocument, person: Person, accessToken: string)
 		: Promise<SecondaryDocument>
-	async create(createOrDelete: SecondaryDocumentOperation, personToken: string, accessToken: string)
+	async create(createOrDelete: SecondaryDocumentOperation, person: Person, accessToken: string)
 		: Promise<SecondaryDocument | SecondaryDocumentOperation>
 	{
-		const person = await this.personsService.getByToken(personToken);
 		const populatedCreateOrDelete = await this.populateMutably(createOrDelete, person, accessToken);
-		await this.validate(populatedCreateOrDelete, personToken);
+		await this.validate(populatedCreateOrDelete, person);
 		await (isSecondaryDocumentDelete(populatedCreateOrDelete)
 			? this.warehouseService.pushDelete(populatedCreateOrDelete.id, populatedCreateOrDelete.collectionID)
 			: this.warehouseService.push(populatedCreateOrDelete));
@@ -52,13 +49,13 @@ export class SecondaryDocumentsService {
 		return populated;
 	}
 
-	async validate(createOrDelete: PopulatedSecondaryDocumentOperation, personToken: string) {
+	async validate(createOrDelete: PopulatedSecondaryDocumentOperation, person: Person) {
 		if (!createOrDelete.id) {
 			throw new HttpException("Secondary document must have id", 422);
 		}
 		 // TODO no validation whatsoever... Ask from Esko if personToken access is checked on warehouse.
 		if (isSecondaryDocument(createOrDelete)) {
-			await this.documentsService.validate(createOrDelete, personToken);
+			await this.documentsService.validate(createOrDelete, person);
 		}
 	}
 

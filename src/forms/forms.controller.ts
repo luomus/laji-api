@@ -8,6 +8,8 @@ import { FormPermissionsService } from "./form-permissions/form-permissions.serv
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
+import { Person } from "src/persons/person.dto";
+import { PersonToken } from "src/decorators/person-token.decorator";
 
 @ApiTags("Form")
 @LajiApiController("forms")
@@ -19,26 +21,28 @@ export class FormsController {
 
 	/** Get form permissions for a person */
 	@Get("permissions")
-	getPermissions(@Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.formPermissionsService.getByPersonToken(personToken);
+	getPermissions(@Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
+		return this.formPermissionsService.getByPerson(person);
 	}
 
 	/** Get form permissions for a person */
 	@Get("permissions/:collectionID")
 	getPermissionsByCollectionID(
 		@Param("collectionID") collectionID: string,
-		@Query() { personToken }: QueryWithPersonTokenDto
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
 	) {
-		return this.formPermissionsService.getByCollectionIDAndPersonToken(collectionID, personToken);
+		return this.formPermissionsService.getByCollectionIDAndPerson(collectionID, person);
 	}
 
 	/** Request access to form */
 	@Post("permissions/:collectionID")
 	requestAccess(
 		@Param("collectionID") collectionID: string,
-		@Query() { personToken }: QueryWithPersonTokenDto
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
 	) {
-		return this.formPermissionsService.requestAccess(collectionID, personToken);
+		return this.formPermissionsService.requestAccess(collectionID, person);
 	}
 
 	/** Accept access to form */
@@ -46,9 +50,10 @@ export class FormsController {
 	acceptAccess(
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
-		@Query() { personToken, type }: AcceptAccessDto
+		@Query() { type }: AcceptAccessDto,
+		@PersonToken() person: Person
 	) {
-		return this.formPermissionsService.acceptAccess(collectionID, personID, type, personToken);
+		return this.formPermissionsService.acceptAccess(collectionID, personID, type, person);
 	}
 
 	/** Remove access to form */
@@ -56,9 +61,10 @@ export class FormsController {
 	revokeAccess(
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
-		@Query() { personToken }: RevokeAccessDto
+		@Query() _: RevokeAccessDto,
+		@PersonToken() person: Person
 	) {
-		return this.formPermissionsService.revokeAccess(collectionID, personID, personToken);
+		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
 	}
 
 	/** Get all forms */

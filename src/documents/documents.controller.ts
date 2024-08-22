@@ -20,6 +20,9 @@ import { DocumentsBatchService } from "./documents-batch/documents-batch.service
 import { StoreDeleteResponse } from "src/store/store.dto";
 import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
 import { ValidationException } from "./document-validator/document-validator.utils";
+import { PersonToken } from "src/decorators/person-token.decorator";
+import { Person } from "src/persons/person.dto";
+import { PersonsService } from "src/persons/persons.service";
 
 @ApiTags("Documents")
 @UseFilters(ValidatiorErrorFormatFilter)
@@ -31,7 +34,8 @@ export class DocumentsController {
 		private accessTokenService: AccessTokenService,
 		private secondaryDocumentsService: SecondaryDocumentsService,
 		private formsService: FormsService,
-		private documentsBatchService: DocumentsBatchService
+		private documentsBatchService: DocumentsBatchService,
+		private personsService: PersonsService
 	) {}
 
 	/**
@@ -43,11 +47,11 @@ export class DocumentsController {
 	async startBatchJob(
 		@Body() documents: Document[],
 		@Req() request: Request,
-		@Query() query: QueryWithPersonTokenDto
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		const { personToken } = query;
 		const accessToken = this.getAccessToken(request);
-		return this.documentsBatchService.start(documents, personToken, accessToken);
+		return this.documentsBatchService.start(documents, person, accessToken);
 	}
 
 	/**
@@ -62,9 +66,10 @@ export class DocumentsController {
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
-		@Query() { personToken, validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto
+		@Query() { validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto,
+		@PersonToken() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		return this.documentsBatchService.getStatus(jobID, personToken, validationErrorFormat);
+		return this.documentsBatchService.getStatus(jobID, person, validationErrorFormat);
 	}
 
 	/**
@@ -74,9 +79,10 @@ export class DocumentsController {
 	@HttpCode(200)
 	async completeBatchJob(
 		@Param("jobID") jobID: string,
-		@Query() { personToken, validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto
+		@Query() { validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto,
+		@PersonToken() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		return this.documentsBatchService.complete(jobID, personToken, validationErrorFormat);
+		return this.documentsBatchService.complete(jobID, person, validationErrorFormat);
 	}
 
 	/** Validate a document */
@@ -100,14 +106,16 @@ export class DocumentsController {
 				if (!personToken) {
 					throw new HttpException("Person token is required for batch operation", 422);
 				}
-				return this.documentsBatchService.start(document, personToken, accessToken);
+				const person = await this.personsService.getByToken(personToken);
+				return this.documentsBatchService.start(document, person, accessToken);
 			} else if (isBatchJobDto(document)) {
 				if (!personToken) {
 					throw new HttpException("Person token is required for batch operation", 422);
 				}
+				const person = await this.personsService.getByToken(personToken);
 				return this.documentsBatchService.getStatus(
 					document.id,
-					personToken,
+					person,
 					 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 					// typings bit awkward.
 					validationErrorFormat!
@@ -134,7 +142,8 @@ export class DocumentsController {
 				if (!personToken) {
 					throw new HttpException("Person token is for batch operation", 422);
 				}
-				return this.secondaryDocumentsService.validate(populated, personToken) as unknown as Promise<Document>;
+				const person = await this.personsService.getByToken(personToken);
+				return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
 			}
 
 			const populatedDocument = await this.documentsService.populateMutably(document, undefined, accessToken);
@@ -145,11 +154,11 @@ export class DocumentsController {
 	/** Get a page of documents */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
-	getPage(@Query() query: GetDocumentsDto): Promise<PaginatedDto<Document>> {
-		const { personToken, page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
+	getPage(@Query() query: GetDocumentsDto, @PersonToken() person: Person): Promise<PaginatedDto<Document>> {
+		const { page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
 			whitelistKeys(q, allowedQueryKeysForExternalAPI),
-			personToken,
+			person,
 			observationYear,
 			page,
 			pageSize,
@@ -160,8 +169,11 @@ export class DocumentsController {
 	/** Get a document */
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
-	get(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto): Promise<Document> {
-		return this.documentsService.get(id, personToken);
+	get(@Param("id") id: string,
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
+	): Promise<Document> {
+		return this.documentsService.get(id, person);
 	}
 
 	// TODO need to add swagger customization to get the whole MY.document schema for the body.
@@ -171,14 +183,15 @@ export class DocumentsController {
 	async create(
 		@Body() document: Document,
 		@Req() request: Request,
-		@Query() { personToken, validationErrorFormat }: CreateDocumentDto
+		@Query() { validationErrorFormat }: CreateDocumentDto,
+		@PersonToken() person: Person
 	): Promise<Document> {
 		if (isBatchJobDto(document)) {
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 			// 	// typings a bit awkward.
 			return this.documentsBatchService.complete(
 				document.id,
-				personToken,
+				person,
 				validationErrorFormat!
 			) as any;
 		}
@@ -197,13 +210,13 @@ export class DocumentsController {
 			}
 			// The return type for secondary document deletion isn't actually Document. This remains undocumented by our
 			// Swagger document.
-			return this.secondaryDocumentsService.create(document as SecondaryDocument, personToken, accessToken) as
+			return this.secondaryDocumentsService.create(document as SecondaryDocument, person, accessToken) as
 				unknown as Promise<Document>;
 		}
 
 		return this.documentsService.create(
 			document as Document,
-			personToken,
+			person,
 			accessToken
 		);
 	}
@@ -215,7 +228,8 @@ export class DocumentsController {
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,
 		@Req() request: Request,
-		@Query() { personToken }: CreateDocumentDto
+		@Query() _: CreateDocumentDto,
+		@PersonToken() person: Person
 	): Promise<Document> {
 		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
 		// error already.
@@ -233,7 +247,7 @@ export class DocumentsController {
 		return this.documentsService.update(
 			id,
 			document as Document,
-			personToken,
+			person,
 			accessToken
 		);
 	}
@@ -242,17 +256,20 @@ export class DocumentsController {
 	@Delete(":id")
 	async delete(
 		@Param("id") id: string,
-		@Query() { personToken }: QueryWithPersonTokenDto
+		@Query() _: QueryWithPersonTokenDto,
+		@PersonToken() person: Person
 	): Promise<StoreDeleteResponse> {
-		return this.documentsService.delete(id, personToken);
+		return this.documentsService.delete(id, person);
 	}
 
 	/** Get count of documents by type (currently just "byYear") */
 	@Get("count/byYear")
-	getCountByYear(@Query() query: GetCountDto): Promise<DocumentCountItemResponse[]> {
-		const { personToken, collectionID, namedPlace, formID } = query;
+	getCountByYear(
+		@Query() { collectionID, namedPlace, formID }: GetCountDto,
+		@PersonToken() person: Person
+	) : Promise<DocumentCountItemResponse[]> {
 		return this.documentsService.getCountByYear(
-			personToken,
+			person,
 			collectionID,
 			namedPlace,
 			formID

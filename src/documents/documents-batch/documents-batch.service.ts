@@ -33,11 +33,9 @@ export class DocumentsBatchService {
 	/** Creates a job that validates the given documents, returning a job status. */
 	async start(
 		documents: Document[],
-		personToken: string,
+		person: Person,
 		accessToken: string
 	): Promise<BatchJobValidationStatusResponse>  {
-		const person = await this.personsService.getByToken(personToken);
-
 		const job: BatchJob = {
 			id: uuid(6),
 			personID: person.id,
@@ -50,7 +48,7 @@ export class DocumentsBatchService {
 
 		const processes = asChunks(documents, CHUNK_SIZE).map(async (documentChunks, idx) => {
 			const chunkErrors = await Promise.all(
-				await this.createValidationProcess(documentChunks, job, personToken, accessToken)
+				await this.createValidationProcess(documentChunks, job, person, accessToken)
 			);
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
@@ -62,10 +60,9 @@ export class DocumentsBatchService {
 
 	async getStatus(
 		jobID: string,
-		personToken: string,
+		person: Person,
 		validationErrorFormat: ValidationErrorFormat
 	): Promise<BatchJobValidationStatusResponse> {
-		const person = await this.personsService.getByToken(personToken);
 		const job = await this.cache.get<BatchJob>(getCacheKey(jobID, person));
 		if (!job) {
 			throw new HttpException("Job not found", 404);
@@ -76,10 +73,9 @@ export class DocumentsBatchService {
 	/** Creates the documents of a given job if it's processed and valid, sending them to store or warehouse. */
 	async complete(
 		jobID: string,
-		personToken: string,
+		person: Person,
 		validationErrorFormat: ValidationErrorFormat
 	): Promise<BatchJobValidationStatusResponse> {
-		const person = await this.personsService.getByToken(personToken);
 		let job = await this.cache.get<BatchJob | undefined>(getCacheKey(jobID, person));
 
 		if (!job) {
@@ -101,7 +97,7 @@ export class DocumentsBatchService {
 			errors: []
 		};
 		await this.updateJobInCache(job);
-		void this.createSendProcess(job, personToken);
+		void this.createSendProcess(job, person);
 		return exposeJobStatus(job, validationErrorFormat);
 	}
 
@@ -115,11 +111,10 @@ export class DocumentsBatchService {
 	private async createValidationProcess(
 		documents: (Document | SecondaryDocumentOperation)[],
 		job: BatchJob,
-		personToken: string,
+		person: Person,
 		accessToken: string
 	) {
 		const formIDs = new Set();
-		const person = await this.personsService.getByToken(personToken);
 		return documents.map(async document => {
 			try {
 				const populatedDocument = await (isSecondaryDocumentDelete(document)
@@ -138,7 +133,7 @@ export class DocumentsBatchService {
 				if (!isSecondaryDocumentDelete(populatedDocument)) {
 					await this.documentValidatorService.validate(populatedDocument);
 				} else {
-					await this.secondaryDocumentsService.validate(populatedDocument, personToken);
+					await this.secondaryDocumentsService.validate(populatedDocument, person);
 				}
 				job.processed++;
 				return null;
@@ -151,7 +146,7 @@ export class DocumentsBatchService {
 		});
 	}
 
-	private async createSendProcess(job: BatchJob, personToken: string) {
+	private async createSendProcess(job: BatchJob, person: Person) {
 		const documentSample = firstFromNonEmptyArr(job.documents);
 		const form = await this.formsService.get(documentSample.formID);
 		if (form.options?.secondaryCopy) {
@@ -179,7 +174,7 @@ export class DocumentsBatchService {
 
 				const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async documentChunks =>
 					await this.createSideEffectProcess(
-						documentChunks, job as BatchJob<Populated<Document>>, personToken
+						documentChunks, job as BatchJob<Populated<Document>>, person
 					)
 				);
 				await this.process(processes, job);
@@ -218,13 +213,13 @@ export class DocumentsBatchService {
 	private async createSideEffectProcess(
 		documents: Document[],
 		job: BatchJob<Populated<Document>>,
-		personToken: string
+		person: Person
 	) {
 		await Promise.all(documents.map(async document => {
 			try {
 				await this.documentsService.namedPlaceSideEffects(
 					document as Populated<Document> & { id: string },
-					personToken
+					person
 				);
 			} catch (e) {
 				this.logger.error(`Named place side effect failed for ${document.id}`);
