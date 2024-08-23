@@ -48,9 +48,7 @@ export enum ValidationErrorFormat {
 }
 
 export class CreateDocumentDto extends IntersectionType(
-	PagedDto,
-	QueryWithPersonTokenDto,
-	LangQueryDto,
+	QueryWithPersonTokenDto
 ) {
 	/** Format of validation error details */
 	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.remote;

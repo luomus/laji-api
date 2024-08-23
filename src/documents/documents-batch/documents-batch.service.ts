@@ -13,6 +13,7 @@ import { Person } from "src/persons/person.dto";
 import { serializeInto } from "src/serializing/serializing";
 import { FormsService } from "src/forms/forms.service";
 import { SecondaryDocumentsService } from "../secondary-documents.service";
+import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 const CHUNK_SIZE = 10;
 
@@ -34,7 +35,7 @@ export class DocumentsBatchService {
 	async start(
 		documents: Document[],
 		person: Person,
-		accessToken: string
+		apiUser: ApiUserEntity
 	): Promise<BatchJobValidationStatusResponse>  {
 		const job: BatchJob = {
 			id: uuid(6),
@@ -48,7 +49,7 @@ export class DocumentsBatchService {
 
 		const processes = asChunks(documents, CHUNK_SIZE).map(async (documentChunks, idx) => {
 			const chunkErrors = await Promise.all(
-				await this.createValidationProcess(documentChunks, job, person, accessToken)
+				await this.createValidationProcess(documentChunks, job, person, apiUser)
 			);
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
@@ -112,14 +113,14 @@ export class DocumentsBatchService {
 		documents: (Document | SecondaryDocumentOperation)[],
 		job: BatchJob,
 		person: Person,
-		accessToken: string
+		apiUser: ApiUserEntity
 	) {
 		const formIDs = new Set();
 		return documents.map(async document => {
 			try {
 				const populatedDocument = await (isSecondaryDocumentDelete(document)
-					? this.secondaryDocumentsService.populateMutably(document, person, accessToken)
-					: this.documentsService.populateMutably(document, person, accessToken));
+					? this.secondaryDocumentsService.populateMutably(document, person, apiUser)
+					: this.documentsService.populateMutably(document, person, apiUser));
 
 				if (!isSecondaryDocumentDelete(populatedDocument)) {
 					populateCreatorAndEditor(populatedDocument, person);

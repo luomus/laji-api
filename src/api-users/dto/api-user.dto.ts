@@ -1,5 +1,5 @@
 import { PickType } from "@nestjs/swagger";
-import { ApiUser } from "../api-user.entity";
+import { ApiUserEntity } from "../api-user.entity";
 
 export class GetApiUserDto {
 	/**
@@ -8,4 +8,4 @@ export class GetApiUserDto {
 	accessToken?: string;
 }
 
-export class ApiUserCreateDto extends PickType(ApiUser, ["email"]) {}
+export class ApiUserCreateDto extends PickType(ApiUserEntity, ["email"]) {}

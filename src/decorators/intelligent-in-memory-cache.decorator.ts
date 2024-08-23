@@ -4,7 +4,7 @@ import { Logger } from "@nestjs/common";
  * A cache solution which automatically performs the following "job" (optionally periodically):
  *
  * * Flush methods memoized with `@IntelligentMemoize()`
- * * Warm up
+ * * Warm up (calls the `warmup()` method of the decorated class
  *
  * The "job" is called at initialization, so the cache is warmed up right away.
  *

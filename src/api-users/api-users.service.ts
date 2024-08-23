@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AccessTokenService } from "src/access-token/access-token.service";
-import { ApiUser } from "./api-user.entity";
+import { ApiUserEntity } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/serializing/serializing";
@@ -9,13 +9,13 @@ import { serializeInto } from "src/serializing/serializing";
 @Injectable()
 export class ApiUsersService {
 	constructor(
-		@InjectRepository(ApiUser) private apiUserRepository: Repository<ApiUser>,
+		@InjectRepository(ApiUserEntity) private apiUserRepository: Repository<ApiUserEntity>,
 		private accessTokenService: AccessTokenService,
 		private mailService: MailService,
 		private dataSource: DataSource
 	) {}
 
-	async getByAccessToken(accessToken: string): Promise<ApiUser> {
+	async getByAccessToken(accessToken: string): Promise<ApiUserEntity> {
 		const token = await this.accessTokenService.findOne(accessToken);
 
 		if (!token) {
@@ -31,8 +31,8 @@ export class ApiUsersService {
 		return apiUser;
 	}
 
-	async create(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
-		const apiUser = serializeInto(ApiUser)(apiUserWithEmail);
+	async create(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
+		const apiUser = serializeInto(ApiUserEntity)(apiUserWithEmail);
 		const existing = await this.findByEmail(apiUser.email);
 
 		if (existing) {
@@ -58,8 +58,8 @@ export class ApiUsersService {
 		}
 	}
 
-	async renew(apiUserWithEmail: Pick<ApiUser, "email">): Promise<void> {
-		const apiUser = serializeInto(ApiUser)(apiUserWithEmail);
+	async renew(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
+		const apiUser = serializeInto(ApiUserEntity)(apiUserWithEmail);
 		const existing = await this.findByEmail(apiUser.email);
 
 		if (!existing) {
@@ -89,7 +89,7 @@ export class ApiUsersService {
 		}
 	}
 
-	private findByEmail(email: string): Promise<ApiUser | null> {
+	private findByEmail(email: string): Promise<ApiUserEntity | null> {
 		return this.apiUserRepository.findOneBy({ email });
 	}
 }

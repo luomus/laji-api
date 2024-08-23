@@ -14,8 +14,6 @@ import { WarehouseModule } from "src/warehouse/warehouse.module";
 import { NamedPlacesModule } from "src/named-places/named-places.module";
 import { PrepopulatedDocumentModule } from "src/named-places/prepopulated-document/prepopulated-document.module";
 import { CACHE_10_MIN } from "src/utils";
-import { ApiUsersModule } from "src/api-users/api-users.module";
-import { AccessTokenModule } from "src/access-token/access-token.module";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { DocumentValidatorModule } from "./document-validator/document-validator.module";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
@@ -45,8 +43,7 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	providers: [DocumentsService, StoreResourceService, SecondaryDocumentsService, DocumentsBatchService],
 	imports: [
 		StoreClientModule, PersonsModule, FormPermissionsModule, FormsModule, CollectionsModule, WarehouseModule,
-		forwardRef(() => NamedPlacesModule), PrepopulatedDocumentModule, ApiUsersModule, AccessTokenModule,
-		forwardRef(() => DocumentValidatorModule)
+		forwardRef(() => NamedPlacesModule), PrepopulatedDocumentModule, forwardRef(() => DocumentValidatorModule)
 	],
 	exports: [DocumentsService],
 	controllers: [DocumentsController]

@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.service";
-import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Req, UseFilters } from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, UseFilters } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
@@ -10,8 +10,6 @@ import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";
 import { QueryWithPersonTokenDto } from "src/common.dto";
-import { AccessTokenService } from "src/access-token/access-token.service";
-import { Request } from "express";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
@@ -23,6 +21,8 @@ import { ValidationException } from "./document-validator/document-validator.uti
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
+import { ApiUser } from "src/decorators/api-user.decorator";
+import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @ApiTags("Documents")
 @UseFilters(ValidatiorErrorFormatFilter)
@@ -31,7 +31,6 @@ export class DocumentsController {
 	constructor(
 		private documentsService: DocumentsService,
 		private documentValidatorService: DocumentValidatorService,
-		private accessTokenService: AccessTokenService,
 		private secondaryDocumentsService: SecondaryDocumentsService,
 		private formsService: FormsService,
 		private documentsBatchService: DocumentsBatchService,
@@ -46,12 +45,11 @@ export class DocumentsController {
 	@HttpCode(200)
 	async startBatchJob(
 		@Body() documents: Document[],
-		@Req() request: Request,
 		@Query() _: QueryWithPersonTokenDto,
-		@PersonToken() person: Person
+		@PersonToken() person: Person,
+		@ApiUser() apiUser: ApiUserEntity
 	): Promise<BatchJobValidationStatusResponse> {
-		const accessToken = this.getAccessToken(request);
-		return this.documentsBatchService.start(documents, person, accessToken);
+		return this.documentsBatchService.start(documents, person, apiUser);
 	}
 
 	/**
@@ -90,8 +88,8 @@ export class DocumentsController {
 	@HttpCode(200)
 	async validate(
 		@Body() document: Document,
-		@Req() request: Request,
-		@Query() query: ValidateQueryDto
+		@Query() query: ValidateQueryDto,
+		@ApiUser() apiUser: ApiUserEntity
 	): Promise<unknown> {
 		const { validator, personToken, validationErrorFormat, type } = query;
 		if (validator) {
@@ -99,15 +97,13 @@ export class DocumentsController {
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
 		} else {
-			const accessToken = this.getAccessToken(request);
-
 			// Backward compatibility with old API, where batch jobs are handled by this endpoint.
 			if (document instanceof Array) {
 				if (!personToken) {
 					throw new HttpException("Person token is required for batch operation", 422);
 				}
 				const person = await this.personsService.getByToken(personToken);
-				return this.documentsBatchService.start(document, person, accessToken);
+				return this.documentsBatchService.start(document, person, apiUser);
 			} else if (isBatchJobDto(document)) {
 				if (!personToken) {
 					throw new HttpException("Person token is required for batch operation", 422);
@@ -137,7 +133,7 @@ export class DocumentsController {
 				const populated = await this.secondaryDocumentsService.populateMutably(
 					document as SecondaryDocument,
 					undefined,
-					accessToken
+					apiUser
 				);
 				if (!personToken) {
 					throw new HttpException("Person token is for batch operation", 422);
@@ -146,7 +142,7 @@ export class DocumentsController {
 				return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
 			}
 
-			const populatedDocument = await this.documentsService.populateMutably(document, undefined, accessToken);
+			const populatedDocument = await this.documentsService.populateMutably(document, undefined, apiUser);
 			return this.documentValidatorService.validate(populatedDocument, type!);
 		}
 	}
@@ -182,10 +178,11 @@ export class DocumentsController {
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
 	async create(
 		@Body() document: Document,
-		@Req() request: Request,
 		@Query() { validationErrorFormat }: CreateDocumentDto,
-		@PersonToken() person: Person
+		@PersonToken() person: Person,
+		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
+		console.log(apiUser);
 		if (isBatchJobDto(document)) {
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 			// 	// typings a bit awkward.
@@ -195,9 +192,6 @@ export class DocumentsController {
 				validationErrorFormat!
 			) as any;
 		}
-		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
-		// error already.
-		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
 		if (!document.formID) {
 			throw new ValidationException({ "/formID": ["Missing required param formID"] });
 		}
@@ -210,14 +204,14 @@ export class DocumentsController {
 			}
 			// The return type for secondary document deletion isn't actually Document. This remains undocumented by our
 			// Swagger document.
-			return this.secondaryDocumentsService.create(document as SecondaryDocument, person, accessToken) as
+			return this.secondaryDocumentsService.create(document as SecondaryDocument, person, apiUser) as
 				unknown as Promise<Document>;
 		}
 
 		return this.documentsService.create(
 			document as Document,
 			person,
-			accessToken
+			apiUser
 		);
 	}
 
@@ -227,13 +221,10 @@ export class DocumentsController {
 	async update(
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,
-		@Req() request: Request,
 		@Query() _: CreateDocumentDto,
-		@PersonToken() person: Person
+		@PersonToken() person: Person,
+		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
-		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
-		// error already.
-		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request)!;
 		if (!document.formID) {
 			throw new ValidationException({ "/formID": ["Missing required property formID"] });
 		}
@@ -248,7 +239,7 @@ export class DocumentsController {
 			id,
 			document as Document,
 			person,
-			accessToken
+			apiUser
 		);
 	}
 
@@ -280,12 +271,6 @@ export class DocumentsController {
 	@Get("stats")
 	getStatistics(@Query() query: QueryWithNamedPlaceDto): Promise<StatisticsResponse> {
 		return this.documentsService.getStatistics(query.namedPlace);
-	}
-
-	private getAccessToken(request: Request) {
-		// `!` is valid to use because it can't be undefined at this point, as the access-token.guard would have raised an
-		// error already.
-		return this.accessTokenService.findAccessTokenFromRequest(request)!;
 	}
 }
 

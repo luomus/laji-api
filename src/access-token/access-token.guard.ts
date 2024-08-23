@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Request } from "express";
+import { Request } from "src/request";
 import { AccessTokenService } from "./access-token.service";
 
 @Injectable()
@@ -22,10 +22,11 @@ export class AccessTokenGuard implements CanActivate {
 			throw new UnauthorizedException("access_token missing");
 		}
 		try {
-			const access = await this.accessTokenService.findOne(accessToken);
-			if (!access) {
+			const accessTokenEntity = await this.accessTokenService.findOne(accessToken);
+			if (!accessTokenEntity) {
 				throw new UnauthorizedException("Invalid access token");
 			}
+			request.accessToken = accessToken;
 		} catch (e) {
 			throw new UnauthorizedException("Invalid access token");
 		}

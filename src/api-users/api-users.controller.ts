@@ -5,7 +5,7 @@ import { ApiUsersService } from "./api-users.service";
 import { GetApiUserDto, ApiUserCreateDto } from "./dto/api-user.dto";
 import { Request } from "express";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
-import { ApiUser } from "./api-user.entity";
+import { ApiUserEntity } from "./api-user.entity";
 import { serializeInto } from "src/serializing/serializing";
 import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 
@@ -21,7 +21,7 @@ export class ApiUsersController {
 	 * Returns info about user based on the access token
 	 */
 	@Get()
-	@UseInterceptors(createQueryParamsInterceptor(undefined, ApiUser, { filterNulls: true }))
+	@UseInterceptors(createQueryParamsInterceptor(undefined, ApiUserEntity, { filterNulls: true }))
 	@ApiSecurity("access_token")
 	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
 		const token = accessToken || this.accessTokenService.findAccessTokenFromRequest(request);

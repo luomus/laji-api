@@ -1,19 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { AccessToken } from "./access-token.entity";
+import { AccessTokenEntity } from "./access-token.entity";
 import { Request } from "express";
-import { ApiUser } from "src/api-users/api-user.entity";
+import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { serializeInto } from "src/serializing/serializing";
 import { uuid } from "src/utils";
 
 @Injectable()
 export class AccessTokenService {
 	constructor(
-		@InjectRepository(AccessToken) private accessTokenRepository: Repository<AccessToken>,
+		@InjectRepository(AccessTokenEntity) private accessTokenRepository: Repository<AccessTokenEntity>,
 	) {}
 
-	async findOne(id: string): Promise<AccessToken | null> {
+	async findOne(id: string): Promise<AccessTokenEntity | null> {
 		return this.accessTokenRepository.findOneBy({ id });
 	}
 
@@ -21,7 +21,7 @@ export class AccessTokenService {
 		return (request.query.access_token as string) || request.headers.authorization;
 	}
 
-	findByUserID(userId: number): Promise<AccessToken | null> {
+	findByUserID(userId: number): Promise<AccessTokenEntity | null> {
 		return this.accessTokenRepository.findOneBy({ userId });
 	}
 
@@ -29,12 +29,12 @@ export class AccessTokenService {
 	 * Creates a new entity without saving it to the database yet.
 	 * The client of this method is responsible for the database transaction.
 	 */
-	getNewForUser(user: Pick<ApiUser, "id">): AccessToken {
+	getNewForUser(user: Pick<ApiUserEntity, "id">): AccessTokenEntity {
 		return this.getNew({ userId: user.id });
 	}
 
-	private getNew(accessTokenEntity: Omit<AccessToken, "id" | "created" | "ttl">): AccessToken {
+	private getNew(accessTokenEntity: Omit<AccessTokenEntity, "id" | "created" | "ttl">): AccessTokenEntity {
 		const id = uuid(64);
-		return serializeInto(AccessToken)({ ...accessTokenEntity, id });
+		return serializeInto(AccessTokenEntity)({ ...accessTokenEntity, id });
 	}
 }

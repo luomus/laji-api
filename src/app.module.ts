@@ -3,7 +3,7 @@ import { Module, ValidationPipe } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { AccessToken } from "./access-token/access-token.entity";
+import { AccessTokenEntity } from "./access-token/access-token.entity";
 import { AccessTokenModule } from "./access-token/access-token.module";
 import { AppController } from "./app.controller";
 import { FormsModule } from "./forms/forms.module";
@@ -25,7 +25,7 @@ import { LangModule } from "./lang/lang.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { MailModule } from "./mail/mail.module";
 import { ApiUsersModule } from "./api-users/api-users.module";
-import { ApiUser } from "./api-users/api-user.entity";
+import { ApiUserEntity } from "./api-users/api-user.entity";
 import { SwaggerModule } from "./swagger/swagger.module";
 import { ImagesModule } from "./images/images.module";
 import { AudioModule } from "./audio/audio.module";
@@ -40,6 +40,7 @@ import { TraitModule } from "./trait/trait.module";
 import { ErrorSignatureBackwardCompatibilityFilter }
 	from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
 import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor";
+import { ServicesInjector } from "./interceptors/services-injector.interceptor";
 
 @Module({
 	imports: [
@@ -58,7 +59,7 @@ import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor"
 				synchronize: false,
 				retryAttempts: 100,
 				retryDelay: 3000,
-				entities: [AccessToken, ApiUser]
+				entities: [AccessTokenEntity, ApiUserEntity]
 			}),
 			inject: [ConfigService]
 		}),
@@ -97,6 +98,10 @@ import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor"
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: HttpClientErrorToHttpExceptionInterceptor
+		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: ServicesInjector
 		},
 		{
 			provide: APP_PIPE,

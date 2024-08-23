@@ -13,9 +13,9 @@ import { isValidDate } from "src/utils";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { PrepopulatedDocumentService } from "src/named-places/prepopulated-document/prepopulated-document.service";
 import { QueryCacheOptions, StoreCacheOptions } from "src/store/store-cache";
-import { ApiUsersService } from "src/api-users/api-users.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
+import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 /** Allowed query keys of the external API of the document service */
 export const allowedQueryKeysForExternalAPI = [
@@ -69,7 +69,6 @@ export class DocumentsService {
 		private formPermissionsService: FormPermissionsService,
 		private formsService: FormsService,
 		private collectionsService: CollectionsService,
-		private apiUsersService: ApiUsersService,
 
 		@Inject(forwardRef(() => NamedPlacesService))
 		private namedPlacesService: NamedPlacesService,
@@ -164,13 +163,13 @@ export class DocumentsService {
 	async create(
 		unpopulatedDocument: Document,
 		person: Person,
-		accessToken: string
+		apiUser: ApiUserEntity
 	) {
 		if (unpopulatedDocument.id) {
 			throw new HttpException("You should not specify ID when adding primary data!", 406);
 		}
 
-		const document = await this.populateMutably(unpopulatedDocument, person, accessToken);
+		const document = await this.populateMutably(unpopulatedDocument, person, apiUser);
 
 		populateCreatorAndEditor(document, person);
 
@@ -184,7 +183,7 @@ export class DocumentsService {
 		id: string,
 		unpopulatedDocument: Document,
 		person: Person,
-		accessToken: string
+		apiUser: ApiUserEntity
 	) {
 		// TODO remove after store handles POST/PUT properly with separate methods.
 		if (!unpopulatedDocument.id) {
@@ -205,7 +204,7 @@ export class DocumentsService {
 			}
 		}
 
-		const document = await this.populateMutably(unpopulatedDocument, person, accessToken, false);
+		const document = await this.populateMutably(unpopulatedDocument, person, apiUser, false);
 
 		if (!person.isImporter()) {
 			document.editor = person.id;
@@ -285,11 +284,9 @@ export class DocumentsService {
 	async populateMutably<T extends Document>(
 		document: T,
 		person: Person | undefined,
-		accessToken: string,
+		apiUser: ApiUserEntity,
 		overwriteSourceID = true
 	) : Promise<Populated<T>> {
-		const apiUser = await this.apiUsersService.getByAccessToken(accessToken);
-
 		const { systemID } = apiUser;
 		if (!systemID) {
 			throw new HttpException("No valid systemID could be found for the api user", 422);

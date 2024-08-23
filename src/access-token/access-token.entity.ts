@@ -2,7 +2,7 @@ import { Private } from "src/serializing/private.decorator";
 import { Entity, Column, CreateDateColumn, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "ACCESSTOKEN" })
-export class AccessToken {
+export class AccessTokenEntity {
 	@PrimaryColumn({ name: "ID" })
 	id: string;
 

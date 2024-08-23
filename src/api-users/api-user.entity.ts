@@ -2,7 +2,7 @@ import { Private } from "src/serializing/private.decorator";
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: "APIUSER" })
-export class ApiUser {
+export class ApiUserEntity {
 
 	@Private()
 	@PrimaryGeneratedColumn({ name: "ID" })
