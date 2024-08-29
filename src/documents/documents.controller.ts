@@ -147,6 +147,27 @@ export class DocumentsController {
 		}
 	}
 
+	/** Get count of documents by type (currently just "byYear") */
+	@Get("count/byYear")
+	getCountByYear(
+		@Query() { collectionID, namedPlace, formID }: GetCountDto,
+		@PersonToken() person: Person
+	) : Promise<DocumentCountItemResponse[]> {
+		return this.documentsService.getCountByYear(
+			person,
+			collectionID,
+			namedPlace,
+			formID
+		);
+	}
+
+	/** Get the median date of documents for a named place */
+	@Get("stats")
+	getStatistics(@Query() query: QueryWithNamedPlaceDto): Promise<StatisticsResponse> {
+		console.log(query);
+		return this.documentsService.getStatistics(query.namedPlace);
+	}
+
 	/** Get a page of documents */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
@@ -251,27 +272,6 @@ export class DocumentsController {
 		@PersonToken() person: Person
 	): Promise<StoreDeleteResponse> {
 		return this.documentsService.delete(id, person);
-	}
-
-	/** Get count of documents by type (currently just "byYear") */
-	@Get("count/byYear")
-	getCountByYear(
-		@Query() { collectionID, namedPlace, formID }: GetCountDto,
-		@PersonToken() person: Person
-	) : Promise<DocumentCountItemResponse[]> {
-		return this.documentsService.getCountByYear(
-			person,
-			collectionID,
-			namedPlace,
-			formID
-		);
-	}
-
-	/** Get the median date of documents for a named place */
-	@Get("stats")
-	getStatistics(@Query() query: QueryWithNamedPlaceDto): Promise<StatisticsResponse> {
-		console.log(query);
-		return this.documentsService.getStatistics(query.namedPlace);
 	}
 }
 
