@@ -1,7 +1,8 @@
 import { Body, Delete, Get, Param, Put, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { QueryWithPersonTokenDto } from "src/common.dto";
-import { GetPageDto, Notification } from "./notification.dto";
+import { GetPageDto } from "./notification.dto";
+import { Notification } from "@luomus/laji-schema";
 import { NotificationsService } from "./notifications.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -25,7 +26,7 @@ export class NotificationsController {
 	@SwaggerRemoteRef({ source: "store", ref: "notification" })
 	update(
 		@Param("id") id: string,
-		@Body() notification: Notification,
+		@Body() notification: Notification & { id: string },
 		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	) {

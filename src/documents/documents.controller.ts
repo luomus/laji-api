@@ -270,6 +270,7 @@ export class DocumentsController {
 	/** Get the median date of documents for a named place */
 	@Get("stats")
 	getStatistics(@Query() query: QueryWithNamedPlaceDto): Promise<StatisticsResponse> {
+		console.log(query);
 		return this.documentsService.getStatistics(query.namedPlace);
 	}
 }

@@ -197,7 +197,7 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 // Exported so code defining a query can say what a clause should look like safely, since
 // StoreQueryLiteralMapOperation's "operation" is allowed to be undefined (defaults to "and"), hence trying to type an
 // "or" or "not" clause with it would allow any operation actually.
-export type QueryLiteralMap<T, OP extends Operation | undefined> = OP extends ("AND" | undefined)
+export type QueryLiteralMap<T, OP extends Operation | undefined = undefined> = OP extends ("AND" | undefined)
 	? LiteralMapClause<T, "AND">
 		: OP extends "OR"
 			? LiteralMapClause<T, "OR"> & { operation: OP }

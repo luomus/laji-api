@@ -85,7 +85,7 @@ export class TriplestoreService {
 			getPathAndQuery("search", query),
 			options
 		);
-		if (!Array.isArray(result)) {
+		if (!Array.isArray(result)) { // Singular results are as non-arrays.
 			result = [result];
 		}
 		return result;

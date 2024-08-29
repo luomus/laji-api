@@ -1,13 +1,18 @@
 import { HasContext } from "src/common.dto";
 import { Private } from "src/serializing/private.decorator";
 import { IsOptionalBoolean } from  "src/serializing/serializing";
+import { Person as _Person } from "@luomus/laji-schema/models";
 
 export enum Role {
 	Admin = "MA.admin",
 	Import = "_IMPORT_"
 }
 
-export class Person extends HasContext {
+enum RoleAnnotation {
+	expert = "MMAN.expert"
+};
+
+export class Person extends HasContext implements Omit<_Person, "role" | "fullName"> {
 	id: string;
 	emailAddress: string;
 	@Private() inheritedName?: string;
@@ -19,6 +24,7 @@ export class Person extends HasContext {
 	organisation?: string[];
 	organisationAdmin?: string[];
 	securePortalUserRoleExpires?: string;
+	roleAnnotation: RoleAnnotation;
 
 	isImporter() {
 		return this.role.includes(Role.Import);

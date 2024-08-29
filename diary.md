@@ -145,6 +145,13 @@ Old API checked that the renewal wasn't being spammed. New API doesn't care - th
 
 Old API filtered out non QNames from queries. For example, when querying named place with `?municipality=all`, the municipality filter was actually dropped from the query because "all" isn't a QName. New API bypasses all values and doesn't check if the queries make sense (other than checking for injections). This is left to the client's responsibility.
 
+## Annotations
+
+* `/annotation/convert` deprecated. At least laji.fi doesn't use it, I'm not aware what other system would use it.
+* When trying to create an annotation with duplicate tags or schematically incorrect tags, an error is thrown. Old API just filtered the duplicates & incorrect tags.
+* POST `/annotation` (annotation creation) doesn't accept "full document URI", like http://tun.fi/JX.1243 as the rootID. Only simple Qnames are accepted.
+* When removing an annotation, the persons to notify about it is dug from the warehouse's response's `editorUserIds`.  Old API uses `editors` field but that's not documented in https://laji.fi/about/1400 so I hope this one is correct?  (ask Esko later)
+
 # Database changes
 
 > :warning: Production release

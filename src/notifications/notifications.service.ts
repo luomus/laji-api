@@ -1,11 +1,11 @@
 import { HttpException, Inject } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
-import { Notification } from "./notification.dto";
 import * as equals from "fast-deep-equal";
 import { Query } from "src/store/store-query";
 import { Optional, omit } from "src/type-utils";
 import { Person } from "src/persons/person.dto";
+import { Notification } from "@luomus/laji-schema";
 
 @Injectable()
 export class NotificationsService {
@@ -22,13 +22,18 @@ export class NotificationsService {
 		return await this.store.getPage(query, page, pageSize);
 	}
 
+	async getByAnnotationIDAndPersonID(annotationID: string, personID: string) {
+		const query = { "annotation.id": annotationID, toPerson: personID };
+		return this.store.getAll(query);
+	}
+
 	async add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {
 		notification.seen = false;
 		notification.created = now();
 		return this.store.create(notification);
 	}
 
-	async findByIdAndPerson(id: string, person: Person) {
+	async getByIdAndPerson(id: string, person: Person) {
 		const notification = await this.store.get(id);
 		if (notification.toPerson !== person.id) {
 			throw new HttpException("This isn't your notification", 403);
@@ -36,8 +41,8 @@ export class NotificationsService {
 		return notification;
 	}
 
-	async update(id: string, notification: Notification, person: Person) {
-		const existing = await this.findByIdAndPerson(id, person);
+	async update(id: string, notification: Notification & { id: string }, person: Person) {
+		const existing = await this.getByIdAndPerson(id, person);
 		if (!existing) {
 			throw new HttpException("No notification found to update", 404);
 		}
@@ -50,7 +55,7 @@ export class NotificationsService {
 	}
 
 	async delete(id: string, person: Person) {
-		const existing = await this.findByIdAndPerson(id, person);
+		const existing = await this.getByIdAndPerson(id, person);
 		if (!existing) {
 			throw new HttpException("No notification found to delete", 404);
 		}

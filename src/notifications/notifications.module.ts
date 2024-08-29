@@ -13,7 +13,7 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	useFactory: (client: RestClientService<never>, cache: RedisCacheService) =>
 		new StoreService(client, cache, {
 			resource: "notification",
-			cache: { ttl: CACHE_1_MIN, keys: ["toPerson", "seen"], primaryKeys: ["toPerson"] }
+			cache: { ttl: CACHE_1_MIN, keys: ["toPerson", "seen", "annotation.id"], primaryKeys: ["toPerson"] }
 		}),
 	inject: [
 		{ token: STORE_CLIENT, optional: false },

@@ -38,7 +38,7 @@ describe("/annotation", function() {
 			.send(document)
 			.end(function (err, res) {
 				if (err) return done(err);
-				res.should.have.status(200);
+				res.should.have.status(201);
 				res.body.should.have.any.keys("id");
 				res.body.should.have.any.keys("@type");
 				res.body.should.have.any.keys("@context");
@@ -62,6 +62,7 @@ describe("/annotation", function() {
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
 		document["addedTags"].push("MMAN.51");
+		document["rootID"] = "JX.322170"; // line transect document
 		request(this.server)
 			.post(query)
 			.send(document)
@@ -131,27 +132,28 @@ describe("/annotation", function() {
 				});
 		});
 
-		it("returns annotation by full document uri", function(done) {
-			if (!anId) {
-				this.skip();
-			}
-			const query = basePath + "?access_token=" + config.access_token +
-				"&personToken=" + config.user.token +
-				"&rootID=http://tun.fi/" + config.objects.annotation.rootID;
-			request(this.server)
-				.get(query)
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					helpers.isPagedResult(res.body, 20, true);
-					res.body[helpers.params.results].filter((annotation) => {
-						annotation.should.have.property("rootID").eql(config.objects.annotation.rootID);
-
-						return annotation["id"] === anId;
-					}).should.have.lengthOf(1);
-					done();
-				});
-		});
+		//Deprecated behavior, see diary.md
+		// it("returns annotation by full document uri", function(done) {
+		// 	if (!anId) {
+		// 		this.skip();
+		// 	}
+		// 	const query = basePath + "?access_token=" + config.access_token +
+		// 		"&personToken=" + config.user.token +
+		// 		"&rootID=http://tun.fi/" + config.objects.annotation.rootID;
+		// 	request(this.server)
+		// 		.get(query)
+		// 		.end(function(err, res) {
+		// 			if (err) return done(err);
+		// 			res.should.have.status(200);
+		// 			helpers.isPagedResult(res.body, 20, true);
+		// 			res.body[helpers.params.results].filter((annotation) => {
+		// 				annotation.should.have.property("rootID").eql(config.objects.annotation.rootID);
+    //
+		// 				return annotation["id"] === anId;
+		// 			}).should.have.lengthOf(1);
+		// 			done();
+		// 		});
+		// });
 
 		it("requires persontoken", function(done) {
 			if (!anId) {
@@ -231,7 +233,7 @@ describe("/annotation", function() {
 				}
 				const query = basePath + "?access_token=" + config.access_token +
 					"&personToken=" + config.user.token +
-					"&rootID=http://tun.fi/" + config.objects.annotation.rootID;
+					"&rootID=" + config.objects.annotation.rootID;
 				request(this.server)
 					.get(query)
 					.end(function(err, res) {
