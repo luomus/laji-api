@@ -164,7 +164,6 @@ export class DocumentsController {
 	/** Get the median date of documents for a named place */
 	@Get("stats")
 	getStatistics(@Query() query: QueryWithNamedPlaceDto): Promise<StatisticsResponse> {
-		console.log(query);
 		return this.documentsService.getStatistics(query.namedPlace);
 	}
 
@@ -203,7 +202,6 @@ export class DocumentsController {
 		@PersonToken() person: Person,
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
-		console.log(apiUser);
 		if (isBatchJobDto(document)) {
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 			// 	// typings a bit awkward.
