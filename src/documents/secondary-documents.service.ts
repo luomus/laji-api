@@ -5,7 +5,6 @@ import { PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocume
 	isSecondaryDocument, isSecondaryDocumentDelete } from "./documents.dto";
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
-import { AccessTokenEntity } from "src/access-token/access-token.entity";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @Injectable()

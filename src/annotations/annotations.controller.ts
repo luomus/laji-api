@@ -25,7 +25,7 @@ export class AnnotationsController {
 	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto))
 	@SwaggerRemoteRef({ source: "store", ref: "tag" })
 	getTags(
-		@Query() _: LangQueryDto,
+		@Query() _: LangQueryDto, // eslint-disable-line
 	): Promise<Tag[]> {
 		return this.annotationsService.getTags();
 	}

@@ -3,7 +3,7 @@ import { HttpException } from "@nestjs/common";
 import { ApiHideProperty, ApiProperty, IntersectionType, PartialType, getSchemaPath } from "@nestjs/swagger";
 import { Exclude, Expose, Type } from "class-transformer";
 import { IsInt, IsOptional } from "class-validator";
-import { LangQueryDto, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
 import { WithNonNullableKeys } from "src/type-utils";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
