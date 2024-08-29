@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsInt, isObject } from "class-validator";
+import { IsInt, IsString, isObject } from "class-validator";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "./serializing/serializing";
 import { IntersectionType } from "@nestjs/swagger";
 
@@ -33,7 +33,7 @@ export const isLangQueryDto = (maybeLangQuery: any): maybeLangQuery is LangQuery
 
 export class QueryWithPersonTokenDto {
 	/** Person's authentication token */
-	personToken: string;
+	@IsString() personToken: string;
 }
 
 export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {

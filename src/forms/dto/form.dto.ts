@@ -2,6 +2,7 @@ import { Lang, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { OmitType } from "@nestjs/swagger";
 import { JSONObjectSerializable } from "src/type-utils";
+import { IsString } from "class-validator";
 
 export enum Format {
 	schema = "schema",
@@ -95,7 +96,7 @@ export class AcceptAccessDto {
 	/**
 	 * 	Person token who is authorised to accept requests
 	 */
-	personToken: string;
+	@IsString() personToken: string;
 
 	/**
 	 * Access type

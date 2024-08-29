@@ -2,7 +2,7 @@ import { Document } from "@luomus/laji-schema";
 import { HttpException } from "@nestjs/common";
 import { ApiHideProperty, ApiProperty, IntersectionType, PartialType, getSchemaPath } from "@nestjs/swagger";
 import { Exclude, Expose, Type } from "class-transformer";
-import { IsInt, IsOptional } from "class-validator";
+import { IsInt, IsOptional, IsString } from "class-validator";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
 import { WithNonNullableKeys } from "src/type-utils";
@@ -195,13 +195,13 @@ export const isBatchJobDto = (job: any): job is { id: string, status: BatchJobVa
 
 export class QueryWithNamedPlaceDto {
 	/** Limit the list of documents to a certain named place */
-	namedPlace: string;
+	@IsString() namedPlace: string;
 }
 
 export class GetCountDto extends IntersectionType(
 	PartialType(QueryWithNamedPlaceDto),
-	QueryWithPersonTokenDto)
-{
+	QueryWithPersonTokenDto
+) {
 	/** Limit the list of documents to a certain collection */
 	collectionID?: string;
 
