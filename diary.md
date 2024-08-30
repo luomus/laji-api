@@ -152,6 +152,10 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * POST `/annotation` (annotation creation) doesn't accept "full document URI", like http://tun.fi/JX.1243 as the rootID. Only simple Qnames are accepted.
 * When removing an annotation, the persons to notify about it is dug from the warehouse's response's `editorUserIds`.  Old API uses `editors` field but that's not documented in https://laji.fi/about/1400 so I hope this one is correct?  (ask Esko later)
 
+## Areas
+
+* Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
+
 # Database changes
 
 > :warning: Production release

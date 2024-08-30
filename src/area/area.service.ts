@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
 import { Interval } from "@nestjs/schedule";
@@ -21,7 +21,24 @@ export class AreaService {
 		await this.getAllDict();
 	}
 
-	private getAll() {
+	async find(ids?: string[]) {
+		const all = await this.getAll();
+		if (!ids?.length) {
+			return all;
+		}
+		return all.filter(a => ids.includes(a.id));
+	}
+
+	async get(id: string) {
+		const area = (await this.getAllDict())[id];
+		if (!area) {
+			throw new HttpException("Not found", 404);
+		}
+		return area;
+	}
+
+	@IntelligentMemoize()
+	private async getAll() {
 		return this.triplestoreService.find<Area>({ type: "ML.area" }, { cache: CACHE_TTL });
 	}
 

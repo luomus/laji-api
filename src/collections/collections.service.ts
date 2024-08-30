@@ -88,18 +88,11 @@ export class CollectionsService {
 	@IntelligentMemoize()
 	async findCollections(ids?: string[])
 		: Promise<Collection[]> {
-		const collections = [];
 		const all = await this.getAll();
-		if (!ids) {
+		if (!ids?.length) {
 			return all;
 		}
-		for (const collection of all) {
-			if (ids?.length && !ids.includes(collection.id)) {
-				continue;
-			}
-			collections.push(collection);
-		}
-		return collections;
+		return all.filter(c => ids.includes(c.id));
 	}
 
 	@IntelligentMemoize()
