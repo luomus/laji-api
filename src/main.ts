@@ -50,7 +50,17 @@ export async function bootstrap() {
 			persistAuthorization: true,
 			docExpansion: "none",
 		},
-		patchDocumentOnRequest: (req, res, swaggerDoc) => app.get(SwaggerService).patch(swaggerDoc)
+		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
+		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()
+		// failing. The patching can fail if the document is requested before the service has patched the document so it can
+		// return the document synchronously, or if some of the remote swagger documents can't be fetched.
+		patchDocumentOnRequest: (req, res, swaggerDoc) => {
+			try {
+				return app.get(SwaggerService).patch(swaggerDoc);
+			} catch (e) {
+				return undefined as unknown as any;
+			}
+		}
 	});
 
 	await app.listen(port, "0.0.0.0");
