@@ -1,36 +1,58 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TriplestoreService } from "../triplestore/triplestore.service";
 import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from "./abstract-media.dto";
-import * as _request from "request";
-import { PersonsService } from "../persons/persons.service";
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
-import { MEDIA_CLIENT } from "src/provider-tokens";
+import { MEDIA_CLIENT, MEDIA_CONFIG } from "src/provider-tokens";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
-const typeMediaClassMap: Record<MediaType, string> = {
-	[MediaType.image]: "IMAGE",
-	[MediaType.audio]: "AUDIO"
-};
-
-const typeMediaNameMap: Record<MediaType, string> = {
-	[MediaType.image]: "images",
-	[MediaType.audio]: "audio"
-};
+export type AbstractMediaServiceConfig = {
+	mediaClass: "IMAGE" | "AUDIO";
+	apiPath: "images" | "audio";
+	type: MediaType;
+}
 
 @Injectable()
-export class AbstractMediaService {
+export class AbstractMediaService<T extends MediaType> {
 	constructor(
 		@Inject(MEDIA_CLIENT) private mediaClient: RestClientService,
-		private configService: ConfigService,
+		@Inject(MEDIA_CONFIG) private abstracted: AbstractMediaServiceConfig,
+		private config: ConfigService,
 		private triplestoreService: TriplestoreService,
-		private personsService: PersonsService,
 	) {}
 
-	async findMedia<T extends MediaType>(type: T, idIn?: string[]): Promise<Media<T>[]> {
+	private logger = new Logger(AbstractMediaService.name);
+
+	uploadProxy = createProxyMiddleware({
+		target: this.config.get("MEDIA_HOST"),
+		changeOrigin: true,
+		pathRewrite: {
+			[`^/${this.abstracted.apiPath}`]: "/api/fileUpload/"
+		},
+		on: {
+			proxyReq: (req, res) => {
+				const baseUrl = `${req.protocol}//${req.host}`;
+				const url = new URL(req.path, baseUrl);
+				url.searchParams.append("mediaClass", this.abstracted.mediaClass);
+				req.path = url.pathname + url.search;
+				return fixRequestBody(req, res);
+			}
+		},
+		headers: {
+			authorization: this.config.get("MEDIA_AUTH") as string
+		},
+		logger: {
+			info: this.logger.verbose,
+			warn: this.logger.warn,
+			error: this.logger.error
+		}
+	});
+
+	async findMedia(idIn?: string[]): Promise<Media<T>[]> {
 		return await this.triplestoreService.find<Media<T>>(
 			{
-				type,
+				type: this.abstracted.type,
 				subject: idIn?.join(","),
 				predicate: "MZ.publicityRestrictions",
 				objectresource: "MZ.publicityRestrictionsPublic"
@@ -38,62 +60,45 @@ export class AbstractMediaService {
 		);
 	}
 
-	async get<T extends MediaType>(type: T, id: string): Promise<Media<T>> {
-		const [result] = await this.findMedia(type, [id]);
+	async get(id: string): Promise<Media<T>> {
+		const [result] = await this.findMedia([id]);
 		if (!result) {
 			throw new HttpException("Not found", 404);
 		}
 		return result;
 	}
 
-	async getURL<T extends MediaType>(type: T, id: string, urlKey: keyof Media<T>): Promise<string> {
-		const result = await this.get(type, id);
+	async getURL(id: string, urlKey: keyof Media<T>): Promise<string> {
+		const result = await this.get(id);
 		if (!result[urlKey]) {
 			throw new HttpException("Not found", 404);
 		}
 		return result[urlKey] as string;
 	}
 
-	async getUploadProxy(type: MediaType): Promise<_request.Request> {
-		const basePath = this.configService.get("MEDIA_HOST") as string;
-		const basicAuth = this.configService.get("MEDIA_AUTH") as string;
-		const auth = this.parseBasicAuth(basicAuth);
-
-		return _request(basePath + "/api/fileUpload", {
-			auth,
-			"qs": {
-				"mediaClass": typeMediaClassMap[type]
-			}
-		});
-	}
-
-	async uploadMetadata<T extends MediaType>(
-		type: T, tempId: string, media: Media<T>, person: Person
-	): Promise<Media<T>> {
+	async uploadMetadata(tempId: string, media: Media<T>, person: Person): Promise<Media<T>> {
 		if (!media.intellectualRights) {
 			throw new HttpException("Intellectual rights is required", 422);
 		}
 
 		const metadata = this.newMetadata(media, person, tempId);
 		const data = await this.mediaClient.post<MetaUploadResponse[]>(
-			`api/${typeMediaNameMap[type]}`, metadata
+			`api/${this.abstracted.apiPath}`, metadata
 		);
 
-		return this.get(type, data[0]!.id);
+		return this.get(data[0]!.id);
 	}
 
-	async updateMetadata<T extends MediaType>(
-		type: T, id: string, media: Media<T>, person: Person
-	): Promise<Media<T>> {
-		const current = await this.get(type, id);
+	async updateMetadata(id: string, media: Media<T>, person: Person): Promise<Media<T>> {
+		const current = await this.get(id);
 
 		if (current.uploadedBy !== person.id) {
-			throw new HttpException(`Can only update ${typeMediaNameMap[type]} uploaded by the user`, 400);
+			throw new HttpException("Can only update media uploaded by the user", 400);
 		}
 
-		const metadata = this.mediaToMeta<T>(media, person, current);
+		const metadata = this.mediaToMeta(media, person, current);
 		try {
-			await this.mediaClient.put(`api/${typeMediaNameMap[type]}/${id}`, metadata);
+			await this.mediaClient.put(`api/${this.abstracted.apiPath}/${id}`, metadata);
 		} catch (e) {
 			const errorData = e.response?.data;
 			if (typeof errorData === "string" && errorData.includes("TRIPLESTORE")) {
@@ -105,30 +110,28 @@ export class AbstractMediaService {
 			throw e;
 		}
 
-		return this.get(type, id);
+		return this.get(id);
 	}
 
-	async deleteMedia<T extends MediaType>(type: T, id: string, person: Person): Promise<void> {
-		const current = await this.get(type, id);
+	async deleteMedia(id: string, person: Person): Promise<void> {
+		const current = await this.get(id);
 
 		if (current.uploadedBy !== person.id) {
-			throw new HttpException(`Can only delete ${typeMediaNameMap[type]} uploaded by the user`, 400);
+			throw new HttpException("Can only delete media uploaded by the user", 400);
 		}
 
-		await this.mediaClient.delete(`api/${typeMediaNameMap[type]}/${id}`);
+		await this.mediaClient.delete(`api/${this.abstracted.apiPath}/${id}`);
 	}
 
-	private newMetadata<T extends MediaType>(media: Media<T>, person: Person, tempId: string): MetaUploadData[] {
-		const meta = this.mediaToMeta<T>(media, person);
+	private newMetadata(media: Media<T>, person: Person, tempId: string): MetaUploadData[] {
+		const meta = this.mediaToMeta(media, person);
 		return [{
 			meta: meta,
 			tempFileId: tempId
 		}];
 	}
 
-	private mediaToMeta<T extends MediaType>(
-		media: Media<T>, person: Person, current: Partial<Media<T>> = {}
-	): PartialMeta {
+	private mediaToMeta(media: Media<T>, person: Person, current: Partial<Media<T>> = {}): PartialMeta {
 		const uploadedBy = current.uploadedBy
 			|| person.isImporter()
 			? media.uploadedBy
@@ -168,18 +171,5 @@ export class AbstractMediaService {
 		}
 
 		return Math.floor(date.getTime() / 1000).toString();
-	}
-
-	private parseBasicAuth(auth: string): { user?: string, pass?: string } {
-		const parts = auth.split(" ");
-		if (parts[0] !== "Basic") {
-			return {};
-		}
-		const base64EncodedAuth = parts[1];
-		if (!base64EncodedAuth) {
-			throw new Error("Badly configured auth");
-		}
-		const [user, pass] = atob(base64EncodedAuth).split(":");
-		return { user, pass };
 	}
 }

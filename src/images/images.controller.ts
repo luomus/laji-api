@@ -2,6 +2,7 @@ import {
 	Body,
 	Delete,
 	Get, HttpCode, HttpStatus,
+	Next,
 	Param,
 	Post,
 	Put,
@@ -11,7 +12,7 @@ import {
 	UseInterceptors
 } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
@@ -25,14 +26,14 @@ import { Person } from "src/persons/person.dto";
 @ApiTags("Image")
 export class ImagesController {
 	constructor(
-		private abstractMediaService: AbstractMediaService
+		private abstractMediaService: AbstractMediaService<MediaType.image>
 	) {}
 
 	/** Get all images */
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image))
 	async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
-		return this.abstractMediaService.findMedia(MediaType.image, idIn);
+		return this.abstractMediaService.findMedia(idIn);
 	}
 
 	/** Upload image and get temporary id */
@@ -42,17 +43,17 @@ export class ImagesController {
 		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() __: Person, // Checks that the person token is valid.
 		@Req() req: Request,
-		@Res() res: Response
+		@Res() res: Response,
+		@Next() next: NextFunction
 	) {
-		const proxy = await this.abstractMediaService.getUploadProxy(MediaType.image);
-		req.pipe(proxy).pipe(res);
+		void this.abstractMediaService.uploadProxy(req, res, next);
 	}
 
 	/** Get image by id */
 	@Get(":id")
 	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Image))
 	findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Image> {
-		return this.abstractMediaService.get(MediaType.image, id);
+		return this.abstractMediaService.get(id);
 	}
 
 	/** Update image metadata */
@@ -64,20 +65,20 @@ export class ImagesController {
 		@PersonToken() person: Person,
 		@Body() image: Image
 	): Promise<Image> {
-		return this.abstractMediaService.updateMetadata(MediaType.image, id, image, person);
+		return this.abstractMediaService.updateMetadata(id, image, person);
 	}
 
 	/** Delete image */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
 	delete(@Param("id") id: string, @Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
-		return this.abstractMediaService.deleteMedia(MediaType.image, id, person);
+		return this.abstractMediaService.deleteMedia(id, person);
 	}
 
 	/** Fetch large image by id */
 	@Get(":id/large.jpg")
 	findLarge(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.image, id, "largeURL").then(url => {
+		void this.abstractMediaService.getURL(id, "largeURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -85,7 +86,7 @@ export class ImagesController {
 	/** Fetch square thumbnail by id */
 	@Get(":id/square.jpg")
 	findSquare(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.image, id, "squareThumbnailURL").then(url => {
+		void this.abstractMediaService.getURL(id, "squareThumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -93,7 +94,7 @@ export class ImagesController {
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.image, id, "thumbnailURL").then(url => {
+		void this.abstractMediaService.getURL(id, "thumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -107,7 +108,7 @@ export class ImagesController {
 		@PersonToken() person: Person,
 		@Body() image: Image
 	): Promise<Image> {
-		return this.abstractMediaService.uploadMetadata(MediaType.image, tempId, image, person);
+		return this.abstractMediaService.uploadMetadata(tempId, image, person);
 	}
 }
 

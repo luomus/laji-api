@@ -3,8 +3,8 @@ var config = require("../config.json");
 var helpers = require("../helpers");
 const { request } = require("chai");
 
-const errorOnlyOwn = "Can only update audio uploaded by the user";
-const errorOnlyOwnDelete = "Can only delete audio uploaded by the user";
+const errorOnlyOwn = "Can only update media uploaded by the user";
+const errorOnlyOwnDelete = "Can only delete media uploaded by the user";
 
 const commonProperties = [
 	"@context",

@@ -2,6 +2,7 @@ import {
 	Body,
 	Delete,
 	Get, HttpCode, HttpStatus,
+	Next,
 	Param,
 	Post,
 	Put,
@@ -15,7 +16,7 @@ import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
@@ -25,14 +26,14 @@ import { Person } from "src/persons/person.dto";
 @ApiTags("Audio")
 export class AudioController {
 	constructor(
-		private abstractMediaService: AbstractMediaService,
+		private abstractMediaService: AbstractMediaService<MediaType.audio>,
 	) {}
 
 	/** Get all audio */
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio))
 	async getAll(@Query() { idIn }: GetPageDto): Promise<Audio[]> {
-		return this.abstractMediaService.findMedia(MediaType.audio, idIn);
+		return this.abstractMediaService.findMedia(idIn);
 	}
 
 	/** Upload audio and get temporary id */
@@ -44,17 +45,17 @@ export class AudioController {
 		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() __: Person, // Checks that the person token is valid.
 		@Req() req: Request,
-		@Res() res: Response
+		@Res() res: Response,
+		@Next() next: NextFunction
 	) {
-		const proxy = await this.abstractMediaService.getUploadProxy(MediaType.audio);
-		req.pipe(proxy).pipe(res);
+		void this.abstractMediaService.uploadProxy(req, res, next);
 	}
 
 	/** Get audio by id */
 	@Get(":id")
 	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio))
 	findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Audio> {
-		return this.abstractMediaService.get(MediaType.audio, id);
+		return this.abstractMediaService.get(id);
 	}
 
 	/** Update audio metadata */
@@ -66,20 +67,20 @@ export class AudioController {
 		@PersonToken() person: Person,
 		@Body() audio: Audio
 	): Promise<Audio> {
-		return this.abstractMediaService.updateMetadata(MediaType.audio, id, audio, person);
+		return this.abstractMediaService.updateMetadata(id, audio, person);
 	}
 
 	/** Delete audio */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
 	delete(@Param("id") id: string, @Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
-		return this.abstractMediaService.deleteMedia(MediaType.audio, id, person);
+		return this.abstractMediaService.deleteMedia(id, person);
 	}
 
 	/** Fetch mp3 by id */
 	@Get(":id/mp3")
 	getMp3(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.audio, id, "mp3URL").then(url => {
+		void this.abstractMediaService.getURL(id, "mp3URL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -87,7 +88,7 @@ export class AudioController {
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
 	getThumbnail(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.audio, id, "thumbnailURL").then(url => {
+		void this.abstractMediaService.getURL(id, "thumbnailURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -95,7 +96,7 @@ export class AudioController {
 	/** Fetch wav by id */
 	@Get(":id/wav")
 	getWav(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.audio, id, "wavURL").then(url => {
+		void this.abstractMediaService.getURL(id, "wavURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -103,7 +104,7 @@ export class AudioController {
 	/** Fetch flac by id */
 	@Get(":id/flac")
 	findFlac(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(MediaType.audio, id, "flacURL").then(url => {
+		void this.abstractMediaService.getURL(id, "flacURL").then(url => {
 			res.redirect(url);
 		});
 	}
@@ -117,6 +118,6 @@ export class AudioController {
 		@PersonToken() person: Person,
 		@Body() audio: Audio
 	): Promise<Audio> {
-		return this.abstractMediaService.uploadMetadata(MediaType.audio, tempId, audio, person);
+		return this.abstractMediaService.uploadMetadata(tempId, audio, person);
 	}
 }
