@@ -1,4 +1,4 @@
-import { Inject, Injectable, Type } from "@nestjs/common";
+import { Inject, Injectable, Logger, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, lastFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe, updateWithJSONPointer,
@@ -28,6 +28,8 @@ type SwaggerSchema = Record<string, SchemaItem>;
 @IntelligentInMemoryCache()
 export class SwaggerService {
 
+	private logger = new Logger(SwaggerService.name);
+
 	storeSwaggerDoc?: OpenAPIObject;
 	remoteSwaggers: Record<string, {
 		instance: {
@@ -52,7 +54,11 @@ export class SwaggerService {
 		for (const entry of instancesWithRemoteSwagger) {
 			this.remoteSwaggers[entry.name] = { instance: entry.instance };
 			const controller = this.moduleRef.get(entry.instance, { strict: false });
-			this.remoteSwaggers[entry.name]!.document = await controller.fetchSwagger();
+			try {
+				this.remoteSwaggers[entry.name]!.document = await controller.fetchSwagger();
+			} catch (e) {
+				this.logger.error("Failed to fetch remote swagger. Our swagger document is broken!", { entry });
+			}
 		}
 	}
 
