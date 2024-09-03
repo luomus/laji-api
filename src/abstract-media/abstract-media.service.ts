@@ -31,12 +31,12 @@ export class AbstractMediaService<T extends MediaType> {
 			[`^/${this.abstracted.apiPath}`]: "/api/fileUpload/"
 		},
 		on: {
-			proxyReq: (req, res) => {
-				const baseUrl = `${req.protocol}//${req.host}`;
-				const url = new URL(req.path, baseUrl);
+			proxyReq: (proxyReq, req) => {
+				const baseUrl = `${proxyReq.protocol}//${proxyReq.host}`;
+				const url = new URL(proxyReq.path, baseUrl);
 				url.searchParams.append("mediaClass", this.abstracted.mediaClass);
-				req.path = url.pathname + url.search;
-				return fixRequestBody(req, res);
+				proxyReq.path = url.pathname + url.search;
+				return fixRequestBody(proxyReq, req);
 			}
 		},
 		headers: {
