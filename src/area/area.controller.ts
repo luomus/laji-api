@@ -14,7 +14,7 @@ export class AreaController {
 	constructor(private areaService: AreaService) {}
 
 	/** Get a page of areas */
-	@Get("id")
+	@Get(":id")
 	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto))
 	@SwaggerRemoteRef({ source: "store", ref: "area" })
 	get(@Param("id") id: string, @Query() _: LangQueryDto) {
