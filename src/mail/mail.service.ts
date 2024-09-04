@@ -70,7 +70,7 @@ export class MailService {
 		});
 	}
 
-	async sendApiUserCreationFailed(user: HasEmailAddress) {
+	async sendApiUserCreationFailed(user: HasEmailAddress, error: Error) {
 		void this.send({
 			to: user.emailAddress,
 			subject: `Access token for ${this.configService.get("MAIL_API_BASE")} failed`,
@@ -80,7 +80,7 @@ export class MailService {
 			to: FINBIF_EMAIL,
 			subject: "Access token creation failed",
 			template: "./api-user-creation-failed-recipient-internal",
-			context: { user }
+			context: { user, error }
 		});
 	}
 
