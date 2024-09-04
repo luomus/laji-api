@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AccessTokenService } from "src/access-token/access-token.service";
 import { ApiUserEntity } from "./api-user.entity";
@@ -8,6 +8,9 @@ import { serializeInto } from "src/serializing/serializing";
 
 @Injectable()
 export class ApiUsersService {
+
+	private logger = new Logger(ApiUsersService.name);
+
 	constructor(
 		@InjectRepository(ApiUserEntity) private apiUserRepository: Repository<ApiUserEntity>,
 		private accessTokenService: AccessTokenService,
@@ -42,17 +45,29 @@ export class ApiUsersService {
 
 		const queryRunner = this.dataSource.createQueryRunner();
 
+		// Do database operation in one transaction. Email is sent before commiting, because if the email sending fails, we
+		// don't want to commit the transaction as it can't be rolled then anymore.
 		try {
 			await queryRunner.connect();
 			await queryRunner.startTransaction();
 			const createdApiUser = await queryRunner.manager.save(apiUser);
 			const accessTokenEntity = this.accessTokenService.getNewForUser(createdApiUser);
 			await queryRunner.manager.save(accessTokenEntity);
-			await queryRunner.commitTransaction();
 			await this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, accessTokenEntity.id);
 		} catch (e) {
 			await queryRunner.rollbackTransaction();
+			await queryRunner.release();
+			this.logger.error(e);
 			throw e;
+		}
+
+		// Commit the transaction after succesfully sending email. If it fails, we send an email to the user and ourselves
+		// that the api user creation actually failed.
+		try {
+			await queryRunner.commitTransaction();
+		} catch (e) {
+			this.logger.error(e);
+			await this.mailService.sendApiUserCreationFailed({ emailAddress: apiUser.email });
 		} finally {
 			await queryRunner.release();
 		}

@@ -9,6 +9,8 @@ type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
 type HasEmailAddress = { emailAddress: string };
 
+const FINBIF_EMAIL = "www@luomus.fi";
+
 @Injectable()
 export class MailService {
 	constructor(
@@ -65,6 +67,20 @@ export class MailService {
 			subject: `Access token for ${this.configService.get("MAIL_API_BASE")}`,
 			template: "./api-user-created",
 			context: { token }
+		});
+	}
+
+	async sendApiUserCreationFailed(user: HasEmailAddress) {
+		void this.send({
+			to: user.emailAddress,
+			subject: `Access token for ${this.configService.get("MAIL_API_BASE")} failed`,
+			template: "./api-user-creation-failed",
+		});
+		return this.send({
+			to: FINBIF_EMAIL,
+			subject: "Access token creation failed",
+			template: "./api-user-creation-failed-recipient-internal",
+			context: { user }
 		});
 	}
 
