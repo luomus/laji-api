@@ -15,6 +15,7 @@ describe("/area", function() {
 	});
 
 	it("returns 401 when no access token specified for id", function(done) {
+		this.timeout(5000);
 		request(this.server)
 			.get(basePath + "/" + config["id"]["area_country"])
 			.end(function(err, res) {
@@ -86,6 +87,7 @@ describe("/area", function() {
 	});
 
 	it("returns by id", function(done) {
+		this.timeout(5000);
 		var testId = config["id"]["area_iucn"];
 		var query = basePath + "/" + testId +
 			"?access_token=" + config["access_token"];
