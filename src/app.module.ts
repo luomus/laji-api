@@ -43,6 +43,7 @@ import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor"
 import { ServicesInjector } from "./interceptors/services-injector.interceptor";
 import { AnnotationsModule } from "./annotations/annotations.module";
 import { InformationModule } from './information/information.module';
+import { ChecklistModule } from './checklist/checklist.module';
 
 @Module({
 	imports: [
@@ -91,7 +92,8 @@ import { InformationModule } from './information/information.module';
 		DocumentsModule,
 		TraitModule,
 		AnnotationsModule,
-		InformationModule
+		InformationModule,
+		ChecklistModule
 	],
 	controllers: [AppController],
 	providers: [

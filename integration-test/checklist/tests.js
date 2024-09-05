@@ -11,7 +11,7 @@ const itemProperties = [
 	"dc:bibliographicCitation"
 ];
 
-describe("/checlist", function() {
+describe("/checklists", function() {
 	var basePath = config.urls.checklist;
 
 	it("returns 401 when no access token specified", function(done) {

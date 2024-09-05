@@ -164,9 +164,8 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 > :warning: Production release
 
-`APIUSER` `PASSWORD` should be made nullable. Seems that the column isn't used. Or delete the whole col?
-
-Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
+* `APIUSER` `PASSWORD` should be made nullable. Seems that the column isn't used. Or delete the whole col?
+* Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
 
 # Blocked work
 
@@ -180,3 +179,4 @@ Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopb
 * Remove "errors" wrapper in document validation responses. Should use an array instead. Reasons:
 	* Using the object notation, it would be impossible to target a property that has the name "errors"
 	* Unnecessary; adds to complexity.
+* Fix checklist bibliographicCitation (triplestore returns with dct: prefix, when it should be dc:)

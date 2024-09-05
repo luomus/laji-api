@@ -10,6 +10,7 @@ export type Property = {
 	property: string;
 	multiLanguage: boolean;
 	shortName: string;
+	range: string[];
 }
 
 export type ContextProperties = Record<string, Property>;

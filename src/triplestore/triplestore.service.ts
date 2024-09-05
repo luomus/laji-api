@@ -23,6 +23,7 @@ type TriplestoreSearchQuery = {
 	type?: string;
 	predicate?: string;
 	objectresource?: string;
+	objectliteral?: string | boolean;
 	limit?: number;
 	offset?: string;
 	object?: string;
@@ -163,6 +164,9 @@ const stripBadProps = (jsonld: JSONObjectSerializable) => {
 		if (!Array.isArray(iteratedJsonLd) && iteratedJsonLd["rdfs:label"]) {
 			delete iteratedJsonLd["rdfs:label"];
 		}
+		if (!Array.isArray(iteratedJsonLd) && iteratedJsonLd["rdfs:comment"]) {
+			delete iteratedJsonLd["rdfs:comment"];
+		}
 		return iteratedJsonLd;
 	});
 };
@@ -243,8 +247,20 @@ const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONO
 		}
 	}
 
+	function typeFromRange(value: JSONSerializable, property: Property) {
+		const { range } = property;
+		if (range?.length === 1 && range[0] === "xsd:boolean") {
+			if (value === "true") {
+				return true;
+			}
+			if (value === "false") {
+				return false;
+			}
+		}
+	}
+
 	const transformations: ((value: JSONSerializable, property: Property) => JSONSerializable | undefined)[] =
-		[asArray, multiLangAsArr];
+		[asArray, multiLangAsArr, typeFromRange];
 
 	return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
 		const property = properties[k];
