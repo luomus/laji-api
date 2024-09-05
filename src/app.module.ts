@@ -42,6 +42,7 @@ import { ErrorSignatureBackwardCompatibilityFilter }
 import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor";
 import { ServicesInjector } from "./interceptors/services-injector.interceptor";
 import { AnnotationsModule } from "./annotations/annotations.module";
+import { InformationModule } from './information/information.module';
 
 @Module({
 	imports: [
@@ -89,7 +90,8 @@ import { AnnotationsModule } from "./annotations/annotations.module";
 		AreaModule,
 		DocumentsModule,
 		TraitModule,
-		AnnotationsModule
+		AnnotationsModule,
+		InformationModule
 	],
 	controllers: [AppController],
 	providers: [
