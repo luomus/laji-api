@@ -156,6 +156,10 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 * Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
 
+## Information
+
+* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted".
+
 # Database changes
 
 > :warning: Production release
