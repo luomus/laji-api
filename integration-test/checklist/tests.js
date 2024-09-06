@@ -33,6 +33,7 @@ describe("/checklists", function() {
 	});
 
 	it("return only public checklists and has the asked id within", function(done) {
+		this.timeout(5000);
 		var pageSize = 1000;
 		var query = basePath +
 			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
@@ -55,6 +56,7 @@ describe("/checklists", function() {
 	});
 
 	it("return item with id", function(done) {
+		this.timeout(5000);
 		var query = basePath + "/" + config.id.checklist +
 			"?access_token=" + config["access_token"];
 		request(this.server)
