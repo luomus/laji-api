@@ -33,6 +33,10 @@ export async function bootstrap() {
 		target: `http://localhost:${port}/forms/permissions`
 	}));
 
+	// Backward compatibity to old API signature of checklist versions.
+	app.use("/checklistVersions", createProxyMiddleware({
+		target: `http://localhost:${port}/checklist-versions`
+	}));
 	app.useStaticAssets("static");
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()

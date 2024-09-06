@@ -42,8 +42,9 @@ import { ErrorSignatureBackwardCompatibilityFilter }
 import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor";
 import { ServicesInjector } from "./interceptors/services-injector.interceptor";
 import { AnnotationsModule } from "./annotations/annotations.module";
-import { InformationModule } from './information/information.module';
-import { ChecklistModule } from './checklist/checklist.module';
+import { InformationModule } from "./information/information.module";
+import { ChecklistModule } from "./checklist/checklist.module";
+import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions.module";
 
 @Module({
 	imports: [
@@ -93,7 +94,8 @@ import { ChecklistModule } from './checklist/checklist.module';
 		TraitModule,
 		AnnotationsModule,
 		InformationModule,
-		ChecklistModule
+		ChecklistModule,
+		ChecklistVersionsModule
 	],
 	controllers: [AppController],
 	providers: [

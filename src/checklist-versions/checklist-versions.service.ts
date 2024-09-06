@@ -4,11 +4,11 @@ import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-c
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
-import { Checklist } from "./checklist.dto";
+import { ChecklistVersion } from "./checklist-versions.dto";
 
 @Injectable()
 @IntelligentInMemoryCache()
-export class ChecklistService {
+export class ChecklistVersionsService {
 	constructor(
 		@Inject("TRIPLESTORE_READONLY_SERVICE") private triplestoreService: TriplestoreService,
 	) { }
@@ -27,33 +27,22 @@ export class ChecklistService {
 	}
 
 	async get(id: string) {
-		const checklist = (await this.getAllDict())[id];
-		if (!checklist) {
-			throw new HttpException("Checklist not found", 404);
+		const checklistVersion = (await this.getAllDict())[id];
+		if (!checklistVersion) {
+			throw new HttpException("Checklist version not found", 404);
 		}
-		return checklist;
+		return checklistVersion;
 	}
 
 	@IntelligentMemoize()
-	private async getAll() {
-		return (await this.triplestoreService.find<Checklist>({
-			type: "MR.checklist",
-			predicate: "MR.isPublic",
-			objectliteral: true
-		})).map(checklist => {
-			// In the checklist data from triplestore, it uses dct: prefix instead of dc for some reason...
-			const badlyNamedBibliographicCitation = (checklist as any)["dct:bibliographicCitation"];
-			if (badlyNamedBibliographicCitation) {
-				checklist["dc:bibliographicCitation"] = badlyNamedBibliographicCitation;
-			}
-			delete (checklist as any)["dct:bibliographicCitation"];
-			return checklist;
+	private getAll() {
+		return this.triplestoreService.find<ChecklistVersion>({
+			type: "MR.checklistVersion",
 		});
 	}
 
 	@IntelligentMemoize()
-	async getAllDict(): Promise<Record<string, Checklist>> {
+	async getAllDict(): Promise<Record<string, ChecklistVersion>> {
 		return dictionarifyByKey(await this.getAll(), "id");
 	}
-
 }
