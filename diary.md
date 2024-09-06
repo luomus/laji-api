@@ -99,6 +99,10 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
 Moved from "/formPermission" to "/form/permissions". Backward compatibility is kept.
 
+## Checklist versions endpoint
+
+Moved from "/checklistVersions" to "/checklist-versions". Backward compatibility is kept.
+
 ## Named places
 
 * Getting existing place without edit rights returns 403 instead of 404
