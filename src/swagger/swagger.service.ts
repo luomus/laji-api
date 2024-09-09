@@ -72,10 +72,10 @@ export class SwaggerService {
 	// `length` 0 to memoize the result regardless of the document equalness. It's identical always, just not the same instance.
 	@IntelligentMemoize({ length: 0 })
 	memoizedPatch(document: OpenAPIObject) {
-		return pipe(document,
+		return pipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs
-		);
+		)(document);
 	}
 
 	/** Patches the Swagger document with controllers decorated with `@ProxyWithSwaggerMerge()` */
@@ -121,11 +121,14 @@ export class SwaggerService {
 									continue;
 								}
 
+								if (!existingSchema) {
+									continue;
+								}
+
 								const schema: SchemaItem | undefined = pipe(
-									existingSchema,
 									applyEntry(entry, document),
 									paginateAsNeededWith(operation)
-								);
+								)(existingSchema);
 								if (schema) {
 									(operation.responses as any)[responseCode].content = {
 										"application/json": { schema }

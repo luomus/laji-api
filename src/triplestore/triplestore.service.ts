@@ -2,7 +2,8 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
-import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise } from "../type-utils";
+import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
+	MaybeArray } from "../type-utils";
 import { CacheOptions, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { MultiLang } from "src/common.dto";
@@ -70,18 +71,19 @@ export class TriplestoreService {
 	 * @param query Query options
 	 * @param options Cache options
 	 */
-	async find<T>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions): Promise<T[]> {
+	async find<T extends MaybeContextual>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
+		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
 
 		const { cache } = options || {};
 		if (cache) {
-			const cached = await this.cache.get<T[]>(getPathAndQuery("search", query));
+			const cached = await this.cache.get<RemoteContextual<T>[]>(getPathAndQuery("search", query));
 			if (cached) {
 				return cached;
 			}
 		}
 
-		let result = await this.rdfToJsonLd<T | T[]>(
+		let result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
 			this.triplestoreClient.get("search", { params: query }),
 			getPathAndQuery("search", query),
 			options
@@ -97,10 +99,7 @@ export class TriplestoreService {
 		cacheKey: string,
 		options?: TriplestoreQueryOptions
 	): Promise<T> {
-		const jsonld = await promisePipe(
-			rdf,
-			triplestoreToJsonLd
-		);
+		const jsonld = await promisePipe(triplestoreToJsonLd)(rdf);
 		const isArrayResult = Array.isArray(jsonld["@graph"]);
 		if (isArrayResult && (jsonld["@graph"] as any).length === 0) {
 			return [] as T;
@@ -124,7 +123,6 @@ export class TriplestoreService {
 
 	private formatJsonLd(jsonld: any, context: ContextProperties) {
 		return promisePipe(
-			jsonld,
 			stripBadProps,
 			compactJsonLd,
 			resolveResources,
@@ -132,7 +130,7 @@ export class TriplestoreService {
 			resolveLangResources,
 			dropPrefixes,
 			rmIdAndType
-		);
+		)(jsonld);
 	}
 
 	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
@@ -149,9 +147,9 @@ const getPathAndQuery = (resource: string, query?: TriplestoreSearchQuery) => {
 	return resource + JSON.stringify(query || {});
 };
 
-const triplestoreToJsonLd = (rdf: string): Promise<NodeObject> => {
+const triplestoreToJsonLd = (rdf: JSONSerializable): Promise<NodeObject> => {
 	const rdfStore = graph();
-	parse(rdf, rdfStore, BASE_URL, "application/rdf+xml");
+	parse(rdf as any, rdfStore, BASE_URL, "application/rdf+xml");
 	const jsonld = serialize(null, rdfStore, BASE_URL, "application/ld+json");
 	if (!jsonld) {
 		throw new HttpException("Not found", 404);

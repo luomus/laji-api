@@ -31,9 +31,11 @@ type HasNotWhitelist = Omit<SerializeOptions, "whitelist">
 
 type SReturnT = (target: any, propertyKey: any) => void;
 
-type SerializeOverload = { 
-	(serializeInto: Newable<unknown>, serializeOptions: HasWhitelist, schemaDefinitionName: string): SReturnT
-	(serializeInto: Newable<unknown>, serializeOptions?: HasNotWhitelist, schemaDefinitionName?: string): SReturnT;
+type SerializeOverload = {
+	(serializeInto: Newable<unknown>, serializeOptions: HasWhitelist, swaggerSchemaDefinitionName: string)
+		: SReturnT
+	(serializeInto: Newable<unknown>, serializeOptions?: HasNotWhitelist, swaggerSchemaDefinitionName?: string)
+		: SReturnT;
 }
 
 export const SERIALIZE_OPTIONS_METADATA = "SERIALIZE_OPTIONS_METADATA";

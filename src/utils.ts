@@ -1,4 +1,5 @@
 import * as crypto from "crypto";
+import { MaybePromise } from "./type-utils";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
@@ -23,59 +24,64 @@ function isPromise<T>(p: any): p is Promise<T> {
 	return !!p?.then;
 }
 
-/**
- * RXJS' `pipe` for plain promises.
- * Reduces an initial value into something else with a list of promises.
- *
- * @param initialValue The initial value that is passed to the 1st operation.
- * @param {...operations} operators which return the accumulated result which is passed to the next operation.
- *
- * @returns The accumulated result as a promise.
- */
-/* eslint-disable max-len */
-function promisePipe<T>(initialValue: T | Promise<T>): Promise<T>;
-function promisePipe<T, A>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>): Promise<A>;
-function promisePipe<T, A, B>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>): Promise<B>;
-function promisePipe<T, A, B, C>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>): Promise<C>;
-function promisePipe<T, A, B, C, D>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>): Promise<D>;
-function promisePipe<T, A, B, C, D, E>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>): Promise<E>;
-function promisePipe<T, A, B, C, D, E, F>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>): Promise<F>;
-function promisePipe<T, A, B, C, D, E, F, G>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>): Promise<G>;
-function promisePipe<T, A, B, C, D, E, F, G, H>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>): Promise<H>;
-function promisePipe<T, A, B, C, D, E, F, G, H, I>(initialValue: T | Promise<T>, op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>, op9: PromiseReducer<H, I>): Promise<I>;
-function promisePipe<T>(initialValue: T | Promise<T>, ...operations: PromiseReducer<any, any>[]): Promise<any> {
-	return operations.reduce((promise, fn) => promise.then(
-		value => isPromise(fn)
-			? fn(value)
-			: Promise.resolve(fn(value))
-	)
-	, isPromise(initialValue) ? initialValue : Promise.resolve(initialValue));
-}
+type Pipe<I, O> = (input: I) => O;
+
 /* eslint-enable max-len */
 
 /**
- * Reduces an initial value into something else with a list of operations
+ * Creates a function that reduces given input with the given operators.
  *
- * @param initialValue The initial value that is passed to the 1st operation.
  * @param {...operations} operators which return the accumulated result which is passed to the next operation.
  *
- * @returns The accumulated result as a promise.
+ * @returns function that is run for the operators for an input.
  */
 /* eslint-disable max-len */
-function pipe<T>(initialValue: T): T;
-function pipe<T, A>(initialValue: T, op1: Reducer<T, A>): A;
-function pipe<T, A, B>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>): B;
-function pipe<T, A, B, C>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>): C;
-function pipe<T, A, B, C, D>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>): D;
-function pipe<T, A, B, C, D, E>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>): E;
-function pipe<T, A, B, C, D, E, F>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>): F;
-function pipe<T, A, B, C, D, E, F, G>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>): G;
-function pipe<T, A, B, C, D, E, F, G, H>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>): H;
-function pipe<T, A, B, C, D, E, F, G, H, I>(initialValue: T, op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>, op9: Reducer<H, I>): I;
-function pipe<T>(initialValue: T, ...operations: Reducer<any, any>[]): any {
-	return operations.reduce((value, fn) => fn(value), initialValue);
+function pipe<T>(): Pipe<T, T>;
+function pipe<T, A>(op1: Reducer<T, A>): Pipe<T, A>;
+function pipe<T, A, B>(op1: Reducer<T, A>, op2: Reducer<A, B>): Pipe<T, B>;
+function pipe<T, A, B, C>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>): Pipe<T, C>;
+function pipe<T, A, B, C, D>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>): Pipe<T, D>;
+function pipe<T, A, B, C, D, E>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>): Pipe<T, E>;
+function pipe<T, A, B, C, D, E, F>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>): Pipe<T, F>;
+function pipe<T, A, B, C, D, E, F, G>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>): Pipe<T, G>;
+function pipe<T, A, B, C, D, E, F, G, H>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>): Pipe<T, H>;
+function pipe<T, A, B, C, D, E, F, G, H, I>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>, op9: Reducer<H, I>): Pipe<T, I>;
+function pipe<T>(...operations: Reducer<any, any>[]): Pipe<T, any> {
+	return (initialValue: T) =>
+		operations.reduce((value, fn) => fn(value), initialValue);
 }
 /* eslint-enable max-len */
+
+type PromisePipe<I, O> = Pipe<MaybePromise<I>, Promise<O>>;
+
+/**
+ * RXJS' `pipe` for plain promises.
+ * Creates a function that reduces given input with the given operators.
+ *
+ * @param {...operations} operators which return the accumulated result which is passed to the next operation.
+ *
+ * @returns function that is run for the operators for an input.
+ */
+/* eslint-disable max-len */
+function promisePipe<T>(): PromisePipe<T, T>;
+function promisePipe<T, A>(op1: PromiseReducer<T, A>): PromisePipe<T, A>;
+function promisePipe<T, A, B>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>): PromisePipe<T, B>;
+function promisePipe<T, A, B, C>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>): PromisePipe<T, C>;
+function promisePipe<T, A, B, C, D>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>): PromisePipe<T, D>;
+function promisePipe<T, A, B, C, D, E>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>): PromisePipe<T, E>;
+function promisePipe<T, A, B, C, D, E, F>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>): PromisePipe<T, F>;
+function promisePipe<T, A, B, C, D, E, F, G>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>): PromisePipe<T, G>;
+function promisePipe<T, A, B, C, D, E, F, G, H>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>): PromisePipe<T, H>;
+function promisePipe<T, A, B, C, D, E, F, G, H, I>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>, op9: PromiseReducer<H, I>): PromisePipe<T, I>;
+function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any> {
+	return (initialValue: T) => 
+		operations.reduce((promise, fn) => promise.then(
+			value => isPromise(fn)
+				? fn(value)
+				: Promise.resolve(fn(value))
+		)
+		, isPromise(initialValue) ? initialValue : Promise.resolve(initialValue));
+}
 
 export { promisePipe, pipe };
 
@@ -216,5 +222,5 @@ export const dotNotationToJSONPointer = (pointer: string) => {
 	return "/" + splits.join("/");
 };
 
-export const isJSONPointer = (pointer: string) => 
+export const isJSONPointer = (pointer: string) =>
 	pointer === "" || pointer[0] === "/";

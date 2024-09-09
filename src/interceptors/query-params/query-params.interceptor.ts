@@ -29,9 +29,10 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 			const request = context.switchToHttp().getRequest<Request>();
 
 			return next.handle().pipe(switchMap(result => from(
-				promisePipe(result,
+				promisePipe(
 					this.handleQuery(request.query),
-					applyToResult(serialize))
+					applyToResult(serialize)
+				)(result)
 			)));
 		}
 

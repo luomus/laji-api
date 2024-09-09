@@ -3,7 +3,8 @@ import { Observable, switchMap } from "rxjs";
 import { SerializeOptions, excludePrivateProps, serializeInto as _serializeInto } from "./serializing";
 import { applyToResult } from "src/pagination";
 import { Newable } from "src/type-utils";
-
+import { instanceToPlain } from "class-transformer";
+import { promisePipe } from "src/utils";
 
 export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>, serializeOptions?: SerializeOptions) {
 	@Injectable()
@@ -13,7 +14,8 @@ export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>
 				if (serializeInto) {
 					result = await applyToResult(_serializeInto(serializeInto, serializeOptions))(result);
 				}
-				return applyToResult(excludePrivateProps)(result);
+				// instanceToPlain so DTO getters are serialized into plain values. https://github.com/typestack/class-transformer/issues/1060
+				return applyToResult(promisePipe(instanceToPlain, excludePrivateProps))(result);
 			}));
 		}
 	}

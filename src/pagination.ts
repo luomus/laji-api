@@ -34,10 +34,9 @@ export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en
 
 export const paginateAlreadyPaged =
 	<T>(pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nextPage">, lang = Lang.en) => pipe(
-		pagedResult,
 		addLastPrevAndNextPage,
-		addContextToPaged(lang)
-	);
+		addContextToPaged<T>(lang)
+	)(pagedResult);
 
 type HasLastPrevAndNext = { lastPage: number;  prevPage?: number; nextPage?: number; }
 

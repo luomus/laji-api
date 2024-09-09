@@ -30,10 +30,9 @@ export class PersonsService {
 
 	async getByPersonId(personId: string) {
 		return promisePipe(
-			this.triplestoreService.findOne(personId, { cache: CACHE_5_MIN }),
 			serializeInto(Person),
 			decoratePerson
-		);
+		)(this.triplestoreService.findOne(personId, { cache: CACHE_5_MIN }));
 	}
 
 	async isICTAdmin(personToken: string) {
