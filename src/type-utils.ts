@@ -41,3 +41,6 @@ export type KeyOf<T> = keyof T & string;
 export type WithNonNullableKeys<T, K extends keyof T> = T & {
 	[P in K]-?: NonNullable<T[P]>;
 };
+
+export type MaybeContextual = { "@context"?: string, id?: string };
+export type RemoteContextual<T extends { "@context"?: string, id?: string }> = WithNonNullableKeys<T, "@context" | "id">;

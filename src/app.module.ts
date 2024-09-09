@@ -45,6 +45,7 @@ import { AnnotationsModule } from "./annotations/annotations.module";
 import { InformationModule } from "./information/information.module";
 import { ChecklistModule } from "./checklist/checklist.module";
 import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions.module";
+import { OrganizationsModule } from "./organizations/organizations.module";
 
 @Module({
 	imports: [
@@ -95,7 +96,8 @@ import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions
 		AnnotationsModule,
 		InformationModule,
 		ChecklistModule,
-		ChecklistVersionsModule
+		ChecklistVersionsModule,
+		OrganizationsModule
 	],
 	controllers: [AppController],
 	providers: [
