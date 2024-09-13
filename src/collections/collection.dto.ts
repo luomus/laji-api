@@ -1,12 +1,19 @@
 import { Private } from "src/serializing/private.decorator";
 import { PagedDto, MultiLang, HasContext, LangQueryDto } from "../common.dto";
-import { IntersectionType, OmitType } from "@nestjs/swagger";
+import { ApiProperty, IntersectionType, OmitType } from "@nestjs/swagger";
+import { IsOptionalBoolean } from "src/serializing/serializing";
+import { Expose, Transform } from "class-transformer";
 
 export class FindCollectionsDto extends IntersectionType(PagedDto, LangQueryDto) {};
 
 export enum MetadataStatus {
 	Hidden = "MY.metadataStatusHidden"
 }
+
+const optionalBooleanMapper = new Map([
+	  ["true", true],
+	  ["false", false]
+]);
 
 export class TriplestoreCollection extends HasContext {
 	id: string;
@@ -31,6 +38,7 @@ export class TriplestoreCollection extends HasContext {
 
 	downloadRequestHandler?: string[];
 	shareToFEO?: boolean;
+	shareToGbif?: boolean;
 	collectionType:
 		| "MY.collectionTypeSpecimens"
 		| "MY.collectionTypeLiving"

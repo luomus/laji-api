@@ -152,6 +152,11 @@ export class CollectionsService {
 			collection.shareToFEO = getInheritedProperty(
 				"shareToFEO", collection, idToCollection
 			);
+
+			 // Convert stringy booleans into real boolean 
+			if (collection.shareToFEO) collection.shareToFEO = Boolean(collection.shareToFEO);
+			if (collection.shareToGbif) collection.shareToGbif = Boolean(collection.shareToGbif);
+
 			(collection as Collection<MultiLang>).longName = getLongName(collection, idToCollection);
 			(collection as Collection<MultiLang>).hasChildren = !!collectionIdToChildIds[collection.id]
 				|| collection.id === GBIF_DATASET_PARENT;
