@@ -6,6 +6,7 @@ import { CollectionsService } from "./collections.service";
 import { FindOneDto, GetPageDto } from "../common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
+import { CollectionMultiLangHackInterceptor } from "./collection-multi-lang-hack.interceptor";
 
 @LajiApiController("collections")
 @ApiTags("Collections")
@@ -16,7 +17,10 @@ export class CollectionsController {
 
 	/** Get all collections */
 	@Get()
-	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Collection))
+	@UseInterceptors(
+		CollectionMultiLangHackInterceptor,
+		createQueryParamsInterceptor(GetPageDto, Collection)
+	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async getAll(@Query() { idIn }: GetPageDto) {
 		return this.collectionsService.findCollections(idIn);
@@ -24,7 +28,10 @@ export class CollectionsController {
 
 	/** Get all root collections */
 	@Get("roots")
-	@UseInterceptors(createQueryParamsInterceptor(FindCollectionsDto, Collection))
+	@UseInterceptors(
+		CollectionMultiLangHackInterceptor,
+		createQueryParamsInterceptor(FindCollectionsDto, Collection)
+	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findRoots(@Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findRoots();
@@ -32,7 +39,10 @@ export class CollectionsController {
 
 	/** Get collection by id */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Collection))
+	@UseInterceptors(
+		CollectionMultiLangHackInterceptor,
+		createQueryParamsInterceptor(FindOneDto, Collection)
+	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
 		return this.collectionsService.get(id);
@@ -40,7 +50,10 @@ export class CollectionsController {
 
 	/** Get child collections */
 	@Get(":id/children")
-	@UseInterceptors(createQueryParamsInterceptor(FindCollectionsDto, Collection))
+	@UseInterceptors(
+		CollectionMultiLangHackInterceptor,
+		createQueryParamsInterceptor(FindCollectionsDto, Collection)
+	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findChildren(@Param("id") id: string, @Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findChildren(id);

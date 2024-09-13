@@ -1,8 +1,8 @@
-import { Injectable, Logger, OnApplicationShutdown } from "@nestjs/common";
+import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from "@nestjs/common";
 import { createClient } from "redis";
 
 @Injectable()
-export class RedisCacheService implements OnApplicationShutdown {
+export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 
 	private client: ReturnType<typeof createClient>;
 	private logger = new Logger(RedisCacheService.name);

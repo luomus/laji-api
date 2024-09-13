@@ -1,5 +1,4 @@
 import { Organization as _Organization } from "@luomus/laji-schema";
-import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { MultiLang } from "src/common.dto";
 

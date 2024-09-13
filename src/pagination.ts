@@ -13,7 +13,7 @@ export class PaginatedDto<T> {
 	"@context": string;
 }
 
-export const isPaginatedDto = <T>(maybePaginated: any): maybePaginated is PaginatedDto<T> =>
+export const isPaginatedDto = <T>(maybePaginated: unknown): maybePaginated is PaginatedDto<T> =>
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
 		.every(k => k in maybePaginated);
 

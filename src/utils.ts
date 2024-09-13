@@ -87,11 +87,11 @@ export { promisePipe, pipe };
 
 export const uuid = (length: number) => crypto.randomBytes(length / 2).toString("hex");
 
-export const dictionarify = (arr: string[]) =>
-	arr.reduce<Record<string, boolean>>((dict, item) => {
+export const dictionarify = <T extends string>(arr: readonly T[]): Record<T, true> =>
+	arr.reduce((dict, item) => {
 		dict[item] = true;
 		return dict;
-	}, {});
+	}, {} as Record<T, true>);
 
 export const dictionarifyByKey = <T>(objects: T[], key: keyof T) =>
 	objects.reduce<Record<string, T>>((map, obj) => {

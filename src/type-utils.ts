@@ -43,4 +43,5 @@ export type WithNonNullableKeys<T, K extends keyof T> = T & {
 };
 
 export type MaybeContextual = { "@context"?: string, id?: string };
-export type RemoteContextual<T extends { "@context"?: string, id?: string }> = WithNonNullableKeys<T, "@context" | "id">;
+export type RemoteContextual<T extends { "@context"?: string, id?: string }> =
+	WithNonNullableKeys<T, "@context" | "id">;
