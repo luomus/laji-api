@@ -1,4 +1,4 @@
-import { Annotation, Tag, Document,  } from "@luomus/laji-schema/models";
+import { Annotation, Tag, Document, RequiredRolesEnum } from "@luomus/laji-schema/models";
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { DocumentsService } from "src/documents/documents.service";
@@ -10,9 +10,6 @@ import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { WarehouseService } from "src/warehouse/warehouse.service";
 
 const ALLOWED_SYSTEMS = ["KE.398"];
-
-// TODO fix this hack after laji-schema exports enums
-type RequiredRolesEnum = Exclude<Tag["requiredRolesAdd"], undefined>[number];
 
 @Injectable()
 export class AnnotationsService {
