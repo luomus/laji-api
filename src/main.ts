@@ -5,9 +5,10 @@ import { AppModule } from "./app.module";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
+import { Logger } from "@nestjs/common";
 
 export async function bootstrap() {
-	console.log("Old API must be running at localhost:3003\n");
+	new Logger().warn("Old API must be running at localhost:3003\n");
 
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
 	app.enableShutdownHooks();
