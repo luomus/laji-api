@@ -15,7 +15,7 @@ export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>
 					result = await applyToResult(_serializeInto(serializeInto, serializeOptions))(result);
 				}
 				// instanceToPlain so DTO getters are serialized into plain values. https://github.com/typestack/class-transformer/issues/1060
-				return applyToResult(promisePipe(instanceToPlain, excludePrivateProps))(result);
+				return applyToResult(promisePipe(excludePrivateProps, instanceToPlain))(result);
 			}));
 		}
 	}

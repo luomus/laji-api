@@ -41,6 +41,7 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 };
 
 export const excludePrivateProps = (item: any): any => {
+	console.log("exclude", item.constructor);
 	if (Array.isArray(item) && isObject(item[0]) && item[0].constructor !== Object) {
 		return item.map(excludePrivateProps);
 	} else if (!isObject(item) || item.constructor === Object) {
