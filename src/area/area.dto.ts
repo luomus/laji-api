@@ -1,4 +1,4 @@
-import { Area as AreaI, AreaTypeEnum } from "@luomus/laji-schema";
+import { Area as AreaI } from "@luomus/laji-schema";
 import { HasContext, LangQueryDto, PagedDto } from "../common.dto";
 import { IntersectionType } from "@nestjs/swagger";
 import { CommaSeparatedStrings } from "src/serializing/serializing";
