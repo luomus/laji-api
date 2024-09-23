@@ -39,6 +39,9 @@ describe("/area", function() {
 				res.body[helpers.params.results].filter((country) => {
 					return country["id"] === config["id"]["area_country"];
 				}).should.have.lengthOf(1);
+				res.body[helpers.params.results].filter((area) => {
+					return area["areaType"] === "ML.country"
+				}).should.have.lengthOf(pageSize);
 				done();
 			});
 	});

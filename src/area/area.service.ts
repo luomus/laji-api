@@ -21,12 +21,12 @@ export class AreaService {
 		await this.getAllDict();
 	}
 
-	async find(ids?: string[]) {
+	async find(areaType?: string, ids?: string[]) {
 		const all = await this.getAll();
-		if (!ids?.length) {
+		if (!ids?.length && !areaType) {
 			return all;
 		}
-		return all.filter(a => ids.includes(a.id));
+		return all.filter(a => (!areaType || a.areaType === areaType) && (!ids || ids.includes(a.id)));
 	}
 
 	async get(id: string) {

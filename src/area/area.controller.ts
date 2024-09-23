@@ -25,7 +25,8 @@ export class AreaController {
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetAreaPageDto))
 	@SwaggerRemoteRef({ source: "store", ref: "area" })
-	getPage(@Query() { idIn }: GetAreaPageDto) {
-		return this.areaService.find(idIn);
+	getPage(@Query() { type, idIn }: GetAreaPageDto) {
+		const typeQName = type ? `ML.${type}` : type;
+		return this.areaService.find(typeQName, idIn);
 	}
 }
