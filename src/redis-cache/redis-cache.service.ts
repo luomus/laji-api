@@ -30,12 +30,12 @@ export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 	}
 
 	del(key: string) {
-		return this.client.del(key);
+		return this.client.unlink(key);
 	}
 
 	async patternDel(pattern: string) {
 		for await (const key of this.client.scanIterator({ MATCH: pattern })) {
-			await this.client.del(key);
+			await this.client.unlink(key);
 		}
 	}
 }
