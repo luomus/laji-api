@@ -1,6 +1,6 @@
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { AreaService } from "./area.service";
-import { GetAreaPageDto } from "./area.dto";
+import { AreaTypeDto, GetAreaPageDto } from "./area.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
@@ -25,8 +25,14 @@ export class AreaController {
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetAreaPageDto))
 	@SwaggerRemoteRef({ source: "store", ref: "area" })
-	getPage(@Query() { type, idIn }: GetAreaPageDto) {
-		const typeQName = type ? `ML.${type}` : type;
+	getPage(@Query() { type, areaType, idIn }: GetAreaPageDto) {
+		let typeQName: AreaTypeDto | undefined = areaType;
+		if (!typeQName && type) {
+			const maybeValidQName = `ML.${type}`;
+			if (Object.values(AreaTypeDto).includes(maybeValidQName as AreaTypeDto)) {
+				typeQName = maybeValidQName as AreaTypeDto;
+			}
+		}
 		return this.areaService.find(typeQName, idIn);
 	}
 }

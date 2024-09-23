@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
 import { Interval } from "@nestjs/schedule";
-import { Area } from "./area.dto";
+import { Area, AreaTypeDto } from "./area.dto";
 import { IntelligentMemoize } from "../decorators/intelligent-memoize.decorator";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 
@@ -21,7 +21,7 @@ export class AreaService {
 		await this.getAllDict();
 	}
 
-	async find(areaType?: string, ids?: string[]) {
+	async find(areaType?: AreaTypeDto, ids?: string[]) {
 		const all = await this.getAll();
 		if (!ids?.length && !areaType) {
 			return all;

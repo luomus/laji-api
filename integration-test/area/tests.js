@@ -28,6 +28,28 @@ describe("/area", function() {
 		this.timeout(5000);
 		var pageSize = 248;
 		var query = basePath +
+			"?areaType=ML.country&pageSize="+ pageSize+"&access_token=" + config["access_token"];
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				if (err) return done(err);
+				res.should.have.status(200);
+				helpers.isPagedResult(res.body, pageSize, true);
+				res.body[helpers.params.results].should.have.lengthOf(pageSize);
+				res.body[helpers.params.results].filter((country) => {
+					return country["id"] === config["id"]["area_country"];
+				}).should.have.lengthOf(1);
+				res.body[helpers.params.results].filter((area) => {
+					return area["areaType"] === "ML.country"
+				}).should.have.lengthOf(pageSize);
+				done();
+			});
+	});
+
+	it("returns countries with deprecated type", function(done) {
+		this.timeout(5000);
+		var pageSize = 248;
+		var query = basePath +
 			"?type=country&pageSize="+ pageSize+"&access_token=" + config["access_token"];
 		request(this.server)
 			.get(query)

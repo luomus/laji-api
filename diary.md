@@ -159,6 +159,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 ## Areas
 
 * Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
+* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum.
 
 ## Information
 
