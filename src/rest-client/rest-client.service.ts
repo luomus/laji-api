@@ -130,11 +130,17 @@ export class RestClientService<T = unknown> {
 			}
 		}
 		this.logger.verbose(`GET ${url}`);
-		const result = await firstValueFrom(
-			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r =>
-				options?.transformer ? options.transformer(r.data) : r.data
-			))
-		);
+		let result: S;
+		try {
+			result = await firstValueFrom(
+				this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r =>
+					options?.transformer ? options.transformer(r.data) : r.data
+				))
+			);
+		} catch (e) {
+			this.logger.verbose(`GET FAILED FOR ${url}`);
+			throw e;
+		}
 		const cacheConf = this.getCacheConf(options);
 		if (cacheConf) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -156,11 +162,18 @@ export class RestClientService<T = unknown> {
 		body?: In, config?: AxiosRequestConfig,
 		options?: RestClientOptions<Out>
 	) {
-		this.logger.verbose(`POST ${this.getURL(path, this.getRequestConfig(config))}`);
-		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
-				.pipe(map(r => r.data))
-		), options);
+		const url = this.getURL(path, this.getRequestConfig(config));
+		this.logger.verbose(`POST ${url}`);
+		let result: Out;
+		try {
+			result = RestClientService.applyOptions(await firstValueFrom(
+				this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+					.pipe(map(r => r.data))
+			), options);
+		} catch (e) {
+			this.logger.verbose(`POST FAILED FOR ${url}`);
+			throw e;
+		}
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
@@ -171,21 +184,35 @@ export class RestClientService<T = unknown> {
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<Out>
 	) {
-		this.logger.verbose(`PUT ${this.getURL(path, this.getRequestConfig(config))}`);
-		const result = RestClientService.applyOptions(await firstValueFrom(
-			this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
-				.pipe(map(r => r.data))
-		), options);
+		const url = this.getURL(path, this.getRequestConfig(config));
+		this.logger.verbose(`PUT ${url}`);
+		let result: Out;
+		try {
+			result = RestClientService.applyOptions(await firstValueFrom(
+				this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
+					.pipe(map(r => r.data))
+			), options);
+		} catch (e) {
+			this.logger.verbose(`PUT FAILED FOR ${url}`);
+			throw e;
+		}
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
 
 	async delete<Out = unknown>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
-		this.logger.verbose(`DELETE ${this.getURL(path, this.getRequestConfig(config))}`);
-		const result = firstValueFrom(
-			this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
-				.pipe(map(r => r.data))
-		);
+		const url = this.getURL(path, this.getRequestConfig(config));
+		this.logger.verbose(`DELETE ${url}`);
+		let result: Out;
+		try {
+			result = await firstValueFrom(
+				this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
+					.pipe(map(r => r.data))
+			);
+		} catch (e) {
+			this.logger.verbose(`DELETE FAILED FOR ${url}`);
+			throw e;
+		}
 		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
 		return result;
 	}
