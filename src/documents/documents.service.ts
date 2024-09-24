@@ -292,6 +292,11 @@ export class DocumentsService {
 			throw new HttpException("No valid systemID could be found for the api user", 422);
 		}
 
+		// TODO remove after Mobiilivihko fixed. There's a issue about this.
+		if (document.gatheringEvent && document.gatheringEvent.dateBegin === "") {
+			delete document.gatheringEvent.dateBegin;
+		}
+
 		if (overwriteSourceID) {
 			document.sourceID = systemID;
 		} else if (!document.sourceID) {
