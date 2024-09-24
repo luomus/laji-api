@@ -63,9 +63,7 @@ Default page size for all queries is 20. I didn't investigate if the page size c
 
 ## Collection props lang hack
 
-Old api treats these multilang props as non-multilang, returning them always as a string, using the "en" lang value. If the hack isn't recreated here, querying in other languages than "en" will not include these props.
-
-Backward compatibility could be reached also by setting them as non multilang in schema (confirmed by Mikko that we could do so).
+These are in the schema multilang, but the API returns them as non-multilang. There's a plan to update the schema so that they'll be non-multilang.
 
 * temporalCoverage
 * taxonomicCoverage
@@ -80,10 +78,6 @@ Backward compatibility could be reached also by setting them as non multilang in
 Old API had a hard coded linking of parent/child collections, so that when requesting a form permission for a child it would return the form permissions of the parent collection.
 
 In the new implementation, collections' child/parent info is pulled from the collections themselves. Requesting a form permission for a collection returns the form permissions for the first collectionID in the collection tree that has the form permissions feature enabled (= has `options.restrictAccess` or `options.hasAdmins`).
-
-> :warning: Production release
-
-* Remove `restrictAccess` & `hasAdmins` from `MHL.27` & `MHL.28`, so they will inherit form permissions from the line transect parent collection.
 
 ## Swagger JSON documentation
 
