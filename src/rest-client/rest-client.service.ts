@@ -30,9 +30,9 @@ export type HasMaybeSerializeInto<T> = {
 	serializeInto?: Newable<T>;
 }
 
-const joinOverflowWithRight = (str: string, str2: string) =>
+const joinOverflowWithRightSide = (str: string, str2: string) =>
 	str.length + str2.length > 24
-		? str.substr(0, 19 - str2.length) + ".../" + str2
+		? str.substr(0, 20 - str2.length) + ".../" + str2
 		: str + "/" + str2;
 
 /**
@@ -49,7 +49,7 @@ const joinOverflowWithRight = (str: string, str2: string) =>
 @Injectable()
 export class RestClientService<T = unknown> {
 
-	private logger = new Logger(joinOverflowWithRight(RestClientService.name, this.config.name));
+	private logger = new Logger(joinOverflowWithRightSide(RestClientService.name, this.config.name));
 
 	constructor(
 		private readonly httpService: HttpService,
