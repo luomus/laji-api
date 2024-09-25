@@ -1,5 +1,9 @@
 # Breaking changes against the old api
 
+The API is completely rewritten, so there might be differences that have gone unnoticed. This is a completely different architecture, and we can't maintain high code quality without making some changes.
+
+For major breaking changes (renamed endpoints & query params) we aim to maintain backward compatibility until further notice. Eventually, the OpenAPI (=Swagger) document will follow the v3 specification instead of v2.
+
 ## Return codes
 
 OK return codes might change (e.g. 204 no content -> 201 created)
@@ -61,33 +65,9 @@ Default page size for all queries is 20. I didn't investigate if the page size c
 
 * `/forms` old API returned all forms with the page size equal to the forms length. New API was made to have page size 1000 by default, so the frontend works the same.
 
-## Collection props lang hack
-
-These are in the schema multilang, but the API returns them as non-multilang. There's a plan to update the schema so that they'll be non-multilang.
-
-* temporalCoverage
-* taxonomicCoverage
-* collectionLocation
-* dataLocation
-* methods
-* coverageBasis
-* geographicCoverage
-
-## Form permissions
-
-Old API had a hard coded linking of parent/child collections, so that when requesting a form permission for a child it would return the form permissions of the parent collection.
-
-In the new implementation, collections' child/parent info is pulled from the collections themselves. Requesting a form permission for a collection returns the form permissions for the first collectionID in the collection tree that has the form permissions feature enabled (= has `options.restrictAccess` or `options.hasAdmins`).
-
 ## Swagger JSON documentation
 
 Old api had /explorer/swagger.json. New API doesn't currently have a similar functionality - probably not used?
-
-# Minor changes
-
-## Collection long name
-
-Might be somewhat different now, the old logic was illogical and clunky to reproduce. It's simpler now.
 
 ## Form permission endpoint
 
@@ -96,6 +76,10 @@ Moved from "/formPermission" to "/form/permissions". Backward compatibility is k
 ## Checklist versions endpoint
 
 Moved from "/checklistVersions" to "/checklist-versions". Backward compatibility is kept.
+
+## Collection long name
+
+Might be somewhat different now, the old logic was illogical and clunky to reproduce. It's simpler now.
 
 ## Named places
 
@@ -131,13 +115,18 @@ Moved from "/checklistVersions" to "/checklist-versions". Backward compatibility
  * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd
    party clients
 
+## Information
+
+* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted".
+
+## Areas
+
+* Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
+* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept.
+
  ## TODO
 
  * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`.... This logic is inherited from the old API.
-
-## Access token renewal
-
-Old API checked that the renewal wasn't being spammed. New API doesn't care - the renewal endpoint isn't so particularly special that we should protect it from spamming? Or is it more delicate since it uses a db connection? Anyways a more robust & thorough spam blocking would be better.
 
 ## Store query interpreting
 
@@ -149,33 +138,3 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * When trying to create an annotation with duplicate tags or schematically incorrect tags, an error is thrown. Old API just filtered the duplicates & incorrect tags.
 * POST `/annotation` (annotation creation) doesn't accept "full document URI", like http://tun.fi/JX.1243 as the rootID. Only simple Qnames are accepted.
 * When removing an annotation, the persons to notify about it is dug from the warehouse's response's `editorUserIds`.  Old API uses `editors` field but that's not documented in https://laji.fi/about/1400 so I hope this one is correct?  (ask Esko later)
-
-## Areas
-
-* Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
-* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum.
-
-## Information
-
-* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted".
-
-# Database changes
-
-> :warning: Production release
-
-* `APIUSER` `PASSWORD` should be made nullable. Seems that the column isn't used. Or delete the whole col?
-* Delete `ACCESSTOKEN` `TTL` column, since not used. Old API had it for some loopback stuff but didn't really use it.
-
-# Blocked work
-
-* Trait DB swagger paged results https://www.pivotaltracker.com/story/show/187328917
-
-# Migration work after prod release
-
-* Drop support for document endpoint validationErrorFormat.jsonPath, because:
-	* It's not really JSON path, because it doesn't start with "$".
-	* JSON path is misleading to use, because it can target multiple items.
-* Remove "errors" wrapper in document validation responses. Should use an array instead. Reasons:
-	* Using the object notation, it would be impossible to target a property that has the name "errors"
-	* Unnecessary; adds to complexity.
-* Fix checklist bibliographicCitation (triplestore returns with dct: prefix, when it should be dc:)
