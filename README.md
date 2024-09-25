@@ -1,10 +1,12 @@
 ## Description
 
-The new FinBIF API, that FinBIF will slowly migrate to.
+The new FinBIF API, that FinBIF will migrate to.
+
+See [breaking changes against the old API](https://github.com/luomus/laji-api/blob/master/breaking-changes.md)
 
 ## Development
 
-Check the [wiki](https://github.com/luomus/laji-api/wiki) for more technically detailed documentation.
+Check the [wiki](https://github.com/luomus/laji-api/wiki) for a more technically detailed documentation.
 
 ### Stack
 
