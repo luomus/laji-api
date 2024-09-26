@@ -118,6 +118,7 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 ## Information
 
 * Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted".
+* 404 is thrown for not found information. It used to return an object with some nulls & empty strings.
 
 ## Areas
 

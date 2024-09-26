@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { INFORMATION_CLIENT } from "src/provider-tokens";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { Information, InformationLang, RemoteInformation } from "./information.dto";
@@ -24,6 +24,9 @@ export class InformationService {
 
 const parseInformation = (remote: RemoteInformation): Information => {
 	const { page } = remote;
+	if (!page) {
+		throw new HttpException("Information not found", 404);
+	}
 	const parsed = serializeInto(Information)(page);
 	if (page.featuredImage) {
 		parsed.featuredImage = page.featuredImage;

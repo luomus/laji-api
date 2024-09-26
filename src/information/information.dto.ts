@@ -20,7 +20,7 @@ class FeaturedImage {
 }
 
 export type RemoteInformation = {
-	page: {
+	page?: {
 		id: string;
 		content?: string;
 		title?: string;
