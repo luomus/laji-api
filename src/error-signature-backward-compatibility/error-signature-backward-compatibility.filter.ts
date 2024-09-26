@@ -1,9 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
+import { ArgumentsHost, Catch, HttpException, HttpStatus } from "@nestjs/common";
+import { BaseExceptionFilter } from "@nestjs/core";
 import { Response } from "express";
 
 /** Maintain backward compatibility of the error signature of the old API. */
 @Catch()
-export class ErrorSignatureBackwardCompatibilityFilter<T> implements ExceptionFilter<T> {
+export class ErrorSignatureBackwardCompatibilityFilter<T> extends BaseExceptionFilter<T> {
 	catch(exception: T, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
 		const response = ctx.getResponse<Response>();
@@ -21,5 +22,6 @@ export class ErrorSignatureBackwardCompatibilityFilter<T> implements ExceptionFi
 		};
 
 		response.status(status).json(responseBody);
+		super.catch(exception, host);
 	}
 }

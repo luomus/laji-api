@@ -47,9 +47,9 @@ export class DocumentsBatchService {
 		};
 		await this.updateJobInCache(job);
 
-		const processes = asChunks(documents, CHUNK_SIZE).map(async (documentChunks, idx) => {
+		const processes = asChunks(documents, CHUNK_SIZE).map(async (chunkDocuments, idx) => {
 			const chunkErrors = await Promise.all(
-				await this.createValidationProcess(documentChunks, job, person, apiUser)
+				await this.createValidationProcess(chunkDocuments, job, person, apiUser)
 			);
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
@@ -173,9 +173,9 @@ export class DocumentsBatchService {
 				job.processed = job.documents.length - docsWithNamedPlace.length;
 				await this.updateJobInCache(job);
 
-				const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async documentChunks =>
+				const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async chunkDocuments =>
 					await this.createSideEffectProcess(
-						documentChunks, job as BatchJob<Populated<Document>>, person
+						chunkDocuments, job as BatchJob<Populated<Document>>, person
 					)
 				);
 				await this.process(processes, job);

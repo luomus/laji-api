@@ -53,7 +53,7 @@ Will be changed like so:
 
 ### Paged result contexts
 
-In old api most paged results have `@context` in the root. Pre-paged results being an exception. New API doesn't make exceptions in this - all paged results have `@context` in the root and the items don't have `@context` proeprty.
+In old api most paged results have `@context` in the root. Pre-paged results being an exception. New API doesn't make exceptions in this - all paged results have `@context` in the root and the items don't have `@context` property.
 
 ## Person friend return value
 
