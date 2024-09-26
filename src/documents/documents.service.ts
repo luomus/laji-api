@@ -224,6 +224,9 @@ export class DocumentsService {
 	}
 
 	private async checkWriteAccess(document: Document, person: Person, operationAllowedForEditor = false) {
+		if (person.isImporter()) {
+			return;
+		}
 		const { collectionID } = document;
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 		if (!(await this.canAccessIfLocked(document, person))) {
