@@ -137,15 +137,27 @@ export class StoreService<T extends { id?: string }> {
 	}
 
 	async create(item: Partial<T>) {
-		const result = await this.client.post<T & { id: string }, Partial<T>>(
-			this.config.resource,
-			item,
-			undefined,
-			this.restClientOptions(this.config)
-		);
+		let result: T & { id: string };
+		try {
+			result = await this.client.post<T & { id: string }, Partial<T>>(
+				this.config.resource,
+				item,
+				undefined,
+				this.restClientOptions(this.config)
+			);
+		} catch (e) {
+			this.logger.fatal("Store client failed to create resource", item);
+			throw e;
+		}
 		if (this.config.cache) {
-			await this.cache.del(this.withCachePrefix(result.id));
-			await this.bustCacheForResult(result);
+			// If cache busting fails, we just log the error so the response is returned safely.
+			// Otherwise the client could think the creation failed.
+			try {
+				await this.cache.del(this.withCachePrefix(result.id));
+				await this.bustCacheForResult(result);
+			} catch (e) {
+				this.logger.fatal(e);
+			}
 		}
 		return result;
 	}
@@ -161,15 +173,27 @@ export class StoreService<T extends { id?: string }> {
 	}
 
 	async update<Existing extends T & {id: string}>(item: Existing) {
-		const result = await this.client.put<Existing, Existing>(
-			`${this.config.resource}/${item.id}`,
-			item,
-			undefined,
-			this.restClientOptions(this.config)
-		);
+		let result: Existing;
+		try {
+			result = await this.client.put<Existing, Existing>(
+				`${this.config.resource}/${item.id}`,
+				item,
+				undefined,
+				this.restClientOptions(this.config)
+			);
+		} catch (e) {
+			this.logger.fatal("Store client failed to update resource", item);
+			throw e;
+		}
 		if (this.config.cache) {
-			await this.cache.del(this.withCachePrefix(result.id));
-			await this.bustCacheForResult(result);
+			// If cache busting fails, we just log the error so the response is returned safely.
+			// Otherwise the client could think the update failed.
+			try {
+				await this.cache.del(this.withCachePrefix(result.id));
+				await this.bustCacheForResult(result);
+			} catch (e) {
+				this.logger.fatal(e);
+			}
 		}
 		return result;
 	}
@@ -185,21 +209,33 @@ export class StoreService<T extends { id?: string }> {
 		}
 
 		const path = `${this.config.resource}/${id}`;
-		const result = await this.client.delete<StoreDeleteResponse>(
-			path,
-			undefined,
-			this.restClientOptions(this.config)
-		);
+		let result: StoreDeleteResponse;
+		try {
+			result = await this.client.delete<StoreDeleteResponse>(
+				path,
+				undefined,
+				this.restClientOptions(this.config)
+			);
+		} catch (e) {
+			this.logger.fatal("Store client failed to delete resource", path);
+			throw e;
+		}
 
 		if (cache) {
-			await this.cache.del(this.withCachePrefix(id));
-			if (!existing) {
-				// eslint-disable-next-line max-len
-				this.logger.error("Store delete request was successful for an item that couldn't be fetched prior. This situation should be impossible and is catastrophic for caching! Flushing the whole cache for the resource.");
-				await this.cache.del(this.withCachePrefix("*"));
-				return result;
+			// If cache busting fails, we just log the error so the response is returned safely.
+			// Otherwise the client could think the deletion failed.
+			try {
+				await this.cache.del(this.withCachePrefix(id));
+				if (!existing) {
+					// eslint-disable-next-line max-len
+					this.logger.fatal("Store delete request was successful for an item that couldn't be fetched prior. This situation should be impossible and is catastrophic for caching! Flushing the whole cache for the resource.");
+					await this.cache.del(this.withCachePrefix("*"));
+					return result;
+				}
+				await this.bustCacheForResult(existing);
+			} catch (e) {
+				this.logger.fatal(e);
 			}
-			await this.bustCacheForResult(existing);
 		}
 		return result;
 	}
