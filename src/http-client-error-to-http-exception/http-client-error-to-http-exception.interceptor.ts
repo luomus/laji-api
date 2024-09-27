@@ -1,4 +1,4 @@
-import { CallHandler, ExecutionContext, HttpException, Injectable, NestInterceptor } from "@nestjs/common";
+import { CallHandler, ExecutionContext, HttpException, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import { catchError, Observable, throwError } from "rxjs";
 
 /**
@@ -6,8 +6,12 @@ import { catchError, Observable, throwError } from "rxjs";
  */
 @Injectable()
 export class HttpClientErrorToHttpExceptionInterceptor implements NestInterceptor {
+
+	logger = new Logger("HttpClientError");
+
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		return next.handle().pipe(catchError(e => {
+			this.logger.error(e, { status: e.response?.status, body: e.response?.body });
 			return throwError(() =>  {
 				return (!(e instanceof HttpException) && e.response?.status)
 					? new HttpException(e.response?.data as any ?? "LajiApi generic error - External request failed",
