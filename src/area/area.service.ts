@@ -32,7 +32,7 @@ export class AreaService {
 	async get(id: string) {
 		const area = (await this.getAllDict())[id];
 		if (!area) {
-			throw new HttpException("Not found", 404);
+			throw new HttpException("Area not found", 404);
 		}
 		return area;
 	}

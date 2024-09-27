@@ -11,7 +11,12 @@ import { GBIF_CLIENT } from "src/provider-tokens";
 
 const GBIF_DATASET_PARENT = "HR.3777";
 
-const COLL_NOT_FOUND = new HttpException("Not Found", 404, { cause: "Collection not found" });
+
+class CollectionNotFoundError extends HttpException {
+	constructor(id: string) {
+		super(`Collection ${id} not found`, 404);
+	}
+}
 
 @Injectable()
 @IntelligentInMemoryCache()
@@ -30,7 +35,7 @@ export class CollectionsService {
 	async get(id: string) {
 		const collection = (await this.getIdToCollection())[id];
 		if (!collection) {
-			throw COLL_NOT_FOUND;
+			throw new CollectionNotFoundError(id);
 		}
 		return collection;
 	}
@@ -66,19 +71,18 @@ export class CollectionsService {
 		const idToCollection = await this.getIdToCollection();
 		const parents: Collection[] = [];
 		let collection = idToCollection[id];
+		let nextId: string | undefined;
 		if (!collection) {
-			throw COLL_NOT_FOUND;
+			throw new CollectionNotFoundError(id);
 		}
 		while (collection) {
-			if (!collection) {
-				throw COLL_NOT_FOUND;
-			}
 			if (!collection.isPartOf) {
 				break;
 			}
-			collection = idToCollection[collection.isPartOf];
+			nextId = collection.isPartOf;
+			collection = idToCollection[nextId];
 			if (!collection) {
-				throw COLL_NOT_FOUND;
+				throw new HttpException(`Collection ${id} has nonexisting parent ${nextId}`, 404);
 			}
 			parents.push(collection);
 		}
@@ -123,7 +127,6 @@ export class CollectionsService {
 			{ type: "MY.collection" },
 			{ cache: CACHE_10_MIN }
 		);
-
 		const collectionIdToChildIds: Record<string, string[]> = {};
 		function putToCollectionTree(collection: TriplestoreCollection) {
 			const { isPartOf } = collection;

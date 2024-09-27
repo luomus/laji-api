@@ -63,7 +63,7 @@ export class AbstractMediaService<T extends MediaType> {
 	async get(id: string): Promise<Media<T>> {
 		const [result] = await this.findMedia([id]);
 		if (!result) {
-			throw new HttpException("Not found", 404);
+			throw new HttpException("Media not found", 404);
 		}
 		return result;
 	}
@@ -71,7 +71,7 @@ export class AbstractMediaService<T extends MediaType> {
 	async getURL(id: string, urlKey: keyof Media<T>): Promise<string> {
 		const result = await this.get(id);
 		if (!result[urlKey]) {
-			throw new HttpException("Not found", 404);
+			throw new HttpException("Media URL not found", 404);
 		}
 		return result[urlKey] as string;
 	}

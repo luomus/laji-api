@@ -152,7 +152,7 @@ const triplestoreToJsonLd = (rdf: JSONSerializable): Promise<NodeObject> => {
 	parse(rdf as any, rdfStore, BASE_URL, "application/rdf+xml");
 	const jsonld = serialize(null, rdfStore, BASE_URL, "application/ld+json");
 	if (!jsonld) {
-		throw new HttpException("Not found", 404);
+		throw new HttpException("Not found in triplestore", 404);
 	}
 	return JSON.parse(jsonld);
 };
