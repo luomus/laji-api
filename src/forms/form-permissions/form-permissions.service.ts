@@ -189,6 +189,10 @@ export class FormPermissionsService {
 
 	async hasEditRightsOf(collectionID: string, person: Person) {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
+		const form = await this.findFormWithPermissionFeature(collectionID);
+		if (!form?.options.restrictAccess) {
+			return true;
+		}
 		return hasEditRightsOf(permissions, person);
 	}
 
