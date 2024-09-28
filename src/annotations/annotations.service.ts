@@ -7,6 +7,7 @@ import { NotificationsService } from "src/notifications/notifications.service";
 import { Person, Role } from "src/persons/person.dto";
 import { StoreService } from "src/store/store.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
+import { CACHE_10_MIN } from "src/utils";
 import { WarehouseService } from "src/warehouse/warehouse.service";
 
 const ALLOWED_SYSTEMS = ["KE.398"];
@@ -167,7 +168,7 @@ export class AnnotationsService {
 	}
 
 	getTags() {
-		return this.triplestoreService.find<Tag>({ type: "MMAN.tagClass" });
+		return this.triplestoreService.find<Tag>({ type: "MMAN.tagClass" }, { cache: CACHE_10_MIN });
 	}
 }
 
