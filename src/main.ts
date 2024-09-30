@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
 import { Logger } from "@nestjs/common";
@@ -20,26 +20,30 @@ export async function bootstrap() {
 	const port = configService.get("PORT") || 3004;
 
 	configService.get("EXPLORER_PROXY_TO_OLD_API") === "true" && app.use("/explorer", createProxyMiddleware({
-		target: "http://localhost:3003/explorer"
+		target: "http://127.0.0.1:3003/explorer"
 	}));
 
 	// Backward compatible redirect from old api with version (v0) path prefix.
 	app.use("/v0", createProxyMiddleware({
-		target: `http://localhost:${port}`,
+		target: `http://127.0.0.1:${port}`,
 		pathRewrite: {
 			"^/v0": "/"
-		}
+		},
+		on: {
+			proxyReq: fixRequestBody
+		},
 	}));
 
 	// Backward compatibity to old API signature of form permissions.
 	app.use("/formPermissions", createProxyMiddleware({
-		target: `http://localhost:${port}/forms/permissions`
+		target: `http://127.0.0.1:${port}/forms/permissions`
 	}));
 
 	// Backward compatibity to old API signature of checklist versions.
 	app.use("/checklistVersions", createProxyMiddleware({
-		target: `http://localhost:${port}/checklist-versions`
+		target: `http://127.0.0.1:${port}/checklist-versions`
 	}));
+
 	app.useStaticAssets("static");
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
