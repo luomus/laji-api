@@ -14,6 +14,7 @@ export class HttpClientErrorToHttpExceptionInterceptor implements NestIntercepto
 		const request = context.switchToHttp().getRequest<Request>();
 		return next.handle().pipe(catchError(e => {
 			this.logger.error(e, {
+				incomingRequestMethod: request.method,
 				incomingRequest: request.url,
 				incomingRequestBody: request.body,
 				outgoingResponseStatus: e.response?.status,
