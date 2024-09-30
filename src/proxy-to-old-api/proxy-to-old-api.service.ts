@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
-const OLD_API = "http://localhost:3003/v0";
+const OLD_API = "http://127.0.0.1:3003/v0";
 // const OLD_API = "https://api.laji.fi/v0";
 
 @Injectable()
@@ -17,9 +17,9 @@ export class ProxyToOldApiService {
 			proxyReq: fixRequestBody
 		},
 		logger: {
-			info: this.logger.verbose,
-			warn: this.logger.warn,
-			error: this.logger.error
+			info: this.logger.verbose.bind(this),
+			warn: this.logger.warn.bind(this),
+			error: this.logger.error.bind(this)
 		}
 	});
 
