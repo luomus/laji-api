@@ -13,6 +13,8 @@ export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
 	app.enableShutdownHooks();
 
+	app.useBodyParser("json", { limit: "10mb" });
+
 	const configService = app.get(ConfigService);
 
 	const port = configService.get("PORT") || 3004;
