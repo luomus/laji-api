@@ -12,7 +12,7 @@ export class LoggerInterceptor implements NestInterceptor {
 		const request = context.switchToHttp().getRequest<TimeStampedRequest>();
 		const timestamp = Date.now();
 		request.lajiApiTimeStamp = timestamp;
-		this.logger.verbose(`START ${stringifyRequest(request)}`);
+		this.logger.verbose(`START ${stringifyRequest(request, false)}`);
 		return next.handle().pipe(
 			catchError(e => {
 				this.logger.error(`END ${stringifyRequest(request)}`, { body: request.body });
@@ -25,11 +25,11 @@ export class LoggerInterceptor implements NestInterceptor {
 	}
 }
 
-const stringifyRequest = (request: TimeStampedRequest) => {
+const stringifyRequest = (request: TimeStampedRequest, timestamp = true) => {
 	const userId = request.person?.id;
 	const msg = [
 		`${request.method} ${request.url}`,
-		`[${Date.now() - request.lajiApiTimeStamp}ms]`,
+		timestamp && `[${Date.now() - request.lajiApiTimeStamp}ms]`,
 		userId && `[${userId}]`].filter(m => typeof m === "string");
 	return msg.join(" ");
 };
