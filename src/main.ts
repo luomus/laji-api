@@ -9,11 +9,10 @@ import { LogLevel, Logger } from "@nestjs/common";
 import { LoggerService } from "./logger/logger.service";
 
 export async function bootstrap() {
-
-	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,verbose,debug").split(",");
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		cors: true,
 	});
+	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,verbose,debug").split(",");
 	app.useLogger(app.get(LoggerService));
 	app.useLogger(logLevels as LogLevel[]);
 	app.enableShutdownHooks();
