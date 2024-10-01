@@ -125,7 +125,7 @@ export class RestClientService<T = unknown> {
 				? cachedByHostAndPath[url]
 				: undefined;
 			if (cached) {
-				this.logger.verbose(`GET (CACHED) ${url}`);
+				this.logger.debug(`GET (CACHED) ${url}`);
 				return cached;
 			}
 		}

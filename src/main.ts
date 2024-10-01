@@ -5,12 +5,16 @@ import { AppModule } from "./app.module";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
-import { Logger } from "@nestjs/common";
+import { LogLevel, Logger } from "@nestjs/common";
 
 export async function bootstrap() {
 	new Logger().warn("Old API must be running at localhost:3003\n");
 
-	const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
+	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,verbose,debug").split(",");
+	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+		cors: true,
+		logger: logLevels as LogLevel[]
+	});
 	app.enableShutdownHooks();
 
 	app.useBodyParser("json", { limit: "10mb" });

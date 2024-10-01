@@ -8,7 +8,7 @@ import { AccessTokenModule } from "./access-token/access-token.module";
 import { AppController } from "./app.controller";
 import { FormsModule } from "./forms/forms.module";
 import { HttpClientErrorToHttpExceptionInterceptor }
-	from "./http-client-error-to-http-exception/http-client-error-to-http-exception.interceptor";
+	from "./interceptors/http-client-error-to-http-exception.interceptor";
 import { LajiAuthClientModule } from "./laji-auth-client/laji-auth-client.module";
 import { LajiAuthClientService } from "./laji-auth-client/laji-auth-client.service";
 import { MetadataModule } from "./metadata/metadata.module";
@@ -46,6 +46,7 @@ import { InformationModule } from "./information/information.module";
 import { ChecklistModule } from "./checklist/checklist.module";
 import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions.module";
 import { OrganizationsModule } from "./organizations/organizations.module";
+import { LoggerInterceptor } from "./interceptors/logger.interceptor";
 
 @Module({
 	imports: [
@@ -107,11 +108,15 @@ import { OrganizationsModule } from "./organizations/organizations.module";
 		},
 		{
 			provide: APP_INTERCEPTOR,
+			useClass: ServicesInjector
+		},
+		{
+			provide: APP_INTERCEPTOR,
 			useClass: HttpClientErrorToHttpExceptionInterceptor
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: ServicesInjector
+			useClass: LoggerInterceptor
 		},
 		{
 			provide: APP_PIPE,
