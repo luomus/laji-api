@@ -47,6 +47,7 @@ import { ChecklistModule } from "./checklist/checklist.module";
 import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions.module";
 import { OrganizationsModule } from "./organizations/organizations.module";
 import { LoggerInterceptor } from "./interceptors/logger.interceptor";
+import { LoggerModule } from "./logger/logger.module";
 
 @Module({
 	imports: [
@@ -98,7 +99,8 @@ import { LoggerInterceptor } from "./interceptors/logger.interceptor";
 		InformationModule,
 		ChecklistModule,
 		ChecklistVersionsModule,
-		OrganizationsModule
+		OrganizationsModule,
+		LoggerModule
 	],
 	controllers: [AppController],
 	providers: [

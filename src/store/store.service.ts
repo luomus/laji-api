@@ -146,7 +146,11 @@ export class StoreService<T extends { id?: string }> {
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal("Store client failed to create resource", item);
+			this.logger.fatal(e, {
+				reason: "Store client failed to create resource",
+				type: this.config.resource,
+				resource: item
+			});
 			throw e;
 		}
 		if (this.config.cache) {
@@ -182,7 +186,11 @@ export class StoreService<T extends { id?: string }> {
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal("Store client failed to update resource", item);
+			this.logger.fatal(e, {
+				reason: "Store client failed to update resource",
+				type: this.config.resource,
+				resource: item
+			});
 			throw e;
 		}
 		if (this.config.cache) {
@@ -217,7 +225,7 @@ export class StoreService<T extends { id?: string }> {
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal("Store client failed to delete resource", path);
+			this.logger.fatal(e, { reason: "Store client failed to delete resource", type: path });
 			throw e;
 		}
 

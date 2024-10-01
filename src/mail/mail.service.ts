@@ -4,12 +4,12 @@ import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 import { CompleteMultiLang } from "src/common.dto";
 import { NamedPlace } from "src/named-places/named-places.dto";
-
 type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
 type HasEmailAddress = { emailAddress: string };
 
 const FINBIF_EMAIL = "www@luomus.fi";
+const ERROR_EMAIL = "grp-a97800-errors@helsinki.fi";
 
 @Injectable()
 export class MailService {
@@ -70,26 +70,21 @@ export class MailService {
 		});
 	}
 
-	async sendApiUserCreationFailed(user: HasEmailAddress, error: Error) {
-		void this.send({
-			to: user.emailAddress,
-			subject: `Access token for ${this.configService.get("MAIL_API_BASE")} failed`,
-			template: "./api-user-creation-failed",
-		});
-		return this.send({
-			to: FINBIF_EMAIL,
-			subject: "Access token creation failed",
-			template: "./api-user-creation-failed-recipient-internal",
-			context: { user, error }
-		});
-	}
-
 	async sendNamedPlaceReserved(user: HasEmailAddress, context: { place: NamedPlace, until: string}) {
 		return this.send({
 			to: user.emailAddress,
 			subject: "Vakiolinjan varauksen vahvistus",
 			template: "./named-place-reserved",
 			context
+		});
+	}
+
+	async sendFatalErrorLogEntry(message: any, stack?: string, context?: string) {
+		return this.send({
+			to: ERROR_EMAIL,
+			subject: "laji-api error",
+			template: "./fatal-error",
+			context: { message, stack, context }
 		});
 	}
 }

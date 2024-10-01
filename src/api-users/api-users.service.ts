@@ -66,8 +66,7 @@ export class ApiUsersService {
 		try {
 			await queryRunner.commitTransaction();
 		} catch (e) {
-			this.logger.error(e);
-			await this.mailService.sendApiUserCreationFailed({ emailAddress: apiUser.email }, e as Error);
+			this.logger.fatal(e, { emailAddress: apiUser.email });
 		} finally {
 			await queryRunner.release();
 		}
