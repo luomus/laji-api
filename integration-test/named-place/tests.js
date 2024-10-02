@@ -453,7 +453,7 @@ describe("/named-place", function() {
 	describe("Reservation", function() {
 
 		it("fails if user doesn't have access to place's collection", function(done) {
-			const query = basePath + "/" + config.objects["named-place-not-permitted-for-test-user"].id + "/reservation" +
+			const query = basePath + "/" + config.id["named-place-not-permitted-for-test-user"] + "/reservation" +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
 				.post(query)
