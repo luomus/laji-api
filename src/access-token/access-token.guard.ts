@@ -2,11 +2,13 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Reflector } from "@nestjs/core";
 import { Request } from "src/request";
 import { AccessTokenService } from "./access-token.service";
+import { ApiUsersService } from "src/api-users/api-users.service";
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
 	constructor(
 		private accessTokenService: AccessTokenService,
+		private apiUsersService: ApiUsersService,
 		private reflector: Reflector
 	) {}
 
@@ -27,6 +29,7 @@ export class AccessTokenGuard implements CanActivate {
 				throw new UnauthorizedException("Invalid access token");
 			}
 			request.accessToken = accessToken;
+			request.apiUser = await this.apiUsersService.getByAccessToken(accessToken);
 		} catch (e) {
 			throw new UnauthorizedException("Invalid access token");
 		}

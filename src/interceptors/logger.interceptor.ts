@@ -27,9 +27,12 @@ export class LoggerInterceptor implements NestInterceptor {
 
 const stringifyRequest = (request: TimeStampedRequest, timestamp = true) => {
 	const userId = request.person?.id;
+	const { apiUser } = request;
 	const msg = [
 		`${request.method} ${request.url}`,
 		timestamp && `[${Date.now() - request.lajiApiTimeStamp}ms]`,
-		userId && `[${userId}]`].filter(m => typeof m === "string");
+		userId && `[${userId}]`,
+		apiUser?.systemID && `[${apiUser.systemID}]`,
+	].filter(m => typeof m === "string");
 	return msg.join(" ");
 };

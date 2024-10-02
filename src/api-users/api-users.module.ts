@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { ApiUsersService } from "./api-users.service";
 import { ApiUsersController } from "./api-users.controller";
 import { AccessTokenModule } from "src/access-token/access-token.module";
@@ -11,7 +11,7 @@ import { AccessTokenEntity } from "src/access-token/access-token.entity";
 	imports: [
 		TypeOrmModule.forFeature([ApiUserEntity]),
 		TypeOrmModule.forFeature([AccessTokenEntity]),
-		AccessTokenModule,
+		forwardRef(() => AccessTokenModule),
 		MailModule
 	],
 	providers: [ApiUsersService],

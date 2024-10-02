@@ -40,7 +40,6 @@ import { TraitModule } from "./trait/trait.module";
 import { ErrorSignatureBackwardCompatibilityFilter }
 	from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
 import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor";
-import { ServicesInjector } from "./interceptors/services-injector.interceptor";
 import { AnnotationsModule } from "./annotations/annotations.module";
 import { InformationModule } from "./information/information.module";
 import { ChecklistModule } from "./checklist/checklist.module";
@@ -107,10 +106,6 @@ import { LoggerModule } from "./logger/logger.module";
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: SerializingInterceptor
-		},
-		{
-			provide: APP_INTERCEPTOR,
-			useClass: ServicesInjector
 		},
 		{
 			provide: APP_INTERCEPTOR,
