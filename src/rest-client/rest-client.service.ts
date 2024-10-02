@@ -5,7 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { JSONObjectSerializable, Newable } from "src/type-utils";
 import { serializeInto } from "src/serializing/serializing";
-import { CacheOptions } from "src/utils";
+import { CacheOptions, doForDefined } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 export type RestClientConfig<T> = RestClientOptions<T> & {
@@ -88,9 +88,11 @@ export class RestClientService<T = unknown> {
 		return `${this.config.host}/${path}`;
 	}
 
-	static applyOptions<T>(item: T, options?: RestClientOptions<T>): T {
+	static applyOptions<T>(item: undefined, options?: RestClientOptions<T>): undefined;
+	static applyOptions<T>(item: T, options?: RestClientOptions<T>): T;
+	static applyOptions<T>(item: T | undefined, options?: RestClientOptions<T>): T | undefined {
 		return options?.serializeInto
-			? serializeInto(options.serializeInto)(item)
+			? doForDefined(serializeInto(options.serializeInto))(item)
 			: item;
 	}
 

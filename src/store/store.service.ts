@@ -137,9 +137,10 @@ export class StoreService<T extends { id?: string }> {
 	}
 
 	async create(item: Partial<T>) {
-		let result: T & { id: string };
+		type Existing = T & { id: string };
+		let result: Existing;
 		try {
-			result = await this.client.post<T & { id: string }, Partial<T>>(
+			result = await this.client.post<Existing, Partial<T>>(
 				this.config.resource,
 				item,
 				undefined,
@@ -176,7 +177,7 @@ export class StoreService<T extends { id?: string }> {
 		await this.bustCacheForResult(item);
 	}
 
-	async update<Existing extends T & {id: string}>(item: Existing) {
+	async update<Existing extends T & { id: string }>(item: Existing) {
 		let result: Existing;
 		try {
 			result = await this.client.put<Existing, Existing>(
