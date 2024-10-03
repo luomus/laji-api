@@ -9,7 +9,7 @@ import { PersonsService } from "src/persons/persons.service";
 import { StoreService } from "src/store/store.service";
 import { FormListing, Format } from "../dto/form.dto";
 import { FormsService } from "../forms.service";
-import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto
+import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto, RestrictAccess
 } from "./dto/form-permission.dto";
 
 @Injectable()
@@ -65,7 +65,7 @@ export class FormPermissionsService {
 		}
 
 		const permissions = await this.findByCollectionID(formWithPermissionFeature.collectionID);
-		const isAdmin = isAdminOf(permissions, person);
+		const isAdmin = formWithPermissionFeature.options.hasAdmins && isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 			listProps.forEach(prop => {
@@ -76,13 +76,25 @@ export class FormPermissionsService {
 			permissions.editors = permissions.editors.filter(withIsPerson(person));
 			permissions.permissionRequests = permissions.permissionRequests.filter(withIsPerson(person));
 		}
-		return { collectionID, ...permissions };
+		return {
+			collectionID,
+			...permissions,
+			restrictAccess: formWithPermissionFeature.options.restrictAccess as RestrictAccess,
+			hasAdmins: formWithPermissionFeature.options.hasAdmins
+		};
 	}
 
 	private async findFormWithPermissionFeature(collectionID: string) {
 		return this.formService.findFor(
 			collectionID,
 			form => form.options.restrictAccess || form.options.hasAdmins
+		);
+	}
+
+	async findRestrictedForm(collectionID: string) {
+		return this.formService.findFor(
+			collectionID,
+			form => form.options.restrictAccess
 		);
 	}
 

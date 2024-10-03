@@ -1,11 +1,16 @@
 import { FormPermission, FormPermissionPerson, FormPermissionSingle } from "@luomus/laji-schema/classes";
-import { OmitType } from "@nestjs/swagger";
+import { ApiProperty, OmitType } from "@nestjs/swagger";
 
 export enum FormPermissionEntityType {
 	empty = "",
 	admin = "MFP.typeAdmin",
 	editor = "MFP.typeEditor",
 	request = "MFP.typeAccessRequest"
+}
+
+export enum RestrictAccess {
+	strict = "MHL.restrictAccessStrict",
+	loose = "MHL.restrictAccessLoose"
 }
 
 export class FormPermissionEntity extends OmitType(FormPermissionSingle, ["type"]) {
@@ -18,6 +23,8 @@ export class FormPermissionDto extends FormPermission {
 	editors: string[];
 	permissionRequests: string[];
 	collectionID: string;
+	@ApiProperty({ enum: [RestrictAccess.strict, RestrictAccess.loose] }) restrictAccess?: RestrictAccess;
+	hasAdmins?: boolean;
 }
 
 export class FormPermissionPersonDto extends FormPermissionPerson {

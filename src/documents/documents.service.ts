@@ -16,6 +16,7 @@ import { QueryCacheOptions, StoreCacheOptions } from "src/store/store-cache";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
+import { RestrictAccess } from "src/forms/form-permissions/dto/form-permission.dto";
 
 /** Allowed query keys of the external API of the document service */
 export const allowedQueryKeysForExternalAPI = [
