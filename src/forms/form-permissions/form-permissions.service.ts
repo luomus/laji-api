@@ -47,7 +47,7 @@ export class FormPermissionsService {
 			"userID");
 	}
 
-	async getByCollectionIDAndPerson(collectionID: string, person: Person): Promise<FormPermissionDto> {
+	async getByCollectionIDAndPerson(collectionID: string, person?: Person): Promise<FormPermissionDto> {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
 		if (!permissions) {
 			throw new HttpException("Form does not have restrict feature enabled", 404);
@@ -55,7 +55,7 @@ export class FormPermissionsService {
 		return permissions;
 	}
 
-	async findByCollectionIDAndPerson(collectionID: string, person: Person)
+	async findByCollectionIDAndPerson(collectionID: string, person?: Person)
 		: Promise<FormPermissionDto | undefined> {
 		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
@@ -64,7 +64,7 @@ export class FormPermissionsService {
 		}
 
 		const permissions = await this.findByCollectionID(formWithPermissionFeature.collectionID);
-		const isAdmin = formWithPermissionFeature.options.hasAdmins && isAdminOf(permissions, person);
+		const isAdmin = person && formWithPermissionFeature.options.hasAdmins && isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
 			listProps.forEach(prop => {
@@ -72,8 +72,8 @@ export class FormPermissionsService {
 			});
 		} else {
 			permissions.admins = [];
-			permissions.editors = permissions.editors.filter(withIsPerson(person));
-			permissions.permissionRequests = permissions.permissionRequests.filter(withIsPerson(person));
+			permissions.editors = person ? permissions.editors.filter(withIsPerson(person)) : [];
+			permissions.permissionRequests = person ? permissions.permissionRequests.filter(withIsPerson(person)) : [];
 		}
 		return {
 			collectionID,

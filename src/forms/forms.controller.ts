@@ -3,7 +3,7 @@ import { FormsService } from "./forms.service";
 import { AcceptAccessDto, Form, Format, GetAllDto, GetDto, RevokeAccessDto, TransformDto } from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
-import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -25,12 +25,12 @@ export class FormsController {
 		return this.formPermissionsService.getByPerson(person);
 	}
 
-	/** Get form permissions for a person */
+	/** Get form permissions for a person, and the form information about whether is has MHL.restrictAccess and MHL.hasAdmins */
 	@Get("permissions/:collectionID")
 	getPermissionsByCollectionID(
 		@Param("collectionID") collectionID: string,
-		@Query() _: QueryWithPersonTokenDto,
-		@PersonToken() person: Person
+		@Query() _: QueryWithMaybePersonTokenDto,
+		@PersonToken({ required : false }) person?: Person
 	) {
 		return this.formPermissionsService.getByCollectionIDAndPerson(collectionID, person);
 	}

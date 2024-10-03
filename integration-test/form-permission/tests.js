@@ -22,11 +22,22 @@ describe("/formPermissions", function() {
 			});
 	});
 
-	it("listing permissions for collection works", function(done) {
+	it("listing permissions for collection with person works", function(done) {
 		this.timeout(30000); // Collections initial load take a while.
 		const query = `${basePath}/${collectionID}`
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + config["user"]["friend_token"];
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				res.should.have.status(200);
+				done();
+			});
+	});
+
+	it("listing permissions for collection without person works", function(done) {
+		const query = `${basePath}/${collectionID}`
+			+ "?access_token=" + config["access_token"];
 		request(this.server)
 			.get(query)
 			.end(function(err, res) {
