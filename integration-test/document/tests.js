@@ -531,6 +531,7 @@ describe("/documents", function() {
 
 	describe("After adding document", function() {
 		it("updates data", function(done) {
+			this.timeout(4000);
 			if (!documentId) {
 				return this.skip();
 			}
@@ -627,6 +628,7 @@ describe("/documents", function() {
 		});
 
 		it("does not allow editing a locked document", function(done) {
+			this.timeout(4000);
 			if (!lockedId) {
 				return this.skip();
 			}

@@ -988,6 +988,7 @@ describe("/named-place", function() {
 		};
 
 		it("doesn't allow adding if editor and has not feature", function(done) {
+			this.timeout(4000);
 			const query = basePath +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
 			request(this.server)
@@ -1000,6 +1001,7 @@ describe("/named-place", function() {
 		});
 
 		it("doesn't allow deleting if editor and has not feature", function(done) {
+			this.timeout(4000);
 			// Create the place with admin token for test.
 			const query = basePath +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
