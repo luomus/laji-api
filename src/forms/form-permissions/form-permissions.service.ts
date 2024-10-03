@@ -58,13 +58,13 @@ export class FormPermissionsService {
 
 	async findByCollectionIDAndPerson(collectionID: string, person: Person)
 		: Promise<FormPermissionDto | undefined> {
-		const restrictedForm = await this.findRestrictedForm(collectionID);
+		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
 
-		if (!restrictedForm?.collectionID) {
+		if (!formWithPermissionFeature?.collectionID) {
 			return;
 		}
 
-		const permissions = await this.findByCollectionID(restrictedForm.collectionID);
+		const permissions = await this.findByCollectionID(formWithPermissionFeature.collectionID);
 		const isAdmin = isAdminOf(permissions, person);
 		if (isAdmin) {
 			const listProps: (keyof PermissionLists)[] = ["admins", "editors", "permissionRequests"];
@@ -79,14 +79,10 @@ export class FormPermissionsService {
 		return { collectionID, ...permissions };
 	}
 
-	/**
-	 * Find the form that has the `MHL.restrictAccess` option enabled. The option is inherited, so the form might be an
-	 * ancestor
-	 * */
-	private async findRestrictedForm(collectionID: string) {
+	private async findFormWithPermissionFeature(collectionID: string) {
 		return this.formService.findFor(
 			collectionID,
-			form => form.options.restrictAccess
+			form => form.options.restrictAccess || form.options.hasAdmins
 		);
 	}
 
@@ -193,7 +189,7 @@ export class FormPermissionsService {
 
 	async hasEditRightsOf(collectionID: string, person: Person) {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
-		const form = await this.findRestrictedForm(collectionID);
+		const form = await this.findFormWithPermissionFeature(collectionID);
 		if (!form?.options.restrictAccess) {
 			return true;
 		}
@@ -204,7 +200,7 @@ export class FormPermissionsService {
 		const formTitle = await this.getFormTitle(collectionID);
 		void this.mailService.sendFormPermissionRequested(person, { formTitle });
 
-		const form = await this.findRestrictedForm(collectionID);
+		const form = await this.findFormWithPermissionFeature(collectionID);
 		if (!form) {
 			return;
 		}
@@ -224,7 +220,7 @@ export class FormPermissionsService {
 	}
 
 	private async getFormTitle(collectionID: string): Promise<CompleteMultiLang> {
-		const form = await this.findRestrictedForm(collectionID);
+		const form = await this.findFormWithPermissionFeature(collectionID);
 
 		const fi = await this.getFormTitleForLang(collectionID, form, Lang.fi);
 		const sv = await this.getFormTitleForLang(collectionID, form, Lang.sv);
