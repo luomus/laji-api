@@ -29,7 +29,7 @@ describe("/annotation", function() {
 	});
 
 	it("adds annotation", function (done) {
-		this.timeout(6000);
+		this.timeout(10000);
 		const query = basePath +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));

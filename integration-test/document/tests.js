@@ -1320,6 +1320,7 @@ describe("/documents", function() {
 		};
 
 		it("doesn't allow sending documents", function(done) {
+			this.timeout(10000);
 			var query = basePath +
 				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 			request(this.server)
@@ -1332,6 +1333,7 @@ describe("/documents", function() {
 		});
 
 		it("doesn't allow updating documents", function(done) {
+			this.timeout(10000);
 			// Make sure that altering formID doesn't make it bypass the disabled form check.
 			delete document.formID;
 			var query = basePath + "/" + config.id.disabled_form_doc

@@ -37,7 +37,6 @@ export class FormPermissionsService {
 				childCollections.forEach(c => formPermissions[listProp].push(c.id));
 			}
 		}
-
 		return formPermissions;
 	}
 
