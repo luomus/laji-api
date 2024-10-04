@@ -18,7 +18,7 @@ export class AreaService {
 
 	@Interval(CACHE_TTL)
 	async warmup() {
-		await this.getAllDict();
+		await this.getIdToArea();
 	}
 
 	async find(areaType?: AreaTypeDto, ids?: string[]) {
@@ -30,7 +30,7 @@ export class AreaService {
 	}
 
 	async get(id: string) {
-		const area = (await this.getAllDict())[id];
+		const area = (await this.getIdToArea())[id];
 		if (!area) {
 			throw new HttpException("Area not found", 404);
 		}
@@ -43,7 +43,7 @@ export class AreaService {
 	}
 
 	@IntelligentMemoize()
-	async getAllDict(): Promise<Record<string, Area>> {
+	async getIdToArea(): Promise<Record<string, Area>> {
 		return dictionarifyByKey(await this.getAll(), "id");
 	}
 
