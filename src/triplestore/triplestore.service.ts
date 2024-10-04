@@ -4,7 +4,7 @@ import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../type-utils";
-import { CacheOptions, promisePipe } from "src/utils";
+import { CacheOptions, asArray, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -17,8 +17,6 @@ const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 	isObject(data) && Object.keys(data).length === 1 && "@id" in data;
 
 type MultiLangResource = { "@language": string; "@value": string };
-const isMultiLangResource = (data: any): data is MultiLangResource =>
-	isObject(data) && "@language" in data;
 
 type TriplestoreSearchQuery = {
 	type?: string;
@@ -99,7 +97,7 @@ export class TriplestoreService {
 		cacheKey: string,
 		options?: TriplestoreQueryOptions
 	): Promise<T> {
-		const jsonld = await promisePipe(triplestoreToJsonLd)(rdf);
+		const jsonld: any = await promisePipe(triplestoreToJsonLd)(rdf);
 		const isArrayResult = Array.isArray(jsonld["@graph"]);
 		if (isArrayResult && (jsonld["@graph"] as any).length === 0) {
 			return [] as T;
@@ -127,7 +125,6 @@ export class TriplestoreService {
 			compactJsonLd,
 			resolveResources,
 			adhereToSchemaWith(context),
-			resolveLangResources,
 			dropPrefixes,
 			rmIdAndType
 		)(jsonld);
@@ -169,9 +166,8 @@ const stripBadProps = (jsonld: JSONObjectSerializable) => {
 	});
 };
 
-const compactJsonLd = (jsonld: JSONObjectSerializable) => {
-	return compact(jsonld, (jsonld as any)["@type"]) as unknown as Promise<JSONSerializable>;
-};
+const compactJsonLd = (jsonld: JSONObjectSerializable) => 
+	compact(jsonld, (jsonld as any)["@type"]) as unknown as Promise<JSONSerializable>;
 
 const traverseJsonLd = (
 	data: JSONObjectSerializable,
@@ -220,29 +216,26 @@ const resolveResources = (data: JSONObjectSerializable): JSONObjectSerializable 
 	});
 };
 
-const resolveLangResources = (data: JSONObjectSerializable): JSONObjectSerializable => {
-	return traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
-		if (Array.isArray(value) && isMultiLangResource(value[0])) {
-			return value.reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => ({
-				...langObj,
-				[resource["@language"]]: resource["@value"]
-			}), {});
-		}
-	});
-};
-
 /** RDF doesn't know about our properties' schema info. This function makes the output adhere to the schema. */
 const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONObjectSerializable) => {
-	function asArray(value: JSONSerializable, property: Property) {
+	function maxOccurs(value: JSONSerializable, property: Property) {
 		if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
 			return [value];
 		}
 	}
 
-	function multiLangAsArr(value: JSONSerializable, property: Property) {
-		if (property.multiLanguage && value && !Array.isArray(value)) {
-			return [value];
-		}
+	function resolveLangResources(value: JSONSerializable, property: Property) {
+		if (value && property.multiLanguage) {
+			return asArray(value).reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource | string) => {
+				if (typeof resource === "string") {
+					return langObj;
+				}
+				return {
+					...langObj,
+					[resource["@language"]]: resource["@value"]
+				};
+			}, {});
+		};
 	}
 
 	function typeFromRange(value: JSONSerializable, property: Property) {
@@ -258,7 +251,7 @@ const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONO
 	}
 
 	const transformations: ((value: JSONSerializable, property: Property) => JSONSerializable | undefined)[] =
-		[asArray, multiLangAsArr, typeFromRange];
+		[maxOccurs, resolveLangResources, typeFromRange];
 
 	return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
 		const property = properties[k];

@@ -73,8 +73,9 @@ function promisePipe<T, A, B, C, D, E, F>(op1: PromiseReducer<T, A>, op2: Promis
 function promisePipe<T, A, B, C, D, E, F, G>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>): PromisePipe<T, G>;
 function promisePipe<T, A, B, C, D, E, F, G, H>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>): PromisePipe<T, H>;
 function promisePipe<T, A, B, C, D, E, F, G, H, I>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>, op9: PromiseReducer<H, I>): PromisePipe<T, I>;
+function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any>;
 function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any> {
-	return (initialValue: T) => 
+	return (initialValue: T) =>
 		operations.reduce((promise, fn) => promise.then(
 			value => isPromise(fn)
 				? fn(value)
