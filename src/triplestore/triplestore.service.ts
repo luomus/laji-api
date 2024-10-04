@@ -12,6 +12,8 @@ import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 
 const BASE_URL = "http://tun.fi/";
 
+const NON_SCHEMATIC_KEYS = ["@context", "@type", "@id"];
+
 type ResourceIdentifierObj = { "@id": string };
 const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 	isObject(data) && Object.keys(data).length === 1 && "@id" in data;
@@ -166,7 +168,7 @@ const stripBadProps = (jsonld: JSONObjectSerializable) => {
 	});
 };
 
-const compactJsonLd = (jsonld: JSONObjectSerializable) => 
+const compactJsonLd = (jsonld: JSONObjectSerializable) =>
 	compact(jsonld, (jsonld as any)["@type"]) as unknown as Promise<JSONSerializable>;
 
 const traverseJsonLd = (
@@ -253,11 +255,13 @@ const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONO
 	const transformations: ((value: JSONSerializable, property: Property) => JSONSerializable | undefined)[] =
 		[maxOccurs, resolveLangResources, typeFromRange];
 
-	return (Object.keys(data) as (keyof JSONObjectSerializable)[]).reduce<JSONObjectSerializable>((d, k) => {
+	return ([...Object.keys(data), ...NON_SCHEMATIC_KEYS] as string[]).reduce<JSONObjectSerializable>((d, k) => {
 		const property = properties[k];
 		let value: JSONSerializable = data[k]!;
 		if (!property) {
-			d[k] = value;
+			if (NON_SCHEMATIC_KEYS.includes(k)) {
+				d[k] = value;
+			}
 			return d;
 		}
 		for (const transform of transformations) {
