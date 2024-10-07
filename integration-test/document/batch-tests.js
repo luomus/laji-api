@@ -359,7 +359,7 @@ describe("/documents/batch", function() {
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
 			res.should.have.status(200);
-			res.body.documents.forEach(d => expect(d.dataOrigin).to.equal("MY.dataOriginSpreadsheetFile"));
+			res.body.documents.forEach(d => expect(d.dataOrigin).to.equal(["MY.dataOriginSpreadsheetFile"]));
 			res.body.documents.forEach(d => expect(d.publicityRestrictions).to.equal("MZ.publicityRestrictionsPublic"));
 		});
 
