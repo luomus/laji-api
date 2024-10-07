@@ -5,7 +5,8 @@ import { DocumentsService, populateCreatorAndEditor } from "../documents.service
 import { PersonsService } from "src/persons/persons.service";
 import {
 	BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
-	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument
+	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument,
+	PublicityRestrictions, DataOrigin
 } from "../documents.dto";
 import { ValidationException, formatErrorDetails, isValidationException }
 	from "../document-validator/document-validator.utils";
@@ -77,7 +78,9 @@ export class DocumentsBatchService {
 	async complete(
 		jobID: string,
 		person: Person,
-		validationErrorFormat: ValidationErrorFormat
+		validationErrorFormat: ValidationErrorFormat,
+		publicityRestrictions?: PublicityRestrictions,
+		dataOrigin?: DataOrigin
 	): Promise<BatchJobValidationStatusResponse> {
 		let job = await this.cache.get<BatchJob | undefined>(getCacheKey(jobID, person));
 
@@ -99,6 +102,21 @@ export class DocumentsBatchService {
 			processed: 0,
 			errors: []
 		};
+
+		if (publicityRestrictions || dataOrigin) {
+			job.documents.forEach(document => {
+				if (isSecondaryDocumentDelete(document))  {
+					return;
+				}
+				if (dataOrigin) {
+					document.dataOrigin = [dataOrigin];
+				}
+				if (publicityRestrictions) {
+					document.publicityRestrictions = publicityRestrictions;
+				}
+			});
+		}
+
 		await this.updateJobInCache(job);
 		void this.createSendProcess(job, person);
 		return exposeJobStatus(job, validationErrorFormat);
@@ -123,6 +141,10 @@ export class DocumentsBatchService {
 				const populatedDocument = await (isSecondaryDocumentDelete(document)
 					? this.secondaryDocumentsService.populateMutably(document, person, apiUser)
 					: this.documentsService.populateMutably(document, person, apiUser));
+
+				if (!isSecondaryDocumentDelete(populatedDocument) && !populatedDocument.dataOrigin) {
+					populatedDocument.dataOrigin = [DataOrigin.dataOriginSpreadsheetFile];
+				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument)) {
 					populateCreatorAndEditor(populatedDocument, person);

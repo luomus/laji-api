@@ -351,6 +351,18 @@ describe("/documents/batch", function() {
 			createdSecondaryDocuments = res.body.documents;
 		});
 
+		it("document publicityRestrictions and dataOrigin are populated", async function() {
+			if (!id) {
+				this.skip();
+			}
+			const res = await request(this.server)
+				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.send();
+			res.should.have.status(200);
+			res.body.documents.forEach(d => expect(d.dataOrigin).to.equal("MY.dataOriginSpreadsheetFile"));
+			res.body.documents.forEach(d => expect(d.publicityRestrictions).to.equal("MZ.publicityRestrictionsPublic"));
+		});
+
 		it("created secondary docs can be deleted", async function() {
 			this.timeout(10000);
 

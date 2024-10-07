@@ -127,6 +127,18 @@ export enum ValidationStrategy {
 	taxonBelongsToInformalTaxonGroup = "taxonBelongsToInformalTaxonGroup"
 };
 
+export enum PublicityRestrictions {
+	publicityRestrictionsPublic = "MZ.publicityRestrictionsPublic",
+	publicityRestrictionsProtected = "MZ.publicityRestrictionsProtected",
+	publicityRestrictionsPrivate = "MZ.publicityRestrictionsPrivate"
+}
+
+export enum DataOrigin {
+	dataOriginPaperForm = "MY.dataOriginPaperForm",
+	dataOriginWebForm = "MY.dataOriginWebForm",
+	dataOriginSpreadsheetFile = "MY.dataOriginSpreadsheetFile"
+}
+
 export enum ValidationType {
 	error = "error",
 	warning = "warning"
@@ -149,6 +161,8 @@ export class ValidateQueryDto extends IntersectionType(
 
 export class BatchJobQueryDto extends IntersectionType(QueryWithPersonTokenDto) {
 	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
+	publicityRestrictions?: PublicityRestrictions;
+	dataOrigin?: DataOrigin;
 }
 
 export type BatchJob<

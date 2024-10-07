@@ -77,10 +77,20 @@ export class DocumentsController {
 	@HttpCode(200)
 	async completeBatchJob(
 		@Param("jobID") jobID: string,
-		@Query() { validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto,
+		@Query() {
+				validationErrorFormat = ValidationErrorFormat.object,
+				publicityRestrictions,
+				dataOrigin
+			}: BatchJobQueryDto,
 		@PersonToken() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		return this.documentsBatchService.complete(jobID, person, validationErrorFormat);
+		return this.documentsBatchService.complete(
+			jobID,
+			person,
+			validationErrorFormat,
+			publicityRestrictions,
+			dataOrigin
+		);
 	}
 
 	/** Validate a document */
@@ -208,7 +218,9 @@ export class DocumentsController {
 			return this.documentsBatchService.complete(
 				document.id,
 				person,
-				validationErrorFormat!
+				validationErrorFormat!,
+				document.publicityRestrictions as any,
+				document.dataOrigin as any,
 			) as any;
 		}
 		if (!document.formID) {
