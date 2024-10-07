@@ -76,8 +76,7 @@ export const isSecondaryDocument = (unknown: Document | SecondaryDocumentOperati
 
 export const isSecondaryDocumentDelete = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is SecondaryDocumentDelete =>
-	(unknown as any).delete
-		&& ("id" in unknown);
+	(unknown as any).delete && ("id" in unknown);
 
 export const isSecondaryDocumentOperation = (document: Document | SecondaryDocumentOperation)
 	: document is SecondaryDocumentOperation => {

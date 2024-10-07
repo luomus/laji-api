@@ -3,8 +3,10 @@ import { Document } from "@luomus/laji-schema";
 import { DocumentValidatorService } from "../document-validator/document-validator.service";
 import { DocumentsService, populateCreatorAndEditor } from "../documents.service";
 import { PersonsService } from "src/persons/persons.service";
-import { BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
-	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete } from "../documents.dto";
+import {
+	BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
+	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument
+} from "../documents.dto";
 import { ValidationException, formatErrorDetails, isValidationException }
 	from "../document-validator/document-validator.utils";
 import { firstFromNonEmptyArr, uuid } from "src/utils";
@@ -131,7 +133,7 @@ export class DocumentsBatchService {
 					throw new ValidationException({ "": ["All documents must have the same formID"] });
 				}
 
-				if (!isSecondaryDocumentDelete(populatedDocument)) {
+				if (!isSecondaryDocumentDelete(populatedDocument) && !isSecondaryDocument(populatedDocument)) {
 					await this.documentValidatorService.validate(populatedDocument);
 				} else {
 					await this.secondaryDocumentsService.validate(populatedDocument, person);
@@ -159,6 +161,8 @@ export class DocumentsBatchService {
 				job.errors = Array(job.documents.length).fill(
 					new ValidationException({ "": ["Upload to the warehouse failed"] })
 				);
+			} finally {
+				job.processed = job.documents.length;
 			}
 		} else {
 			try {
