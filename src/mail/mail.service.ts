@@ -83,7 +83,7 @@ export class MailService {
 			to: ERROR_EMAIL,
 			subject: "laji-api error",
 			template: "./fatal-error",
-			context: { message, stack, context: JSON.stringify(context, undefined, 2) }
+			context: { message, stack: JSON.stringify(stack, undefined, 2), context: JSON.stringify(context, undefined, 2) }
 		});
 	}
 }
