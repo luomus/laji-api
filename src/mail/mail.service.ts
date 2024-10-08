@@ -78,12 +78,12 @@ export class MailService {
 		});
 	}
 
-	async sendFatalErrorLogEntry(message: any, stack?: string, context?: string) {
+	async sendFatalErrorLogEntry(message: any, stack?: string, context?: unknown) {
 		return this.send({
 			to: ERROR_EMAIL,
 			subject: "laji-api error",
 			template: "./fatal-error",
-			context: { message, stack, context }
+			context: { message, stack, context: JSON.stringify(context, undefined, 2) }
 		});
 	}
 }

@@ -7,7 +7,7 @@ export class LoggerService extends ConsoleLogger {
 		super();
 	}
 
-	fatal(message: any, stack?: string, context?: string) {
+	fatal(message: any, stack?: string, context?: unknown) {
 		super.fatal(message, stack, context);
 		void this.mailService.sendFatalErrorLogEntry(message, stack, context);
 	}

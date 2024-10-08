@@ -147,7 +147,7 @@ export class StoreService<T extends { id?: string }> {
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, {
+			this.logger.fatal(e, e.stack, {
 				reason: "Store client failed to create resource",
 				type: this.config.resource,
 				resource: item
