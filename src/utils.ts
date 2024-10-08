@@ -225,3 +225,8 @@ export const dotNotationToJSONPointer = (pointer: string) => {
 
 export const isJSONPointer = (pointer: string) =>
 	pointer === "" || pointer[0] === "/";
+
+/** Filters non strings (or numbers) out and joins with " " */
+export const joinOnlyStrings = (...array: (unknown)[]) => {
+	return array.filter(m => typeof m === "string" || typeof m === "number").join(" ");
+};

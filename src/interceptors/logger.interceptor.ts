@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import { Observable, catchError, tap, throwError } from "rxjs";
 import { Request } from "src/request";
+import { joinOnlyStrings } from "src/utils";
 
 type TimeStampedRequest = Request & { lajiApiTimeStamp: number };
 
@@ -10,8 +11,7 @@ export class LoggerInterceptor implements NestInterceptor {
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const request = context.switchToHttp().getRequest<TimeStampedRequest>();
-		const timestamp = Date.now();
-		request.lajiApiTimeStamp = timestamp;
+		request.lajiApiTimeStamp = Date.now();
 		this.logger.verbose(`START ${stringifyRequest(request, false)}`);
 		return next.handle().pipe(
 			catchError(e => {
@@ -28,11 +28,10 @@ export class LoggerInterceptor implements NestInterceptor {
 const stringifyRequest = (request: TimeStampedRequest, timestamp = true) => {
 	const userId = request.person?.id;
 	const { apiUser } = request;
-	const msg = [
+	return joinOnlyStrings(
 		`${request.method} ${request.url}`,
 		timestamp && `[${Date.now() - request.lajiApiTimeStamp}ms]`,
 		userId && `[${userId}]`,
-		apiUser?.systemID && `[${apiUser.systemID}]`,
-	].filter(m => typeof m === "string");
-	return msg.join(" ");
+		apiUser?.systemID && `[${apiUser.systemID}]`
+	);
 };

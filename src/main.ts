@@ -7,14 +7,19 @@ import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
 import { LogLevel, Logger } from "@nestjs/common";
 import { LoggerService } from "./logger/logger.service";
+import { HttpService } from "@nestjs/axios";
+import { AxiosRequestConfig } from "axios";
+import { joinOnlyStrings } from "./utils";
 
 export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		cors: true,
 	});
 	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,verbose,debug").split(",");
-	app.useLogger(app.get(LoggerService));
+	const logger = app.get(LoggerService);
+	app.useLogger(logger);
 	app.useLogger(logLevels as LogLevel[]);
+	logOutgoingRequests(app.get(HttpService));
 	app.enableShutdownHooks();
 	new Logger().warn("Old API must be running at localhost:3003\n");
 
@@ -83,6 +88,54 @@ export async function bootstrap() {
 	return app;
 }
 void bootstrap();
+
+
+type LajiApiAxiosRequestConfig = AxiosRequestConfig & {
+	meta: {
+		logger: Logger;
+		lajiApiTimeStamp?: number;
+	};
+}
+
+const getLoggerFromAxiosConfig = (config: AxiosRequestConfig) => {
+	const { logger = new Logger() } =
+		((config as LajiApiAxiosRequestConfig).meta as { logger: Logger } | undefined)
+		|| {};
+	return logger;
+};
+
+function logOutgoingRequests(httpService: HttpService) {
+	httpService.axiosRef.interceptors.request.use(config => {
+		const logger = getLoggerFromAxiosConfig(config);
+		if (!(config as any).meta) {
+			(config as any).meta = {};
+		}
+		const customizedConfig = config as LajiApiAxiosRequestConfig;
+		customizedConfig.meta.lajiApiTimeStamp = Date.now();
+		logger.verbose(joinOnlyStrings("START", config.method?.toUpperCase(), config.url));
+		return config;
+	});
+
+	const responseLogger = (config: any, method: "verbose" | "error", status?: number) => {
+		if (!config) return;
+		const logger = getLoggerFromAxiosConfig(config);
+		const { lajiApiTimeStamp } = (config as any).meta || {};
+		logger[method](joinOnlyStrings("END",
+			config.method?.toUpperCase(),
+			config.url,
+			status && `[STATUS ${status}]`,
+			lajiApiTimeStamp && `[${Date.now() - lajiApiTimeStamp}ms]`
+		));
+	};
+
+	httpService.axiosRef.interceptors.response.use(response => {
+		responseLogger(response.config, "verbose", response.status);
+		return response;
+	}, error => {
+		responseLogger(error.config, "error", error.status);
+		return Promise.reject(error);
+	});
+}
 
 const description =
 `
