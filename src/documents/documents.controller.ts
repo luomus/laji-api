@@ -220,7 +220,7 @@ export class DocumentsController {
 				person,
 				validationErrorFormat!,
 				document.publicityRestrictions as any,
-				document.dataOrigin as any,
+				document.dataOrigin?.[0] as any,
 			) as any;
 		}
 		if (!document.formID) {
