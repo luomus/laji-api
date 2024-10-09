@@ -142,9 +142,7 @@ export class DocumentsService {
 	}
 
 	async existsByNamedPlaceID(namedPlaceID: string, dateRange?: { from: string, to: string }, id?: string) {
-		 // TODO the typings are problematic for query terms that are not keys of the resource, e.g.,
-		// "gatheringEvent.dateBegin"
-		let query: Query<any> = { namedPlaceID };
+		let query: Query<DocumentQuery> = { namedPlaceID };
 		if (id) {
 			query.id = id;
 		}
