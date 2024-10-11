@@ -79,12 +79,8 @@ export const isSecondaryDocumentDelete = (unknown: Document | SecondaryDocumentO
 	(unknown as any).delete && ("id" in unknown);
 
 export const isSecondaryDocumentOperation = (document: Document | SecondaryDocumentOperation)
-	: document is SecondaryDocumentOperation => {
-	if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
-		throw new HttpException("Doesn't look like a secondary document. It should have an 'id' property", 422);
-	}
-	return true;
-};
+	: document is SecondaryDocumentOperation =>
+	!isSecondaryDocument(document) || isSecondaryDocumentDelete(document);
 
 export type PopulatedSecondaryDocumentOperation =
 	Populated<SecondaryDocument>

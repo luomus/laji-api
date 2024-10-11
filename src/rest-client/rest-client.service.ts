@@ -116,7 +116,7 @@ export class RestClientService<T = unknown> {
 		// We cache a map where keys are the path without query params, and the keys are the full uri with host, path and query params.
 		// This way we can bust the cache by just the path.
 		//
-		// Example for cachedByPath, where this.path = "https://foo.bar/path", path = "path":
+		// Example for cachedByPath, where this.path = "https://foo.bar", path = "path":
 		// { "https://foo.bar/path": {
 		// "https://foo.bar/path?param1=foo": "cached example value 1",
 		// "https://foo.bar/path?param2=bar": "cached example value 2",

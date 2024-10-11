@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { DocumentsService, populateCreatorAndEditor } from "./documents.service";
 import { WarehouseService } from "src/warehouse/warehouse.service";
 import { PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentDelete, SecondaryDocumentOperation,
-	isSecondaryDocument, isSecondaryDocumentDelete } from "./documents.dto";
+	isSecondaryDocument, isSecondaryDocumentDelete, isSecondaryDocumentOperation } from "./documents.dto";
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
@@ -53,7 +53,7 @@ export class SecondaryDocumentsService {
 	}
 
 	async validate(createOrDelete: PopulatedSecondaryDocumentOperation, person: Person) {
-		if (!createOrDelete.id) {
+		if (!isSecondaryDocumentOperation(createOrDelete)) {
 			throw new HttpException("Secondary document must have id", 422);
 		}
 		 // TODO no validation whatsoever... Ask from Esko if personToken access is checked on warehouse.
