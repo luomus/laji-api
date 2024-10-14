@@ -1,7 +1,6 @@
 import { Document } from "@luomus/laji-schema";
-import { HttpException } from "@nestjs/common";
-import { ApiHideProperty, ApiProperty, IntersectionType, PartialType, getSchemaPath } from "@nestjs/swagger";
-import { Exclude, Expose, Type } from "class-transformer";
+import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PartialType, getSchemaPath } from "@nestjs/swagger";
+import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
@@ -80,7 +79,7 @@ export const isSecondaryDocumentDelete = (unknown: Document | SecondaryDocumentO
 
 export const isSecondaryDocumentOperation = (document: Document | SecondaryDocumentOperation)
 	: document is SecondaryDocumentOperation =>
-	!isSecondaryDocument(document) || isSecondaryDocumentDelete(document);
+	isSecondaryDocument(document) || isSecondaryDocumentDelete(document);
 
 export type PopulatedSecondaryDocumentOperation =
 	Populated<SecondaryDocument>
@@ -161,31 +160,61 @@ export class BatchJobQueryDto extends IntersectionType(QueryWithPersonTokenDto) 
 	dataOrigin?: DataOrigin;
 }
 
-export type BatchJob<
+class BatchJobValidationStatus {
+	processed = 0;
+	total: number;
+
+	@ApiProperty()
+	@Expose()
+	@Transform(({ obj } : {obj: BatchJobValidationStatus } ) => Math.floor(((obj.processed || 0) / obj.total) * 100))
+	percentage: number;
+};
+
+export class BatchJob<
 	T extends Populated<Document> | PopulatedSecondaryDocumentOperation
 	= Populated<Document> | PopulatedSecondaryDocumentOperation
-> = {
+> {
 	id: string;
-	processed: number;
+
+	@Type(() => BatchJobValidationStatus)
+	status: BatchJobValidationStatus;
+
 	personID: string;
 	documents: T[];
-	errors: (ValidationException | null)[];
-	import?: boolean;
+	errors: (ValidationException | null)[] = [];
+	step: BatchJobStep;
+
+	@Expose() get phase() {
+		const { status } = this;
+		if (this.step === BatchJobStep.validate) {
+			return status.processed < status.total
+				? BatchJobPhase.validating
+				: BatchJobPhase.readyToComplete;
+		} else {
+			return status.processed < status.total
+				? BatchJobPhase.completing
+				: BatchJobPhase.completed;
+		}
+	}
 }
 
-class BatchJobValidationStatus {
-	processed: number;
-	total: number;
-	percentage: number;
+export enum BatchJobStep {
+	validate = "VALIDATE",
+	send = "SEND",
 }
 
-export class BatchJobValidationStatusResponse implements Omit<BatchJob, "errors" | "processed" | "documents"> {
+export enum BatchJobPhase {
+	validating = "VALIDATING",
+	readyToComplete = "READY_TO_COMPLETE",
+	completing = "COMPLETING",
+	completed = "COMPLETED"
+}
+
+export class BatchJobValidationStatusResponse extends OmitType(BatchJob, ["errors", "documents", "step"]) {
 	id: string;
-	status: BatchJobValidationStatus;
 	documents?: Document[];
-	/** If true, the job's documents are validated and we are now in the phase of sending them to the store */
-	import?: boolean;
 	@ApiHideProperty() @Exclude() personID: string;
+	@ApiHideProperty() @Exclude() step: BatchJobStep;
 
 	@ApiProperty({
 		type: "array",

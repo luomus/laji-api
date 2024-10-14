@@ -27,7 +27,6 @@ export class ErrorsObj { [path: string]: ErrorsObj | string[] };
 /** The `details` must be a map of JSON pointers and error message arrays. */
 export class ValidationException extends HttpException {
 	constructor(details: ErrorsObj) {
-		// formatDetails(details);
 		super({ statusCode: 422, message: "Unprocessable Entity", details }, 422);
 	}
 }

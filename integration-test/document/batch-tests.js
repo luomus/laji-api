@@ -54,13 +54,13 @@ describe("/documents/batch", function() {
 
 			res.should.have.status(200);
 			id = res.body.id;
+			res.body.should.have.property("phase").to.eql("VALIDATING");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.not.have.property("documents");
-			res.body.should.not.have.property("errors");
-			res.body.should.not.have.property("import");
+			res.body.should.have.property("documents");
+			res.body.should.have.property("errors");
 		});
 
 		it("job status can be followed during background validation, and it doesn't contain documents or errors while it's processing", async function() {
@@ -79,13 +79,13 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
+				res.body.should.have.property("phase").to.eql("VALIDATING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
-				res.body.should.not.have.property("errors");
-				res.body.should.not.have.property("import");
+				res.body.should.have.property("documents");
+				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			assert.equal(processed === documents.length);
@@ -99,12 +99,11 @@ describe("/documents/batch", function() {
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
 			res.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.not.have.property("import");
-			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
@@ -119,13 +118,13 @@ describe("/documents/batch", function() {
 				.send();
 
 			res.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("COMPLETING");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("import");
-			res.body.should.not.have.property("documents");
-			res.body.should.not.have.property("errors");
+			res.body.should.have.property("documents");
+			res.body.should.have.property("errors");
 		});
 
 		it("job status can be followed during background completion, and it doesn't contain documents or errors while it's processing", async function() {
@@ -144,13 +143,13 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
+				res.body.should.have.property("phase").to.eql("COMPLETING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
-				res.body.should.not.have.property("errors");
-				res.body.should.have.property("import");
+				res.body.should.have.property("documents");
+				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			expect(res.body.status.processed).to.equal(documents.length);
@@ -166,11 +165,11 @@ describe("/documents/batch", function() {
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
 			res.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("COMPLETED");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.have.property("import");
 			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
 			expect(res.body.status.processed).to.equal(documents.length);
@@ -227,13 +226,13 @@ describe("/documents/batch", function() {
 
 			res.should.have.status(200);
 			id = res.body.id;
+			res.body.should.have.property("phase").to.eql("VALIDATING");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.not.have.property("documents");
-			res.body.should.not.have.property("errors");
-			res.body.should.not.have.property("import");
+			res.body.should.have.property("documents");
+			res.body.should.have.property("errors");
 		});
 
 		it("job status can be followed during background validation, and it doesn't contain documents or errors while it's processing", async function() {
@@ -252,13 +251,13 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
+				res.body.should.have.property("phase").to.eql("VALIDATING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
-				res.body.should.not.have.property("errors");
-				res.body.should.not.have.property("import");
+				res.body.should.have.property("documents");
+				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			assert.equal(processed === documents.length);
@@ -272,13 +271,14 @@ describe("/documents/batch", function() {
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
 			res.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.not.have.property("import");
 			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
+			console.log(res.body.errors);
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
 		});
@@ -292,13 +292,13 @@ describe("/documents/batch", function() {
 				.send();
 
 			res.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("COMPLETING");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("import");
-			res.body.should.not.have.property("documents");
-			res.body.should.not.have.property("errors");
+			res.body.should.have.property("documents");
+			res.body.should.have.property("errors");
 		});
 
 		it("job status can be followed during background completion, and it doesn't contain documents or errors while it's processing", async function() {
@@ -321,9 +321,8 @@ describe("/documents/batch", function() {
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
-				res.body.should.not.have.property("errors");
-				res.body.should.have.property("import");
+				res.body.should.have.property("documents");
+				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			expect(res.body.status.processed).to.equal(documents.length);
@@ -337,11 +336,11 @@ describe("/documents/batch", function() {
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
 			res.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("COMPLETED");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.have.property("import");
 			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
 			expect(res.body.status.processed).to.equal(documents.length);
@@ -373,13 +372,13 @@ describe("/documents/batch", function() {
 
 			res.should.have.status(200);
 			const id = res.body.id;
+			res.body.should.have.property("phase").to.eql("VALIDATING");
 			res.body.should.have.property("status");
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.not.have.property("documents");
-			res.body.should.not.have.property("errors");
-			res.body.should.not.have.property("import");
+			res.body.should.have.property("documents");
+			res.body.should.have.property("errors");
 
 			// Wait until processed.
 			let processed = 0;
@@ -393,13 +392,13 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
+				res.body.should.have.property("phase").to.eql("VALIDATING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
-				res.body.should.not.have.property("errors");
-				res.body.should.not.have.property("import");
+				res.body.should.have.property("documents");
+				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 
@@ -409,13 +408,13 @@ describe("/documents/batch", function() {
 				.send();
 
 			completionRes.should.have.status(200);
+			res.body.should.have.property("phase").to.eql("COMPLETING");
 			completionRes.body.should.have.property("status");
 			completionRes.body.status.should.have.property("processed").eql(0);
 			completionRes.body.status.should.have.property("total").eql(documents.length);
 			completionRes.body.status.should.have.property("percentage").eql(0);
-			completionRes.body.should.have.property("import");
-			completionRes.body.should.not.have.property("documents");
-			completionRes.body.should.not.have.property("errors");
+			completionRes.body.should.have.property("documents");
+			completionRes.body.should.have.property("errors");
 
 			// Wait until processed.
 			processed = 0;
@@ -429,13 +428,13 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
+				res.body.should.have.property("phase").to.eql("COMPLETING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
-				res.body.should.not.have.property("errors");
-				res.body.should.have.property("import");
+				res.body.should.have.property("documents");
+				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			expect(res.body.status.processed).to.equal(documents.length);
@@ -443,12 +442,12 @@ describe("/documents/batch", function() {
 			const completedRes = await request(this.server)
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
+			res.body.should.have.property("phase").to.eql("COMPLETED");
 			completedRes.should.have.status(200);
 			completedRes.body.should.have.property("status");
 			completedRes.body.status.should.have.property("processed");
 			completedRes.body.status.should.have.property("total").eql(documents.length);
 			completedRes.body.status.should.have.property("percentage");
-			completedRes.body.should.have.property("import");
 			completedRes.body.should.have.property("documents");
 			completedRes.body.should.have.property("errors");
 			expect(completedRes.body.status.processed).to.equal(documents.length);

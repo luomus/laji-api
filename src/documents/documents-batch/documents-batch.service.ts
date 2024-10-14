@@ -6,7 +6,7 @@ import { PersonsService } from "src/persons/persons.service";
 import {
 	BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
 	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument,
-	PublicityRestrictions, DataOrigin
+	PublicityRestrictions, DataOrigin, BatchJobPhase, BatchJobStep
 } from "../documents.dto";
 import { ValidationException, formatErrorDetails, isValidationException }
 	from "../document-validator/document-validator.utils";
@@ -40,23 +40,28 @@ export class DocumentsBatchService {
 		person: Person,
 		apiUser: ApiUserEntity
 	): Promise<BatchJobValidationStatusResponse>  {
-		const job: BatchJob = {
+		if (!documents.length) {
+			throw new HttpException("Send at least one document", 422);
+		}
+
+		const job = serializeInto(BatchJob)({
 			id: uuid(6),
 			personID: person.id,
-			 // 'as' because they'll be populated after job creation.
+			 // 'as' because they'll be populated mutably after job creation.
 			documents: documents as Populated<Document>[],
-			processed: 0,
-			errors: new Array(documents.length)
-		};
+			errors: new Array(documents.length),
+			step: BatchJobStep.validate,
+			status: { total: documents.length }
+		});
 		await this.updateJobInCache(job);
 
-		const processes = asChunks(documents, CHUNK_SIZE).map(async (chunkDocuments, idx) => {
+		const processes = asChunks(job.documents, CHUNK_SIZE).map(async (chunkDocuments, idx) => {
 			const chunkErrors = await Promise.all(
 				await this.createValidationProcess(chunkDocuments, job, person, apiUser)
 			);
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
-		// The validation error format parameter doesn't matter, since there are no errors yet.
+		// The validation error format parameter (2nd parameter) doesn't matter, since there are no errors yet.
 		const status = exposeJobStatus(job);
 		void this.process(processes, job);
 		return status;
@@ -67,7 +72,7 @@ export class DocumentsBatchService {
 		person: Person,
 		validationErrorFormat: ValidationErrorFormat
 	): Promise<BatchJobValidationStatusResponse> {
-		const job = await this.cache.get<BatchJob>(getCacheKey(jobID, person));
+		const job = await this.getJobFromCache(jobID, person);
 		if (!job) {
 			throw new HttpException("Job not found", 404);
 		}
@@ -82,26 +87,37 @@ export class DocumentsBatchService {
 		publicityRestrictions?: PublicityRestrictions,
 		dataOrigin?: DataOrigin
 	): Promise<BatchJobValidationStatusResponse> {
-		let job = await this.cache.get<BatchJob | undefined>(getCacheKey(jobID, person));
+		let job = await this.getJobFromCache(jobID, person);
 
 		if (!job) {
 			throw new HttpException("No job found", 404);
 		}
 
-		if (job.import) {
+		if (job.phase === BatchJobPhase.validating) {
+			throw new HttpException("The job is still processing validation", 422);
+		}
+
+		// TODO REMOVE_AFTER_#36 - we must keep this for now to keep bw compatibility {
+		if (job.phase === BatchJobPhase.completing) {
 			return exposeJobStatus(job, validationErrorFormat);
+		}
+		// } TODO REPLACE_WITH_AFTER_#36 {
+		// throw new HttpException("The job is still processing the sending", 422);
+		// }
+
+		if (job.phase === BatchJobPhase.completed) {
+			throw new HttpException("The job is already completed", 422);
 		}
 
 		if (job.errors.some(e => e !== null)) {
 			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
 		}
 
-		job = {
+		job = serializeInto(BatchJob)({
 			...job,
-			import: true,
-			processed: 0,
-			errors: []
-		};
+			status: { total: job.documents.length },
+			step: BatchJobStep.send,
+		});
 
 		if (publicityRestrictions || dataOrigin) {
 			job.documents.forEach(document => {
@@ -160,10 +176,10 @@ export class DocumentsBatchService {
 				} else {
 					await this.secondaryDocumentsService.validate(populatedDocument, person);
 				}
-				job.processed++;
+				job.status.processed++;
 				return null;
 			} catch (e) {
-				job.processed++;
+				job.status.processed++;
 				return isValidationException(e)
 					? e
 					: new ValidationException({ "": [`Failed due to internal error: ${e.message}`] });
@@ -184,7 +200,7 @@ export class DocumentsBatchService {
 					new ValidationException({ "": ["Upload to the warehouse failed"] })
 				);
 			} finally {
-				job.processed = job.documents.length;
+				job.status.processed = job.documents.length;
 			}
 		} else {
 			try {
@@ -196,7 +212,7 @@ export class DocumentsBatchService {
 					document => (document as Document).namedPlaceID
 				) as (Document | SecondaryDocument)[];
 
-				job.processed = job.documents.length - docsWithNamedPlace.length;
+				job.status.processed = job.documents.length - docsWithNamedPlace.length;
 				await this.updateJobInCache(job);
 
 				const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async chunkDocuments =>
@@ -251,13 +267,17 @@ export class DocumentsBatchService {
 			} catch (e) {
 				this.logger.error(`Named place side effect failed for ${document.id}`);
 			} finally {
-				job.processed++;
+				job.status.processed++;
 			}
 		}));
 	}
 
 	async updateJobInCache(job: BatchJob) {
 		return this.cache.set(getCacheKey(job.id, await this.personsService.getByPersonId(job.personID)), job);
+	}
+
+	async getJobFromCache(id: string, person: Person) {
+		return serializeInto(BatchJob)(await this.cache.get<BatchJob | undefined>(getCacheKey(id, person)));
 	}
 }
 
@@ -272,16 +292,9 @@ const asChunks = <T>(items: T[], chunkSize: number) => {
 const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, jobID].join(":");
 
 const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat) => {
-	const { processed, ...restOfJob } = job;
-	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(restOfJob);
-	const total = job.documents.length;
-	exposedJob.status = {
-		processed,
-		total,
-		percentage: Math.floor((processed / total) * 100)
-	};
+	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(job);
 
-	if (processed === job.documents.length) {
+	if (job.status.processed === job.documents.length) {
 		exposedJob.errors = job.errors.map(e => e === null
 			? e
 			: formatErrorDetails((e as any).response.details, validationErrorFormat)
@@ -290,7 +303,5 @@ const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorF
 	}
 
 	// Return only status for job that is still being processed.
-	delete exposedJob.documents;
-	delete exposedJob.errors;
 	return exposedJob;
 };
