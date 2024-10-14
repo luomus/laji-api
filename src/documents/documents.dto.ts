@@ -170,6 +170,18 @@ class BatchJobValidationStatus {
 	percentage: number;
 };
 
+export enum BatchJobStep {
+	validate = "VALIDATE",
+	send = "SEND",
+}
+
+export enum BatchJobPhase {
+	validating = "VALIDATING",
+	readyToComplete = "READY_TO_COMPLETE",
+	completing = "COMPLETING",
+	completed = "COMPLETED"
+}
+
 export class BatchJob<
 	T extends Populated<Document> | PopulatedSecondaryDocumentOperation
 	= Populated<Document> | PopulatedSecondaryDocumentOperation
@@ -184,7 +196,7 @@ export class BatchJob<
 	errors: (ValidationException | null)[] = [];
 	step: BatchJobStep;
 
-	@Expose() get phase() {
+	@ApiProperty({ enum: Object.values(BatchJobPhase) }) @Expose() get phase(): BatchJobPhase {
 		const { status } = this;
 		if (this.step === BatchJobStep.validate) {
 			return status.processed < status.total
@@ -196,18 +208,6 @@ export class BatchJob<
 				: BatchJobPhase.completed;
 		}
 	}
-}
-
-export enum BatchJobStep {
-	validate = "VALIDATE",
-	send = "SEND",
-}
-
-export enum BatchJobPhase {
-	validating = "VALIDATING",
-	readyToComplete = "READY_TO_COMPLETE",
-	completing = "COMPLETING",
-	completed = "COMPLETED"
 }
 
 export class BatchJobValidationStatusResponse extends OmitType(BatchJob, ["errors", "documents", "step"]) {
