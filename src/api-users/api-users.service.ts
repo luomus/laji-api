@@ -61,8 +61,7 @@ export class ApiUsersService {
 			throw e;
 		}
 
-		// Commit the transaction after succesfully sending email. If it fails, we send an email to the user and ourselves
-		// that the api user creation actually failed.
+		// Commit the transaction after succesfully sending email.
 		try {
 			await queryRunner.commitTransaction();
 		} catch (e) {
