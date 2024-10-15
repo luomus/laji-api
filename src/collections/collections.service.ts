@@ -4,7 +4,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { Collection, GbifCollectionResult, GbifContact, MetadataStatus, TriplestoreCollection } from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
-import { CACHE_10_MIN } from "src/utils";
+import { CACHE_10_MIN, joinOnlyStrings } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { GBIF_CLIENT } from "src/provider-tokens";
@@ -236,14 +236,15 @@ const getLongName = (
 	const { abbreviation: rootAbbreviation } = rootParent || {};
 	return LANGS.reduce<MultiLang>((multiLang, lang) => {
 		const collectionName = collection.collectionName?.[lang];
-		multiLang[lang] = collectionName
-			? [
-				rootAbbreviation ? `${rootAbbreviation} -` : undefined,
+		const longName = collectionName
+			? joinOnlyStrings(
+				rootAbbreviation && `${rootAbbreviation} -`,
 				collectionName,
-				abbreviation ? `(${abbreviation})` : undefined
-			].filter(s => typeof s === "string")
-			 .join(" ")
-			: "";
+				abbreviation && `(${abbreviation})`)
+			: undefined;
+		if (typeof longName === "string") {
+			multiLang[lang] = longName;
+		}
 		return multiLang;
 	}, {});
 };

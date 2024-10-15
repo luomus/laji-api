@@ -96,7 +96,6 @@ function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en, langFall
 	return getLangValueWithFallback(multiLangValue);
 }
 
-
 interface TranslateMaybeMultiLang {
 	(value: MultiLang, lang: Lang): string | undefined;
 	<T>(value: T, lang: Lang): T;
