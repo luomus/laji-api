@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { WAREHOUSE_CLIENT } from "src/provider-tokens";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { SecondaryDocument, SecondaryDocumentDelete } from "src/documents/documents.dto";
+import { SecondaryDocument, SecondaryDocumentDelete, isSecondaryDocumentDelete } from "src/documents/documents.dto";
 import { SingleQueryResponse } from "./warehouse.dto";
 
 // TODO This is how the requests are done by old API. Ask from Esko if there's a better way to do this since the
@@ -40,11 +40,12 @@ export class WarehouseService {
 		);
 	}
 
-	async pushMultiple(document: (SecondaryDocument | SecondaryDocumentDelete & { collectionID: string })[]) {
-		const roots = document.map(document => (document as SecondaryDocumentDelete).delete
-			? { id: document.id, collectionID: document.collectionID }
-			: { document }
-		);
+	async pushMultiple(documents: (SecondaryDocument | SecondaryDocumentDelete & { collectionID: string })[]) {
+		const roots = documents.map(document => ({
+			document: isSecondaryDocumentDelete(document)
+				? { id: document.id, collectionID: document.collectionID }
+				: document
+		}));
 		return this.client.post<unknown>("push",
 			{
 				schema: "lajistore-secondary-data",
