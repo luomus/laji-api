@@ -124,6 +124,9 @@ export class NamedPlacesService {
 	}
 
 	async create(place: NamedPlace, person: Person) {
+		if (place.id) {
+			throw new HttpException("You should not specify ID when adding!", 406);
+		}
 
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
 			place.owners.push(person.id);
@@ -138,6 +141,10 @@ export class NamedPlacesService {
 
 	async update(id: string, place: NamedPlace, person: Person) {
 		const existing = await this.get(id, person);
+		// TODO remove after store handles POST/PUT properly with separate methods.
+		if (!place.id) {
+			throw new HttpException("You should provide the ID in the body", 422);
+		}
 
 		await this.checkWriteAccess(existing, person);
 
