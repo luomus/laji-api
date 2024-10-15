@@ -1,6 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { WAREHOUSE_CLIENT } from "src/provider-tokens";
-import { ConfigService } from "@nestjs/config";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { SecondaryDocument, SecondaryDocumentDelete } from "src/documents/documents.dto";
 import { SingleQueryResponse } from "./warehouse.dto";
@@ -10,7 +9,6 @@ import { SingleQueryResponse } from "./warehouse.dto";
 @Injectable()
 export class WarehouseService {
 	constructor(
-		private config: ConfigService,
 		@Inject(WAREHOUSE_CLIENT) private client: RestClientService
 	) {}
 
