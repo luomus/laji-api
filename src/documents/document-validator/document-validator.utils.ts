@@ -4,7 +4,7 @@ import { HttpException } from "@nestjs/common";
 import { ValidationErrorFormat } from "../documents.dto";
 import { isJSONPointer } from "src/utils";
 
-export const getPath = (path: string | undefined, subpath: string) => {
+export const joinJSONPaths = (path: string | undefined, subpath: string) => {
 	if (!isJSONPointer(subpath)) {
 		throw new Error(`Bad JSON pointer: ${subpath}`);
 	}
