@@ -163,10 +163,6 @@ export class DocumentsService {
 		person: Person,
 		apiUser: ApiUserEntity
 	) {
-		if (unpopulatedDocument.id) {
-			throw new HttpException("You should not specify ID when adding primary data!", 406);
-		}
-
 		const document = await this.populateMutably(unpopulatedDocument, person, apiUser);
 
 		populateCreatorAndEditor(document, person);
@@ -183,11 +179,6 @@ export class DocumentsService {
 		person: Person,
 		apiUser: ApiUserEntity
 	) {
-		// TODO remove after store handles POST/PUT properly with separate methods.
-		if (!unpopulatedDocument.id) {
-			throw new HttpException("You should provide the document ID in the body", 422);
-		}
-
 		const existing = await this.store.get(id);
 
 		if (!person.isImporter()) {
