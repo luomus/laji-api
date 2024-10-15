@@ -2,10 +2,9 @@ import { NamedPlace as NamedPlaceClass } from "@luomus/laji-schema/classes";
 import { Document } from "@luomus/laji-schema";
 import { Unit } from "@luomus/laji-schema/interfaces";
 import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Exclude, Type } from "class-transformer";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { Person } from "src/persons/person.dto";
-import { Private } from "src/serializing/private.decorator";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
 import type { Geometry } from "geojson";
 
@@ -25,7 +24,7 @@ export class NamedPlace extends OmitType(NamedPlaceClass, ["geometry", "prepopul
 }
 
 class GatheringUnitsFiltered {
-	@Private() units: Unit[];
+	@Exclude() units: Unit[];
 }
 
 class DocumentUnitsFiltered {

@@ -1,7 +1,7 @@
 import { HasContext } from "src/common.dto";
-import { Private } from "src/serializing/private.decorator";
 import { IsOptionalBoolean } from  "src/serializing/serializing";
 import { Person as _Person } from "@luomus/laji-schema/models";
+import { Exclude } from "class-transformer";
 
 export enum Role {
 	Admin = "MA.admin",
@@ -15,9 +15,9 @@ enum RoleAnnotation {
 export class Person extends HasContext implements Omit<_Person, "role" | "fullName"> {
 	id: string;
 	emailAddress: string;
-	@Private() inheritedName?: string;
-	@Private() preferredName?: string;
-	@Private() lajiAuthLoginName?: string;
+	@Exclude() inheritedName?: string;
+	@Exclude() preferredName?: string;
+	@Exclude() lajiAuthLoginName?: string;
 	fullName?: string;
 	role: Role[] = [];
 	group?: string;

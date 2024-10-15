@@ -1,10 +1,9 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, mixin } from "@nestjs/common";
 import { Observable, switchMap } from "rxjs";
-import { SerializeOptions, excludePrivateProps, serializeInto as _serializeInto } from "./serializing";
+import { SerializeOptions, serializeInto as _serializeInto } from "./serializing";
 import { applyToResult } from "src/pagination";
 import { Newable } from "src/type-utils";
 import { instanceToPlain } from "class-transformer";
-import { promisePipe } from "src/utils";
 
 export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>, serializeOptions?: SerializeOptions) {
 	@Injectable()
@@ -15,7 +14,7 @@ export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>
 					result = await applyToResult(_serializeInto(serializeInto, serializeOptions))(result);
 				}
 				// instanceToPlain so DTO getters are serialized into plain values. https://github.com/typestack/class-transformer/issues/1060
-				return applyToResult(promisePipe(excludePrivateProps, instanceToPlain))(result);
+				return applyToResult(instanceToPlain)(result);
 			}));
 		}
 	}

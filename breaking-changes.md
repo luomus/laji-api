@@ -125,6 +125,10 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 * Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
 * `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept.
 
+## Organizations
+
+* Renamed the endpoint `/organization/by-id/:id` to `/organizations/:id`
+
  ## TODO
 
  * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`.... This logic is inherited from the old API.

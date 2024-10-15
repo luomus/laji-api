@@ -1,6 +1,6 @@
-import { Private } from "src/serializing/private.decorator";
 import { PagedDto, MultiLang, HasContext, LangQueryDto } from "../common.dto";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
+import { Exclude } from "class-transformer";
 
 export class FindCollectionsDto extends IntersectionType(PagedDto, LangQueryDto) {};
 
@@ -78,11 +78,11 @@ export class Collection<T extends string | MultiLang = MultiLang> extends OmitTy
 
 	hasChildren?: boolean;
 
-	@Private() collectionLocation?: MultiLang;
-	@Private() dataLocation?: MultiLang;
-	@Private() inMustikka?: boolean;
-	@Private() editor?: string;
-	@Private() creator?: string;
+	@Exclude() collectionLocation?: MultiLang;
+	@Exclude() dataLocation?: MultiLang;
+	@Exclude() inMustikka?: boolean;
+	@Exclude() editor?: string;
+	@Exclude() creator?: string;
 }
 
 export type GbifContact = {

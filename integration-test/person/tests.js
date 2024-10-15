@@ -66,6 +66,21 @@ describe("/person", function() {
 			});
 	});
 
+	it("excludes inheritedName, preferredName, lajiAuthLoginName", function(done) {
+		var query = basePath + "/by-id/" + config.user.missing_fullname + "?access_token=" + config.access_token;
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				if (err) return done(err);
+				res.should.have.status(200);
+				res.body.should.be.a("object");
+				res.body.should.not.have.property("inheritedName");
+				res.body.should.not.have.property("preferredName");
+				res.body.should.not.have.property("lajiAuthLoginName");
+				done();
+			});
+	});
+
 	it("returns 404 when asking with non existing id", function(done) {
 		var query = basePath + "/by-id/MA.FOOBAR?access_token=" + config.access_token;
 		request(this.server)

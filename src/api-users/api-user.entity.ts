@@ -1,10 +1,10 @@
-import { Private } from "src/serializing/private.decorator";
+import { Exclude } from "class-transformer";
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: "APIUSER" })
 export class ApiUserEntity {
 
-	@Private()
+	@Exclude()
 	@PrimaryGeneratedColumn({ name: "ID" })
 	id: number;
 
@@ -20,7 +20,7 @@ export class ApiUserEntity {
 	// TODO After we get rid of the old API, we should make the password column nullable
 	// and remove it's usage. It's currently there only because old api dependency to loopback.
 	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-	@Private()
+	@Exclude()
 	@Column({ name: "PASSWORD" })
 	password: string = "noop";
 }

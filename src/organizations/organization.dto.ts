@@ -1,5 +1,6 @@
 import { Organization as _Organization } from "@luomus/laji-schema";
-import { Expose } from "class-transformer";
+import { ApiProperty } from "@nestjs/swagger";
+import { Expose, Transform } from "class-transformer";
 import { MultiLang } from "src/common.dto";
 
 export type Organization = _Organization & {
@@ -14,8 +15,7 @@ export class OrganizationDto implements Organization {
 	organizationLevel4?: MultiLang;
 	abbreviation?: string;
 
-	@Expose()
-	get fullname(): string {
+	@ApiProperty() @Expose() get fullName(): string {
 		const nameKeys = [
 			"organizationLevel1",
 			"organizationLevel2",

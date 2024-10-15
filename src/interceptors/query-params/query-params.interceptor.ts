@@ -6,7 +6,7 @@ import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
 import { pageResult, applyToResult } from "src/pagination";
 import { Newable } from "src/type-utils";
-import { excludePrivateProps, serializeInto as _serializeInto, SerializeOptions } from "src/serializing/serializing";
+import { serializeInto as _serializeInto, SerializeOptions } from "src/serializing/serializing";
 import { plainToClass } from "class-transformer";
 
 /**
@@ -67,10 +67,9 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 	}
 
 	function serialize(result: any) {
-		return excludePrivateProps(serializeInto
+		return serializeInto
 			? _serializeInto(serializeInto, serializeOptions)(result)
-			: result
-		);
+			: result;
 	}
 
 	return mixin(QueryParamsInterceptor) as any;

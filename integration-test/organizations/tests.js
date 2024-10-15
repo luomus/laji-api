@@ -10,7 +10,7 @@ const itemProperties = [
 	"organizationLevel3",
 	"organizationLevel4",
 	"abbreviation",
-	"fullname"
+	"fullName"
 ];
 
 describe("/checklists", function() {

@@ -1,7 +1,6 @@
 import { instanceToPlain, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
-import { isObject, Newable } from "src/type-utils";
+import { Newable } from "src/type-utils";
 import { whitelistKeys } from "src/utils";
-import { getPrivateDecorator } from "./private.decorator";
 import { applyDecorators } from "@nestjs/common";
 import { IsBoolean } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
@@ -38,22 +37,6 @@ export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) 
 	});
 	whitelist && whitelistKeys(instance as any, whitelist);
 	return instance;
-};
-
-export const excludePrivateProps = (item: any): any => {
-	if (Array.isArray(item) && isObject(item[0]) && item[0].constructor !== Object) {
-		return item.map(excludePrivateProps);
-	} else if (!isObject(item) || item.constructor === Object) {
-		return item;
-	}
-	return Object.keys(item as any).reduce((excludedItem: any, k: string) => {
-		const excludedByDecorator = getPrivateDecorator(item, k);
-		if (excludedByDecorator) {
-			return excludedItem;
-		}
-		excludedItem[k] = excludePrivateProps(item[k]);
-		return excludedItem;
-	}, {});
 };
 
 export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOptions) =>

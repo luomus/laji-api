@@ -23,6 +23,8 @@ describe("/api-user", function() {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.should.have.property("email");
+				res.body.should.not.have.property("password");
+				res.body.should.not.have.property("id");
 				done();
 			});
 	});

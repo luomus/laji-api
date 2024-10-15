@@ -81,33 +81,33 @@ export const getAllFromPagedResource = async <T>(
 };
 
 /**
- * Creates a function that maps the input items of a "result" with the given function.
+ * Creates a function that maps the input items of a "result" with the given predicate.
  * The "result" is either a page, an array or a single object.
  * */
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: T) => Promise<R>)
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: T[]) => Promise<R[]>)
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: PaginatedDto<T>) => Promise<PaginatedDto<R>>)
-function applyToResult<T, R>(fn: (r: T) => MaybePromise<R>)
+function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: T | T[] | PaginatedDto<T>) => Promise<R | R[] | PaginatedDto<R>>)
 {
 	return async (result: T | T[] | PaginatedDto<T>): Promise<R | R[] | PaginatedDto<R>> => {
 		if (isPaginatedDto(result)) {
 			const mappedResults: R[] = [];
 			for (const r of result.results) {
-				mappedResults.push(await fn(r));
+				mappedResults.push(await predicate(r));
 			}
 			return { ...result, results: mappedResults };
 		} else if (Array.isArray(result)) {
 			const mapped: R[] = [];
 			for (const r of result) {
-				mapped.push(await fn(r));
+				mapped.push(await predicate(r));
 			}
 			return mapped;
 		}
-		return fn(result);
+		return predicate(result);
 	};
 }
 
