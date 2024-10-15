@@ -278,7 +278,6 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("percentage");
 			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
-			console.log(res.body.errors);
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
 		});
