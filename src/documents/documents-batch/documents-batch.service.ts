@@ -98,7 +98,7 @@ export class DocumentsBatchService {
 		}
 
 		// TODO REMOVE_AFTER_#36 - we must keep this for now to keep bw compatibility {
-		if (job.phase === BatchJobPhase.completing) {
+		if (job.phase === BatchJobPhase.completing || job.phase === BatchJobPhase.completed) {
 			return exposeJobStatus(job, validationErrorFormat);
 		}
 		// } TODO REPLACE_WITH_AFTER_#36 {
