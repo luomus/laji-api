@@ -5,7 +5,6 @@ import { Get, Param } from "@nestjs/common";
 import { Serialize } from "src/serializing/serialize.decorator";
 import { OrganizationDto } from "./organization.dto";
 import { LangService } from "src/lang/lang.service";
-import { serializeInto } from "src/serializing/serializing";
 
 @ApiTags("Organization")
 @LajiApiController("organizations")
