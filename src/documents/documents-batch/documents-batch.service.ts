@@ -104,10 +104,10 @@ export class DocumentsBatchService {
 		// } TODO REPLACE_WITH_AFTER_#36 {
 		// throw new HttpException("The job is still processing the sending", 422);
 		// }
-
-		if (job.phase === BatchJobPhase.completed) {
-			throw new HttpException("The job is already completed", 422);
-		}
+		// if (job.phase === BatchJobPhase.completed) {
+		// 	throw new HttpException("The job is already completed", 422);
+		// }
+		// }
 
 		if (job.errors.some(e => e !== null)) {
 			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
