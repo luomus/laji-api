@@ -1,4 +1,4 @@
-import { Newable, isObject } from "src/type-utils";
+import { Newable, isObject } from "src/typing.utils";
 import { SerializeOptions } from "src/serializing/serializing";
 import { createSwaggerScanner } from "src/swagger/swagger-scanner";
 import { UseInterceptors, applyDecorators } from "@nestjs/common";

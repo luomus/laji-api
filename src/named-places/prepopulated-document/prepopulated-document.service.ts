@@ -5,7 +5,7 @@ import { Form, Format, PrepopulatedDocumentFieldFn, PrepopulatedDocumentFieldFnA
 import { FormsService } from "src/forms/forms.service";
 import { Document } from "@luomus/laji-schema";
 import { NamedPlace } from "../named-places.dto";
-import { MaybeArray } from "src/type-utils";
+import { MaybeArray } from "src/typing.utils";
 import { LangService, translateMaybeMultiLang } from "src/lang/lang.service";
 import { asArray, parseJSONPointer, updateWithJSONPointer } from "src/utils";
 import { TaxaService } from "src/taxa/taxa.service";

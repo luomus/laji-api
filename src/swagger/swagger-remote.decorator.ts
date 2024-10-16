@@ -1,4 +1,4 @@
-import { isObject } from "src/type-utils";
+import { isObject } from "src/typing.utils";
 import { createSwaggerScanner } from "./swagger-scanner";
 
 export type SwaggerRemoteRefEntry = {

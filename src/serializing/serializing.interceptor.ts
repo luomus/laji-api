@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor, mixin } fro
 import { Observable, switchMap } from "rxjs";
 import { SerializeOptions, serializeInto as _serializeInto } from "./serializing";
 import { applyToResult } from "src/pagination.utils";
-import { Newable } from "src/type-utils";
+import { Newable } from "src/typing.utils";
 import { instanceToPlain } from "class-transformer";
 
 export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>, serializeOptions?: SerializeOptions) {

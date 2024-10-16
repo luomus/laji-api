@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
-import { JSONObjectSerializable, Newable } from "src/type-utils";
+import { JSONObjectSerializable, Newable } from "src/typing.utils";
 import { serializeInto } from "src/serializing/serializing";
 import { CacheOptions, doForDefined } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";

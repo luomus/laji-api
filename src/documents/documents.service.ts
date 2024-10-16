@@ -1,5 +1,5 @@
 import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
-import { Flatten, KeyOf } from "src/type-utils";
+import { Flatten, KeyOf } from "src/typing.utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
 import { DocumentCountItemResponse, Populated, StatisticsResponse } from "./documents.dto";

@@ -1,4 +1,4 @@
-import { JSONObjectSerializable } from "../type-utils";
+import { JSONObjectSerializable } from "../typing.utils";
 
 export class Profile {
 	id: string;

@@ -1,4 +1,4 @@
-import { MaybePromise } from "src/type-utils";
+import { MaybePromise } from "src/typing.utils";
 import { Document } from "@luomus/laji-schema";
 import { HttpException } from "@nestjs/common";
 import { ValidationErrorFormat } from "../documents.dto";

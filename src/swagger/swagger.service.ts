@@ -14,7 +14,7 @@ import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { JSONSerializable } from "src/type-utils";
+import { JSONSerializable } from "src/typing.utils";
 import { STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
 import {

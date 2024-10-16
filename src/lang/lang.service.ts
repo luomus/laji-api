@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasContext, Lang, LANGS, MultiLang } from "src/common.dto";
 import { MetadataService } from "src/metadata/metadata.service";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { isObject } from "src/type-utils";
+import { isObject } from "src/typing.utils";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 

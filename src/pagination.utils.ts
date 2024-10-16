@@ -1,5 +1,5 @@
 import { Lang } from "./common.dto";
-import { MaybePromise, isObject } from "./type-utils";
+import { MaybePromise, isObject } from "./typing.utils";
 import { pipe } from "./utils";
 
 export class PaginatedDto<T> {

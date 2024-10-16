@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { MaybePromise } from "./type-utils";
+import { MaybePromise } from "./typing.utils";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;

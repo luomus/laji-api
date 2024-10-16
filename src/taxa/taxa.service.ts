@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { Taxon } from "./taxa.dto";
 import { TAXA_CLIENT } from "src/provider-tokens";
-import { JSONObjectSerializable, MaybeArray } from "src/type-utils";
+import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
 import { asArray } from "src/utils";
 
 type QueryResponse = {

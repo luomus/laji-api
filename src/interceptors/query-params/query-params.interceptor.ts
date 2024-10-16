@@ -5,7 +5,7 @@ import { isLangQueryDto, isPagedQueryDto, LangQueryDto, PagedDto } from "src/com
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
 import { pageResult, applyToResult } from "src/pagination.utils";
-import { Newable } from "src/type-utils";
+import { Newable } from "src/typing.utils";
 import { serializeInto as _serializeInto, SerializeOptions } from "src/serializing/serializing";
 import { plainToClass } from "class-transformer";
 

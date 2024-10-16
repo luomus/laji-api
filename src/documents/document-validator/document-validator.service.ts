@@ -1,7 +1,7 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { FormSchemaFormat, Format, Hashed, JSONSchema, JSONSchemaArray, JSONSchemaObject }
 	from "src/forms/dto/form.dto";
-import { JSONObjectSerializable, isObject } from "src/type-utils";
+import { JSONObjectSerializable, isObject } from "src/typing.utils";
 import { Populated, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
 import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";

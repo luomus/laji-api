@@ -3,7 +3,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
-	MaybeArray } from "../type-utils";
+	MaybeArray } from "../typing.utils";
 import { CacheOptions, asArray, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
 import { MultiLang } from "src/common.dto";

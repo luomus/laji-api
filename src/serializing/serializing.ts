@@ -1,5 +1,5 @@
 import { instanceToPlain, Exclude, Expose, plainToInstance, Transform } from "class-transformer";
-import { Newable } from "src/type-utils";
+import { Newable } from "src/typing.utils";
 import { whitelistKeys } from "src/utils";
 import { applyDecorators } from "@nestjs/common";
 import { IsBoolean } from "class-validator";

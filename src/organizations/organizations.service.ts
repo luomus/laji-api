@@ -4,7 +4,7 @@ import { Interval } from "@nestjs/schedule";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { RemoteContextual } from "src/type-utils";
+import { RemoteContextual } from "src/typing.utils";
 import { CACHE_1_H, dictionarifyByKey } from "src/utils";
 
 @Injectable()

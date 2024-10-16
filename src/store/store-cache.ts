@@ -1,4 +1,4 @@
-import { KeyOf, MaybeArray } from "src/type-utils";
+import { KeyOf, MaybeArray } from "src/typing.utils";
 import { Query, HigherClause, LiteralMapClause, Operation, Literal, ExistsClause,
 	isExistsClause, exists, isLiteralMapClause, isRangeClause, RangeClause } from "./store-query";
 import { asArray } from "src/utils";

@@ -1,5 +1,5 @@
 import { HttpException } from "@nestjs/common";
-import { Flatten, KeyOf, MaybeArray, isObject, omit } from "src/type-utils";
+import { Flatten, KeyOf, MaybeArray, isObject, omit } from "src/typing.utils";
 
 /** Defaults to "AND" */
 export type Operation = "AND" | "OR" | "NOT" | undefined;

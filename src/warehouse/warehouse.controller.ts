@@ -7,7 +7,7 @@ import {
 	MergesRemoteSwagger, RemoteSwaggerMerge, patchSwaggerWith
 } from "src/decorators/remote-swagger-merge.decorator";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { JSONSerializable } from "src/type-utils";
+import { JSONSerializable } from "src/typing.utils";
 import { WAREHOUSE_CLIENT } from "src/provider-tokens";
 
 @RemoteSwaggerMerge("warehouse")
