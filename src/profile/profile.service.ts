@@ -3,7 +3,7 @@ import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import { NotificationsService } from "src/notifications/notifications.service";
-import { serializeInto } from "src/serializing/serializing";
+import { serializeInto } from "src/serialization/serialization.utils";
 import * as equals from "fast-deep-equal";
 import { uuid } from "src/utils";
 

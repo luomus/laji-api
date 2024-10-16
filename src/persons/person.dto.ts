@@ -1,5 +1,5 @@
 import { HasContext } from "src/common.dto";
-import { IsOptionalBoolean } from  "src/serializing/serializing";
+import { IsOptionalBoolean } from  "src/serialization/serialization.utils";
 import { Person as _Person } from "@luomus/laji-schema/models";
 import { Exclude } from "class-transformer";
 

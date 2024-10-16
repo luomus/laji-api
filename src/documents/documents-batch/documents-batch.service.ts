@@ -13,7 +13,7 @@ import { ValidationException, formatErrorDetails, isValidationException }
 import { firstFromNonEmptyArr, uuid } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { Person } from "src/persons/person.dto";
-import { serializeInto } from "src/serializing/serializing";
+import { serializeInto } from "src/serialization/serialization.utils";
 import { FormsService } from "src/forms/forms.service";
 import { SecondaryDocumentsService } from "../secondary-documents.service";
 import { ApiUserEntity } from "src/api-users/api-user.entity";

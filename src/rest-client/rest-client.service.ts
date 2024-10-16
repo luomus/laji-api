@@ -4,7 +4,7 @@ import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { JSONObjectSerializable, Newable } from "src/typing.utils";
-import { serializeInto } from "src/serializing/serializing";
+import { serializeInto } from "src/serialization/serialization.utils";
 import { CacheOptions, doForDefined } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 

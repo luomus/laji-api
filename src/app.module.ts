@@ -18,7 +18,7 @@ import { PersonsModule } from "./persons/persons.module";
 import { ProfileModule } from "./profile/profile.module";
 import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter";
 import { ProxyToOldApiService } from "./proxy-to-old-api/proxy-to-old-api.service";
-import { SerializingInterceptor } from "./serializing/serializing.interceptor";
+import { SerializingInterceptor } from "./serialization/serializing.interceptor";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";

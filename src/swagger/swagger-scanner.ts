@@ -1,7 +1,7 @@
 import { RequestMethod } from "@nestjs/common";
 import { METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 import { SwaggerRemoteRefEntry } from "./swagger-remote.decorator";
-import { SerializeEntry } from "src/serializing/serialize.decorator";
+import { SerializeEntry } from "src/serialization/serialize.decorator";
 
 export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & { controller: string };
 

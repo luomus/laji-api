@@ -6,7 +6,7 @@ import { GetApiUserDto, ApiUserCreateDto } from "./dto/api-user.dto";
 import { Request } from "express";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { ApiUserEntity } from "./api-user.entity";
-import { serializeInto } from "src/serializing/serializing";
+import { serializeInto } from "src/serialization/serialization.utils";
 import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 
 @ApiTags("API user")

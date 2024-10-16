@@ -5,7 +5,7 @@ import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { Person } from "src/persons/person.dto";
-import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
+import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import type { Geometry } from "geojson";
 
 export class NamedPlace extends OmitType(NamedPlaceClass, ["geometry", "prepopulatedDocument", "acceptedDocument"]) {

@@ -5,7 +5,7 @@ import { ProfileService } from "src/profile/profile.service";
 import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { Serialize } from "src/serializing/serialize.decorator";
+import { Serialize } from "src/serialization/serialize.decorator";
 
 @LajiApiController("person")
 @ApiTags("Person")

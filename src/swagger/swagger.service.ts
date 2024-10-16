@@ -7,7 +7,7 @@ import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
-import { SerializeEntry, entryHasWhiteList, isSerializeEntry } from "src/serializing/serialize.decorator";
+import { SerializeEntry, entryHasWhiteList, isSerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object-factory";
 import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-properties-accessor";
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";

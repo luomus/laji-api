@@ -1,6 +1,6 @@
 import { IntersectionType } from "@nestjs/swagger";
 import { PagedDto, LangQueryDto } from "../common.dto";
-import { CommaSeparatedStrings } from "src/serializing/serializing";
+import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
 import { ChecklistVersion as _ChecklistVersion } from "@luomus/laji-schema";
 
 export class GetChecklistVersionsPageDto extends IntersectionType(LangQueryDto, PagedDto) {

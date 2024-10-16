@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { INFORMATION_CLIENT } from "src/provider-tokens";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { Information, InformationLang, RemoteInformation } from "./information.dto";
-import { serializeInto } from "src/serializing/serializing";
+import { serializeInto } from "src/serialization/serialization.utils";
 
 @Injectable()
 export class InformationService {

@@ -3,7 +3,7 @@ import { Observable, switchMap } from "rxjs";
 import { Request } from "express";
 import { FormsService } from "src/forms/forms.service";
 import { NamedPlace, NamedPlaceUnitsFiltered } from "./named-places.dto";
-import { serializeInto } from "src/serializing/serializing";
+import { serializeInto } from "src/serialization/serialization.utils";
 import { applyToResult } from "src/pagination.utils";
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiSecurity } from "@nestjs/swagger";
-import { SerializeScanner } from "src/serializing/serialize.decorator";
+import { SerializeScanner } from "src/serialization/serialize.decorator";
 import { SwaggerRemoteScanner } from "src/swagger/swagger-remote.decorator";
 
 /**

@@ -2,7 +2,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { ApiTags } from "@nestjs/swagger";
 import { OrganizationsService } from "./organizations.service";
 import { Get, Param } from "@nestjs/common";
-import { Serialize } from "src/serializing/serialize.decorator";
+import { Serialize } from "src/serialization/serialize.decorator";
 import { OrganizationDto } from "./organization.dto";
 import { LangService } from "src/lang/lang.service";
 

@@ -3,7 +3,7 @@ import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PartialType, 
 import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
 import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
-import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serializing/serializing";
+import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { WithNonNullableKeys } from "src/typing.utils";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 
