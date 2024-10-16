@@ -9,6 +9,7 @@ import { ContextProperties, MetadataService, Property } from "src/metadata/metad
 import { MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
+import { getAllFromPagedResource } from "src/pagination.utils";
 
 const BASE_URL = "http://tun.fi/";
 
@@ -20,6 +21,7 @@ const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 
 type MultiLangResource = { "@language": string; "@value": string };
 
+/** Structure of what's accepted in the query from outside the service */
 type TriplestoreSearchQuery = {
 	type?: string;
 	predicate?: string;
@@ -31,9 +33,16 @@ type TriplestoreSearchQuery = {
 	subject?: string;
 }
 
+const FORMAT = "rdf/xml";
+export const LIMIT = 9999999;
+
+type InternalTriplestoreSearchQuery = TriplestoreSearchQuery & {
+	limit: number;
+	format: typeof FORMAT;
+}
+
 type TriplestoreQueryOptions = CacheOptions;
 
-const baseQuery = { format: "rdf/xml", limit: 9999999 };
 
 @Injectable()
 export class TriplestoreService {
@@ -60,20 +69,20 @@ export class TriplestoreService {
 			}
 		}
 		return this.rdfToJsonLd<T>(
-			this.triplestoreClient.get(resource, { params: baseQuery }),
+			this.triplestoreClient.get(resource, { params: { format: FORMAT } }),
 			getPathAndQuery(resource),
 			options
 		);
 	}
 
 	/**
-	 * Find multple resources from triplestore.
+	 * Find multiple resources from triplestore.
 	 * @param query Query options
 	 * @param options Cache options
 	 */
 	async find<T extends MaybeContextual>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
 		: Promise<RemoteContextual<T>[]> {
-		query = { ...baseQuery, ...query };
+		const tripleQuery: InternalTriplestoreSearchQuery = { format: FORMAT, limit: LIMIT, ...query };
 
 		const { cache } = options || {};
 		if (cache) {
@@ -83,16 +92,47 @@ export class TriplestoreService {
 			}
 		}
 
-		let result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
-			this.triplestoreClient.get("search", { params: query }),
-			getPathAndQuery("search", query),
-			options
-		);
-		if (!Array.isArray(result)) { // Singular results are as non-arrays.
-			result = [result];
-		}
-		return result;
+
+		return getAllFromPagedResource(
+			(page: number) => {
+				return promisePipe(asArray, this.createLazyPaginationAdapter(query))(
+					this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
+						this.triplestoreClient.get("search", { params: { ...tripleQuery, offset: LIMIT * page } }),
+						getPathAndQuery("search", query),
+						options)
+				);
+			});
 	}
+
+	/**
+	 * First, it adapts the results into our internal model of a page so it can be used with `getAllFromPagedResource`.
+	 *
+	 * Secondly, the whole result count is fetched lazily: we investigate if the first page's size is the same as our
+	 * page size (const `LIMIT`). If it is, we fetch the count of the whole query. This is necessary to do because the
+	 * triplestore results don't have the result count in the payload. So, for optimization we fetch the count only if
+	 * it's possibly exceeded.
+	 */
+	createLazyPaginationAdapter(query: TriplestoreSearchQuery) {
+		let callCount = 0;
+		return async (results: RemoteContextual<never>[]) => {
+			let totalCount = results.length;
+			if (callCount++) {
+				const firstPageCount = results.length;
+				if (firstPageCount === LIMIT) {
+					const { count } = await this.triplestoreClient.get<{ count: number }>(
+						"search/count",
+						{ params: { ...query, format: "json" } }
+					);
+					totalCount = count;
+				}
+			}
+			return {
+				results,
+				lastPage: Math.floor(totalCount / LIMIT)
+			};
+		};
+	};
+
 
 	private async rdfToJsonLd<T>(
 		rdf: MaybePromise<JSONSerializable>,

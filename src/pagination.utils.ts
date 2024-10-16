@@ -69,12 +69,13 @@ const addContextToPaged = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "
 };
 
 export const getAllFromPagedResource = async <T>(
-	getPage: (page: number) => Promise<PaginatedDto<T>>
+	getPage: (page: number) => Promise<Pick<PaginatedDto<T>, "results" | "lastPage">>
 ): Promise<T[]> => {
-	let res = await getPage(1);
+	let page = 1;
+	let res = await getPage(page++);
 	let items = res.results;
-	while (res.currentPage < res.lastPage) {
-		res = await getPage(res.currentPage + 1);
+	while (page <= res.lastPage) {
+		res = await getPage(page++);
 		items = items.concat(res.results);
 	}
 	return items;
