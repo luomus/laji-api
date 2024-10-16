@@ -33,7 +33,7 @@ type TriplestoreSearchQuery = {
 
 type TriplestoreQueryOptions = CacheOptions;
 
-const baseQuery = { format: "rdf/xml", limit: 9999999 };
+const baseQuery = { format: "rdf/xml", limit: Number.MAX_SAFE_INTEGER };
 
 @Injectable()
 export class TriplestoreService {
