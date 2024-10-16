@@ -113,6 +113,10 @@ import { LoggerModule } from "./logger/logger.module";
 		},
 		{
 			provide: APP_INTERCEPTOR,
+			useClass: PersonTokenInterceptor
+		},
+		{
+			provide: APP_INTERCEPTOR,
 			useClass: LoggerInterceptor
 		},
 		{
@@ -129,10 +133,6 @@ import { LoggerModule } from "./logger/logger.module";
 			useClass: ProxyToOldApiFilter
 		},
 		LajiAuthClientService,
-		{
-			provide: APP_INTERCEPTOR,
-			useClass: PersonTokenInterceptor
-		},
 	],
 })
 export class AppModule {}
