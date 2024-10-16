@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, mixin } from "@nestjs/common";
 import { Observable, switchMap } from "rxjs";
 import { SerializeOptions, serializeInto as _serializeInto } from "./serializing";
-import { applyToResult } from "src/pagination";
+import { applyToResult } from "src/pagination.utils";
 import { Newable } from "src/type-utils";
 import { instanceToPlain } from "class-transformer";
 

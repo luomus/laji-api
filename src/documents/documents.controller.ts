@@ -5,7 +5,7 @@ import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCoun
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
 	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto } from "./documents.dto";
-import { PaginatedDto } from "src/pagination";
+import { PaginatedDto } from "src/pagination.utils";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";

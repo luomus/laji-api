@@ -4,7 +4,7 @@ import { Request } from "express";
 import { FormsService } from "src/forms/forms.service";
 import { NamedPlace, NamedPlaceUnitsFiltered } from "./named-places.dto";
 import { serializeInto } from "src/serializing/serializing";
-import { applyToResult } from "src/pagination";
+import { applyToResult } from "src/pagination.utils";
 
 @Injectable()
 export class FilterUnitsInterceptor implements NestInterceptor {

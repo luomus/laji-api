@@ -6,7 +6,7 @@ import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serializing/serializing";
-import { PaginatedDto } from "src/pagination";
+import { PaginatedDto } from "src/pagination.utils";
 import { QueryWithPersonTokenDto } from "src/common.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
