@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { MaybePromise } from "./typing.utils";
+import { MaybePromise, isObject } from "./typing.utils";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
@@ -11,6 +11,11 @@ export type CacheOptions = {
 	/** Milliseconds for the cache TTL, true for default TTL. */
 	cache?: number | true;
 }
+
+export const getCacheTTL = (cache: CacheOptions["cache"] | { ttl?: number }): undefined | number =>
+	isObject(cache)
+		? cache.ttl ?? undefined
+		: undefined;
 
 type PromiseReducer<T, R>  = {
 	(value: T): R | Promise<R>;

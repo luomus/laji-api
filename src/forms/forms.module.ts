@@ -19,7 +19,7 @@ const FormClient: FactoryProvider<RestClientService<Form>> = {
 			name: "form",
 			host: config.get<string>("FORM_HOST"),
 			auth: config.get<string>("FORM_AUTH"),
-			cache: CACHE_1_H
+			cache: { singleResourceEndpoint: true, ttl: CACHE_1_H }
 		}, cache),
 	inject: [HttpService, ConfigService, RedisCacheService],
 };

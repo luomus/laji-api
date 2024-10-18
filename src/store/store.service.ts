@@ -2,7 +2,7 @@ import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "sr
 import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination.utils";
 import { JSONObjectSerializable, KeyOf, MaybeArray, omitForKeys } from "src/typing.utils";
 import { parseQuery, Query } from "./store-query";
-import { asArray, doForDefined } from "src/utils";
+import { asArray, doForDefined, getCacheTTL } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";
 import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
 } from "./store-cache";
@@ -72,7 +72,7 @@ export class StoreService<T extends { id?: string }> {
 			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
 		));
 		if (this.config.cache) {
-			await this.cache.set(cacheKey!, result);
+			await this.cache.set(cacheKey!, result, getCacheTTL(this.config.cache));
 		}
 		return result;
 	}
@@ -114,7 +114,7 @@ export class StoreService<T extends { id?: string }> {
 			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
 		);
 		if (this.config.cache) {
-			await this.cache.set(cacheKey!, result);
+			await this.cache.set(cacheKey!, result, getCacheTTL(this.config.cache));
 		}
 		return result;
 	}
@@ -131,7 +131,7 @@ export class StoreService<T extends { id?: string }> {
 			undefined,
 			this.restClientOptions(this.config));
 		if (cache) {
-			await this.cache.set(this.withCachePrefix(id), result);
+			await this.cache.set(this.withCachePrefix(id), result, getCacheTTL(this.config.cache));
 		}
 		return result;
 	}

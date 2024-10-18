@@ -15,11 +15,11 @@ export class FormsService {
 	) {}
 
 	async getListing(lang = Lang.en) {
-		return (await this.formClient.get<{forms: FormListing[]}>("", { params: { lang } }, )).forms;
+		return (await this.formClient.get<{forms: FormListing[]}>(undefined, { params: { lang } }, )).forms;
 	}
 
 	create(form: Form, personToken: string) {
-		return this.formClient.post("", form, { params: { personToken } });
+		return this.formClient.post(undefined, form, { params: { personToken } });
 	}
 
 	get(id: string): Promise<Form>

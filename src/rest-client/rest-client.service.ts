@@ -3,10 +3,37 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
-import { JSONObjectSerializable, Newable } from "src/typing.utils";
+import { JSONObjectSerializable, Newable, isObject } from "src/typing.utils";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CacheOptions, doForDefined } from "src/utils";
+import { CacheOptions, doForDefined, getCacheTTL } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
+
+type CacheOptionsObjectConfig = {
+	/**
+	 * If it's single endpoint, this option enables smarter caching strategy. If it's a singleResourceEndpoint, it must be
+	 * always used like this:
+	 *
+	 * GET is done to "/" and "/:id"
+	 * POST is done to "/" ("/:id" doesn't break anything but doesn't make sense)
+	 * PUT is done to "/:id"
+	 * DELETE is done to "/:id"
+	 */
+	singleResourceEndpoint?: boolean
+	/** Milliseconds for the cache TTL */
+	ttl?: number;
+}
+
+const isCacheOptionsObject = (cache: CacheOptions["cache"] | CacheOptionsObjectConfig)
+	: cache is CacheOptionsObjectConfig => isObject(cache);
+
+export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & {
+	/**
+	 * Perform a transformation for the resource fetched with a GET request. Useful for making transformations before
+	 * caching.
+	 */
+	transformer?: (result: T) => T;
+	cache?: CacheOptions["cache"] | CacheOptionsObjectConfig;
+};
 
 export type RestClientConfig<T> = RestClientOptions<T> & {
 	/** Used for logging purposes */
@@ -17,14 +44,6 @@ export type RestClientConfig<T> = RestClientOptions<T> & {
 	params?: JSONObjectSerializable;
 };
 
-export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & CacheOptions & {
-	/**
-	 * Perform a transformation for the resource fetched with a GET request. Useful for making transformations before
-	 * caching.
-	 */
-	transformer?: (result: T) => T;
-};
-
 export type HasMaybeSerializeInto<T> = {
 	/** A class that that the result will be serialized into. */
 	serializeInto?: Newable<T>;
@@ -32,7 +51,7 @@ export type HasMaybeSerializeInto<T> = {
 
 const joinOverflowWithRightSide = (str: string, str2: string) =>
 	str.length + str2.length > 24
-		? str.substr(0, 20 - str2.length) + ".../" + str2
+		? str.slice(0, 20 - str2.length) + ".../" + str2
 		: str + "/" + str2;
 
 /**
@@ -143,9 +162,7 @@ export class RestClientService<T = unknown> {
 		if (cacheConf) {
 			/* eslint-disable @typescript-eslint/no-non-null-assertion */
 			cachedByHostAndPath![url] = result;
-			await this.cache!.set(this.getHostAndPath(path),
-				cachedByHostAndPath!,
-				typeof cacheConf === "number" ? cacheConf : undefined);
+			await this.cache!.set(this.getHostAndPath(path), cachedByHostAndPath!, getCacheTTL(cacheConf));
 			/* eslint-enable @typescript-eslint/no-non-null-assertion */
 		}
 		return result;
@@ -164,7 +181,7 @@ export class RestClientService<T = unknown> {
 			this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		), options);
-		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
+		await this.flushCache(path, options);
 		return result;
 	}
 
@@ -178,7 +195,7 @@ export class RestClientService<T = unknown> {
 			this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		), options);
-		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
+		await this.flushCache(path, options);
 		return result;
 	}
 
@@ -187,7 +204,18 @@ export class RestClientService<T = unknown> {
 			this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
 				.pipe(map(r => r.data))
 		);
-		this.getCacheConf(options) && await this.cache!.del(this.getHostAndPath(path));
+		await this.flushCache(path, options);
 		return result;
+	}
+
+	async flushCache(path?: string, options?: RestClientOptions<unknown>) {
+		const cache = this.getCacheConf(options);
+		if (!cache) {
+			return;
+		}
+		if (isCacheOptionsObject(cache) && cache.singleResourceEndpoint) {
+			await this.cache!.del(this.getHostAndPath());
+		}
+		await this.cache!.del(this.getHostAndPath(path));
 	}
 }
