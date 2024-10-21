@@ -50,7 +50,7 @@ export class FormPermissionsService {
 	async getByCollectionIDAndPerson(collectionID: string, person?: Person): Promise<FormPermissionDto> {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
 		if (!permissions) {
-			throw new HttpException("Form does not have restrict feature enabled", 404);
+			throw new HttpException("Form does not have MHL.restrictAccess or MHL.hasAdmins enabled", 404);
 		}
 		return permissions;
 	}
@@ -100,7 +100,7 @@ export class FormPermissionsService {
 	async requestAccess(collectionID: string, person: Person) {
 		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
 
-		if (hasEditRightsOf(permissions, person)) {
+		if (permissions.editors.includes(person.id) || permissions.admins.includes(person.id)) {
 			throw new HttpException("You already have access to this form", 406);
 		}
 
@@ -200,11 +200,7 @@ export class FormPermissionsService {
 
 	async hasEditRightsOf(collectionID: string, person: Person) {
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
-		const form = await this.findFormWithPermissionFeature(collectionID);
-		if (!form?.options.restrictAccess) {
-			return true;
-		}
-		return hasEditRightsOf(permissions, person);
+		return !permissions ||  hasEditRightsOf(permissions, person);
 	}
 
 	private async sendFormPermissionRequested(person: Person, collectionID: string) {
@@ -269,10 +265,8 @@ const isAdminOf = (permissions: PermissionLists, person: Person) =>
 	person.role?.some(r => r === Role.Admin)
 		|| permissions.admins?.includes(person.id);
 
-const hasEditRightsOf = (permissions: FormPermissionDto | undefined, person: Person) =>
-	!permissions
-		|| isAdminOf(permissions, person)
-		|| permissions.editors.includes(person.id);
+const hasEditRightsOf = (permissions: FormPermissionDto, person: Person) =>
+	isAdminOf(permissions, person) || permissions.editors.includes(person.id);
 
 const hasRequested = (permissions: FormPermissionDto, person: Person) =>
 	permissions.permissionRequests.includes(person.id);
