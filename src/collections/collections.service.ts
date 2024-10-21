@@ -156,7 +156,7 @@ export class CollectionsService {
 				"shareToFEO", collection, idToCollection
 			);
 
-			 // Convert stringy booleans into real boolean 
+			 // Convert stringy booleans into real boolean
 			if (collection.shareToFEO) collection.shareToFEO = Boolean(collection.shareToFEO);
 			if (collection.shareToGbif) collection.shareToGbif = Boolean(collection.shareToGbif);
 

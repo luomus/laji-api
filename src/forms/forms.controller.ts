@@ -14,6 +14,7 @@ import { PersonToken } from "src/decorators/person-token.decorator";
 @ApiTags("Form")
 @LajiApiController("forms")
 export class FormsController {
+
 	constructor(
 		private readonly formsService: FormsService,
 		private readonly formPermissionsService: FormPermissionsService
