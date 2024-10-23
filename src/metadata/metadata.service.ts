@@ -47,7 +47,7 @@ export class MetadataService {
 	}
 
 	/** Get a property map for a context. */
-	async getPropertiesForContext(context: string) {
+	async getPropertiesForJsonLdContext(context: string) {
 		const properties = (await this.getContexts())[MetadataService.parseContext(context)];
 		if (!properties) {
 			throw new Error(`Unknown context "${context}"`);

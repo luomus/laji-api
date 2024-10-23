@@ -12,12 +12,12 @@ export class LangService {
 	constructor(private metadataService: MetadataService) {}
 
 	async contextualTranslateWith<T, R = T>(
-		context: string,
+		jsonLdContext: string,
 		lang: Lang = Lang.en,
 		langFallback = true,
 		extraMultiLangKeys: (keyof T)[] = []
 	) {
-		const multiLangKeys = [...extraMultiLangKeys, ...(await this.getMultiLangKeys(context))];
+		const multiLangKeys = [...extraMultiLangKeys, ...(await this.getMultiLangKeys(jsonLdContext))];
 
 		return (item: T): R => {
 			const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
@@ -39,8 +39,8 @@ export class LangService {
 	}
 
 	@IntelligentMemoize()
-	async getMultiLangKeys(context: string): Promise<string[]> {
-		const contextProperties = await this.metadataService.getPropertiesForContext(context);
+	async getMultiLangKeys(jsonLdContext: string): Promise<string[]> {
+		const contextProperties = await this.metadataService.getPropertiesForJsonLdContext(jsonLdContext);
 		const keys = Object.keys(contextProperties).reduce((keys, propertyKey) => {
 			const property = contextProperties[propertyKey]!;
 			if (property.multiLanguage) {
