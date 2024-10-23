@@ -22,7 +22,7 @@ export class CollectionsController {
 		createQueryParamsInterceptor(GetPageDto, Collection)
 	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
-	async getAll(@Query() { idIn }: GetPageDto) {
+	async getPage(@Query() { idIn }: GetPageDto) {
 		return this.collectionsService.findCollections(idIn);
 	}
 
