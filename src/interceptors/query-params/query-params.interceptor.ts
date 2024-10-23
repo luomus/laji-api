@@ -43,23 +43,23 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 
 			const query = plainToClass(QueryDto, rawQuery);
 			const { lang, langFallback, page, pageSize } = query;
-			let context: string | undefined;
+			let jsonLdContext: string | undefined;
 			if (isLangQueryDto(query)) {
 				if (Array.isArray(result)) {
-					context = result[0]?.["@context"];
+					jsonLdContext = result[0]?.["@context"];
 				} else {
-					context = result["@context"];
+					jsonLdContext = result["@context"];
 				}
 			}
 			if (isPagedQueryDto(query)) {
 				result = pageResult(result, page, pageSize, lang);
 			}
 			if (isLangQueryDto(query)) {
-				if (!context) {
+				if (!jsonLdContext) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
 				return applyToResult(
-					await this.langService.contextualTranslateWith(context, lang, langFallback)
+					await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback)
 				)(result);
 			}
 			return result;
