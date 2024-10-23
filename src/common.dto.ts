@@ -59,6 +59,6 @@ export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, 
 	return multiLangItem[lang];
 };
 
-export class HasContext {
+export class HasJsonLdContext {
 	"@context": string;
 }

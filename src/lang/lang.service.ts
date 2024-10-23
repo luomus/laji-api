@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CompleteMultiLang, HasContext, Lang, LANGS, MultiLang } from "src/common.dto";
+import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang } from "src/common.dto";
 import { MetadataService } from "src/metadata/metadata.service";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { isObject } from "src/typing.utils";
@@ -26,7 +26,8 @@ export class LangService {
 		};
 	}
 
-	async translate<T extends HasContext, R extends HasContext = T> (item: T, lang?: Lang, langFallback?: boolean) {
+	async translate<T extends HasJsonLdContext, R extends HasJsonLdContext = T>
+	(item: T, lang?: Lang, langFallback?: boolean) {
 		return (
 			await this.contextualTranslateWith<T, R>(item["@context"], lang, langFallback)
 		)(item);

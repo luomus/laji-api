@@ -1,4 +1,4 @@
-import { PagedDto, MultiLang, HasContext, LangQueryDto } from "../common.dto";
+import { PagedDto, MultiLang, HasJsonLdContext, LangQueryDto } from "../common.dto";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
@@ -8,7 +8,7 @@ export enum MetadataStatus {
 	Hidden = "MY.metadataStatusHidden"
 }
 
-export class TriplestoreCollection extends HasContext {
+export class TriplestoreCollection extends HasJsonLdContext {
 	id: string;
 	metadataStatus?: MetadataStatus;
 	isPartOf?: string;
