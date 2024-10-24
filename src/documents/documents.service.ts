@@ -234,8 +234,8 @@ export class DocumentsService {
 		if (document.creator === person.id) {
 			return;
 		}
-		if (!operationAllowedForEditor && !document.editors?.includes(person.id)) {
-			throw new HttpException("You are not owner of this document", 403);
+		if (operationAllowedForEditor && document.editors?.includes(person.id)) {
+			return;
 		}
 		throw new HttpException("You are not owner or editor of this document", 403);
 	}
