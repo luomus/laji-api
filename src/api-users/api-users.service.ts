@@ -57,7 +57,7 @@ export class ApiUsersService {
 		} catch (e) {
 			await queryRunner.rollbackTransaction();
 			await queryRunner.release();
-			this.logger.error(e);
+			this.logger.error(e, e.stack);
 			throw e;
 		}
 
@@ -65,7 +65,7 @@ export class ApiUsersService {
 		try {
 			await queryRunner.commitTransaction();
 		} catch (e) {
-			this.logger.fatal(e, { emailAddress: apiUser.email });
+			this.logger.fatal(e, e.stack, { emailAddress: apiUser.email });
 		} finally {
 			await queryRunner.release();
 		}
