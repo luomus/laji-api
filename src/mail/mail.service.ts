@@ -14,14 +14,15 @@ const ERROR_EMAIL = "grp-a97800-errors@helsinki.fi";
 export class MailService {
 	constructor(
 		private mailerService: MailerService,
-		private configService: ConfigService) {}
+		private configService: ConfigService
+	) {}
 
 	private send(options: ISendMailOptions) {
-		const staging = this.configService.get("STAGING");
-		const subject = staging ? `[STAGING] ${options.subject}` : options.subject;
 		if (this.configService.get("NO_MAIL") === "true") {
 			return;
 		}
+		const staging = this.configService.get("STAGING") === "true";
+		const subject = staging ? `[STAGING] ${options.subject}` : options.subject;
 		const context = {
 			BASE: this.configService.get("MAIL_BASE"),
 			API_BASE: this.configService.get("MAIL_API_BASE"),
