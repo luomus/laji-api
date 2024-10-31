@@ -220,7 +220,7 @@ export class FormPermissionsService {
 		for (const adminID of admins) {
 			const admin = await this.personsService.getByPersonId(adminID);
 			void this.mailService.sendFormPermissionRequestReceived(
-				admin, { formTitle, person: admin, formID: form.id }
+				admin, { formTitle, person, formID: form.id }
 			);
 		}
 	}
