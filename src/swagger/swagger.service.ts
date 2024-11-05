@@ -273,7 +273,7 @@ const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
 export const isPagedOperation = (operation: OperationObject) =>
 	(operation.parameters || []).some(param => (param as ParameterObject).name === "page") || false;
 
-const asPagedResponse = (schema: SchemaItem, itemsAreAlreadyAnArray = false): SchemaObject => ({
+const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	type: "object",
 	properties: {
 		page: { type: "number" },
@@ -282,7 +282,7 @@ const asPagedResponse = (schema: SchemaItem, itemsAreAlreadyAnArray = false): Sc
 		lastPage: { type: "number" },
 		prevPage: { type: "number" },
 		nextPage: { type: "number" },
-		results: { type: "array", items: itemsAreAlreadyAnArray ? (schema as any).items : schema },
+		results: { type: "array", items: schema },
 	},
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
@@ -295,8 +295,8 @@ const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
 export const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
 
-export const paginateAsNeededWith = (operation: OperationObject, itemsAreAlreadyAnArray = false) =>
+export const paginateAsNeededWith = (operation: OperationObject) =>
 	(schema?: SchemaObject | ReferenceObject) =>
 		(schema && isPagedOperation(operation) && !isPagedSchema(schema))
-			? asPagedResponse(schema, itemsAreAlreadyAnArray)
+			? asPagedResponse(schema)
 			: schema;
