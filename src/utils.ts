@@ -15,7 +15,9 @@ export type CacheOptions = {
 export const getCacheTTL = (cache: CacheOptions["cache"] | { ttl?: number }): undefined | number =>
 	isObject(cache)
 		? cache.ttl ?? undefined
-		: undefined;
+		: typeof cache === "number"
+			? cache
+			: undefined;
 
 type PromiseReducer<T, R>  = {
 	(value: T): R | Promise<R>;

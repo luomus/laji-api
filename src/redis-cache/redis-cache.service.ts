@@ -22,7 +22,7 @@ export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 
 	async get<T>(key: string) {
 		// 'as string' because JSON.parse(null) is actually valid even though TS says otherwise.
-		return JSON.parse(await this.client.get(key) as string) as Promise<T>;
+		return JSON.parse(await this.client.get(key) as string) as Promise<T | null>;
 	}
 
 	set(key: string, value: unknown, ttl?: number) {
