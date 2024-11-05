@@ -31,7 +31,7 @@ export class TriplestoreCollection extends HasContext {
 
 	downloadRequestHandler?: string[];
 	shareToFEO?: boolean;
-	shareToGbif?: boolean;
+	shareToGbif?: string;
 	collectionType:
 		| "MY.collectionTypeSpecimens"
 		| "MY.collectionTypeLiving"
