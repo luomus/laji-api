@@ -63,9 +63,11 @@ export class ProfileService {
 		return this.store.update(nextProfile);
 	}
 
-	async addFriendRequest(personToken: string, profileKey: string) {
+	async addFriendRequest(personToken: string, friendPersonIDOrProfileKey: string) {
 		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
-		const profile = await this.findByProfileKey(profileKey);
+		const profile = friendPersonIDOrProfileKey.startsWith("MA.")
+			? await this.findByPersonId(friendPersonIDOrProfileKey)
+			: await this.findByProfileKey(friendPersonIDOrProfileKey);
 		if (!profile) {
 			throw new HttpException("Profile not found", 404);
 		}
