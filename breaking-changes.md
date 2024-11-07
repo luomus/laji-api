@@ -130,7 +130,7 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
  ## TODO
 
- * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`.... This logic is inherited from the old API.
+ * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`... This logic is inherited from the old API.
 
 ## Store query interpreting
 
