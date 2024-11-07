@@ -112,8 +112,7 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
  ## Documents batch job
 
- * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd
-   party clients
+ * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd party clients
 
 ## Information
 
