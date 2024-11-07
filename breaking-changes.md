@@ -101,12 +101,12 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
  ## Documents validation
 
- * POST `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used.
- * POST `/documents/validate/` valid response has no body. In the old API it was `{}`.
- * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
- * PUT `/documents/` editing a locked document throws 403, not 422.
- * Added `jsonPointer` validationErrorFormat.
- * Added `dotNotation` validationErrorFormat.
+ * POST `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used
+ * POST `/documents/validate/` valid response has no body. In the old API it was `{}`
+ * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form
+ * PUT `/documents/` editing a locked document throws 403, not 422
+ * Added `jsonPointer` validationErrorFormat
+ * Added `dotNotation` validationErrorFormat
  * POST `/documents/validate` document with MZ.publicityRestrictionsPrivate skips form validations
  * Document validation error message doesn't include `"Name": "Error"`
 
@@ -116,13 +116,13 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
 ## Information
 
-* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted".
-* 404 is thrown for not found information. It used to return an object with some nulls & empty strings.
+* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted"
+* 404 is thrown for not found information. It used to return an object with some nulls & empty strings
 
 ## Areas
 
 * Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
-* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept.
+* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept
 
 ## Organizations
 
