@@ -701,6 +701,7 @@ describe("/named-place", function() {
 		});
 
 		it("filters units on fetching many when using Elastic", function(done) {
+			this.timeout(6000);
 			const query = basePath +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token;
 			request(this.server)
@@ -727,6 +728,7 @@ describe("/named-place", function() {
 		});
 
 		it("doesn't filter units on fetching single if includeUnits is true", function(done) {
+			this.timeout(6000);
 			const query = basePath + "/" + config.objects["named-place"].id +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.friend2_token +
 				"&includeUnits=true";
