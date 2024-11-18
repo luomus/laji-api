@@ -122,7 +122,9 @@ function logOutgoingRequests(httpService: HttpService) {
 		}
 		const customizedConfig = config as LajiApiAxiosRequestConfig;
 		customizedConfig.meta.lajiApiTimeStamp = Date.now();
-		logger.verbose(joinOnlyStrings("START", config.method?.toUpperCase(), config.url));
+		console.log(new URLSearchParams(config?.params).toString());
+		const query = new URLSearchParams(config?.params).toString();
+		logger.verbose(joinOnlyStrings("START", config.method?.toUpperCase(), config.url + (query ? `?${query}` : "")));
 		return config;
 	});
 
