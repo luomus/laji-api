@@ -1,8 +1,8 @@
-// import { Test, TestingModule } from "@nestjs/testing";
 import { AxiosRequestConfig } from "axios";
 import { StoreConfig, StoreService } from "./store.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { getQueryVocabulary } from "./store-query";
+import { uuid } from "src/utils";
 
 describe("StoreService", () => {
 	const mockHttp = {
@@ -57,7 +57,7 @@ describe("StoreService", () => {
 			throw new Error("Mock implementation missing");
 		});
 		jest.spyOn(mockRestClient, "post").mockImplementation(
-			(path, item: object) => Promise.resolve({ ...item, id: (Math.random() + 1).toString(36).substring(3) })
+			(path, item: object) => Promise.resolve({ ...item, id: uuid(3) })
 		);
 		jest.spyOn(mockRestClient, "put").mockImplementation((path: string, item: object) => Promise.resolve(item));
 		jest.spyOn(mockRestClient, "delete").mockImplementation(() => Promise.resolve({}));
@@ -225,6 +225,17 @@ describe("StoreService", () => {
 					expect(await store.getPage({ primary: "bar", primary2: "barbar" })).toBe(other);
 					expect(await store.getPage({ primary: "bar", primary2: "barbarbar" })).toBe(anotherOne);
 				});
+
+				// eslint-disable-next-line max-len
+				it("create() into the query space with only one shared primary value busts cache the entry with the same primary values", async () => {
+					const result = await store.getPage({ primary: "bar", primary2: "bar" });
+					const other = await store.getPage({ primary: "bar", primary2: "barbar" });
+					const anotherOne = await store.getPage({ primary: "bar", primary2: "barbarbar" });
+					await store.create({ primary: "bar" });
+					expect(await store.getPage({ primary: "bar", primary2: "bar" })).toBe(result);
+					expect(await store.getPage({ primary: "bar", primary2: "barbar" })).toBe(other);
+					expect(await store.getPage({ primary: "bar", primary2: "barbarbar" })).toBe(anotherOne);
+				});
 			});
 
 			describe("multiple primary keys multiple non-primary keys", () => {
@@ -233,6 +244,7 @@ describe("StoreService", () => {
 					id: string, primary: string, primary2: string, secondary: string, secondary2: string
 				};
 				let store: StoreService<PrimariesAndSecondaries>;
+
 				beforeEach(async () => {
 					store = mockSetup<PrimariesAndSecondaries>({
 						resource: "mockResource",
@@ -355,6 +367,45 @@ describe("StoreService", () => {
 				});
 			});
 
+			describe("or query", () => {
+
+				type TwoStringOneBool = {
+					id: string, key: string, key2: string, bool: boolean
+				};
+				let store: StoreService<TwoStringOneBool>;
+				const { or, not, exists } = getQueryVocabulary<TwoStringOneBool>();
+
+				beforeEach(async () => {
+					store = mockSetup<TwoStringOneBool>({
+						resource: "mockResource",
+						cache: {
+							keys: ["key", "key2", "bool"]
+						},
+					});
+				});
+
+				// eslint-disable-next-line max-len
+				it("create() into the query space with one of the or keys busts both", async () => {
+					const result = await store.getPage(or({ key: "foo" }, { key2: "bar" }));
+					await store.create({ key: "foo" });
+					expect(await store.getPage(or({ key: "foo" }, { key2: "bar" }))).not.toBe(result);
+				});
+
+				// eslint-disable-next-line max-len
+				it("create() into the query space with boolean type false or 'not exists' busts", async () => {
+					const result = await store.getPage(or({ bool: false }, not({ bool: exists })));
+					await store.create({ bool: false });
+					expect(await store.getPage(or({ bool: false }, not({ bool: exists })))).not.toBe(result);
+				});
+
+				// eslint-disable-next-line max-len
+				it("create() into the query space with boolean type false or 'not exists' doesn't bust", async () => {
+					const result = await store.getPage(or({ bool: false }, not({ bool: exists })));
+					await store.create({ bool: true });
+					expect(await store.getPage(or({ bool: false }, not({ bool: exists })))).toBe(result);
+				});
+			});
+
 			describe("multiple query spaces", () => {
 
 				type ArrayPrimary = {
@@ -421,6 +472,54 @@ describe("StoreService", () => {
 						undefined,
 						undefined,
 						{ primaryKeys: ["primary"] }
+					)).not.toBe(result2);
+				});
+
+				it("create() busts cache for all query spaces more complex setup", async () => {
+					type TwoPrimaries = {
+						id: string, primary: string, primary2: string
+					};
+					const store = mockSetup<TwoPrimaries>({
+						resource: "mockResource",
+						cache: {
+							keys: ["primary", "primary2"],
+							primaryKeySpaces: [
+								["primary"],
+								["primary2"]
+							]
+						},
+					});
+					const { not, exists } = getQueryVocabulary<TwoPrimaries>();
+
+					const result = await store.getPage(
+						{ primary: ["foo", "bar"] },
+						undefined,
+						undefined,
+						undefined,
+						{ primaryKeys: ["primary"] }
+					);
+					const result2 = await store.getPage(
+						not({ primary2: exists }),
+						undefined,
+						undefined,
+						undefined,
+						{ primaryKeys: ["primary2"] }
+					);
+					await store.create({ primary: "bar" });
+
+					expect(await store.getPage(
+						{ primary: ["foo", "bar"] },
+						undefined,
+						undefined,
+						undefined,
+						{ primaryKeys: ["primary"] }
+					)).not.toBe(result);
+					expect(await store.getPage(
+						not({ primary2: exists }),
+						undefined,
+						undefined,
+						undefined,
+						{ primaryKeys: ["primary2"] }
 					)).not.toBe(result2);
 				});
 			});

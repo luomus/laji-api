@@ -61,8 +61,8 @@ export const isLiteralsClause = (
 };
 
 export const isLiteralMapClause = <T>(
-	clause: Omit<LiteralMapClause<T, Operation>, "operation">
-	| Omit<HigherClause<T, Operation>, "operation">
+	clause: LiteralMapClause<T, Operation>
+	| HigherClause<T, Operation>
 	| MaybeArray<Literal>
 	| ExistsClause
 ): clause is LiteralMapClause<T, Operation> =>

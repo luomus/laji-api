@@ -6,16 +6,17 @@ import { Query } from "src/store/store-query";
 import { Optional, omit } from "src/typing.utils";
 import { Person } from "src/persons/person.dto";
 import { Notification } from "@luomus/laji-schema";
+import { NotificationQuery } from "./notifications.module";
 
 @Injectable()
 export class NotificationsService {
 
 	constructor(
-		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Notification>
+		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Notification, NotificationQuery>
 	) {}
 
 	async getPage(person: Person, onlyUnseen = false, page?: number, pageSize = 20) {
-		const query: Query<Notification> = { toPerson: person.id };
+		const query: Query<NotificationQuery> = { toPerson: person.id };
 		if (onlyUnseen) {
 			query.seen = false;
 		}
@@ -29,7 +30,7 @@ export class NotificationsService {
 
 	async add(notification: Omit<Optional<Notification, "seen" | "created">, "id">) {
 		notification.seen = false;
-		notification.created = now();
+		notification.created = new Date().toISOString();
 		return this.store.create(notification);
 	}
 
@@ -46,9 +47,7 @@ export class NotificationsService {
 		if (!existing) {
 			throw new HttpException("No notification found to update", 404);
 		}
-		const existingWithoutSeen = omit(existing, "seen");
-		const notificationWithoutSeen = omit(notification, "seen");
-		if (!equals(existingWithoutSeen, notificationWithoutSeen)) {
+		if (!equals(omit(existing, "seen"), omit(notification, "seen"))) {
 			throw new HttpException("You can only update the 'seen' property", 422);
 		}
 		return this.store.update(notification);
@@ -62,7 +61,3 @@ export class NotificationsService {
 		return this.store.delete(id);
 	}
 }
-
-const now = () => {
-	return new Date().toISOString();
-};
