@@ -25,7 +25,12 @@ export class FormPermissionsService {
 	) {}
 
 	async getByPerson(person: Person): Promise<FormPermissionPersonDto> {
-		const entities = await this.store.getAll({ userID: person.id }, undefined, { primaryKeys: ["userID"] });
+		const entities = await this.store.getAll(
+			{ userID: person.id },
+			undefined,
+			undefined,
+			{ primaryKeys: ["userID"] }
+		);
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
 			...entitiesToPermissionLists(entities, "collectionID")
@@ -43,7 +48,7 @@ export class FormPermissionsService {
 	private async findByCollectionID(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
 		return entitiesToPermissionLists(
-			await this.store.getAll({ collectionID }, undefined, { primaryKeys: ["collectionID"] }),
+			await this.store.getAll({ collectionID }, undefined, undefined, { primaryKeys: ["collectionID"] }),
 			"userID");
 	}
 
@@ -156,6 +161,7 @@ export class FormPermissionsService {
 	private async findExistingEntity(collectionID: string, personID: string) {
 		const permissions = await this.store.getAll(
 			{ collectionID, userID: personID },
+			undefined,
 			undefined,
 			{ primaryKeys: ["collectionID", "userID"] }
 		);

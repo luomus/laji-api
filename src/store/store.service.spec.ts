@@ -432,6 +432,7 @@ describe("StoreService", () => {
 						undefined,
 						undefined,
 						undefined,
+						undefined,
 						{ primaryKeys: ["primary"] }
 					);
 					expect(result).not.toBe(result2);
@@ -443,10 +444,12 @@ describe("StoreService", () => {
 						undefined,
 						undefined,
 						undefined,
+						undefined,
 						{ primaryKeys: ["primary"] }
 					);
 					const result2 = await store.getPage(
 						{ primary: ["foo", "bar"] },
+						undefined,
 						undefined,
 						undefined,
 						undefined,
@@ -462,12 +465,14 @@ describe("StoreService", () => {
 						undefined,
 						undefined,
 						undefined,
+						undefined,
 						{ primaryKeys: ["primary"] }
 					);
 					await store.create({ primary: "bar" });
 					expect(await store.getPage({ primary: ["foo", "bar"] })).not.toBe(result);
 					expect(await store.getPage(
 						{ primary: ["foo", "bar"] },
+						undefined,
 						undefined,
 						undefined,
 						undefined,
@@ -496,10 +501,12 @@ describe("StoreService", () => {
 						undefined,
 						undefined,
 						undefined,
+						undefined,
 						{ primaryKeys: ["primary"] }
 					);
 					const result2 = await store.getPage(
 						not({ primary2: exists }),
+						undefined,
 						undefined,
 						undefined,
 						undefined,
@@ -512,10 +519,12 @@ describe("StoreService", () => {
 						undefined,
 						undefined,
 						undefined,
+						undefined,
 						{ primaryKeys: ["primary"] }
 					)).not.toBe(result);
 					expect(await store.getPage(
 						not({ primary2: exists }),
+						undefined,
 						undefined,
 						undefined,
 						undefined,

@@ -138,7 +138,14 @@ export class DocumentsService {
 		selectedFields?: (keyof Document)[]
 	) {
 		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, person, observationYear);
-		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
+		return await this.store.getPage(
+			storeQuery,
+			page,
+			pageSize,
+			selectedFields,
+			[{ key: "dateEdited", desc: true }, "id"],
+			cacheConfig
+		 );
 	}
 
 	async existsByNamedPlaceID(namedPlaceID: string, dateRange?: { from: string, to: string }, id?: string) {
@@ -149,7 +156,7 @@ export class DocumentsService {
 		if (dateRange) {
 			query = and(query, dateRangeClause(dateRange));
 		}
-		return !!(await this.store.findOne(query, undefined, { primaryKeys: ["namedPlaceID"] }));
+		return !!(await this.store.findOne(query, undefined, undefined, { primaryKeys: ["namedPlaceID"] }));
 	}
 
 	async get(id: string, person: Person) {
@@ -452,7 +459,7 @@ export class DocumentsService {
 	}
 
 	async getStatistics(namedPlaceID: string): Promise<StatisticsResponse> {
-		const documents = await this.store.getAll({ namedPlaceID }, "id", { primaryKeys: ["namedPlaceID"] });
+		const documents = await this.store.getAll({ namedPlaceID }, "id", undefined, { primaryKeys: ["namedPlaceID"] });
 		const dates: string[] = [];
 		documents.forEach(document => {
 			if (document.gatheringEvent?.dateBegin) {

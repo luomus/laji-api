@@ -50,12 +50,19 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 		page = 1,
 		pageSize = 20,
 		selectedFields: MaybeArray<KeyOf<Resource>> = [],
+		sorts: MaybeArray<Sort<Resource>> = [],
 		cacheOptions?: QueryCacheOptions<ResourceQuery>
 	): Promise<PaginatedDto<Resource & { id: string }>> {
 		const cacheConfig = this.config.cache && this.getCacheConfig(cacheOptions);
 		let cacheKey: string | undefined;
 		if (cachingIsEnabled(cacheConfig)) {
-			cacheKey = this.cacheKeyForPagedQuery(query, page, pageSize, asArray(selectedFields), cacheOptions);
+			cacheKey = this.cacheKeyForPagedQuery(query,
+				page,
+				pageSize,
+				asArray(selectedFields),
+				asArray(sorts),
+				cacheOptions
+			);
 			const cached = await this.cache.get<PaginatedDto<Resource & {id: string }>>(cacheKey);
 			if (cached) {
 				return cached;
@@ -67,7 +74,8 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 				q: parseQuery<ResourceQuery>(query),
 				page,
 				page_size: pageSize,
-				fields: asArray(selectedFields).join(",")
+				fields: asArray(selectedFields).join(","),
+				sort: parseSorts(asArray(sorts))
 			} },
 			doForDefined(
 				omitForKeys<RestClientOptions<ResourceQuery>>("serializeInto")
@@ -82,11 +90,12 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 	async getAll(
 		query: Query<ResourceQuery>,
 		selectedFields: MaybeArray<KeyOf<Resource>> = [],
+		sorts?: MaybeArray<Sort<Resource>>,
 		cacheOptions?: QueryCacheOptions<ResourceQuery>
 	) {
 		return getAllFromPagedResource(
 			(page: number) => this.getPage(
-				query, page, 10000, selectedFields, cacheOptions
+				query, page, 10000, selectedFields, sorts, cacheOptions
 			)
 		);
 	}
@@ -94,10 +103,11 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 	async findOne(
 		query: Query<ResourceQuery>,
 		selectedFields?: MaybeArray<KeyOf<Resource>>,
+		sorts?: MaybeArray<Sort<Resource>>,
 		cacheOptions?: QueryCacheOptions<ResourceQuery>
 	) {
 		return RestClientService.applyOptions(
-			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).results[0],
+			(await this.getPage(query, 1, 1, selectedFields, sorts, cacheOptions)).results[0],
 			this.restClientOptions(this.config)
 		);
 	}
@@ -306,12 +316,13 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 		page: number,
 		pageSize: number,
 		selectedFields: KeyOf<Resource>[],
+		sorts: Sort<Resource>[],
 		queryCacheOptions: Pick<QueryCacheOptions<ResourceQuery>, "primaryKeys"> = {}
 	) {
 		if (!this.config.cache) {
 			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
 		}
-		const pagedSuffix = `:${[page, pageSize,selectedFields.join(",") || "*"].join(":")}`;
+		const pagedSuffix = `:${[page, pageSize, selectedFields.join(",") || "*", parseSorts(sorts) || "*"].join(":")}`;
 		const config = this.getCacheConfig(queryCacheOptions);
 		const queryCacheKey = getCacheKeyForQuery(query, config);
 		const cacheSpaceToken = this.tokenizePrimaryKeys(config.primaryKeys);
@@ -357,3 +368,8 @@ export const pageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => 
 };
 
 const cachingIsEnabled = (cache?: StoreCacheOptions<never>) => cache && cache.enabled !== false;
+
+export type Sort<ResourceQuery> = KeyOf<ResourceQuery> | { key: KeyOf<ResourceQuery>, desc: true };
+
+const parseSorts = <T>(sorts: Sort<T>[]) => sorts.map(s => typeof s === "string" ? s : `${s.key} desc`).join(",");
+
