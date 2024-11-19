@@ -17,10 +17,12 @@ import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.
 import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { NextFunction, Request, Response } from "express";
-import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
+import { FindOneDto, GetPageDto, LangQueryDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
+import { Serialize } from "src/serialization/serialize.decorator";
+import { PaginatedDto } from "src/pagination.utils";
 
 @LajiApiController("audio")
 @ApiTags("Audio")
@@ -31,9 +33,9 @@ export class AudioController {
 
 	/** Get all audio */
 	@Get()
-	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Audio))
-	async getAll(@Query() { idIn }: GetPageDto): Promise<Audio[]> {
-		return this.abstractMediaService.findMedia(idIn);
+	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto, Audio))
+	async getPage(@Query() { idIn, page, pageSize }: GetPageDto): Promise<PaginatedDto<Audio>> {
+		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}
 
 	/** Upload audio and get temporary id */

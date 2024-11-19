@@ -17,10 +17,11 @@ import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
-import { FindOneDto, GetPageDto, QueryWithPersonTokenDto } from "../common.dto";
+import { FindOneDto, GetPageDto, LangQueryDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
+import { PaginatedDto } from "src/pagination.utils";
 
 @LajiApiController("images")
 @ApiTags("Image")
@@ -29,11 +30,11 @@ export class ImagesController {
 		private abstractMediaService: AbstractMediaService<MediaType.image>
 	) {}
 
-	/** Get all images */
+	/** Get a page of images */
 	@Get()
-	@UseInterceptors(createQueryParamsInterceptor(GetPageDto, Image))
-	async getAll(@Query() { idIn }: GetPageDto): Promise<Image[]> {
-		return this.abstractMediaService.findMedia(idIn);
+	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto, Image))
+	async getPage(@Query() { idIn, page, pageSize }: GetPageDto): Promise<PaginatedDto<Image>> {
+		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}
 
 	/** Upload image and get temporary id */
@@ -111,4 +112,3 @@ export class ImagesController {
 		return this.abstractMediaService.uploadMetadata(tempId, image, person);
 	}
 }
-

@@ -80,7 +80,7 @@ export class GetDto {
 	expand?: boolean = true;
 }
 
-export class GetAllDto extends PagedDto {
+export class GetPageDto extends PagedDto {
 	lang?: Lang = Lang.en;
 	pageSize?: number = 1000;
 }

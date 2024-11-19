@@ -10,13 +10,13 @@ import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 
 export const TriplestoreReadonlyRestClient: FactoryProvider<RestClientService<never>> = {
 	provide: TRIPLESTORE_CLIENT,
-	useFactory: (httpService: HttpService, config: ConfigService) =>
+	useFactory: (httpService: HttpService, config: ConfigService, cache: RedisCacheService) =>
 		new RestClientService(httpService,
 			{
 				name: "triplestore-readonly",
 				host: config.get<string>("TRIPLESTORE_READONLY_HOST"),
 				auth: config.get<string>("TRIPLESTORE_READONLY_AUTH"),
-			}),
+			}, cache),
 	inject: [HttpService, ConfigService],
 };
 

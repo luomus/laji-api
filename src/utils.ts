@@ -3,6 +3,7 @@ import { MaybePromise, isObject } from "./typing.utils";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
+export const CACHE_5_MIN = 1000 * 60 * 5;
 export const CACHE_10_MIN = CACHE_1_MIN * 10;
 export const CACHE_30_MIN = CACHE_1_MIN * 30;
 export const CACHE_1_H = CACHE_1_MIN * 60;
