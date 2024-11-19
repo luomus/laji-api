@@ -333,7 +333,7 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 		if (!this.config.cache) {
 			throw new Error("Can't get a cache key for a resource if caching isn't enabled in config");
 		}
-		const pagedSuffix = ":*:*:*";
+		const pagedSuffix = ":*:*:*:*"; // Suffix for all combinations of `page`, `pageSize`, `selectedFields` and `sorts`.
 		return Object.keys(this.queryCacheSpaces).reduce((cacheKeys, cacheSpaceToken) => {
 			const primaryKeys = this.queryCacheSpaces[cacheSpaceToken];
 			const cacheKey = this.withCachePrefix(
