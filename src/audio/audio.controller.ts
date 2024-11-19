@@ -21,7 +21,6 @@ import { FindOneDto, GetPageDto, LangQueryDto, QueryWithPersonTokenDto } from ".
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
-import { Serialize } from "src/serialization/serialize.decorator";
 import { PaginatedDto } from "src/pagination.utils";
 
 @LajiApiController("audio")

@@ -7,7 +7,6 @@ import { RestClientService } from "../rest-client/rest-client.service";
 import { MEDIA_CLIENT, MEDIA_CONFIG } from "src/provider-tokens";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { PaginatedDto, paginateAlreadyPaged } from "src/pagination.utils";
-import { CACHE_5_MIN } from "src/utils";
 
 export type AbstractMediaServiceConfig = {
 	mediaClass: "IMAGE" | "AUDIO";
