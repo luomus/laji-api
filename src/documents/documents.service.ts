@@ -12,7 +12,7 @@ import { NamedPlacesService } from "src/named-places/named-places.service";
 import { isValidDate } from "src/utils";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { PrepopulatedDocumentService } from "src/named-places/prepopulated-document/prepopulated-document.service";
-import { QueryCacheOptions, StoreCacheOptions } from "src/store/store-cache";
+import { QueryCacheOptions } from "src/store/store-cache";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
@@ -41,7 +41,7 @@ export const documentQueryKeys = [
 	"editors",
 	"id"
 ] as const;
-type DocumentQuery = Pick<Document, Exclude<typeof documentQueryKeys[number], DateRangeKey>>
+export type DocumentQuery = Pick<Document, Exclude<typeof documentQueryKeys[number], DateRangeKey>>
 	& Record<DateRangeKey, string>;
 
 const { or, and, not, exists, range } = getQueryVocabulary<DocumentQuery>();
@@ -65,7 +65,7 @@ export class DocumentsService {
 	private logger = new Logger(DocumentsService.name);
 
 	constructor(
-		@Inject("STORE_RESOURCE_SERVICE") public store: StoreService<Document>,
+		@Inject("STORE_RESOURCE_SERVICE") public store: StoreService<Document, DocumentQuery>,
 		private formPermissionsService: FormPermissionsService,
 		private formsService: FormsService,
 		private collectionsService: CollectionsService,
@@ -84,14 +84,14 @@ export class DocumentsService {
 		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Document[prop]>},
 		person: Person,
 		observationYear?: number,
-	): Promise<[Query<DocumentQuery>, Partial<StoreCacheOptions<Document>>]>  {
+	): Promise<[Query<DocumentQuery>, QueryCacheOptions<DocumentQuery>]>  {
 		// Allow simple search query terms as they are, but remove `isTemplate` & `collectionID` because they are added to
 		// the query with more complex logic.
 		const { collectionID, isTemplate } = query;
 		delete query.isTemplate;
 		delete query.collectionID;
 		let storeQuery: Query<DocumentQuery> = and(query);
-		let cacheConfig: QueryCacheOptions<Document>;
+		let cacheConfig: QueryCacheOptions<DocumentQuery>;
 
 		if (collectionID) {
 			storeQuery.collectionID = await this.getCollectionIDs(collectionID);
@@ -107,11 +107,11 @@ export class DocumentsService {
 				&& (!viewableForAll || !permissions?.editors.includes(person.id))
 			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person));
-				cacheConfig = { primaryKeys: ["creator", "isTemplate"] };
+				cacheConfig = { enabled: false };
 			}
 		} else {
 			storeQuery = and(storeQuery, editorOrCreatorClause(person));
-			cacheConfig = { primaryKeys: ["creator", "isTemplate"] };
+			cacheConfig = { enabled: false };
 		}
 
 		if (!isTemplate) {
@@ -138,7 +138,14 @@ export class DocumentsService {
 		selectedFields?: (keyof Document)[]
 	) {
 		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, person, observationYear);
-		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, cacheConfig);
+		return await this.store.getPage(
+			storeQuery,
+			page,
+			pageSize,
+			selectedFields,
+			[{ key: "dateEdited", desc: true }, "id"],
+			cacheConfig
+		 );
 	}
 
 	async existsByNamedPlaceID(namedPlaceID: string, dateRange?: { from: string, to: string }, id?: string) {
@@ -149,7 +156,7 @@ export class DocumentsService {
 		if (dateRange) {
 			query = and(query, dateRangeClause(dateRange));
 		}
-		return !!(await this.store.findOne(query, undefined, { primaryKeys: ["namedPlaceID"] }));
+		return !!(await this.store.findOne(query, undefined, undefined, { primaryKeys: ["namedPlaceID"] }));
 	}
 
 	async get(id: string, person: Person) {
@@ -234,8 +241,8 @@ export class DocumentsService {
 		if (document.creator === person.id) {
 			return;
 		}
-		if (!operationAllowedForEditor && !document.editors?.includes(person.id)) {
-			throw new HttpException("You are not owner of this document", 403);
+		if (operationAllowedForEditor && document.editors?.includes(person.id)) {
+			return;
 		}
 		throw new HttpException("You are not owner or editor of this document", 403);
 	}
@@ -452,7 +459,7 @@ export class DocumentsService {
 	}
 
 	async getStatistics(namedPlaceID: string): Promise<StatisticsResponse> {
-		const documents = await this.store.getAll({ namedPlaceID }, "id", { primaryKeys: ["namedPlaceID"] });
+		const documents = await this.store.getAll({ namedPlaceID }, "id", undefined, { primaryKeys: ["namedPlaceID"] });
 		const dates: string[] = [];
 		documents.forEach(document => {
 			if (document.gatheringEvent?.dateBegin) {

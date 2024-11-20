@@ -1,4 +1,4 @@
-import { KeyOf, MaybeArray } from "src/typing.utils";
+import { KeyOf, MaybeArray, omit } from "src/typing.utils";
 import { Query, HigherClause, LiteralMapClause, Operation, Literal, ExistsClause,
 	isExistsClause, exists, isLiteralMapClause, isRangeClause, RangeClause } from "./store-query";
 import { asArray } from "src/utils";
@@ -7,7 +7,7 @@ const parseLiteralsOr = (clause: Literal[], separator = ";") => clause.sort().jo
 const parseLiteral = (clause: Literal) => "" + clause;
 const parseExistsClause = () => "*";
 const parseRangeClause = (clause: RangeClause) => clause.value;
-const parseNotExistsClause = () => "_NOT_EXISTS_";
+const parseNotExistsClause = () => "__undefined__";
 
 const nonOperativeKeys = <T>(clause: LiteralMapClause<T, Operation>) =>
 	Object.keys(clause).filter(k => k !== "operation") as Exclude<(KeyOf<T>), "operation">[];
@@ -37,12 +37,7 @@ const parseFlattenedLiteralMapClause = <T>(
 ): string => {
 	return [...keys].sort().reduce((cacheKey, prop) => {
 		const parsed = parseLiteralMapValue(clause[prop]);
-		let stringified: string;
-		if (parsed === "_NOT_EXISTS_") {
-			 stringified = `no_${prop};`;
-		} else {
-			 stringified = `key_${prop}:;${parsed};`;
-		}
+		const stringified = `key_${prop}:;${parsed};`;
 		return `${cacheKey}${stringified}`;
 	}, "");
 };
@@ -50,13 +45,17 @@ const parseFlattenedLiteralMapClause = <T>(
 /**
  * Flattens nested higher clauses into a map of keys and all the used search literals.
  *
- * For example: and({ a: 1, b: 2 }, or({ a: 2 }, and({ b : 3}, { c: 4 }))) => { a: [ 1, 2 ] b: [ 2, 3 ], c: [ 4 ] }
+ * For example: and({ a: 1, b: 2 }, or({ a: 2 }, and({ b : 3 }, { c: 4 }))) => { a: [ 1, 2 ] b: [ 2, 3 ], c: [ 4 ] }
  */
 const flatten = <T>(
 	clause: HigherClause<T, Operation> | LiteralMapClause<T, Operation>
 ): Record<KeyOf<T>, MaybeArray<Literal> | ExistsClause> => {
+	if (clause.operation === "NOT" && isLiteralMapClause(clause) && nonOperativeKeys(clause).length === 1) {
+		const term = nonOperativeKeys(clause)[0]!;
+		return { [term]: parseNotExistsClause() } as Record<KeyOf<T>, string>;
+	}
 	if (isLiteralMapClause(clause)) {
-		return clause as any;
+		return omit(clause, "operation") as any;
 	}
 
 	return clause.reduce((reduced, subClause) => {
@@ -66,7 +65,10 @@ const flatten = <T>(
 				if (!isExistsClause(subClause[term])) {
 					throw new Error("Cache parser cannot handle a non singular 'NOT' clause that isn't 'exists'");
 				}
-				reduced[term] = parseNotExistsClause();
+				reduced[term] = [
+					...asArray(reduced[term] as any).filter(v => v !== undefined),
+					parseNotExistsClause()
+				];
 				return reduced;
 			}
 			throw new Error("Cache parser cannot handle a 'NOT' clause that isn't a singular 'exists'");
@@ -95,7 +97,7 @@ export const getCacheKeyForQuery = <T>(query: Query<T>, config: StoreCacheOption
 	const flattened = flatten(query);
 	process.env.NODE_ENV !== "production" && primaryKeys?.forEach(key => {
 		if (!(key in flattened)) {
-			throw new Error("Primary keys must be always in a query!");
+			throw new Error(`Primary keys must be always in a query! Key '${key}' missing`);
 		}
 	});
 	process.env.NODE_ENV !== "production" && (Object.keys(flattened) as (KeyOf<T>)[]).forEach(key => {
@@ -109,32 +111,45 @@ export const getCacheKeyForQuery = <T>(query: Query<T>, config: StoreCacheOption
 
 export type OnlyNonArrayLiteralKeys<T> = { [K in KeyOf<T>]: T[K] extends (Literal | undefined) ? K : never }[KeyOf<T>];
 
-export type StoreCacheOptions<T> = {
+export type StoreCacheOptions<ResourceQuery> = {
 	/** Must be an array of all keys possible in a query */
-	keys: Readonly<KeyOf<T>[]>;
+	keys: Readonly<KeyOf<ResourceQuery>[]>;
 	/** Keys that are always defined for a query. They can't be of array type. */
-	primaryKeys?: OnlyNonArrayLiteralKeys<T>[];
+	primaryKeys?: OnlyNonArrayLiteralKeys<ResourceQuery>[];
+	/** Whether caching is enabled for the read operation. Doesn't affect writing operations - they always try to flush. True by default. */
+	enabled?: boolean;
 };
 
-export type QueryCacheOptions<T> = Partial<StoreCacheOptions<T>>;
+export type QueryCacheOptions<ResourceQuery> = Partial<StoreCacheOptions<ResourceQuery>>;
 
-export const getCacheKeyForResource = <T extends Record<string, MaybeArray<Literal>>>(
-	resource: Partial<T>, options: StoreCacheOptions<T>
-) => {
+export const getCacheKeyForResource = <
+	Resource extends Record<string, MaybeArray<Literal>>,
+	ResourceQuery extends Partial<Resource> = Resource
+	>(resource: Partial<Resource>, options: StoreCacheOptions<ResourceQuery>) => {
 	const { keys, primaryKeys } = options;
+	resource = fillWithPrimaryAsUndefineds(resource, primaryKeys);
 	return [...keys].sort().reduce((cacheKey, prop) => {
 		const parsed = parseLiteralMapValue(resource[prop], ";*;");
-		let stringified: string;
-		if (resource[prop] === undefined && (primaryKeys as KeyOf<T>[]).includes(prop)) {
-			stringified = `no_${prop};`;
-		} else {
-			const val = (primaryKeys && !(primaryKeys as KeyOf<T>[]).includes(prop))
-				? "*"
-				: parsed === "*"
-					? `;${parsed};`
-					: `*;${parsed};*`;
-			stringified = `key_${prop}:${val}`;
-		}
+		const val = (primaryKeys && !(primaryKeys as KeyOf<Resource>[]).includes(prop))
+			? "*"
+			: parsed === "*"
+				? `;${parsed};`
+				: `*;${parsed};*`;
+		const stringified = `key_${prop}:${val}`;
 		return `${cacheKey}${stringified}`;
 	}, "");
 };
+
+const fillWithPrimaryAsUndefineds = <Resource, ResourceQuery>(
+	resource: Partial<Resource>,
+	primaryKeys: OnlyNonArrayLiteralKeys<ResourceQuery>[] | undefined
+) => {
+	if (!primaryKeys) {
+		return resource;
+	}
+	return primaryKeys.reduce((filledWithUndefineds, k) => ({
+		...filledWithUndefineds,
+		[k]: k in filledWithUndefineds ? (filledWithUndefineds as any)[k] : parseNotExistsClause()
+	} as Resource), resource);
+};
+

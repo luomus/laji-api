@@ -627,6 +627,103 @@ describe("/documents", function() {
 				});
 		});
 
+		it("editor can update", function(done) {
+			this.timeout(4000);
+			if (!documentId) {
+				return this.skip();
+			}
+			var query = basePath + "/" + documentId +
+				"?access_token=" + config["access_token"] + "&personToken=" + config.user.friend_token;
+			var document = {
+				id: documentId,
+				editors: [config.user.model.id, config.user.friend_id],
+				formID: "MHL.119",
+				creator: config.user.model.id,
+				editor: "MA.1",
+				dateCreated: "2015-01-01T00:00:00+03:00",
+				gatheringEvent:{
+					dateBegin: "2016-10-12",
+					leg: ["foo", "joku"]
+				},
+				gatherings: [
+					{
+						"@type": "MY.gathering",
+						notes: "new notes",
+						id: documentId + "#5",
+						geometry: {
+							"coordinates": [21.3, 60.4],
+							"type": "Point"
+						},
+						units: [
+							{
+								"@type": "MY.unit",
+								id: documentId + "#3",
+								identifications: [
+									{
+										"@type": "MY.identification",
+										id: documentId + "#4",
+										taxon: "Käki"
+									}
+								],
+								typeSpecimens: [
+									{
+										"@type": "MY.identification",
+										id: documentId + "#6",
+										typeNotes: "tyyppi tietoa"
+									}
+								]
+							}
+						]
+					},
+					{
+						geometry: {
+							"coordinates": [22.3, 60.4],
+							"type": "Point"
+						},
+						notes: "JUST A TEST",
+						units: [
+							{
+								"@type": "MY.unit",
+								id: documentId + "#3",
+								identifications: [
+									{
+										"@type": "MY.identification",
+										taxon: "Jokin muu"
+									}
+								]
+							}
+						]
+					}
+				]
+			};
+			request(this.server)
+				.put(query)
+				.send(document)
+				.end(function (err, res) {
+					if (err) return done(err);
+					res.should.have.status(200);
+					res.body.should.have.property("id").eql(documentId);
+					res.body.should.have.property("editor").eql(config.user.friend_id);
+					res.body.should.have.property("creator").eql(config.user.model.id);
+					res.body.should.have.property("dateCreated").eql(dateCreated);
+					res.body.should.have.property("collectionID").eql("HR.1747");
+					res.body.should.have.property("editors").eql([config.user.model.id, config.user.friend_id]);
+					res.body.should.have.property("gatherings");
+					res.body.should.have.property("gatheringEvent");
+					res.body.gatheringEvent.should.have.property("leg").eql(["foo", "joku"]);
+					res.body.gatherings.should.be.a("array");
+					res.body.gatherings.should.have.lengthOf(2);
+					res.body.gatherings[1].should.have.any.keys("id");
+					res.body.gatherings[1].should.have.any.keys("geometry");
+					res.body.gatherings[1].should.have.any.keys("units");
+					try {
+						document.gatherings[0].units[0].typeSpecimens[0]["@type"] = "MY.typeSpecimen";
+					} catch (e) {}
+					res.body.gatherings[0].should.deep.equal(document.gatherings[0]);
+					done();
+				});
+		});
+
 		it("does not allow editing a locked document", function(done) {
 			this.timeout(4000);
 			if (!lockedId) {

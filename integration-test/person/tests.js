@@ -3,7 +3,6 @@ const { request } = require("chai");
 
 describe("/person", function() {
 	var basePath = config["urls"]["person"];
-	var profileKey;
 
 	it("returns 401 when fetching with id and no access token specified", function(done) {
 		var query = basePath + "/by-id/" + config["user"]["model"]["id"];
@@ -148,7 +147,6 @@ describe("/person", function() {
 					res.should.have.status(200);
 					res.body.should.have.property("id");
 					res.body.should.have.property("userID").eql(config.user.model.id);
-					res.body.should.have.property("profileKey");
 					res.body.should.have.property("friends").eql([]);
 					res.body.should.have.property("blocked");
 					res.body.should.have.property("friendRequests");
@@ -241,7 +239,6 @@ describe("/person", function() {
 					if (err) return done(err);
 					res.should.have.status(200);
 					res.body.should.have.property("userID");
-					res.body.should.have.property("profileKey");
 					res.body.should.not.have.property("id");
 					res.body.should.not.have.property("friends");
 					res.body.should.not.have.property("blocked");
@@ -261,12 +258,10 @@ describe("/person", function() {
 					res.should.have.status(200);
 					res.body.should.have.property("id");
 					res.body.should.have.property("userID");
-					res.body.should.have.property("profileKey");
 					res.body.should.have.property("friends").eql([]);
 					res.body.should.have.property("blocked");
 					res.body.should.have.property("friendRequests");
 					res.body.should.have.property("settings");
-					profileKey = res.body.profileKey;
 					done();
 				});
 		});
@@ -278,7 +273,7 @@ describe("/person", function() {
 			if (!config.user.friend_token) {
 				this.skip();
 			}
-			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
+			var query = basePath + "/" + config.user.friend_token + "/friends/" + config.user.model.id
 				+ "?access_token=" + config.access_token;
 			request(this.server)
 				.post(query)
@@ -287,7 +282,6 @@ describe("/person", function() {
 					res.should.have.status(201);
 					res.body.should.have.property("id");
 					res.body.should.have.property("userID");
-					res.body.should.have.property("profileKey");
 					res.body.should.have.property("friends");
 					res.body.should.have.property("blocked");
 					res.body.should.have.property("friendRequests");
@@ -301,7 +295,7 @@ describe("/person", function() {
 			if (!config.user.friend_token) {
 				this.skip();
 			}
-			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
+			var query = basePath + "/" + config.user.friend_token + "/friends/" + config.user.model.id
 				+ "?access_token=" + config.access_token;
 			request(this.server)
 				.post(query)
@@ -332,7 +326,7 @@ describe("/person", function() {
 			if (!config.user.friend_token) {
 				this.skip();
 			}
-			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
+			var query = basePath + "/" + config.user.friend_token + "/friends/" + config.user.model.id
 				+ "?access_token=" + config.access_token;
 			request(this.server)
 				.post(query)
@@ -381,7 +375,7 @@ describe("/person", function() {
 			if (!config.user.friend_token) {
 				this.skip();
 			}
-			var query = basePath + "/" + config.user.friend_token + "/friends/" + profileKey
+			var query = basePath + "/" + config.user.friend_token + "/friends/" + config.user.model.id
 				+ "?access_token=" + config.access_token;
 			request(this.server)
 				.post(query)

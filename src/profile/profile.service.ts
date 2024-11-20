@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
@@ -9,6 +9,8 @@ import { uuid } from "src/utils";
 
 @Injectable()
 export class ProfileService {
+
+	private logger = new Logger(ProfileService.name);
 
 	constructor(
 		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Profile>,
@@ -63,9 +65,11 @@ export class ProfileService {
 		return this.store.update(nextProfile);
 	}
 
-	async addFriendRequest(personToken: string, profileKey: string) {
+	async addFriendRequest(personToken: string, friendPersonIDOrProfileKey: string) {
 		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
-		const profile = await this.findByProfileKey(profileKey);
+		const profile = friendPersonIDOrProfileKey.startsWith("MA.")
+			? await this.findByPersonId(friendPersonIDOrProfileKey)
+			: await this.findByProfileKey(friendPersonIDOrProfileKey);
 		if (!profile) {
 			throw new HttpException("Profile not found", 404);
 		}
@@ -125,7 +129,13 @@ export class ProfileService {
 		}
 	}
 
-	private create(personId: string, profile: Partial<Profile>) {
+	private async create(personId: string, profile: Partial<Profile>) {
+		const existinProfile = await this.findByPersonId(personId);
+		if (existinProfile) {
+			// eslint-disable-next-line max-len
+			this.logger.fatal("Somehow we are creating a profile even though one exists already!",  new Error().stack, { personId });
+		}
+
 		profile.userID = personId;
 		profile.profileKey = uuid(6);
 		return this.store.create(profile);

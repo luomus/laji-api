@@ -1,6 +1,6 @@
 import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { AcceptAccessDto, Form, Format, GetAllDto, GetDto, RevokeAccessDto, TransformDto } from "./dto/form.dto";
+import { AcceptAccessDto, Form, Format, GetPageDto, GetDto, RevokeAccessDto, TransformDto } from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
@@ -68,11 +68,11 @@ export class FormsController {
 		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
 	}
 
-	/** Get all forms */
+	/** Get a page of forms */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
-	@UseInterceptors(createQueryParamsInterceptor(GetAllDto))
-	getPage(@Query() { lang }: GetAllDto) {
+	@UseInterceptors(createQueryParamsInterceptor(GetPageDto))
+	getPage(@Query() { lang }: GetPageDto) {
 		return this.formsService.getListing(lang);
 	}
 

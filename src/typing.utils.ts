@@ -35,6 +35,11 @@ export const omit = <T extends object, K extends keyof T>(
 	...keys: K[]
 ) => omitForKeys<T, K>(...keys)(obj);
 
+export const hasKey = <T extends object, K extends keyof T>(
+	obj: T,
+	key: K
+): obj is WithNonNullableKeys<T, K> => key in obj;
+
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<{ [K: string]: T[K] }>;
 
 /** `keyof T` excluding number an symbol. Useful when the domain deals only with string keys. */

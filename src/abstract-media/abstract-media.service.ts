@@ -1,11 +1,12 @@
 import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { TriplestoreService } from "../triplestore/triplestore.service";
+import { TriplestoreSearchQuery, TriplestoreService } from "../triplestore/triplestore.service";
 import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from "./abstract-media.dto";
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
 import { MEDIA_CLIENT, MEDIA_CONFIG } from "src/provider-tokens";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
+import { PaginatedDto, paginateAlreadyPaged } from "src/pagination.utils";
 
 export type AbstractMediaServiceConfig = {
 	mediaClass: "IMAGE" | "AUDIO";
@@ -49,23 +50,28 @@ export class AbstractMediaService<T extends MediaType> {
 		}
 	});
 
-	async findMedia(idIn?: string[]): Promise<Media<T>[]> {
-		return await this.triplestoreService.find<Media<T>>(
-			{
-				type: this.abstracted.type,
-				subject: idIn?.join(","),
-				predicate: "MZ.publicityRestrictions",
-				objectresource: "MZ.publicityRestrictionsPublic"
-			}
-		);
+	async getPage(idIn?: string[], page = 1, pageSize = 20): Promise<PaginatedDto<Media<T>>> {
+		const query: TriplestoreSearchQuery = {
+			type: this.abstracted.type,
+			predicate: "MZ.publicityRestrictions",
+			objectresource: "MZ.publicityRestrictionsPublic",
+			limit: pageSize,
+			offset: (page - 1) * pageSize
+		};
+		if (idIn) {
+			query.subject = idIn?.join(",");
+		}
+		const results = await this.triplestoreService.find<Media<T>>(query);
+		const total = await this.triplestoreService.count(query);
+		return paginateAlreadyPaged({ results, total, currentPage: page, pageSize });
 	}
 
 	async get(id: string): Promise<Media<T>> {
-		const [result] = await this.findMedia([id]);
-		if (!result) {
+		const media = await this.triplestoreService.findOne<Media<T>>(id);
+		if (!media) {
 			throw new HttpException("Media not found", 404);
 		}
-		return result;
+		return media;
 	}
 
 	async getURL(id: string, urlKey: keyof Media<T>): Promise<string> {

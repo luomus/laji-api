@@ -67,9 +67,9 @@ export class PersonsController {
 	/*
 	 * Request person to be your friend
 	 */
-	@Post(":personToken/friends/:profileKey")
-	addFriendRequest(@Param("personToken") personToken: string, @Param("profileKey") profileKey: string) {
-		return this.profileService.addFriendRequest(personToken, profileKey);
+	@Post(":personToken/friends/:friendPersonID")
+	addFriendRequest(@Param("personToken") personToken: string, @Param("friendPersonID") friendPersonID: string) {
+		return this.profileService.addFriendRequest(personToken, friendPersonID);
 	}
 
 	/*

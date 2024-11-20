@@ -52,6 +52,11 @@ describe("Store query cache", () => {
 				.toBe("key_collectionID:;HR.61;key_owner:;bilbo;key_public:;*;");
 		});
 
+		it("flattens OR with not", () => {
+			expect(getCacheKeyForQuery<Schema>(or({ collectionID: "HR.61" }, not({ collectionID: exists })), config))
+				.toBe("key_collectionID:;HR.61;__undefined__;key_owner:;*;key_public:;*;");
+		});
+
 		it("flattening joins values", () => {
 			expect(getCacheKeyForQuery<Schema>(
 				and({ collectionID: "HR.61" }, { collectionID: "HR.21", owner: "bilbo" }), config))
@@ -64,10 +69,10 @@ describe("Store query cache", () => {
 				.toBe("key_collectionID:;HR.61;key_owner:;bilbo;key_public:;true;");
 		});
 
-		it("not exists as \"no_(prop)\"", () => {
+		it("not exists as __undefined__", () => {
 			expect(getCacheKeyForQuery<Schema>(
 				and(not({ collectionID: exists }), { owner: "bilbo" }), config))
-				.toBe("no_collectionID;key_owner:;bilbo;key_public:;*;");
+				.toBe("key_collectionID:;__undefined__;key_owner:;bilbo;key_public:;*;");
 		});
 	});
 
@@ -83,22 +88,28 @@ describe("Store query cache", () => {
 				.toBe("key_collectionID:*;HR.61;*key_owner:*key_public:*");
 		});
 
-		it("primary key searches the inclusive space if it has value", () => {
+		it("primary keys used as the search values", () => {
 			expect(getCacheKeyForResource<Schema>(
 				{ collectionID: "HR.61", owner: "bilbo" }, { keys, primaryKeys: ["collectionID"] }))
 				.toBe("key_collectionID:*;HR.61;*key_owner:*key_public:*");
 		});
 
-		it("primary key searches the exclusive space it it's undefined", () => {
+		it("primary keys as __undefined__ if not in the resource", () => {
 			expect(getCacheKeyForResource<Schema>(
 				{ owner: "bilbo" }, { keys, primaryKeys: ["collectionID"] }))
-				.toBe("no_collectionID;key_owner:*key_public:*");
+				.toBe("key_collectionID:*;__undefined__;*key_owner:*key_public:*");
 		});
 
 		it("multiple primary keys use their value", () => {
 			expect(getCacheKeyForResource<Schema>(
 				{ owner: "bilbo" }, { keys, primaryKeys: ["collectionID", "owner"] }))
-				.toBe("no_collectionID;key_owner:*;bilbo;*key_public:*");
+				.toBe("key_collectionID:*;__undefined__;*key_owner:*;bilbo;*key_public:*");
+		});
+
+		it("boolean", () => {
+			expect(getCacheKeyForResource<{ bool: boolean, str: string }>(
+				{ bool: true }, { keys: ["bool", "str"] }))
+				.toBe("key_bool:*;true;*key_str:;*;");
 		});
 	});
 });

@@ -20,13 +20,14 @@ const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
 
 type MultiLangResource = { "@language": string; "@value": string };
 
-type TriplestoreSearchQuery = {
+export type TriplestoreSearchQuery = {
+	format?: string;
 	type?: string;
 	predicate?: string;
 	objectresource?: string;
 	objectliteral?: string | boolean;
 	limit?: number;
-	offset?: string;
+	offset?: number;
 	object?: string;
 	subject?: string;
 }
@@ -93,6 +94,18 @@ export class TriplestoreService {
 		}
 		return result;
 	}
+
+	/**
+	 * get count for a resource
+	 * @param query Query options
+	 * @param options Cache options
+	 */
+	async count(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
+		: Promise<number> {
+		query = { ...baseQuery, format: "json", ...query };
+		return (await this.triplestoreClient.get<{ count: number }>("search/count", { params: query }, options)).count;
+	}
+
 
 	private async rdfToJsonLd<T>(
 		rdf: MaybePromise<JSONSerializable>,

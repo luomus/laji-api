@@ -1,11 +1,10 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination.utils";
-import { JSONObjectSerializable, KeyOf, MaybeArray, omitForKeys } from "src/typing.utils";
+import { JSONObjectSerializable, KeyOf, MaybeArray, hasKey, omitForKeys } from "src/typing.utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doForDefined, getCacheTTL } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";
-import { OnlyNonArrayLiteralKeys, QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource
-} from "./store-cache";
+import { QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource } from "./store-cache";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { AxiosRequestConfig } from "axios";
 import { StoreDeleteResponse } from "./store.dto";
@@ -19,13 +18,13 @@ export type StoreQueryResult<T> = {
 	currentPage: number;
 }
 
-export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
+export type StoreConfig<Resource = never, ResourceQuery = Resource> = HasMaybeSerializeInto<Resource> & {
 	resource: string;
-	cache?: StoreCacheOptions<T> & {
+	cache?: Omit<StoreCacheOptions<ResourceQuery>, "enabled"> & {
 		/** Milliseconds for the cache TTL */
 		ttl?: number;
 		/** If queries use local primaryKeys (meaning that primaryKeys is defined in the query method, overriding the resource's store config),  primaryKeySpaces must list all combinations of primaryKeys configured per query in the service */
-		primaryKeySpaces?: StoreCacheOptions<T>["primaryKeys"][]
+		primaryKeySpaces?: StoreCacheOptions<ResourceQuery>["primaryKeys"][];
 	}
 }
 
@@ -35,70 +34,92 @@ export type StoreConfig<T = never> = HasMaybeSerializeInto<T> & {
  * Use `findOne()` to serialize the result.
  */
 @Injectable()
-export class StoreService<T extends { id?: string }> {
+export class StoreService<Resource extends { id?: string }, ResourceQuery extends Partial<Resource> = Resource> {
 
 	private logger = new Logger(StoreService.name + "/" + this.config.resource);
-	private restClientOptions = doForDefined(omitForKeys<StoreConfig<T>>("resource", "cache"));
+	private restClientOptions = doForDefined(omitForKeys<StoreConfig<Resource, ResourceQuery>>("resource", "cache"));
 
 	constructor(
-		private client: RestClientService<T>,
+		private client: RestClientService<Resource>,
 		private readonly cache: RedisCacheService,
-		private config: StoreConfig<T>
+		private config: StoreConfig<Resource, ResourceQuery>
 	) {}
 
 	async getPage(
-		query: Query<T>,
+		query: Query<ResourceQuery>,
 		page = 1,
 		pageSize = 20,
-		selectedFields: MaybeArray<KeyOf<T>> = [],
-		cacheOptions?: QueryCacheOptions<T>
-	): Promise<PaginatedDto<T>> {
+		selectedFields: MaybeArray<KeyOf<Resource>> = [],
+		sorts: MaybeArray<Sort<Resource>> = [],
+		cacheOptions?: QueryCacheOptions<ResourceQuery>
+	): Promise<PaginatedDto<Resource & { id: string }>> {
+		const cacheConfig = this.config.cache && this.getCacheConfig(cacheOptions);
 		let cacheKey: string | undefined;
-		if (this.config.cache) {
-			cacheKey = this.cacheKeyForPagedQuery(query, page, pageSize, asArray(selectedFields), cacheOptions);
-			const cached = await this.cache.get<PaginatedDto<T>>(cacheKey);
+		if (cachingIsEnabled(cacheConfig)) {
+			cacheKey = this.cacheKeyForPagedQuery(query,
+				page,
+				pageSize,
+				asArray(selectedFields),
+				asArray(sorts),
+				cacheOptions
+			);
+			const cached = await this.cache.get<PaginatedDto<Resource & {id: string }>>(cacheKey);
 			if (cached) {
 				return cached;
 			}
 		}
-		const result = pageAdapter(await this.client.get<StoreQueryResult<T>>(
+		const result = pageAdapter(await this.client.get<StoreQueryResult<Resource & { id: string }>>(
 			this.config.resource,
 			{ params: {
-				q: parseQuery<T>(query),
+				q: parseQuery<ResourceQuery>(query),
 				page,
 				page_size: pageSize,
-				fields: asArray(selectedFields).join(",")
+				fields: asArray(selectedFields).join(","),
+				sort: parseSorts(asArray(sorts))
 			} },
-			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
+			doForDefined(
+				omitForKeys<RestClientOptions<ResourceQuery>>("serializeInto")
+			)(this.restClientOptions(this.config))
 		));
-		if (this.config.cache) {
+		if (cachingIsEnabled(cacheConfig)) {
 			await this.cache.set(cacheKey!, result, getCacheTTL(this.config.cache));
 		}
 		return result;
 	}
 
-	async getAll(query: Query<T>, selectedFields: MaybeArray<KeyOf<T>> = [], cacheOptions?: QueryCacheOptions<T>) {
+	async getAll(
+		query: Query<ResourceQuery>,
+		selectedFields: MaybeArray<KeyOf<Resource>> = [],
+		sorts?: MaybeArray<Sort<Resource>>,
+		cacheOptions?: QueryCacheOptions<ResourceQuery>
+	) {
 		return getAllFromPagedResource(
 			(page: number) => this.getPage(
-				query, page, 10000, selectedFields, cacheOptions
+				query, page, 10000, selectedFields, sorts, cacheOptions
 			)
 		);
 	}
 
-	async findOne(query: Query<T>, selectedFields?: MaybeArray<KeyOf<T>>, cacheOptions?: QueryCacheOptions<T>) {
+	async findOne(
+		query: Query<ResourceQuery>,
+		selectedFields?: MaybeArray<KeyOf<Resource>>,
+		sorts?: MaybeArray<Sort<Resource>>,
+		cacheOptions?: QueryCacheOptions<ResourceQuery>
+	) {
 		return RestClientService.applyOptions(
-			(await this.getPage(query, 1, 1, selectedFields, cacheOptions)).results[0],
+			(await this.getPage(query, 1, 1, selectedFields, sorts, cacheOptions)).results[0],
 			this.restClientOptions(this.config)
 		);
 	}
 
 	async search<Out = JSONObjectSerializable>(
-		query: Query<T>,
+		query: Query<ResourceQuery>,
 		body: JSONObjectSerializable,
-		cacheOptions?: QueryCacheOptions<T>
+		cacheOptions?: QueryCacheOptions<ResourceQuery>
 	): Promise<Out> {
 		let cacheKey: string | undefined;
-		if (this.config.cache) {
+		const cacheConfig = this.config.cache && this.getCacheConfig(cacheOptions);
+		if (cachingIsEnabled(cacheConfig)) {
 			cacheKey = this.cacheKeyForSearch(query, body, cacheOptions);
 			const cached = await this.cache.get<Out>(cacheKey);
 			if (cached) {
@@ -109,75 +130,72 @@ export class StoreService<T extends { id?: string }> {
 			`${this.config.resource}/_search`,
 			body,
 			{ params: {
-				q: parseQuery<T>(query)
+				q: parseQuery<ResourceQuery>(query)
 			} },
-			doForDefined(omitForKeys<RestClientOptions<T>>("serializeInto"))(this.restClientOptions(this.config))
+			doForDefined(omitForKeys<RestClientOptions<Resource>>("serializeInto"))(this.restClientOptions(this.config))
 		);
-		if (this.config.cache) {
+		if (cachingIsEnabled(cacheConfig)) {
 			await this.cache.set(cacheKey!, result, getCacheTTL(this.config.cache));
 		}
 		return result;
 	}
 
-	async get(id: string): Promise<T & { id: string }> {
+	async get(id: string): Promise<Resource & { id: string }> {
 		const { cache } = this.config;
 		if (cache) {
-			const cached = await this.cache.get<T & { id: string }>(this.withCachePrefix(id));
+			const cached = await this.cache.get<Resource & { id: string }>(this.withCachePrefix(id));
 			if (cached) {
 				return RestClientService.applyOptions(cached, this.restClientOptions(this.config));
 			}
 		}
-		const result = await this.client.get<T & { id: string }>(`${this.config.resource}/${id}`,
+		const result = await this.client.get<Resource & { id: string }>(`${this.config.resource}/${id}`,
 			undefined,
 			this.restClientOptions(this.config));
-		if (cache) {
+		if (cachingIsEnabled(cache)) {
 			await this.cache.set(this.withCachePrefix(id), result, getCacheTTL(this.config.cache));
 		}
 		return result;
 	}
 
-	async create(item: Partial<T>) {
-		type Existing = T & { id: string };
+	async create(item: Partial<Resource>) {
+		type Existing = Resource & { id: string };
 		let result: Existing;
 		try {
-			result = await this.client.post<Existing, Partial<T>>(
+			result = await this.client.post<Existing, Partial<Resource>>(
 				this.config.resource,
 				item,
 				undefined,
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, {
+			this.logger.fatal(e, e.stack, {
 				reason: "Store client failed to create resource",
 				type: this.config.resource,
 				resource: item
 			});
 			throw e;
 		}
-		if (this.config.cache) {
-			// If cache busting fails, we just log the error so the response is returned safely.
-			// Otherwise the client could think the creation failed.
-			try {
-				await this.cache.del(this.withCachePrefix(result.id));
-				await this.bustCacheForResult(result);
-			} catch (e) {
-				this.logger.fatal(e);
-			}
-		}
+		await this.flushCache(result);
 		return result;
 	}
 
-	async flushCache(item: Partial<T>) {
-		if (!this.config.cache) {
+	async flushCache(item: Partial<Resource>) {
+		if (!cachingIsEnabled(this.config.cache)) {
 			return;
 		}
-		if (item.id) {
-			await this.cache.del(this.withCachePrefix(item.id));
+		// If cache busting fails, we just log the error so the response is returned safely.
+		// Otherwise the client could think the creation failed.
+		try {
+			if (hasKey(item, "id")) {
+				await this.cache.del(this.withCachePrefix(item.id));
+			}
+			await this.bustCacheForResult(item);
+		} catch (e) {
+			this.logger.fatal(e, e.stack);
 		}
-		await this.bustCacheForResult(item);
 	}
 
-	async update<Existing extends T & { id: string }>(item: Existing) {
+	async update<Existing extends Resource & { id: string }>(item: Existing) {
 		let result: Existing;
 		try {
 			result = await this.client.put<Existing, Existing>(
@@ -187,29 +205,20 @@ export class StoreService<T extends { id?: string }> {
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, {
+			this.logger.fatal(e, e.stack, {
 				reason: "Store client failed to update resource",
 				type: this.config.resource,
 				resource: item
 			});
 			throw e;
 		}
-		if (this.config.cache) {
-			// If cache busting fails, we just log the error so the response is returned safely.
-			// Otherwise the client could think the update failed.
-			try {
-				await this.cache.del(this.withCachePrefix(result.id));
-				await this.bustCacheForResult(result);
-			} catch (e) {
-				this.logger.fatal(e);
-			}
-		}
+		await this.flushCache(result);
 		return result;
 	}
 
 	async delete(id: string) {
 		const { cache } = this.config;
-		let existing: T & { id: string } | undefined;
+		let existing: Resource & { id: string } | undefined;
 
 		if (cache) {
 			try {
@@ -226,7 +235,7 @@ export class StoreService<T extends { id?: string }> {
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, { reason: "Store client failed to delete resource", type: path });
+			this.logger.fatal(e, e.stack, { reason: "Store client failed to delete resource", type: path });
 			throw e;
 		}
 
@@ -243,13 +252,13 @@ export class StoreService<T extends { id?: string }> {
 				}
 				await this.bustCacheForResult(existing);
 			} catch (e) {
-				this.logger.fatal(e);
+				this.logger.fatal(e, e.stack);
 			}
 		}
 		return result;
 	}
 
-	post<Out = T, In = T>(path = "", body?: any, config?: AxiosRequestConfig) {
+	post<Out = Resource, In = Resource>(path = "", body?: any, config?: AxiosRequestConfig) {
 		const pathWithResource = `${this.config.resource}/${path}`;
 		return this.client.post<Out, In>(pathWithResource, body, config);
 	}
@@ -258,35 +267,39 @@ export class StoreService<T extends { id?: string }> {
 		return `STORE_${this.config.resource}:${key}`;
 	}
 
-	private tokenizePrimaryKeys(primaryKeys: StoreCacheOptions<T>["primaryKeys"] = []): string {
+	private tokenizePrimaryKeys(primaryKeys: StoreCacheOptions<ResourceQuery>["primaryKeys"] = []): string {
 		return primaryKeys.sort().join(";");
 	}
 
-	private async bustCacheForResult(result: Partial<T>) {
+	private async bustCacheForResult(result: Partial<Resource>) {
 		for (const cacheKey of this.cacheKeysForPagedResource(result)) {
 			await this.cache.patternDel(cacheKey);
 		}
 	}
 
-	private queryCacheSpaces: Record<string, StoreCacheOptions<T>["primaryKeys"]> = (
-		this.config.cache?.primaryKeySpaces
-		|| [this.config.cache?.primaryKeys || [] as OnlyNonArrayLiteralKeys<T>[]]
-	).reduce<Record<string, StoreCacheOptions<T>["primaryKeys"]>>(
-		(tokenToPrimaryKeys, primaryKeys) => {
-			tokenToPrimaryKeys[this.tokenizePrimaryKeys(primaryKeys)] = primaryKeys;
-			return tokenToPrimaryKeys;
-		}, {});
+	private queryCacheSpaces: Record<string, StoreCacheOptions<ResourceQuery>["primaryKeys"]> = (() => {
+		const primaryKeySpaces = this.config.cache?.primaryKeySpaces
+			|| (this.config.cache?.primaryKeys
+				? [this.config.cache?.primaryKeys]
+				: undefined);
+		if (!primaryKeySpaces) {
+			return { "": undefined };
+		}
 
-	private getCacheConfig(primaryKeys?: StoreCacheOptions<T>["primaryKeys"]) {
+		return primaryKeySpaces.reduce<Record<string, StoreCacheOptions<ResourceQuery>["primaryKeys"]>>(
+			(tokenToPrimaryKeys, primaryKeys) => {
+				tokenToPrimaryKeys[this.tokenizePrimaryKeys(primaryKeys)] = primaryKeys;
+				return tokenToPrimaryKeys;
+			}, {});
+	})();
+
+	private getCacheConfig(cacheOptions: Pick<QueryCacheOptions<ResourceQuery>, "primaryKeys" | "enabled"> = {}) {
 		if (!this.config.cache) {
 			throw new Error("Cache not configured");
 		}
-		const config = { ...this.config.cache };
-		if (primaryKeys) {
-			config.primaryKeys = primaryKeys;
-		}
+		const config = { ...this.config.cache, ...cacheOptions };
 		if (process.env.NODE_ENV !== "production" &&
-			primaryKeys
+			cacheOptions?.primaryKeys
 			&& config.primaryKeySpaces
 			&& config.primaryKeySpaces.every(
 				keySpace => JSON.stringify(keySpace) !== JSON.stringify(config.primaryKeys)
@@ -299,46 +312,50 @@ export class StoreService<T extends { id?: string }> {
 	}
 
 	private cacheKeyForPagedQuery(
-		query: Query<T>,
+		query: Query<ResourceQuery>,
 		page: number,
 		pageSize: number,
-		selectedFields: KeyOf<T>[],
-		queryCacheOptions: Pick<QueryCacheOptions<T>, "primaryKeys"> = {}
+		selectedFields: KeyOf<Resource>[],
+		sorts: Sort<Resource>[],
+		queryCacheOptions: Pick<QueryCacheOptions<ResourceQuery>, "primaryKeys"> = {}
 	) {
 		if (!this.config.cache) {
 			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
 		}
-		const pagedSuffix = `:${[page, pageSize,selectedFields.join(",") || "*"].join(":")}`;
-		const config = this.getCacheConfig(queryCacheOptions.primaryKeys);
+		const pagedSuffix = `:${[page, pageSize, selectedFields.join(",") || "*", parseSorts(sorts) || "*"].join(":")}`;
+		const config = this.getCacheConfig(queryCacheOptions);
 		const queryCacheKey = getCacheKeyForQuery(query, config);
 		const cacheSpaceToken = this.tokenizePrimaryKeys(config.primaryKeys);
 		return this.withCachePrefix(cacheSpaceToken + ":" + queryCacheKey) + pagedSuffix;
 	}
 
-	private cacheKeysForPagedResource(resource: Partial<T>) {
+	private cacheKeysForPagedResource(resource: Partial<Resource>) {
 		if (!this.config.cache) {
 			throw new Error("Can't get a cache key for a resource if caching isn't enabled in config");
 		}
-		const pagedSuffix = ":*:*:*";
-		return Object.keys(this.queryCacheSpaces).map(cacheSpaceToken => {
-			const config = this.queryCacheSpaces[cacheSpaceToken];
-			return this.withCachePrefix(cacheSpaceToken + ":" + getCacheKeyForResource<T>(
-				resource,
-				this.getCacheConfig(config)
-			)) + pagedSuffix;
-		});
+		const pagedSuffix = ":*:*:*:*"; // Suffix for all combinations of `page`, `pageSize`, `selectedFields` and `sorts`.
+		return Object.keys(this.queryCacheSpaces).reduce((cacheKeys, cacheSpaceToken) => {
+			const primaryKeys = this.queryCacheSpaces[cacheSpaceToken];
+			const cacheKey = this.withCachePrefix(
+				cacheSpaceToken + ":" + getCacheKeyForResource<Resource, ResourceQuery>(
+					resource,
+					this.getCacheConfig({ primaryKeys })
+				)) + pagedSuffix;
+			cacheKeys.push(cacheKey);
+			return cacheKeys;
+		}, [] as string[]);
 	}
 
 	private cacheKeyForSearch(
-		query: Query<T>,
+		query: Query<ResourceQuery>,
 		body: JSONObjectSerializable,
-		queryCacheOptions: Pick<QueryCacheOptions<T>, "primaryKeys"> = {}
+		queryCacheOptions: Pick<QueryCacheOptions<ResourceQuery>, "primaryKeys"> = {}
 	) {
 		if (!this.config.cache) {
 			throw new Error("Can't get a cache key for a query if caching isn't enabled in config");
 		}
 		const suffix = `:${[JSON.stringify(body)]}`;
-		const config = this.getCacheConfig(queryCacheOptions.primaryKeys);
+		const config = this.getCacheConfig(queryCacheOptions);
 		const queryCacheKey = getCacheKeyForQuery(query, config);
 		const cacheSpaceToken = this.tokenizePrimaryKeys(config.primaryKeys);
 		return this.withCachePrefix(cacheSpaceToken + ":" + queryCacheKey) + suffix;
@@ -349,3 +366,10 @@ export const pageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => 
 	const { totalItems, member, currentPage, pageSize } = result;
 	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage });
 };
+
+const cachingIsEnabled = (cache?: StoreCacheOptions<never>) => cache && cache.enabled !== false;
+
+export type Sort<ResourceQuery> = KeyOf<ResourceQuery> | { key: KeyOf<ResourceQuery>, desc: true };
+
+const parseSorts = <T>(sorts: Sort<T>[]) => sorts.map(s => typeof s === "string" ? s : `${s.key} desc`).join(",");
+

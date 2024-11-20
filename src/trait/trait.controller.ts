@@ -52,6 +52,6 @@ export class TraitController implements MergesRemoteSwagger {
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {
-		return patchSwaggerWith("/trait", "", !!"fix pagination")(document, remoteDoc);
+		return patchSwaggerWith("/trait")(document, remoteDoc);
 	};
 }

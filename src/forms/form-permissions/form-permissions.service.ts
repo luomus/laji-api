@@ -25,7 +25,12 @@ export class FormPermissionsService {
 	) {}
 
 	async getByPerson(person: Person): Promise<FormPermissionPersonDto> {
-		const entities = await this.store.getAll({ userID: person.id }, undefined, { primaryKeys: ["userID"] });
+		const entities = await this.store.getAll(
+			{ userID: person.id },
+			undefined,
+			undefined,
+			{ primaryKeys: ["userID"] }
+		);
 		const formPermissions: FormPermissionPersonDto = {
 			personID: person.id,
 			...entitiesToPermissionLists(entities, "collectionID")
@@ -43,7 +48,7 @@ export class FormPermissionsService {
 	private async findByCollectionID(collectionID: string)
 	: Promise<Pick<FormPermissionDto, "admins" | "editors" | "permissionRequests">> {
 		return entitiesToPermissionLists(
-			await this.store.getAll({ collectionID }, undefined, { primaryKeys: ["collectionID"] }),
+			await this.store.getAll({ collectionID }, undefined, undefined, { primaryKeys: ["collectionID"] }),
 			"userID");
 	}
 
@@ -157,6 +162,7 @@ export class FormPermissionsService {
 		const permissions = await this.store.getAll(
 			{ collectionID, userID: personID },
 			undefined,
+			undefined,
 			{ primaryKeys: ["collectionID", "userID"] }
 		);
 		const existing = permissions.pop();
@@ -199,6 +205,10 @@ export class FormPermissionsService {
 	}
 
 	async hasEditRightsOf(collectionID: string, person: Person) {
+		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
+		if (!formWithPermissionFeature?.options?.restrictAccess) {
+			return true;
+		}
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
 		return !permissions ||  hasEditRightsOf(permissions, person);
 	}
@@ -216,7 +226,7 @@ export class FormPermissionsService {
 		for (const adminID of admins) {
 			const admin = await this.personsService.getByPersonId(adminID);
 			void this.mailService.sendFormPermissionRequestReceived(
-				admin, { formTitle, person: admin, formID: form.id }
+				admin, { formTitle, person, formID: form.id }
 			);
 		}
 	}

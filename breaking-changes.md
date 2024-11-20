@@ -101,29 +101,28 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
  ## Documents validation
 
- * POST `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used.
- * POST `/documents/validate/` valid response has no body. In the old API it was `{}`.
- * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form.
- * PUT `/documents/` editing a locked document throws 403, not 422.
- * Added `jsonPointer` validationErrorFormat.
- * Added `dotNotation` validationErrorFormat.
+ * POST `/documents/validate/` `formID` and `type` params dropped. `formID` is derived from the body, `type` is never used
+ * POST `/documents/validate/` valid response has no body. In the old API it was `{}`
+ * POST `/documents/validate/` removed `validators` `overlapWithNamedPlace`, `waterbirdPairCount` and `wbcNamedPlaceExist`, as they are not used by any form
+ * PUT `/documents/` editing a locked document throws 403, not 422
+ * Added `jsonPointer` validationErrorFormat
+ * Added `dotNotation` validationErrorFormat
  * POST `/documents/validate` document with MZ.publicityRestrictionsPrivate skips form validations
  * Document validation error message doesn't include `"Name": "Error"`
 
  ## Documents batch job
 
- * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd
-   party clients
+ * All documents must have the same formID. laji.fi front side uses only one formID so this is a problem only for 3rd party clients
 
 ## Information
 
-* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted".
-* 404 is thrown for not found information. It used to return an object with some nulls & empty strings.
+* Information doesn't try to populate empty strings to "id", "content", "title", "author" and "posted"
+* 404 is thrown for not found information. It used to return an object with some nulls & empty strings
 
 ## Areas
 
 * Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
-* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept.
+* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept
 
 ## Organizations
 
@@ -131,7 +130,7 @@ Might be somewhat different now, the old logic was illogical and clunky to repro
 
  ## TODO
 
- * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`.... This logic is inherited from the old API.
+ * What is up with `editor` & `editors`? When a document is created, the creator is assigned for `editor`, but when querying documents, `editors` is used as search term instead of `editor`... This logic is inherited from the old API.
 
 ## Store query interpreting
 

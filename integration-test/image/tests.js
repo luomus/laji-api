@@ -98,7 +98,7 @@ describe("/image", function() {
 	});
 
 	it("returns a list of images", function(done) {
-		this.timeout(10000);
+		this.timeout(6000);
 		var pageSize = 100;
 		var query = basePath +
 			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
@@ -132,6 +132,7 @@ describe("/image", function() {
 				done();
 			});
 	});
+
 	describe("after receiving temporal id", function() {
 
 		it("Cannot update meta object with empty object", function(done) {
