@@ -44,7 +44,18 @@ export class NamedPlacesService {
 		includePublic?: boolean,
 	): Promise<[Query<NamedPlace>, QueryCacheOptions<NamedPlace>]> {
 		if (typeof query.collectionID === "string") {
-			query.collectionID = await this.getCollectionIDs(query.collectionID);
+			const collectionIDs = await this.getCollectionIDs(query.collectionID);
+			if (!person) {
+				if (await this.formPermissionsService.findRestrictedForm(query.collectionID)) {
+					throw new HttpException("Form has MHL.restrictAccessStrict, please provide a person token", 403);
+				}
+			} else {
+				const hasReadRights = await this.formPermissionsService.hasReadRights(query.collectionID, person);
+				if (!hasReadRights) {
+					throw new HttpException("You don't have permission to the form", 403);
+				}
+			}
+			query.collectionID = collectionIDs;
 		}
 
 		let storeQuery: Query<NamedPlace>;

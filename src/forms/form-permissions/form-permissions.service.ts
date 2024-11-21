@@ -210,7 +210,15 @@ export class FormPermissionsService {
 			return true;
 		}
 		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
-		return !permissions ||  hasEditRightsOf(permissions, person);
+		return !permissions || hasEditRightsOf(permissions, person);
+	}
+
+	async hasReadRights(collectionID: string, person: Person) {
+		const formWithPermissionFeature = await this.findFormWithPermissionFeature(collectionID);
+		if (formWithPermissionFeature?.options?.restrictAccess !== "MHL.restrictAccessStrict") {
+			return true;
+		}
+		return this.hasEditRightsOf(collectionID, person);
 	}
 
 	private async sendFormPermissionRequested(person: Person, collectionID: string) {
