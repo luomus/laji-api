@@ -78,11 +78,26 @@ describe("/named-place", function() {
 			});
 	});
 
-	it("it finds by collections ID", function(done) {
+	it("it doesn't find for collectionID with restrict access strict without person token", function(done) {
 		this.timeout(6000);
 		const query = basePath +
 			"?access_token=" + config["access_token"] +
-			"&collectionID=" + config.objects["named-place"].collectionID +
+			"&collectionID=" + config.id["collection-id-no-restrict-access"] +
+			"&personToken=" + config.user.friend_token +
+			"&pageSize=1000";
+		request(this.server)
+			.get(query)
+			.end(function (err, res) {
+				res.should.have.status(403);
+				done();
+			});
+	});
+
+	it("it finds by collections ID that doesn't have restrict access", function(done) {
+		this.timeout(6000);
+		const query = basePath +
+			"?access_token=" + config["access_token"] +
+			"&collectionID=" + config.id["collection-id-no-restrict-access"] +
 			"&personToken=" + config.user.friend_token +
 			"&pageSize=1000";
 		request(this.server)
