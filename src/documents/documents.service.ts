@@ -171,9 +171,7 @@ export class DocumentsService {
 		apiUser: ApiUserEntity
 	) {
 		const document = await this.populateMutably(unpopulatedDocument, person, apiUser);
-
 		populateCreatorAndEditor(document, person);
-
 		await this.validate(document, person);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, person);
@@ -322,9 +320,6 @@ export class DocumentsService {
 		return document as Populated<T>;
 	};
 
-	// TODO logic not yet copied from old api, need to double check:
-	// * validation population against existing document; should be implemented in update method
-	// * old api does 'linking', id checking etc in `prepareDocument`. Is it handled by store?
 	async validate(
 		document: Populated<Document>,
 		person: Person
@@ -358,28 +353,32 @@ export class DocumentsService {
 
 		const place = await this.namedPlacesService.get(document.namedPlaceID);
 
-		if (form.options?.namedPlaceOptions?.copyLatestDocumentToNamedPlace) {
-			const placeDate = place.prepopulatedDocument ? getDateCounted(place.prepopulatedDocument) : undefined;
-			const docCounted = getDateCounted(document);
-			if (
-				!isValidDate(placeDate) && (isValidDate(docCounted))
-				|| isValidDate(placeDate) && isValidDate(docCounted) && (docCounted as Date) >= (placeDate as Date)
-			) {
-				if (documentHasNewNamedPlaceNote(document, place)) {
-					place.notes = document.gatheringEvent?.namedPlaceNotes;
-				}
-				try {
-					await this.prepopulatedDocumentService.assignFor(place, document);
-				} catch (e) {
-					this.logger.error("Failed to update prepopulatedDocument.",
-						e,
-						{ document: document.id, namedPlace: place.id, person: person.id }
-					);
-				}
-			}
-		} else if (documentHasNewNamedPlaceNote(document, place)) {
+		if (!form.options?.namedPlaceOptions?.copyLatestDocumentToNamedPlace) {
 			place.notes = document.gatheringEvent?.namedPlaceNotes;
 			await this.namedPlacesService.update(place.id, place, person);
+		}
+
+		const placeDate = place.prepopulatedDocument ? getDateCounted(place.prepopulatedDocument) : undefined;
+		const docCounted = getDateCounted(document);
+		if (
+			isValidDate(docCounted) && !isValidDate(placeDate)
+			|| isValidDate(docCounted) && isValidDate(placeDate) && (docCounted as Date) >= (placeDate as Date)
+		) {
+			if (documentHasNewNamedPlaceNote(document, place)) {
+				place.notes = document.gatheringEvent?.namedPlaceNotes;
+			}
+			try {
+				await this.namedPlacesService.update(
+					place.id,
+					await this.prepopulatedDocumentService.getAssigned(place, document),
+					person
+				);
+			} catch (e) {
+				this.logger.error("Failed to update prepopulatedDocument.",
+					e,
+					{ document: document.id, namedPlace: place.id, person: person.id }
+				);
+			}
 		}
 	}
 

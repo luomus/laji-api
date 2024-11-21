@@ -116,7 +116,7 @@ export class NamedPlacesService {
 			throw new HttpException("You must provide a personToken when fetching private named places", 403);
 		}
 
-		if (!place.isReadableFor(person)) {
+		if (!placeIsReadableFor(place, person)) {
 			throw new HttpException("You are not an editor or an owner of the place", 403);
 		}
 
@@ -131,7 +131,7 @@ export class NamedPlacesService {
 
 		await this.checkWriteAccess(place, person);
 
-		await this.prepopulatedDocumentService.augment(place);
+		place = await this.prepopulatedDocumentService.getAugmented(place);
 
 		return this.store.create(place);
 	}
@@ -148,7 +148,7 @@ export class NamedPlacesService {
 			place.owners.push(person.id);
 		}
 
-		await this.prepopulatedDocumentService.augment(place);
+		place = await this.prepopulatedDocumentService.getAugmented(place);
 		return this.store.update(place);
 	}
 
@@ -254,3 +254,6 @@ export class NamedPlacesService {
 		}
 	}
 }
+
+const placeIsReadableFor = (place: NamedPlace, person: Person) =>
+	place.owners.includes(person.id) || (place.editors?.includes(person.id));

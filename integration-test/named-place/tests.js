@@ -1216,6 +1216,5 @@ describe("/named-place", function() {
 					done();
 				});
 		});
-
 	});
 });
