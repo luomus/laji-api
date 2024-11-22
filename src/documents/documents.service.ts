@@ -338,8 +338,7 @@ export class DocumentsService {
 	}
 
 	async namedPlaceSideEffects(document: Document & { id: string }, person: Person) {
-		if (person.isImporter()
-			|| document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
+		if (document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
 			|| !document.formID
 			|| !document.namedPlaceID
 		) {
