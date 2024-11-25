@@ -1,7 +1,7 @@
 import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { Document } from "@luomus/laji-schema";
 import { DocumentValidatorService } from "../document-validator/document-validator.service";
-import { DocumentsService, populateCreatorAndEditor } from "../documents.service";
+import { DocumentsService, populateCreatorAndEditorMutably } from "../documents.service";
 import { PersonsService } from "src/persons/persons.service";
 import {
 	BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
@@ -155,7 +155,7 @@ export class DocumentsBatchService {
 		return documents.map(async document => {
 			try {
 				const populatedDocument = await (isSecondaryDocumentDelete(document)
-					? this.secondaryDocumentsService.populateMutably(document, person, apiUser)
+					? this.secondaryDocumentsService.populateMutably(document, person)
 					: this.documentsService.populateMutably(document, person, apiUser));
 
 				if (!isSecondaryDocumentDelete(populatedDocument) && !populatedDocument.dataOrigin) {
@@ -163,7 +163,7 @@ export class DocumentsBatchService {
 				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument)) {
-					populateCreatorAndEditor(populatedDocument, person);
+					populateCreatorAndEditorMutably(populatedDocument, person);
 				}
 
 				formIDs.add(populatedDocument.formID);

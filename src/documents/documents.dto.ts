@@ -100,7 +100,6 @@ export type SecondaryDocumentDeleteResponse = Pick<Document,
 
 
 export type Populated<T extends Document> = WithNonNullableKeys<T,
-	"sourceID"
 	| "formID"
 	| "collectionID"
 	| "publicityRestrictions"

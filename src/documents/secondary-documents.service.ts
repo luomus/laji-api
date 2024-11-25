@@ -1,11 +1,10 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
-import { DocumentsService, populateCreatorAndEditor } from "./documents.service";
+import { DocumentsService, populateCreatorAndEditorMutably } from "./documents.service";
 import { WarehouseService } from "src/warehouse/warehouse.service";
 import { PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentDelete, SecondaryDocumentOperation,
 	isSecondaryDocument, isSecondaryDocumentDelete, isSecondaryDocumentOperation } from "./documents.dto";
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
-import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @Injectable()
 export class SecondaryDocumentsService {
@@ -16,14 +15,14 @@ export class SecondaryDocumentsService {
 		private config: ConfigService
 	) {}
 
-	async create(createOrDelete: SecondaryDocumentDelete, person: Person, apiUser: ApiUserEntity)
+	async create(createOrDelete: SecondaryDocumentDelete, person: Person)
 		: Promise<SecondaryDocumentDelete>
-	async create(createOrDelete: SecondaryDocument, person: Person, apiUser: ApiUserEntity)
+	async create(createOrDelete: SecondaryDocument, person: Person)
 		: Promise<SecondaryDocument>
-	async create(createOrDelete: SecondaryDocumentOperation, person: Person, apiUser: ApiUserEntity)
+	async create(createOrDelete: SecondaryDocumentOperation, person: Person)
 		: Promise<SecondaryDocument | SecondaryDocumentOperation>
 	{
-		const populatedCreateOrDelete = await this.populateMutably(createOrDelete, person, apiUser);
+		const populatedCreateOrDelete = await this.populateMutably(createOrDelete, person);
 		await this.validate(populatedCreateOrDelete, person);
 		await (isSecondaryDocumentDelete(populatedCreateOrDelete)
 			? this.warehouseService.pushDelete(populatedCreateOrDelete.id, populatedCreateOrDelete.collectionID)
@@ -33,14 +32,13 @@ export class SecondaryDocumentsService {
 
 	async populateMutably(
 		createOrDelete: SecondaryDocumentOperation,
-		person: Person | undefined,
-		apiUser: ApiUserEntity
+		person?: Person
 	) : Promise<PopulatedSecondaryDocumentOperation> {
 		const populated = (isSecondaryDocumentDelete(createOrDelete)
 			? await this.documentsService.deriveCollectionIDMutably(createOrDelete)
-			: await this.documentsService.populateMutably(createOrDelete, person, apiUser));
+			: await this.documentsService.populateCommonsMutably(createOrDelete, person));
 		if (person && !isSecondaryDocumentDelete(populated)) {
-			populateCreatorAndEditor(populated, person);
+			populateCreatorAndEditorMutably(populated, person);
 		}
 		if (isSecondaryDocument(populated)) {
 			const secondarySystemID = this.config.get<string>("SECONDARY_SYSTEM");
