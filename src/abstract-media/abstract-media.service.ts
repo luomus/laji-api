@@ -67,7 +67,7 @@ export class AbstractMediaService<T extends MediaType> {
 	}
 
 	async get(id: string): Promise<Media<T>> {
-		const media = await this.triplestoreService.findOne<Media<T>>(id);
+		const media = await this.triplestoreService.get<Media<T>>(id);
 		if (!media) {
 			throw new HttpException("Media not found", 404);
 		}

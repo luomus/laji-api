@@ -59,7 +59,7 @@ export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperat
 
 export type NewPrimaryDocument = Omit<Document, "id">;
 
-export type SecondaryDocument = Document & {"id": string };
+export type SecondaryDocument = Document & { id: string };
 
 export type SecondaryDocumentDelete = {
 	id: string;
