@@ -1,27 +1,15 @@
-import {
-	Body,
-	Delete,
-	Get, HttpCode, HttpStatus,
-	Next,
-	Param,
-	Post,
-	Put,
-	Query,
-	Req,
-	Res,
-	UseInterceptors
-} from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Query, Req, Res, UseInterceptors }
+	from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { NextFunction, Request, Response } from "express";
-import { FindOneDto, GetPageDto, LangQueryDto, QueryWithPersonTokenDto } from "../common.dto";
+import { LangAndMaybePersonTokenQueryDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
-import { PaginatedDto } from "src/pagination.utils";
 
 @LajiApiController("audio")
 @ApiTags("Audio")
@@ -29,13 +17,6 @@ export class AudioController {
 	constructor(
 		private abstractMediaService: AbstractMediaService<MediaType.audio>,
 	) {}
-
-	/** Get all audio */
-	@Get()
-	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto, Audio))
-	async getPage(@Query() { idIn, page, pageSize }: GetPageDto): Promise<PaginatedDto<Audio>> {
-		return this.abstractMediaService.getPage(idIn, page, pageSize);
-	}
 
 	/** Upload audio and get temporary id */
 	@Post()
@@ -54,9 +35,13 @@ export class AudioController {
 
 	/** Get audio by id */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(FindOneDto, Audio))
-	findOne(@Param("id") id: string, @Query() {}: FindOneDto): Promise<Audio> {
-		return this.abstractMediaService.get(id);
+	@UseInterceptors(createQueryParamsInterceptor(LangAndMaybePersonTokenQueryDto, Audio))
+	get(
+		@Param("id") id: string,
+		@Query() {}: LangAndMaybePersonTokenQueryDto,
+		@PersonToken({ required: false }) person?: Person
+	): Promise<Audio> {
+		return this.abstractMediaService.get(id, person);
 	}
 
 	/** Update audio metadata */
@@ -80,32 +65,52 @@ export class AudioController {
 
 	/** Fetch mp3 by id */
 	@Get(":id/mp3")
-	getMp3(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(id, "mp3URL").then(url => {
+	getMp3(
+		@Param("id") id: string,
+		@Query() _: QueryWithMaybePersonTokenDto,
+		@PersonToken({ required: false }) person: Person | undefined,
+		@Res() res: Response
+	) {
+		void this.abstractMediaService.getURL(id, "mp3URL", person).then(url => {
 			res.redirect(url);
 		});
 	}
 
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
-	getThumbnail(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(id, "thumbnailURL").then(url => {
+	getThumbnail(
+		@Param("id") id: string,
+		@Query() _: QueryWithMaybePersonTokenDto,
+		@PersonToken({ required: false }) person: Person | undefined,
+		@Res() res: Response
+	) {
+		void this.abstractMediaService.getURL(id, "thumbnailURL", person).then(url => {
 			res.redirect(url);
 		});
 	}
 
 	/** Fetch wav by id */
 	@Get(":id/wav")
-	getWav(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(id, "wavURL").then(url => {
+	getWav(
+		@Param("id") id: string,
+		@Query() _: QueryWithMaybePersonTokenDto,
+		@PersonToken({ required: false }) person: Person | undefined,
+		@Res() res: Response
+	) {
+		void this.abstractMediaService.getURL(id, "wavURL", person).then(url => {
 			res.redirect(url);
 		});
 	}
 
 	/** Fetch flac by id */
 	@Get(":id/flac")
-	findFlac(@Param("id") id: string, @Res() res: Response) {
-		void this.abstractMediaService.getURL(id, "flacURL").then(url => {
+	findFlac(
+		@Param("id") id: string,
+		@Query() _: QueryWithMaybePersonTokenDto,
+		@PersonToken({ required: false }) person: Person | undefined,
+		@Res() res: Response
+	) {
+		void this.abstractMediaService.getURL(id, "flacURL", person).then(url => {
 			res.redirect(url);
 		});
 	}

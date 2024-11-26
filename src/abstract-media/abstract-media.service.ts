@@ -1,12 +1,11 @@
 import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { TriplestoreSearchQuery, TriplestoreService } from "../triplestore/triplestore.service";
+import { TriplestoreService } from "../triplestore/triplestore.service";
 import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } from "./abstract-media.dto";
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
 import { MEDIA_CLIENT, MEDIA_CONFIG } from "src/provider-tokens";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
-import { PaginatedDto, paginateAlreadyPaged } from "src/pagination.utils";
 
 export type AbstractMediaServiceConfig = {
 	mediaClass: "IMAGE" | "AUDIO";
@@ -50,32 +49,21 @@ export class AbstractMediaService<T extends MediaType> {
 		}
 	});
 
-	async getPage(idIn?: string[], page = 1, pageSize = 20): Promise<PaginatedDto<Media<T>>> {
-		const query: TriplestoreSearchQuery = {
-			type: this.abstracted.type,
-			predicate: "MZ.publicityRestrictions",
-			objectresource: "MZ.publicityRestrictionsPublic",
-			limit: pageSize,
-			offset: (page - 1) * pageSize
-		};
-		if (idIn) {
-			query.subject = idIn?.join(",");
-		}
-		const results = await this.triplestoreService.find<Media<T>>(query);
-		const total = await this.triplestoreService.count(query);
-		return paginateAlreadyPaged({ results, total, currentPage: page, pageSize });
-	}
-
-	async get(id: string): Promise<Media<T>> {
+	async get(id: string, person?: Person): Promise<Media<T>> {
 		const media = await this.triplestoreService.get<Media<T>>(id);
-		if (!media) {
-			throw new HttpException("Media not found", 404);
+		const { publicityRestrictions = "MZ.publicityRestrictionsPublic" } = media;
+		if (person && person.id !== media.uploadedBy && publicityRestrictions !== "MZ.publicityRestrictionsPublic") {
+			throw new HttpException("The media is not yours and it's not public", 403);
+		}
+		if (["MZ.publicityRestrictionsProtected", "MZ.publicityRestrictionsPrivate"].includes(publicityRestrictions)) {
+			// eslint-disable-next-line max-len
+			throw new HttpException("The media is protected or private. If it is your, please provide a personToken", 403);
 		}
 		return media;
 	}
 
-	async getURL(id: string, urlKey: keyof Media<T>): Promise<string> {
-		const result = await this.get(id);
+	async getURL(id: string, urlKey: keyof Media<T>, person?: Person): Promise<string> {
+		const result = await this.get(id, person);
 		if (!result[urlKey]) {
 			throw new HttpException("Media URL not found", 404);
 		}
@@ -120,7 +108,7 @@ export class AbstractMediaService<T extends MediaType> {
 	}
 
 	async deleteMedia(id: string, person: Person): Promise<void> {
-		const current = await this.get(id);
+		const current = await this.get(id, person);
 
 		if (current.uploadedBy !== person.id) {
 			throw new HttpException("Can only delete media uploaded by the user", 400);

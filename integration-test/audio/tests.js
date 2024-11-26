@@ -39,7 +39,7 @@ describe("/audio", function() {
 
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
-			.get(basePath)
+			.get(basePath + "/" + config.id.audio_others)
 			.end(function(err, res) {
 				res.should.have.status(401);
 				done();
@@ -101,25 +101,6 @@ describe("/audio", function() {
 			.end(function(err, res) {
 				res.should.have.status(400);
 				res.body.should.include({message: errorOnlyOwnDelete});
-				done();
-			});
-	});
-
-	it("returns a list of audio", function(done) {
-		this.timeout(10000);
-		var pageSize = 10;
-		var query = basePath +
-			"?pageSize="+ pageSize+"&access_token=" + config["access_token"];
-		request(this.server)
-			.get(query)
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				helpers.isPagedResult(res.body, pageSize, true);
-				res.body[helpers.params.results].filter((audio) => {
-					helpers.toHaveOnlyKeys(audio, wavItemProperties);
-					audio.should.have.any.keys("id");
-				});
 				done();
 			});
 	});

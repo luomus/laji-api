@@ -39,6 +39,8 @@ Error messages might change.
 
 * metadata POST missing `personToken` doesn't include `status: "INVALID_TOKEN"`. Instead, it's just 400 with a message
   about the missing token ("personToken is required").
+* GET `/` removed (listing of images)
+* Added access control for fetching media and it' metadata. `personToken` query parameter added for relevant endpoints.
 
 ## JSON-LD
 

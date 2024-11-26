@@ -36,18 +36,16 @@ export class QueryWithPersonTokenDto {
 	@IsString() personToken: string;
 }
 
+
 export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {};
+
+export class LangAndMaybePersonTokenQueryDto extends IntersectionType(LangQueryDto, QueryWithMaybePersonTokenDto) {};
 
 export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
 	/**
 	 * Comma separated ids
 	 */
 	@CommaSeparatedStrings() idIn?: string[];
-}
-
-export class FindOneDto  {
-	lang?: Lang = Lang.en;
-	@IsOptionalBoolean() langFallback?: boolean = true;
 }
 
 export const LANGS: Exclude<Lang, Lang.multi>[] = [Lang.fi, Lang.sv, Lang.en];
