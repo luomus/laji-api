@@ -3,7 +3,7 @@ import { Document } from "@luomus/laji-schema";
 import { Unit } from "@luomus/laji-schema/interfaces";
 import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
-import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import type { Geometry } from "geojson";
 
@@ -42,7 +42,7 @@ export class GetNamedPlaceDto {
 
 export class GetNamedPlacePageDto extends IntersectionType(
 	PartialType(QueryWithPersonTokenDto),
-	PagedDto
+	QueryWithPagingDto
 ) {
 	/** Collection id. Child collections are also fetched. */
 	collectionID: string;

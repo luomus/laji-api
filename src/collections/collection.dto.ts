@@ -1,8 +1,8 @@
-import { PagedDto, MultiLang, HasContext, LangQueryDto } from "../common.dto";
+import { QueryWithPagingDto, MultiLang, HasContext, QueryWithLangDto } from "../common.dto";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
-export class FindCollectionsDto extends IntersectionType(PagedDto, LangQueryDto) {};
+export class FindCollectionsDto extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {};
 
 export enum MetadataStatus {
 	Hidden = "MY.metadataStatusHidden"

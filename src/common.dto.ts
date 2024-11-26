@@ -10,7 +10,7 @@ export enum Lang {
 	multi = "multi",
 }
 
-export class PagedDto {
+export class QueryWithPagingDto {
 	@Type(() => Number)
 	@IsInt()
 	page?: number = 1;
@@ -20,15 +20,15 @@ export class PagedDto {
 	pageSize?: number = 20;
 }
 
-export const isPagedQueryDto = (maybePagedQuery: any): maybePagedQuery is PagedDto =>
+export const isQueryWithPagingDto = (maybePagedQuery: any): maybePagedQuery is QueryWithPagingDto =>
 	isObject(maybePagedQuery) && ["page", "pageSize"] .every(k => k in maybePagedQuery);
 
-export class LangQueryDto {
+export class QueryWithLangDto {
 	lang?: Lang = Lang.en;
 	@IsOptionalBoolean() langFallback?: boolean = true;
 }
 
-export const isLangQueryDto = (maybeLangQuery: any): maybeLangQuery is LangQueryDto =>
+export const isQueryWithLangDto = (maybeLangQuery: any): maybeLangQuery is QueryWithLangDto =>
 	isObject(maybeLangQuery) && ["lang", "langFallback"] .every(k => k in maybeLangQuery);
 
 export class QueryWithPersonTokenDto {
@@ -36,12 +36,13 @@ export class QueryWithPersonTokenDto {
 	@IsString() personToken: string;
 }
 
-
 export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {};
 
-export class LangAndMaybePersonTokenQueryDto extends IntersectionType(LangQueryDto, QueryWithMaybePersonTokenDto) {};
+export class QueryWithLangAndMaybePersonTokenDto extends IntersectionType(
+	QueryWithLangDto,
+	QueryWithMaybePersonTokenDto) {};
 
-export class GetPageDto extends IntersectionType(PagedDto, LangQueryDto) {
+export class QueryWithPagingAndLangDto extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {
 	/**
 	 * Comma separated ids
 	 */

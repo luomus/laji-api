@@ -1,4 +1,4 @@
-import { Lang, PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { OmitType } from "@nestjs/swagger";
 import { JSONObjectSerializable } from "src/typing.utils";
@@ -80,7 +80,7 @@ export class GetDto {
 	expand?: boolean = true;
 }
 
-export class GetPageDto extends PagedDto {
+export class QueryWithPagingAndLangDto extends QueryWithPagingDto {
 	lang?: Lang = Lang.en;
 	pageSize?: number = 1000;
 }

@@ -1,7 +1,7 @@
 import { Body, Delete, Get, Param, Put, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { QueryWithPersonTokenDto } from "src/common.dto";
-import { GetPageDto } from "./notification.dto";
+import { QueryWithPagingAndLangDto } from "./notification.dto";
 import { Notification } from "@luomus/laji-schema";
 import { NotificationsService } from "./notifications.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -17,7 +17,7 @@ export class NotificationsController {
 	/* Get notifications */
 	@Get(":personToken")
 	@SwaggerRemoteRef({ source: "store", ref: "notification" })
-	getAll(@Query() { page, pageSize, onlyUnSeen }: GetPageDto, @PersonToken() person: Person) {
+	getAll(@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangDto, @PersonToken() person: Person) {
 		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);
 	}
 

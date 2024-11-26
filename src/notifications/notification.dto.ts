@@ -1,6 +1,6 @@
-import { PagedDto } from "src/common.dto";
+import { QueryWithPagingDto } from "src/common.dto";
 
-export class GetPageDto extends PagedDto {
+export class QueryWithPagingAndLangDto extends QueryWithPagingDto {
 	/**
 	 * Return only notifications that have not been marked as seen.
 	 */

@@ -6,7 +6,8 @@ import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
-import { LangAndMaybePersonTokenQueryDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
+import { QueryWithLangAndMaybePersonTokenDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto }
+	from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
@@ -33,10 +34,10 @@ export class ImagesController {
 
 	/** Get image by id */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(LangAndMaybePersonTokenQueryDto, Image))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangAndMaybePersonTokenDto, Image))
 	get(
 		@Param("id") id: string,
-		@Query() {}: LangAndMaybePersonTokenQueryDto,
+		@Query() {}: QueryWithLangAndMaybePersonTokenDto,
 		@PersonToken({ required: false }) person?: Person
 	): Promise<Image> {
 		return this.abstractMediaService.get(id, person);

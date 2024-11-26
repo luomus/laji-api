@@ -20,16 +20,8 @@ export const getCacheTTL = (cache: CacheOptions["cache"] | { ttl?: number }): un
 			? cache
 			: undefined;
 
-type PromiseReducer<T, R>  = {
-	(value: T): R | Promise<R>;
-}
-
 type Reducer<T, R> = {
 	(value: T): R;
-}
-
-function isPromise<T>(p: any): p is Promise<T> {
-	return !!p?.then;
 }
 
 type Pipe<I, O> = (input: I) => O;
@@ -61,6 +53,10 @@ function pipe<T>(...operations: Reducer<any, any>[]): Pipe<T, any> {
 /* eslint-enable max-len */
 
 type PromisePipe<I, O> = Pipe<MaybePromise<I>, Promise<O>>;
+
+type PromiseReducer<T, R>  = {
+	(value: T): R | Promise<R>;
+}
 
 /**
  * RXJS' `pipe` for plain promises.

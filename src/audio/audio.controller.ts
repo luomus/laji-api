@@ -6,7 +6,8 @@ import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.
 import { Audio } from "./audio.dto";
 import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { NextFunction, Request, Response } from "express";
-import { LangAndMaybePersonTokenQueryDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
+import { QueryWithLangAndMaybePersonTokenDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto }
+	from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
@@ -35,10 +36,10 @@ export class AudioController {
 
 	/** Get audio by id */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(LangAndMaybePersonTokenQueryDto, Audio))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangAndMaybePersonTokenDto, Audio))
 	get(
 		@Param("id") id: string,
-		@Query() {}: LangAndMaybePersonTokenQueryDto,
+		@Query() {}: QueryWithLangAndMaybePersonTokenDto,
 		@PersonToken({ required: false }) person?: Person
 	): Promise<Audio> {
 		return this.abstractMediaService.get(id, person);

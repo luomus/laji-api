@@ -1,5 +1,5 @@
 import { Area as AreaI } from "@luomus/laji-schema";
-import { HasContext, LangQueryDto, PagedDto } from "../common.dto";
+import { HasContext, QueryWithLangDto, QueryWithPagingDto } from "../common.dto";
 import { IntersectionType } from "@nestjs/swagger";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
 
@@ -15,8 +15,8 @@ export enum AreaTypeDto {
 }
 
 export class GetAreaPageDto extends IntersectionType(
-	PagedDto,
-	LangQueryDto
+	QueryWithPagingDto,
+	QueryWithLangDto
 ) {
 	// For backward compatibility. We're going to deprecate it and use areaType.
 	type?: unknown;
