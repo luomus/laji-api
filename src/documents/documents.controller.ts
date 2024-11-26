@@ -140,11 +140,7 @@ export class DocumentsController {
 						"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
 						422);
 				}
-				const populated = await this.secondaryDocumentsService.populateMutably(
-					document as SecondaryDocument,
-					undefined,
-					apiUser
-				);
+				const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
 				if (!personToken) {
 					throw new HttpException("Person token is for batch operation", 422);
 				}
@@ -235,8 +231,7 @@ export class DocumentsController {
 			}
 			// The return type for secondary document deletion isn't actually Document. This remains undocumented by our
 			// Swagger document.
-			return this.secondaryDocumentsService.create(document as SecondaryDocument, person, apiUser) as
-				unknown as Promise<Document>;
+			return this.secondaryDocumentsService.create(document as SecondaryDocument, person) as Promise<Document>;
 		}
 
 		return this.documentsService.create(

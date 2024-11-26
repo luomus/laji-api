@@ -4,7 +4,7 @@ import { AreaTypeDto, GetAreaPageDto } from "./area.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
-import { LangQueryDto } from "src/common.dto";
+import { QueryWithLangDto } from "src/common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
 @ApiTags("Area")
@@ -15,9 +15,9 @@ export class AreaController {
 
 	/** Get a page of areas */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
 	@SwaggerRemoteRef({ source: "store", ref: "area" })
-	get(@Param("id") id: string, @Query() _: LangQueryDto) {
+	get(@Param("id") id: string, @Query() _: QueryWithLangDto) {
 		return this.areaService.get(id);
 	}
 

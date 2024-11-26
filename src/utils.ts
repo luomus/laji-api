@@ -20,16 +20,8 @@ export const getCacheTTL = (cache: CacheOptions["cache"] | { ttl?: number }): un
 			? cache
 			: undefined;
 
-type PromiseReducer<T, R>  = {
-	(value: T): R | Promise<R>;
-}
-
 type Reducer<T, R> = {
 	(value: T): R;
-}
-
-function isPromise<T>(p: any): p is Promise<T> {
-	return !!p?.then;
 }
 
 type Pipe<I, O> = (input: I) => O;
@@ -62,6 +54,10 @@ function pipe<T>(...operations: Reducer<any, any>[]): Pipe<T, any> {
 
 type PromisePipe<I, O> = Pipe<MaybePromise<I>, Promise<O>>;
 
+type PromiseReducer<T, R>  = {
+	(value: T): R | Promise<R>;
+}
+
 /**
  * RXJS' `pipe` for plain promises.
  * Creates a function that reduces given input with the given operators.
@@ -83,13 +79,13 @@ function promisePipe<T, A, B, C, D, E, F, G, H>(op1: PromiseReducer<T, A>, op2: 
 function promisePipe<T, A, B, C, D, E, F, G, H, I>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>, op9: PromiseReducer<H, I>): PromisePipe<T, I>;
 function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any>;
 function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any> {
-	return (initialValue: T) =>
-		operations.reduce((promise, fn) => promise.then(
-			value => isPromise(fn)
-				? fn(value)
-				: Promise.resolve(fn(value))
-		)
-		, isPromise(initialValue) ? initialValue : Promise.resolve(initialValue));
+	return (initialValue: T) => (async () => {
+		let value = await initialValue;
+		for (const fn of operations) {
+			value = await fn(value);
+		}
+		return value;
+	})();
 }
 
 export { promisePipe, pipe };

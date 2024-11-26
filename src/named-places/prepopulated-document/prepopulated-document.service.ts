@@ -4,7 +4,6 @@ import { Form, Format, PrepopulatedDocumentFieldFn, PrepopulatedDocumentFieldFnA
 	PrepopulatedDocumentFieldFnTaxon } from "src/forms/dto/form.dto";
 import { FormsService } from "src/forms/forms.service";
 import { Document } from "@luomus/laji-schema";
-import { NamedPlace } from "../named-places.dto";
 import { MaybeArray } from "src/typing.utils";
 import { LangService, translateMaybeMultiLang } from "src/lang/lang.service";
 import { asArray, parseJSONPointer, updateWithJSONPointer } from "src/utils";
@@ -12,6 +11,7 @@ import { TaxaService } from "src/taxa/taxa.service";
 import { Lang } from "src/common.dto";
 import { Taxon } from "src/taxa/taxa.dto";
 import { AreaService } from "src/area/area.service";
+import { NamedPlace } from "../named-places.dto";
 
 @Injectable()
 export class PrepopulatedDocumentService {
@@ -23,12 +23,13 @@ export class PrepopulatedDocumentService {
 		private areaService: AreaService
 	) { }
 
-	async augment(place: NamedPlace) {
+	async getAugmented(place: NamedPlace): Promise<NamedPlace> {
 		const prepopulatedDocument = await this.getAugmentedFor(place);
 		if (prepopulatedDocument) {
 			await this.validate(prepopulatedDocument, place.collectionID);
-			await this.assignFor(place, prepopulatedDocument);
+			return this.getAssigned(place, prepopulatedDocument);
 		}
+		return place;
 	}
 
 	private async validate(prepopulatedDocument: Document, collectionID?: string) {
@@ -45,7 +46,8 @@ export class PrepopulatedDocumentService {
 		checkHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
 	}
 
-	async assignFor(place: NamedPlace, document: Document): Promise<void> {
+	/** Assigns prepopulated document and accepted document to the place according to form options */
+	async getAssigned(place: NamedPlace, document: Document): Promise<NamedPlace> {
 		const updateAcceptedDocument = place.collectionID
 			&& !place.prepopulatedDocument
 			&& !place.acceptedDocument
@@ -53,10 +55,11 @@ export class PrepopulatedDocumentService {
 				place.collectionID,
 				f => f.options.namedPlaceOptions?.useAcceptedDocument
 			);
-		place.prepopulatedDocument = document;
+		place = { ...place, prepopulatedDocument: document };
 		if (updateAcceptedDocument) {
-			place.acceptedDocument = document;
+			place = { ...place, acceptedDocument: document };
 		}
+		return place;
 	}
 
 	private async getAugmentedFor(place: NamedPlace): Promise<Document | undefined> {

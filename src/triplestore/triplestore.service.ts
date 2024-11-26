@@ -52,7 +52,7 @@ export class TriplestoreService {
 	 * @param resource The resource identifier to get
 	 * @param options Cache options
 	 */
-	async findOne<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
+	async get<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
 		const { cache } = options || {};
 		if (cache) {
 			const cached = await this.cache.get<T>(getPathAndQuery(resource));
@@ -106,13 +106,12 @@ export class TriplestoreService {
 		return (await this.triplestoreClient.get<{ count: number }>("search/count", { params: query }, options)).count;
 	}
 
-
 	private async rdfToJsonLd<T>(
 		rdf: MaybePromise<JSONSerializable>,
 		cacheKey: string,
 		options?: TriplestoreQueryOptions
 	): Promise<T> {
-		const jsonld: any = await promisePipe(triplestoreToJsonLd)(rdf);
+		const jsonld = await promisePipe(triplestoreToJsonLd)(rdf);
 		const isArrayResult = Array.isArray(jsonld["@graph"]);
 		if (isArrayResult && (jsonld["@graph"] as any).length === 0) {
 			return [] as T;

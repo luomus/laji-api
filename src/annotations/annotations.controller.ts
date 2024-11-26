@@ -8,7 +8,7 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Annotation, Tag } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
-import { LangQueryDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { QueryWithLangDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
@@ -22,10 +22,10 @@ export class AnnotationsController {
 	// TODO what does "only visible in dev mode" in the comment mean? It's copied from the old API.
 	/** Fetch all annotation tags (Only visible in dev mode) */
 	@Get("tags")
-	@UseInterceptors(createQueryParamsInterceptor(LangQueryDto))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
 	@SwaggerRemoteRef({ source: "store", ref: "tag" })
 	getTags(
-		@Query() _: LangQueryDto,
+		@Query() _: QueryWithLangDto,
 	): Promise<Tag[]> {
 		return this.annotationsService.getTags();
 	}

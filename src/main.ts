@@ -143,7 +143,7 @@ function logOutgoingRequests(httpService: HttpService) {
 		responseLogger(response.config, "verbose", response.status);
 		return response;
 	}, error => {
-		responseLogger(error.config, "error", error.status);
+		responseLogger(error.config, "error", error.response.status);
 		return Promise.reject(error);
 	});
 }

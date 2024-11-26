@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, mixin, NestInterceptor } from "@nestjs/common";
 import { from, Observable, switchMap } from "rxjs";
 import { Request } from "express";
-import { isLangQueryDto, isPagedQueryDto, LangQueryDto, PagedDto } from "src/common.dto";
+import { isQueryWithLangDto, QueryWithPagingDto, QueryWithLangDto, isQueryWithPagingDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
 import { pageResult, applyToResult } from "src/pagination.utils";
@@ -15,7 +15,7 @@ import { plainToClass } from "class-transformer";
  * @param serializeInto Serialize the result item(s) into a class.
  * @param serializeOptions Options for serialization.
  */
-export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & Partial<PagedDto>)>
+export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto> & Partial<QueryWithPagingDto>)>
 (QueryDto?: Newable<T>, serializeInto?: Newable<any>, serializeOptions?: SerializeOptions)
 	: ClassDecorator {
 	@Injectable()
@@ -44,17 +44,17 @@ export function createQueryParamsInterceptor<T extends (Partial<LangQueryDto> & 
 			const query = plainToClass(QueryDto, rawQuery);
 			const { lang, langFallback, page, pageSize } = query;
 			let jsonLdContext: string | undefined;
-			if (isLangQueryDto(query)) {
+			if (isQueryWithLangDto(query)) {
 				if (Array.isArray(result)) {
 					jsonLdContext = result[0]?.["@context"];
 				} else {
 					jsonLdContext = result["@context"];
 				}
 			}
-			if (isPagedQueryDto(query)) {
+			if (isQueryWithPagingDto(query)) {
 				result = pageResult(result, page, pageSize, lang);
 			}
-			if (isLangQueryDto(query)) {
+			if (isQueryWithLangDto(query)) {
 				if (!jsonLdContext) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}

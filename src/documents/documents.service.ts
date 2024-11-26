@@ -1,5 +1,5 @@
 import { HttpException, Inject, Injectable, Logger, forwardRef } from "@nestjs/common";
-import { Flatten, KeyOf } from "src/typing.utils";
+import { Flatten, KeyOf, WithNonNullableKeys } from "src/typing.utils";
 import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
 import { DocumentCountItemResponse, Populated, StatisticsResponse } from "./documents.dto";
@@ -171,9 +171,7 @@ export class DocumentsService {
 		apiUser: ApiUserEntity
 	) {
 		const document = await this.populateMutably(unpopulatedDocument, person, apiUser);
-
-		populateCreatorAndEditor(document, person);
-
+		populateCreatorAndEditorMutably(document, person);
 		await this.validate(document, person);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, person);
@@ -280,29 +278,16 @@ export class DocumentsService {
 		return mutableTarget as T & { formID: string, collectionID: string };
 	}
 
-	async populateMutably<T extends Document>(
+	async populateCommonsMutably<T extends Document>(
 		document: T,
 		person: Person | undefined,
-		apiUser: ApiUserEntity,
-		overwriteSourceID = true
-	) : Promise<Populated<T>> {
-		const { systemID } = apiUser;
-		if (!systemID) {
-			throw new HttpException("No valid systemID could be found for the api user", 422);
-		}
-
+	): Promise<Populated<T>> {
 		// TODO remove after Mobiilivihko fixed. There's a issue about this.
 		if (document.gatheringEvent && document.gatheringEvent.dateBegin === "") {
 			delete document.gatheringEvent.dateBegin;
 		}
 		if (document.gatheringEvent && document.gatheringEvent.dateEnd === "") {
 			delete document.gatheringEvent.dateEnd;
-		}
-
-		if (overwriteSourceID) {
-			document.sourceID = systemID;
-		} else if (!document.sourceID) {
-			document.sourceID = systemID;
 		}
 
 		await this.deriveCollectionIDMutably(document);
@@ -320,11 +305,19 @@ export class DocumentsService {
 		});
 
 		return document as Populated<T>;
+	}
+
+
+	async populateMutably<T extends Document>(
+		document: T,
+		person: Person | undefined,
+		apiUser: ApiUserEntity,
+		overwriteSourceID = true
+	): Promise<WithNonNullableKeys<Populated<T>, "sourceID">> {
+		const withSourceID = populateSourceIDMutably(document, apiUser, overwriteSourceID);
+		return this.populateCommonsMutably(withSourceID, person);
 	};
 
-	// TODO logic not yet copied from old api, need to double check:
-	// * validation population against existing document; should be implemented in update method
-	// * old api does 'linking', id checking etc in `prepareDocument`. Is it handled by store?
 	async validate(
 		document: Populated<Document>,
 		person: Person
@@ -343,8 +336,7 @@ export class DocumentsService {
 	}
 
 	async namedPlaceSideEffects(document: Document & { id: string }, person: Person) {
-		if (person.isImporter()
-			|| document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
+		if (document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
 			|| !document.formID
 			|| !document.namedPlaceID
 		) {
@@ -358,28 +350,32 @@ export class DocumentsService {
 
 		const place = await this.namedPlacesService.get(document.namedPlaceID);
 
-		if (form.options?.namedPlaceOptions?.copyLatestDocumentToNamedPlace) {
-			const placeDate = place.prepopulatedDocument ? getDateCounted(place.prepopulatedDocument) : undefined;
-			const docCounted = getDateCounted(document);
-			if (
-				!isValidDate(placeDate) && (isValidDate(docCounted))
-				|| isValidDate(placeDate) && isValidDate(docCounted) && (docCounted as Date) >= (placeDate as Date)
-			) {
-				if (documentHasNewNamedPlaceNote(document, place)) {
-					place.notes = document.gatheringEvent?.namedPlaceNotes;
-				}
-				try {
-					await this.prepopulatedDocumentService.assignFor(place, document);
-				} catch (e) {
-					this.logger.error("Failed to update prepopulatedDocument.",
-						e,
-						{ document: document.id, namedPlace: place.id, person: person.id }
-					);
-				}
-			}
-		} else if (documentHasNewNamedPlaceNote(document, place)) {
+		if (!form.options?.namedPlaceOptions?.copyLatestDocumentToNamedPlace) {
 			place.notes = document.gatheringEvent?.namedPlaceNotes;
 			await this.namedPlacesService.update(place.id, place, person);
+		}
+
+		const placeDate = place.prepopulatedDocument ? getDateCounted(place.prepopulatedDocument) : undefined;
+		const docCounted = getDateCounted(document);
+		if (
+			isValidDate(docCounted) && !isValidDate(placeDate)
+			|| isValidDate(docCounted) && isValidDate(placeDate) && (docCounted as Date) >= (placeDate as Date)
+		) {
+			if (documentHasNewNamedPlaceNote(document, place)) {
+				place.notes = document.gatheringEvent?.namedPlaceNotes;
+			}
+			try {
+				await this.namedPlacesService.update(
+					place.id,
+					await this.prepopulatedDocumentService.getAssigned(place, document),
+					person
+				);
+			} catch (e) {
+				this.logger.error("Failed to update prepopulatedDocument.",
+					e,
+					{ document: document.id, namedPlace: place.id, person: person.id }
+				);
+			}
 		}
 	}
 
@@ -512,11 +508,26 @@ const dateRangeClause = (dateRange: { from: string, to: string }) =>
 
 const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });
 
-export const populateCreatorAndEditor = <T extends { creator?: string; editor?: string }>
+export const populateCreatorAndEditorMutably = <T extends { creator?: string; editor?: string }>
 	(document: T, person: Person): T => {
 	if (!person.isImporter()) {
 		document.creator = person.id;
 		document.editor = person.id;
 	}
 	return document;
+};
+
+const populateSourceIDMutably = <T extends Document>
+	(document: T, apiUser: ApiUserEntity, overwriteSourceID = true) : WithNonNullableKeys<T, "sourceID"> => {
+	const { systemID } = apiUser;
+	if (!systemID) {
+		throw new HttpException("No valid systemID could be found for the api user", 422);
+	}
+
+	if (overwriteSourceID) {
+		document.sourceID = systemID;
+	} else if (!document.sourceID) {
+		document.sourceID = systemID;
+	}
+	return document as WithNonNullableKeys<T, "sourceID">;
 };

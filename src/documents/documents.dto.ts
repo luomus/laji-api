@@ -2,13 +2,13 @@ import { Document } from "@luomus/laji-schema";
 import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PartialType, getSchemaPath } from "@nestjs/swagger";
 import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
-import { PagedDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { WithNonNullableKeys } from "src/typing.utils";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 
 export class GetDocumentsDto extends IntersectionType(
-	PagedDto,
+	QueryWithPagingDto,
 	QueryWithPersonTokenDto
 ) {
 	/** Limit the list of documents to a certain observation year */
@@ -59,7 +59,7 @@ export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperat
 
 export type NewPrimaryDocument = Omit<Document, "id">;
 
-export type SecondaryDocument = Document & {"id": string };
+export type SecondaryDocument = Document & { id: string };
 
 export type SecondaryDocumentDelete = {
 	id: string;
@@ -100,7 +100,6 @@ export type SecondaryDocumentDeleteResponse = Pick<Document,
 
 
 export type Populated<T extends Document> = WithNonNullableKeys<T,
-	"sourceID"
 	| "formID"
 	| "collectionID"
 	| "publicityRestrictions"

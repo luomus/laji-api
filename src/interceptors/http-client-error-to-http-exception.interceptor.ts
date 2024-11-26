@@ -11,15 +11,16 @@ export class HttpClientErrorToHttpExceptionInterceptor implements NestIntercepto
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		return next.handle().pipe(
-			catchError(e => {
-				return throwError(() =>  {
+			catchError(e => 
+				throwError(() => {
 					return (!(e instanceof HttpException) && e.response?.status)
-						? new HttpException(e.response?.data  ?? "LajiApi generic error - External request failed",
-							e.response?.status)
+						? new HttpException(
+							e.response?.data || "Outgoing request failed without message",
+							e.response?.status
+						)
 						: e;
-				}
-				);
-			})
+				})
+			)
 		);
 	}
 }

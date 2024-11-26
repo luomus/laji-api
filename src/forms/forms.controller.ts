@@ -1,6 +1,7 @@
 import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { AcceptAccessDto, Form, Format, GetPageDto, GetDto, RevokeAccessDto, TransformDto } from "./dto/form.dto";
+import { AcceptAccessDto, Form, Format, QueryWithPagingAndLangDto, GetDto, RevokeAccessDto, TransformDto }
+	from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
@@ -71,8 +72,8 @@ export class FormsController {
 	/** Get a page of forms */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
-	@UseInterceptors(createQueryParamsInterceptor(GetPageDto))
-	getPage(@Query() { lang }: GetPageDto) {
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLangDto))
+	getPage(@Query() { lang }: QueryWithPagingAndLangDto) {
 		return this.formsService.getListing(lang);
 	}
 

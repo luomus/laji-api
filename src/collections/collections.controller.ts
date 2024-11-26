@@ -3,7 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { Collection, FindCollectionsDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
-import { FindOneDto, GetPageDto } from "../common.dto";
+import { QueryWithPagingAndLangDto, QueryWithLangDto } from "../common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { CollectionMultiLangHackInterceptor } from "./collection-multi-lang-hack.interceptor";
@@ -19,10 +19,10 @@ export class CollectionsController {
 	@Get()
 	@UseInterceptors(
 		CollectionMultiLangHackInterceptor,
-		createQueryParamsInterceptor(GetPageDto, Collection)
+		createQueryParamsInterceptor(QueryWithPagingAndLangDto, Collection)
 	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
-	async getPage(@Query() { idIn }: GetPageDto) {
+	async getPage(@Query() { idIn }: QueryWithPagingAndLangDto) {
 		return this.collectionsService.findCollections(idIn);
 	}
 
@@ -41,10 +41,10 @@ export class CollectionsController {
 	@Get(":id")
 	@UseInterceptors(
 		CollectionMultiLangHackInterceptor,
-		createQueryParamsInterceptor(FindOneDto, Collection)
+		createQueryParamsInterceptor(QueryWithLangDto, Collection)
 	)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
-	findOne(@Param("id") id: string, @Query() {}: FindOneDto) {
+	get(@Param("id") id: string, @Query() {}: QueryWithLangDto) {
 		return this.collectionsService.get(id);
 	}
 
