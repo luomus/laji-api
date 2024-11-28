@@ -28,7 +28,7 @@ export const AllowedPageQueryKeys = [
 export class NamedPlacesService {
 
 	constructor(
-		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<NamedPlace>,
+		@Inject("STORE_RESOURCE_SERVICE") public store: StoreService<NamedPlace>,
 		private personsService: PersonsService,
 		private formsService: FormsService,
 		private formPermissionsService: FormPermissionsService,

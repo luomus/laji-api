@@ -365,10 +365,8 @@ export class DocumentsService {
 				place.notes = document.gatheringEvent?.namedPlaceNotes;
 			}
 			try {
-				await this.namedPlacesService.update(
-					place.id,
-					await this.prepopulatedDocumentService.getAssigned(place, document),
-					person
+				await this.namedPlacesService.store.update(
+					await this.prepopulatedDocumentService.getAssigned(place, document)
 				);
 			} catch (e) {
 				this.logger.error("Failed to update prepopulatedDocument.",
