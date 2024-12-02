@@ -90,10 +90,10 @@ export class ApiUsersService {
 			if (accessTokenEntity) {
 				await queryRunner.manager.remove(accessTokenEntity);
 			}
-			const newAccessTokenEntity = this.accessTokenService.getNewForUser(apiUser);
+			const newAccessTokenEntity = this.accessTokenService.getNewForUser(existing);
 			await queryRunner.manager.save(newAccessTokenEntity);
 			await queryRunner.commitTransaction();
-			await this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, newAccessTokenEntity.id);
+			await this.mailService.sendApiUserCreated({ emailAddress: existing.email }, newAccessTokenEntity.id);
 		} catch (e) {
 			await queryRunner.rollbackTransaction();
 			throw e;
