@@ -66,10 +66,7 @@ export class ProfileService {
 
 	async addFriendRequest(personToken: string, friendPersonID: string) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const friendProfile = await this.findByPersonId(friendPersonID);
-		if (!friendProfile) {
-			throw new HttpException("Profile not found", 404);
-		}
+		const friendProfile = await this.getByPersonIdOrCreate(friendPersonID);
 		const { friendRequests, blocked, friends, userID: friendID } = friendProfile;
 
 		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
