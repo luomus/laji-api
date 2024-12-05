@@ -72,8 +72,7 @@ export class ApiUsersService {
 	}
 
 	async renew(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
-		const apiUser = serializeInto(ApiUserEntity)(apiUserWithEmail);
-		const existing = await this.findByEmail(apiUser.email);
+		const existing = await this.findByEmail(apiUserWithEmail.email);
 
 		if (!existing) {
 			// eslint-disable-next-line max-len

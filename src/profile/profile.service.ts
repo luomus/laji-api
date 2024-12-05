@@ -5,7 +5,6 @@ import { Profile } from "./profile.dto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serialization/serialization.utils";
 import * as equals from "fast-deep-equal";
-import { uuid } from "src/utils";
 
 @Injectable()
 export class ProfileService {
@@ -55,7 +54,7 @@ export class ProfileService {
 			throw new HttpException("Can't update profile that doesn't exist", 422);
 		}
 		const nextProfile = serializeInto(Profile)({ ...existingProfile, ...profile });
-		const protectedKeys: (keyof Profile)[] = ["id", "userID", "profileKey", "friendRequests", "friends"];
+		const protectedKeys: (keyof Profile)[] = ["id", "userID", "friendRequests", "friends"];
 		protectedKeys.forEach((key: keyof Profile) => {
 			if (!equals(nextProfile[key], existingProfile[key])) {
 				throw new HttpException(`${key} cannot be updated by this method`, 422);
@@ -65,22 +64,20 @@ export class ProfileService {
 		return this.store.update(nextProfile);
 	}
 
-	async addFriendRequest(personToken: string, friendPersonIDOrProfileKey: string) {
-		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
-		const profile = friendPersonIDOrProfileKey.startsWith("MA.")
-			? await this.findByPersonId(friendPersonIDOrProfileKey)
-			: await this.findByProfileKey(friendPersonIDOrProfileKey);
-		if (!profile) {
+	async addFriendRequest(personToken: string, friendPersonID: string) {
+		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
+		const friendProfile = await this.findByPersonId(friendPersonID);
+		if (!friendProfile) {
 			throw new HttpException("Profile not found", 404);
 		}
-		const { friendRequests, blocked, friends, userID: friendID } = profile;
+		const { friendRequests, blocked, friends, userID: friendID } = friendProfile;
 
 		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
 			throw new HttpException("Friend request already sent", 422);
 		}
 
 		const updated = await this.store.update({
-			...profile, friendRequests: [...friendRequests, personId]
+			...friendProfile, friendRequests: [...friendRequests, personId]
 		});
 		void this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
 		return updated;
@@ -137,7 +134,6 @@ export class ProfileService {
 		}
 
 		profile.userID = personId;
-		profile.profileKey = uuid(6);
 		return this.store.create(profile);
 	}
 
@@ -151,9 +147,5 @@ export class ProfileService {
 
 	private async findByPersonId(personId: string): Promise<Profile | undefined> {
 		return this.store.findOne({ userID: personId });
-	}
-
-	private async findByProfileKey(profileKey: string): Promise<Profile | undefined> {
-		return this.store.findOne({ profileKey });
 	}
 }

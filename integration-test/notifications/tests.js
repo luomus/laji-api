@@ -40,7 +40,7 @@ describe("/notifications", function() {
 		// Create a notification first by adding friend request. This would be nice to do in after/before, but mocha/chai
 		// doesn't keep the order of test execution correct then. The last test removes the friend request, so the
 		// original state of the friends is restored.
-		var query = personBasePath + "/" + token + "/friends/" + config.user.profileKey
+		var query = personBasePath + "/" + token + "/friends/" + config.user.model.id
 			+ "?access_token=" + accessToken;
 		await request(this.server).post(query);
 
