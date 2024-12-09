@@ -60,7 +60,7 @@ describe("ProfileService", () => {
 	it("should not create a duplicate profile if one already exists", async () => {
 		const personId = "test-person-id";
 		const profile: Profile = {
-			userID: personId, profileKey: "test-key", id: "1", friendRequests: [], friends: [], blocked: [],
+			userID: personId, id: "1", friendRequests: [], friends: [], blocked: [],
 			profileDescription: "",
 			personalCollectionIdentifier: "",
 			taxonExpertise: [],
@@ -81,7 +81,7 @@ describe("ProfileService", () => {
 	it("should throw an error if trying to create a profile for a person who already has one", async () => {
 		const personId = "test-person-id";
 		const profile: Profile = {
-			userID: personId, profileKey: "test-key", id: "1", friendRequests: [], friends: [], blocked: [],
+			userID: personId, id: "1", friendRequests: [], friends: [], blocked: [],
 			profileDescription: "",
 			personalCollectionIdentifier: "",
 			taxonExpertise: [],
@@ -118,7 +118,7 @@ describe("ProfileService", () => {
 		const personToken = "test-token";
 		const personId = "test-person-id";
 		const profile: Profile = {
-			userID: personId, profileKey: "test-key", id: "1", friendRequests: [], friends: [], blocked: [],
+			userID: personId, id: "1", friendRequests: [], friends: [], blocked: [],
 			profileDescription: "",
 			personalCollectionIdentifier: "",
 			taxonExpertise: [],

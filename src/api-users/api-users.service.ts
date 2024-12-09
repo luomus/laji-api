@@ -72,8 +72,7 @@ export class ApiUsersService {
 	}
 
 	async renew(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
-		const apiUser = serializeInto(ApiUserEntity)(apiUserWithEmail);
-		const existing = await this.findByEmail(apiUser.email);
+		const existing = await this.findByEmail(apiUserWithEmail.email);
 
 		if (!existing) {
 			// eslint-disable-next-line max-len
@@ -90,10 +89,10 @@ export class ApiUsersService {
 			if (accessTokenEntity) {
 				await queryRunner.manager.remove(accessTokenEntity);
 			}
-			const newAccessTokenEntity = this.accessTokenService.getNewForUser(apiUser);
+			const newAccessTokenEntity = this.accessTokenService.getNewForUser(existing);
 			await queryRunner.manager.save(newAccessTokenEntity);
 			await queryRunner.commitTransaction();
-			await this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, newAccessTokenEntity.id);
+			await this.mailService.sendApiUserCreated({ emailAddress: existing.email }, newAccessTokenEntity.id);
 		} catch (e) {
 			await queryRunner.rollbackTransaction();
 			throw e;

@@ -15,9 +15,7 @@ export class PersonsController {
 		private readonly profileService: ProfileService
 	) {}
 
-	/*
-	 * Find person by person token
-	 */
+	/** Find person by person token */
 	@Get(":personToken")
 	findPersonByToken(@Param("personToken") personToken: string) {
 		return this.personsService.getByToken(personToken);
@@ -28,67 +26,53 @@ export class PersonsController {
 		return this.profileService.getByPersonTokenOrCreate(personToken);
 	}
 
-	/*
-	 * Find person by user id (this will not include email)
-	 */
+	/** Find person by user id (this will not include email) */
 	@Get("by-id/:personId")
 	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
 	async findPersonByPersonId(@Param("personId") personId: string) {
 		return this.personsService.getByPersonId(personId);
 	}
 
-	/*
-	 * Find profile by user id (this will only return small subset of the full profile)
-	 */
+	/** Find profile by user id (this will only return small subset of the full profile) */
 	@Get("by-id/:personId/profile")
-	@Serialize(Profile, { whitelist: ["userID", "profileKey", "image", "profileDescription"] }, "SensitiveProfile")
+	@Serialize(Profile, { whitelist: ["userID", "image", "profileDescription"] }, "SensitiveProfile")
 	async getProfileByPersonId(@Param("personId") personId: string) {
 		return this.profileService.getByPersonIdOrCreate(personId);
 	}
 
-	/*
-	 * Create profile
-	 */
+	/** Create profile */
 	@Post(":personToken/profile")
 	async createProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
 		const { id } = await this.personsService.getByToken(personToken);
 		return this.profileService.createWithPersonId(id, profile);
 	}
 
-	/*
-	 * Update profile
-	 */
+	/** Update profile */
 	@Put(":personToken/profile")
 	async updateProfile(@Param("personToken") personToken: string, @Body() profile: Profile) {
 		const { id } =  await this.personsService.getByToken(personToken);
 		return this.profileService.updateWithPersonId(id, profile);
 	}
 
-	/*
-	 * Request person to be your friend
-	 */
+	/** Request person to be your friend */
 	@Post(":personToken/friends/:friendPersonID")
 	addFriendRequest(@Param("personToken") personToken: string, @Param("friendPersonID") friendPersonID: string) {
 		return this.profileService.addFriendRequest(personToken, friendPersonID);
 	}
 
-	/*
-	 * Accept friend request
-	 */
-	@Put(":personToken/friends/:personId")
-	acceptFriendRequest(@Param("personToken") personToken: string, @Param("personId") personId: string) {
-		return this.profileService.acceptFriendRequest(personToken, personId);
+	/** Accept friend request */
+	@Put(":personToken/friends/:friendPersonID")
+	acceptFriendRequest(@Param("personToken") personToken: string, @Param("friendPersonID") friendPersonID: string) {
+		return this.profileService.acceptFriendRequest(personToken, friendPersonID);
 	}
 
-	/*
-	 * Remove a friend request or a friend
-	 */
-	@Delete(":personToken/friends/:personId")
+	/** Remove a friend request or a friend */
+	@Delete(":personToken/friends/:friendPersonID")
 	removeFriend(
 		@Param("personToken") personToken: string,
-		@Param("personId") personId: string,
+		@Param("friendPersonID") friendPersonID: string,
 		@Query() { block }: RemoveFriendDto
 	) {
-		return this.profileService.removeFriend(personToken, personId, block);
+		return this.profileService.removeFriend(personToken, friendPersonID, block);
 	}
 }
