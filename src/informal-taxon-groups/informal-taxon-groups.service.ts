@@ -11,7 +11,7 @@ import { CACHE_10_MIN, dictionarifyByKey, firstFromNonEmptyArr, promisePipe } fr
 
 const CACHE_TTL = CACHE_10_MIN;
 
-type InformalTaxonGroup = WithNonNullableKeys<_InformalTaxonGroup, "@context">
+type InformalTaxonGroup = WithNonNullableKeys<_InformalTaxonGroup, "id" | "@context">
 
 @Injectable()
 @IntelligentInMemoryCache()
@@ -48,6 +48,14 @@ export class InformalTaxonGroupsService {
 		return walkTreeWith(promisePipe(translate, removeJsonLDContext))(await this.getTree());
 	}
 
+	async getNonExpandedRoots() {
+		return (await this.getTree()).map(node => {
+			const { hasSubGroup } = node;
+			return hasSubGroup ? { ...node, hasSubGroup: hasSubGroup.map(({ id }) => id) } : node;
+		});
+	}
+
+
 	@IntelligentMemoize()
 	private async getAll() {
 		return this.triplestoreService.find<InformalTaxonGroup>(
@@ -62,6 +70,7 @@ export class InformalTaxonGroupsService {
 	}
 
 	expandFromLookup(lookup: Record<string, InformalTaxonGroup>): InformalTaxonGroupExpanded[] {
+		const idToHasParent: Record<string, boolean> = {};
 		const expandById = (id: string): InformalTaxonGroupExpanded => {
 			const item = lookup[id];
 			if (!item) {
@@ -73,16 +82,14 @@ export class InformalTaxonGroupsService {
 			if (!hasSubGroup) {
 				return item as InformalTaxonGroupExpanded;
 			}
+			hasSubGroup.forEach(id => {
+				idToHasParent[id] = true;
+			})
 			return { ...item, hasSubGroup: hasSubGroup.map(expandById) };
 		};
 
-		return Object.keys(lookup).map(id => {
-			const item = lookup[id]!;
-			const { hasSubGroup } = item;
-			return hasSubGroup
-				? { ...item, hasSubGroup: hasSubGroup.map(expandById) }
-				: item as InformalTaxonGroupExpanded;
-		});
+		const expanded = Object.keys(lookup).map(expandById);
+		return expanded.filter(({ id }) => !idToHasParent[id]);
 	}
 }
 

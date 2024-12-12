@@ -144,3 +144,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * When trying to create an annotation with duplicate tags or schematically incorrect tags, an error is thrown. Old API just filtered the duplicates & incorrect tags.
 * POST `/annotation` (annotation creation) doesn't accept "full document URI", like http://tun.fi/JX.1243 as the rootID. Only simple Qnames are accepted.
 * When removing an annotation, the persons to notify about it is dug from the warehouse's response's `editorUserIds`.  Old API uses `editors` field but that's not documented in https://laji.fi/about/1400 so I hope this one is correct?  (ask Esko later)
+
+## Informal taxon groups
+
+* `/informal-taxon-groups/tree` isn't paged anymore.

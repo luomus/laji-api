@@ -26,4 +26,11 @@ export class InformalTaxonGroupsController {
 	getTree(@Query() { lang = Lang.en, langFallback }: QueryWithPagingAndLangDto) {
 		return this.informalTaxonGroupsService.getTranslatedTree(lang, langFallback);
 	}
+
+	@Get("roots")
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLangDto))
+	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
+	getRoots(@Query() _: QueryWithPagingAndLangDto) {
+		return this.informalTaxonGroupsService.getNonExpandedRoots();
+	}
 }
