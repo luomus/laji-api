@@ -1,13 +1,13 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/models";
-import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
-import { Lang, MultiLangAsString, HasJsonLdContext } from "src/common.dto";
+import { Lang, MultiLangAsString } from "src/common.dto";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { LangService } from "src/lang/lang.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { WithNonNullableKeys, omit, omitForKeys } from "src/typing.utils";
-import { CACHE_10_MIN, dictionarifyByKey, firstFromNonEmptyArr, promisePipe } from "src/utils";
+import { WithNonNullableKeys, omitForKeys } from "src/typing.utils";
+import { CACHE_10_MIN, dictionarifyByKey, promisePipe } from "src/utils";
 
 const CACHE_TTL = CACHE_10_MIN;
 
@@ -16,8 +16,6 @@ type InformalTaxonGroup = WithNonNullableKeys<_InformalTaxonGroup, "id" | "@cont
 @Injectable()
 @IntelligentInMemoryCache()
 export class InformalTaxonGroupsService {
-
-	private logger = new Logger(InformalTaxonGroupsService.name);
 
 	constructor(
 		@Inject("TRIPLESTORE_READONLY_SERVICE") private triplestoreService: TriplestoreService,
@@ -37,9 +35,45 @@ export class InformalTaxonGroupsService {
 		return all.filter(a => !ids || ids.includes(a.id));
 	}
 
+	async get(id: string): Promise<InformalTaxonGroup> {
+		const lookup = await this.getLookup();
+		const one = lookup[id];
+		if (!one) {
+			throw new HttpException("Informal taxon group not found", 404);
+		}
+		return one;
+	}
+
+	async getChildren(id: string): Promise<InformalTaxonGroup[]> {
+		const parent = await this.get(id);
+		const lookup = await this.getLookup();
+		return (parent.hasSubGroup || []).map(id => lookup[id]!);
+	}
+
+	async getParent(id: string): Promise<InformalTaxonGroup> {
+		const idToParent = this.getExpandedTreeAndParentLookup(await this.getLookup())[1];
+		const parent = idToParent[id];
+		if (!parent) {
+			throw new HttpException("Informal taxon group or its parent not found", 404);
+		}
+		return (await this.getLookup())[parent]!;
+	}
+
+	async getSiblings(id: string): Promise<InformalTaxonGroup[]> {
+		const idToParent = this.getExpandedTreeAndParentLookup(await this.getLookup())[1];
+		const parentId = idToParent[id];
+
+		if (!parentId) {
+			throw new HttpException("Informal taxon group not found or id doesn't have parents", 404);
+		}
+
+		const lookup = await this.getLookup();
+		return lookup[parentId]!.hasSubGroup!.map(parentLevelId => lookup[parentLevelId]!);
+	}
+
 	@IntelligentMemoize()
 	async getTree() {
-		return this.expandFromLookup(await this.getLookup());
+		return this.getExpandedTreeAndParentLookup(await this.getLookup())[0];
 	}
 
 	async getTranslatedTree(lang: Lang, langFallback?: boolean) {
@@ -48,13 +82,12 @@ export class InformalTaxonGroupsService {
 		return walkTreeWith(promisePipe(translate, removeJsonLDContext))(await this.getTree());
 	}
 
-	async getNonExpandedRoots() {
+	async getRoots() {
 		return (await this.getTree()).map(node => {
 			const { hasSubGroup } = node;
 			return hasSubGroup ? { ...node, hasSubGroup: hasSubGroup.map(({ id }) => id) } : node;
 		});
 	}
-
 
 	@IntelligentMemoize()
 	private async getAll() {
@@ -69,27 +102,32 @@ export class InformalTaxonGroupsService {
 		return dictionarifyByKey(await this.getAll(), "id");
 	}
 
-	expandFromLookup(lookup: Record<string, InformalTaxonGroup>): InformalTaxonGroupExpanded[] {
-		const idToHasParent: Record<string, boolean> = {};
+	/**
+	 * @returns tuple where:
+	 *  * The first item is the informal taxon group tree, where the `hasSubGroup` is expanded from
+	 *  * The second item is a id-to-parent lookup table.
+	 */
+	getExpandedTreeAndParentLookup(lookup: Record<string, InformalTaxonGroup>)
+		: [InformalTaxonGroupExpanded[], Record<string, string>]
+	{
+		const idToParent: Record<string, string> = {};
 		const expandById = (id: string): InformalTaxonGroupExpanded => {
 			const item = lookup[id];
 			if (!item) {
-				const msg = `Informal taxon group tree is broken. ${id} wasn't found the tree`;
-				// this.logger.fatal(msg);
-				throw new HttpException(msg, 500);
+				throw new HttpException(`Informal taxon group tree is broken. ${id} wasn't found in the tree`, 500);
 			}
 			const { hasSubGroup } = item;
 			if (!hasSubGroup) {
 				return item as InformalTaxonGroupExpanded;
 			}
 			hasSubGroup.forEach(id => {
-				idToHasParent[id] = true;
-			})
+				idToParent[id] = item.id;
+			});
 			return { ...item, hasSubGroup: hasSubGroup.map(expandById) };
 		};
 
 		const expanded = Object.keys(lookup).map(expandById);
-		return expanded.filter(({ id }) => !idToHasParent[id]);
+		return [expanded.filter(({ id }) => !idToParent[id]), idToParent];
 	}
 }
 
