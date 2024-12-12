@@ -16,7 +16,7 @@ import { plainToClass } from "class-transformer";
  * @param serializeOptions Options for serialization.
  */
 export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto> & Partial<QueryWithPagingDto>)>
-(QueryDto?: Newable<T>, serializeInto?: Newable<any>, serializeOptions?: SerializeOptions)
+(QueryDto?: Newable<T>, serializeInto?: Newable<any>, serializeOptions?: SerializeOptions, jsonLdContext?: string)
 	: ClassDecorator {
 	@Injectable()
 	class QueryParamsInterceptor implements NestInterceptor {
@@ -49,6 +49,7 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 					jsonLdContext = result[0]?.["@context"];
 				} else {
 					jsonLdContext = result["@context"];
+
 				}
 			}
 			if (isQueryWithPagingDto(query)) {

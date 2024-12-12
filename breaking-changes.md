@@ -49,8 +49,8 @@ Error messages might change.
 Will be changed like so:
 
 ```
-+  "@context": "http://tun.fi/MA.person"
 -  "@context": "http://schema.laji.fi/context/person-en.jsonld"
++  "@context": "http://tun.fi/MA.person"
 ```
 
 ### Paged result contexts
