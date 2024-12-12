@@ -61,3 +61,11 @@ export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, 
 export class HasJsonLdContext {
 	"@context": string;
 }
+
+export type MultiLangAsString<T> = {
+	[K in keyof T]: T[K] extends MultiLang
+	? string
+	: T[K] extends object
+	? MultiLangAsString<T[K]>
+	: T[K];
+};

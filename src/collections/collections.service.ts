@@ -100,11 +100,11 @@ export class CollectionsService {
 	}
 
 	@IntelligentMemoize()
-	private async getIdToCollection(): Promise<Record<string, Collection<MultiLang>>> {
+	private async getIdToCollection(): Promise<Record<string, Collection>> {
 		return (await this.getAll()).reduce((idToCollection, c) => {
 			idToCollection[c.id] = c;
 			return idToCollection;
-		}, {} as Record<string, Collection<MultiLang>>);
+		}, {} as Record<string, Collection>);
 	}
 
 	@IntelligentMemoize()
@@ -118,11 +118,11 @@ export class CollectionsService {
 	}
 
 	@IntelligentMemoize()
-	private async getAll(): Promise<Collection<MultiLang>[]> {
+	private async getAll(): Promise<Collection[]> {
 		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
 	}
 
-	private async getTriplestoreCollections(): Promise<Collection<MultiLang>[]> {
+	private async getTriplestoreCollections(): Promise<Collection[]> {
 		const collections = await this.triplestoreService.find<TriplestoreCollection>(
 			{ type: "MY.collection" },
 			{ cache: CACHE_10_MIN }
@@ -144,7 +144,7 @@ export class CollectionsService {
 				return idToCollection;
 			}, {});
 
-		return collections.reduce((collections: Collection<MultiLang>[], collection: TriplestoreCollection) => {
+		return collections.reduce((collections: Collection[], collection: TriplestoreCollection) => {
 			if (collectionIsHidden(collection, idToCollection)) {
 				return collections;
 			}
@@ -159,16 +159,16 @@ export class CollectionsService {
 			 // Convert stringy booleans into real boolean
 			if (collection.shareToFEO) collection.shareToFEO = Boolean(collection.shareToFEO);
 
-			(collection as Collection<MultiLang>).longName = getLongName(collection, idToCollection);
-			(collection as Collection<MultiLang>).hasChildren = !!collectionIdToChildIds[collection.id]
+			(collection as Collection).longName = getLongName(collection, idToCollection);
+			(collection as Collection).hasChildren = !!collectionIdToChildIds[collection.id]
 				|| collection.id === GBIF_DATASET_PARENT;
 
-			collections.push(collection as Collection<MultiLang>);
+			collections.push(collection as Collection);
 			return collections;
 		}, []);
 	}
 
-	private async getGbifCollections(): Promise<Collection<MultiLang>[]> {
+	private async getGbifCollections(): Promise<Collection[]> {
 		const gbifCollections = await this.gbifClient.get<GbifCollectionResult>(
 			"installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset",
 			{ params: { limit: 1000 } },
