@@ -51,7 +51,7 @@ export class InformalTaxonGroupsService {
 	}
 
 	async getParent(id: string): Promise<InformalTaxonGroup> {
-		const idToParent = this.getExpandedTreeAndParentLookup(await this.getLookup())[1];
+		const idToParent = (await this.getExpandedTreeAndParentLookup())[1];
 		const parent = idToParent[id];
 		if (!parent) {
 			throw new HttpException("Informal taxon group or its parent not found", 404);
@@ -60,7 +60,7 @@ export class InformalTaxonGroupsService {
 	}
 
 	async getSiblings(id: string): Promise<InformalTaxonGroup[]> {
-		const idToParent = this.getExpandedTreeAndParentLookup(await this.getLookup())[1];
+		const idToParent = (await this.getExpandedTreeAndParentLookup())[1];
 		const parentId = idToParent[id];
 
 		if (!parentId) {
@@ -71,9 +71,8 @@ export class InformalTaxonGroupsService {
 		return lookup[parentId]!.hasSubGroup!.map(parentLevelId => lookup[parentLevelId]!);
 	}
 
-	@IntelligentMemoize()
 	async getTree() {
-		return this.getExpandedTreeAndParentLookup(await this.getLookup())[0];
+		return (await this.getExpandedTreeAndParentLookup())[0];
 	}
 
 	async getTranslatedTree(lang: Lang, langFallback?: boolean) {
@@ -107,9 +106,10 @@ export class InformalTaxonGroupsService {
 	 *  * The first item is the informal taxon group tree, where the `hasSubGroup` is expanded from
 	 *  * The second item is a id-to-parent lookup table.
 	 */
-	getExpandedTreeAndParentLookup(lookup: Record<string, InformalTaxonGroup>)
-		: [InformalTaxonGroupExpanded[], Record<string, string>]
+	@IntelligentMemoize()
+	async getExpandedTreeAndParentLookup(): Promise<[InformalTaxonGroupExpanded[], Record<string, string>]>
 	{
+		const lookup = await this.getLookup();
 		const idToParent: Record<string, string> = {};
 		const expandById = (id: string): InformalTaxonGroupExpanded => {
 			const item = lookup[id];
