@@ -77,4 +77,19 @@ describe("/informal-taxon-groups", function() {
 				done();
 			});
 	});
+
+	it("returns parent by id", function(done) {
+		this.timeout(5000);
+		var query = basePath + "/MVL.1241/parents" +
+			"?access_token=" + config["access_token"];
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				if (err) return done(err);
+				res.should.have.status(200);
+				res.body.should.have.property("id");
+				res.body.should.include({ id: "MVL.1" });
+				done();
+			});
+	});
 });

@@ -36,13 +36,15 @@ export class QueryWithPersonTokenDto {
 	@IsString() personToken: string;
 }
 
-export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {};
+export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {}
 
 export class QueryWithLangAndMaybePersonTokenDto extends IntersectionType(
 	QueryWithLangDto,
 	QueryWithMaybePersonTokenDto) {};
 
-export class QueryWithPagingAndLangDto extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {
+export class QueryWithPagingAndLang extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {}
+
+export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingAndLang {
 	/**
 	 * Comma separated ids
 	 */

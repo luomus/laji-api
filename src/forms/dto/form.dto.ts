@@ -80,7 +80,7 @@ export class GetDto {
 	expand?: boolean = true;
 }
 
-export class QueryWithPagingAndLangDto extends QueryWithPagingDto {
+export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingDto {
 	lang?: Lang = Lang.en;
 	pageSize?: number = 1000;
 }
