@@ -2,8 +2,17 @@ import { RequestMethod } from "@nestjs/common";
 import { METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 import { SwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { SerializeEntry } from "src/serialization/serialize.decorator";
+import { SchemaItem } from "./swagger.service";
 
-export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & { controller: string };
+
+export type SwaggerCustomizationCommon = {
+	/** Function to customize the OpenAPI schema. Has higher precedence than `replacePointer` */
+	customize?: (schema: SchemaItem) => SchemaItem;
+}
+
+export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & {
+	controller: string;
+};
 
 export const swaggerCustomizationEntries: {
 	[path: string]: {

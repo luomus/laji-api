@@ -4,7 +4,7 @@ import { Request } from "express";
 import { isQueryWithLangDto, QueryWithPagingDto, QueryWithLangDto, isQueryWithPagingDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
-import { pageResult, applyToResult } from "src/pagination.utils";
+import { paginateArray, applyToResult } from "src/pagination.utils";
 import { Newable } from "src/typing.utils";
 import { serializeInto as _serializeInto, SerializeOptions } from "src/serialization/serialization.utils";
 import { plainToClass } from "class-transformer";
@@ -49,12 +49,11 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 					jsonLdContext = result[0]?.["@context"];
 				} else {
 					jsonLdContext = result["@context"];
-
 				}
 			}
 			const { length } = result;
 			if (isQueryWithPagingDto(query)) {
-				result = pageResult(result, page, pageSize, lang);
+				result = paginateArray(result, page, pageSize, lang);
 			}
 			if (isQueryWithLangDto(query) && length) {
 				if (!jsonLdContext) {

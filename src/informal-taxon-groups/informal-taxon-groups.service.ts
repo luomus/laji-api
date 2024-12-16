@@ -7,7 +7,7 @@ import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator
 import { LangService } from "src/lang/lang.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { WithNonNullableKeys, omitForKeys } from "src/typing.utils";
-import { CACHE_10_MIN, dictionarifyByKey, promisePipe } from "src/utils";
+import { CACHE_10_MIN, dictionarifyByKey, firstFromNonEmptyArr, promisePipe } from "src/utils";
 
 const CACHE_TTL = CACHE_10_MIN;
 
@@ -86,6 +86,10 @@ export class InformalTaxonGroupsService {
 			const { hasSubGroup } = node;
 			return hasSubGroup ? { ...node, hasSubGroup: hasSubGroup.map(({ id }) => id) } : node;
 		});
+	}
+
+	async getJsonLdContext() {
+		return firstFromNonEmptyArr((await this.getAll()))["@context"];
 	}
 
 	@IntelligentMemoize()

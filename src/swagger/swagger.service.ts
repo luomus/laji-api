@@ -21,7 +21,7 @@ import {
 	FetchSwagger, PatchSwagger, instancesWithRemoteSwagger
 } from "src/decorators/remote-swagger-merge.decorator";
 
-type SchemaItem = SchemaObject | ReferenceObject;
+export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
 @Injectable()
@@ -125,15 +125,14 @@ export class SwaggerService {
 									continue;
 								}
 
-								const schema: SchemaItem | undefined = pipe(
+								const schema: SchemaItem = pipe(
 									applyEntry(entry, document),
-									paginateAsNeededWith(operation)
+									paginateAsNeededWith(operation),
+									// asResultsArrayAsNeededWith(operation),
 								)(existingSchema);
-								if (schema) {
-									(operation.responses as any)[responseCode].content = {
-										"application/json": { schema }
-									};
-								}
+								(operation.responses as any)[responseCode].content = {
+									"application/json": { schema }
+								};
 							}
 						}
 					});
@@ -245,11 +244,14 @@ const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | Ref
 };
 
 const applyEntry = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
-	(schema: SchemaItem): SchemaItem | undefined => {
+	(schema: SchemaItem): SchemaItem => {
 		if (isSwaggerRemoteRefEntry(entry)) {
-			return replaceWithRemote(entry, schema, document);
+			schema = replaceWithRemote(entry, schema, document);
 		} else if (isSerializeEntry(entry)) {
-			return replaceWithSerialized(entry, schema);
+			schema = replaceWithSerialized(entry, schema);
+		}
+		if (entry.customize) {
+			schema = entry.customize(schema);
 		}
 		return schema;
 	};
@@ -259,12 +261,13 @@ const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, doc
 	if (entry.replacePointer) {
 		const schemaDef = getSchemaDefinition(document, schema);
 		updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
+		return schemaDef;
 	} else {
 		return replacement;
 	}
 };
 
-const replaceWithSerialized = (entry: SerializeEntry, schema?: SchemaItem) => (
+const replaceWithSerialized = (entry: SerializeEntry, schema: SchemaItem) => (
 	entry.schemaDefinitionName
 		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
 		: schema
@@ -296,7 +299,7 @@ export const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;
 
 export const paginateAsNeededWith = (operation: OperationObject) =>
-	(schema?: SchemaObject | ReferenceObject) =>
-		(schema && isPagedOperation(operation) && !isPagedSchema(schema))
+	(schema: SchemaObject | ReferenceObject) =>
+		(isPagedOperation(operation) && !isPagedSchema(schema))
 			? asPagedResponse(schema)
 			: schema;

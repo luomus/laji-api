@@ -5,7 +5,19 @@ import { createQueryParamsInterceptor } from "src/interceptors/query-params/quer
 import { InformalTaxonGroupsService } from "./informal-taxon-groups.service";
 import { Lang, QueryWithLangDto, QueryWithPagingAndLangAndIdIn, QueryWithPagingAndLang } from "src/common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { Paginator } from "src/interceptors/paginator.interceptor";
+import { addContextToPageLikeResult } from "src/pagination.utils";
+import { SchemaItem } from "src/swagger/swagger.service";
+
+const wrapSchemaToJsonLdContextResults = (schema: SchemaItem) => ({
+	type: "object",
+	properties: {
+		"@context": { type: "string" },
+		results: {
+			type: "array",
+			items: schema
+		}
+	}
+});
 
 @ApiTags("InformalTaxonGroup")
 @LajiApiController("informal-taxon-groups")
@@ -23,20 +35,21 @@ export class InformalTaxonGroupsController {
 
 	/** Get the informal taxon group tree */
 	@Get("tree")
-	@UseInterceptors(Paginator)
-	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
-	getTree(@Query() { lang = Lang.en, langFallback }: QueryWithPagingAndLang) {
-		return this.informalTaxonGroupsService.getTranslatedTree(lang, langFallback);
+	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup", customize: wrapSchemaToJsonLdContextResults })
+	async getTree(@Query() { lang = Lang.en, langFallback }: QueryWithLangDto) {
+		return ({
+			results: await this.informalTaxonGroupsService.getTranslatedTree(lang, langFallback),
+			"@context": await this.informalTaxonGroupsService.getJsonLdContext()
+		});
 	}
 
 	/** Get first level of the informal taxon group tree */
 	@Get("roots")
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLang))
-	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
-	getRoots(@Query() _: QueryWithPagingAndLang) {
-		return this.informalTaxonGroupsService.getRoots();
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
+	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup", customize: wrapSchemaToJsonLdContextResults })
+	async getRoots(@Query() { lang }: QueryWithLangDto) {
+		return addContextToPageLikeResult(lang)({ results: await this.informalTaxonGroupsService.getRoots() });
 	}
-
 
 	/** Get an informal taxon group by id */
 	@Get(":id")
@@ -48,10 +61,10 @@ export class InformalTaxonGroupsController {
 
 	/** Get an informal taxon group's immediate children */
 	@Get(":id/children")
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLang))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
 	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
-	getChildren(@Param("id") id: string, @Query() _: QueryWithPagingAndLang) {
-		return this.informalTaxonGroupsService.getChildren(id);
+	async getChildren(@Param("id") id: string, @Query() { lang }: QueryWithLangDto) {
+		return addContextToPageLikeResult(lang)({ results: await this.informalTaxonGroupsService.getChildren(id) });
 	}
 
 	/** Get informal taxon group's parents */
@@ -60,6 +73,14 @@ export class InformalTaxonGroupsController {
 	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
 	async getParents(@Param("id") id: string, @Query() _: QueryWithPagingAndLang) {
 		return [await this.informalTaxonGroupsService.getParent(id)];
+	}
+
+	/** Get informal taxon group's parents */
+	@Get(":id/parent")
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
+	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
+	async getParent(@Param("id") id: string, @Query() _: QueryWithLangDto) {
+		return this.informalTaxonGroupsService.getParent(id);
 	}
 
 	/** Get informal taxon group's siblings */

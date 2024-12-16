@@ -1,6 +1,6 @@
 import { Newable, isObject } from "src/typing.utils";
 import { SerializeOptions } from "src/serialization/serialization.utils";
-import { createSwaggerScanner } from "src/swagger/swagger-scanner";
+import { SwaggerCustomizationCommon, createSwaggerScanner } from "src/swagger/swagger-scanner";
 import { UseInterceptors, applyDecorators } from "@nestjs/common";
 import { createNewSerializingInterceptorWith } from "./serializing.interceptor";
 
@@ -17,7 +17,8 @@ type SerializeEntryWithWhiteList = SerializeBase
 type SerializeEntryWithoutWhiteList = SerializeBase
 	& { serializeOptions?: HasNotWhitelist }
 	& Partial<HasSchemaDefinitionName>;
-export type SerializeEntry = SerializeEntryWithWhiteList | SerializeEntryWithoutWhiteList;
+export type SerializeEntry = SwaggerCustomizationCommon
+	& (SerializeEntryWithWhiteList | SerializeEntryWithoutWhiteList);
 
 export const entryHasWhiteList = (entry: SerializeEntry): entry is SerializeEntryWithWhiteList => {
 	return (entry.serializeOptions as any)?.whitelist;
