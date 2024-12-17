@@ -138,7 +138,6 @@ export class DocumentsService {
 		selectedFields?: (keyof Document)[]
 	) {
 		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, person, observationYear);
-		console.log("!", storeQuery);
 		return await this.store.getPage(
 			storeQuery,
 			page,
