@@ -60,14 +60,18 @@ export class InformalTaxonGroupsService {
 	}
 
 	async getSiblings(id: string): Promise<InformalTaxonGroup[]> {
+		const lookup = await this.getLookup();
 		const idToParent = (await this.getExpandedTreeAndParentLookup())[1];
 		const parentId = idToParent[id];
 
 		if (!parentId) {
+			const exists = !!lookup[id];
+			if (exists) {
+				return this.getRoots();
+			}
 			throw new HttpException("Informal taxon group not found or id doesn't have parents", 404);
 		}
 
-		const lookup = await this.getLookup();
 		return lookup[parentId]!.hasSubGroup!.map(parentLevelId => lookup[parentLevelId]!);
 	}
 
