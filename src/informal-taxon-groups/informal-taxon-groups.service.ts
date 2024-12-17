@@ -82,10 +82,12 @@ export class InformalTaxonGroupsService {
 	}
 
 	async getRoots() {
-		return (await this.getTree()).map(node => {
-			const { hasSubGroup } = node;
-			return hasSubGroup ? { ...node, hasSubGroup: hasSubGroup.map(({ id }) => id) } : node;
-		});
+		const jsonLdContext = await this.getJsonLdContext();
+		return (await this.getTree()).map(node => ({
+			...node,
+			hasSubGroup: node.hasSubGroup?.map(({ id }) => id),
+			"@context": jsonLdContext
+		}));
 	}
 
 	async getJsonLdContext() {

@@ -9,12 +9,12 @@ import { plainToClass } from "class-transformer";
 export class Paginator implements NestInterceptor {
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const request = context.switchToHttp().getRequest<Request>();
-		return next.handle().pipe(map(result => this.paginate(request.query, result)));
-	}
-
-	paginate(rawQuery: QueryWithPagingAndLangAndIdIn, result: any[]) {
-		const query = plainToClass(QueryWithPagingAndLangAndIdIn, rawQuery);
-		const { page, pageSize, lang } = query;
-		return paginateArray(result, page, pageSize, lang);
+		return next.handle().pipe(map(result => paginate(request.query, result)));
 	}
 }
+
+const paginate = (rawQuery: QueryWithPagingAndLangAndIdIn, result: any[]) => {
+	const query = plainToClass(QueryWithPagingAndLangAndIdIn, rawQuery);
+	const { page, pageSize, lang } = query;
+	return paginateArray(result, page, pageSize, lang);
+};
