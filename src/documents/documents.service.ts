@@ -103,7 +103,7 @@ export class DocumentsService {
 			const viewableForAll = (await this.formsService.findListedByCollectionID(collectionID))
 				.some(f => f.options?.documentsViewableForAll);
 			if (
-				!permissions?.admins.includes(person.id)
+				!person.isImporter() && !permissions?.admins.includes(person.id)
 				&& (!viewableForAll || !permissions?.editors.includes(person.id))
 			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person));
@@ -138,6 +138,7 @@ export class DocumentsService {
 		selectedFields?: (keyof Document)[]
 	) {
 		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, person, observationYear);
+		console.log("!", storeQuery);
 		return await this.store.getPage(
 			storeQuery,
 			page,
