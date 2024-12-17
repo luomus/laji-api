@@ -51,11 +51,10 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 					jsonLdContext = result["@context"];
 				}
 			}
-			const { length } = result;
 			if (isQueryWithPagingDto(query)) {
 				result = paginateArray(result, page, pageSize, lang);
 			}
-			if (isQueryWithLangDto(query) && length) {
+			if (isQueryWithLangDto(query)) {
 				if (!jsonLdContext) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
