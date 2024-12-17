@@ -108,6 +108,10 @@ import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 	providers: [
 		{
 			provide: APP_INTERCEPTOR,
+			useClass: LoggerInterceptor
+		},
+		{
+			provide: APP_INTERCEPTOR,
 			useClass: SerializingInterceptor
 		},
 		{
@@ -117,10 +121,6 @@ import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: PersonTokenInterceptor
-		},
-		{
-			provide: APP_INTERCEPTOR,
-			useClass: LoggerInterceptor
 		},
 		{
 			provide: APP_PIPE,
