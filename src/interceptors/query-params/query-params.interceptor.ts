@@ -43,18 +43,16 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 
 			const query = plainToClass(QueryDto, rawQuery);
 			const { lang, langFallback, page, pageSize } = query;
-			let jsonLdContext: string | undefined;
-			if (isQueryWithLangDto(query)) {
-				if (Array.isArray(result)) {
-					jsonLdContext = result[0]?.["@context"];
-				} else {
-					jsonLdContext = result["@context"];
-				}
-			}
+			const sample = isQueryWithLangDto(query)
+				? Array.isArray(result)
+					? result[0]
+					: result
+				: undefined;
 			if (isQueryWithPagingDto(query)) {
 				result = paginateArray(result, page, pageSize, lang);
 			}
-			if (isQueryWithLangDto(query)) {
+			if (isQueryWithLangDto(query) && sample) {
+				const jsonLdContext = sample["@context"];
 				if (!jsonLdContext) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
