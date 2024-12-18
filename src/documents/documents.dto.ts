@@ -220,7 +220,7 @@ export class BatchJobValidationStatusResponse extends OmitType(BatchJob, ["error
 		items: {
 			oneOf: [
 				{ $ref: getSchemaPath(ErrorsObj) },
-				{ type: "null" }
+				{ type: "object", nullable: true }
 			]
 		}
 	})

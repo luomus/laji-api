@@ -13,11 +13,11 @@ import { QueryWithPersonTokenDto } from "src/common.dto";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
 import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
-import { ValidationException } from "./document-validator/document-validator.utils";
+import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -26,6 +26,7 @@ import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @ApiTags("Documents")
 @UseFilters(ValidatiorErrorFormatFilter)
+@ApiExtraModels(ErrorsObj)
 @LajiApiController("documents")
 export class DocumentsController {
 	constructor(

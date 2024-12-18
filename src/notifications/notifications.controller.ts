@@ -17,7 +17,11 @@ export class NotificationsController {
 	/* Get notifications */
 	@Get(":personToken")
 	@SwaggerRemoteRef({ source: "store", ref: "notification" })
-	getAll(@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn, @PersonToken() person: Person) {
+	getAll(
+		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
+		@Param("personToken") personToken: string,
+		@PersonToken() person: Person
+	) {
 		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);
 	}
 
