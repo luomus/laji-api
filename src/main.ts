@@ -15,7 +15,7 @@ export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		cors: true,
 	});
-	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,verbose,debug").split(",");
+	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,log,verbose,debug").split(",");
 	const logger = app.get(LoggerService);
 	app.useLogger(logger);
 	app.useLogger(logLevels as LogLevel[]);
@@ -91,6 +91,7 @@ export async function bootstrap() {
 			try {
 				return app.get(SwaggerService).patch(swaggerDoc);
 			} catch (e) {
+				new Logger().error(e, e.stack);
 				return undefined as any;
 			}
 		}
