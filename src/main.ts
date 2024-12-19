@@ -80,6 +80,8 @@ export async function bootstrap() {
 		swaggerOptions: {
 			persistAuthorization: true,
 			docExpansion: "none",
+			tagsSorter: "alpha",
+			operationsSorter: "alpha"
 		},
 		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
 		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()
