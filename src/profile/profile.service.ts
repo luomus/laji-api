@@ -124,12 +124,6 @@ export class ProfileService {
 	}
 
 	private async create(personId: string, profile: Partial<Profile>) {
-		const existinProfile = await this.findByPersonId(personId);
-		if (existinProfile) {
-			// eslint-disable-next-line max-len
-			this.logger.fatal("Somehow we are creating a profile even though one exists already!",  new Error().stack, { personId });
-		}
-
 		profile.userID = personId;
 		return this.store.create(profile);
 	}
