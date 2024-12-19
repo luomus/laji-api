@@ -91,7 +91,7 @@ export async function bootstrap() {
 			try {
 				return app.get(SwaggerService).patch(swaggerDoc);
 			} catch (e) {
-				return undefined as unknown as any;
+				return undefined as any;
 			}
 		}
 	});
