@@ -131,6 +131,8 @@ const validateJSONPointer = (pointer: string) => {
 	}
 };
 
+const parseJSONPointerToken = (token: string) => token.replace(/~1/g, "/").replace(/~0/g, "~");
+
 export const parseJSONPointer = <T = unknown>(
 	obj: object,
 	pointer: string,
@@ -143,6 +145,7 @@ export const parseJSONPointer = <T = unknown>(
 	const splits = pointer.split("/");
 	splits.shift();
 	return splits.reduce((pointedObj, token, i) => {
+		token = parseJSONPointerToken(token);
 		if ((create || safely) && (!pointedObj || !(token in pointedObj))) {
 			if (create) {
 				const nextSplit = splits[i + 1]!;
@@ -165,15 +168,14 @@ export const updateWithJSONPointer = (
 	validateJSONPointer(pointer);
 	const splits = pointer.split("/");
 	splits.shift();
-	const last = splits.pop() as string;
+	const lastToken = parseJSONPointerToken(splits.pop() as string);
 	const lastContainerPointer = splits.length ? `/${splits.join("/")}` : undefined;
 
 	const lastContainer = parseJSONPointer(obj, lastContainerPointer ?? "", options);
 	if (options?.safely && !lastContainer) {
 		return;
 	}
-	(lastContainer as any)[last] = value;
-	return;
+	(lastContainer as any)[lastToken] = value;
 };
 
 const validateURIFragmentIdentifierRepresentation = (pointer: string) => {

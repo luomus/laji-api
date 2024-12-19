@@ -5,14 +5,16 @@ import { PathsObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.inter
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
 export type FetchSwagger = () => Promise<OpenAPIObject>;
 
-export const instancesWithRemoteSwagger: {
+export type RemoteSwaggerEntry = {
 	name: string,
-		// eslint-disable-next-line @typescript-eslint/ban-types
-		instance: Function & {
-			patchSwagger: PatchSwagger,
-			fetchSwagger: FetchSwagger
-		}
-}[] = [];
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	instance: Function & {
+		patchSwagger: PatchSwagger,
+		fetchSwagger: FetchSwagger
+	}
+}
+
+export const instancesWithRemoteSwagger: RemoteSwaggerEntry[] = [];
 
 export const ConnectToSwaggerService = () => (target: any) => {
 	instancesWithRemoteSwagger.push({ name: target.name, instance: target });

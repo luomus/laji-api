@@ -67,7 +67,7 @@ export async function bootstrap() {
 	app.useStaticAssets("static");
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
-		.setTitle("API documentation")
+		.setTitle("Laji API")
 		.setDescription(description)
 		.setVersion("0")
 		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")

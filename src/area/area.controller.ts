@@ -21,7 +21,7 @@ export class AreaController {
 		return this.areaService.get(id);
 	}
 
-	/** Get a page of areas */
+	/** Get an areas by id */
 	@Get()
 	@UseInterceptors(createQueryParamsInterceptor(GetAreaPageDto))
 	@SwaggerRemoteRef({ source: "store", ref: "area" })

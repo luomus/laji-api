@@ -19,11 +19,10 @@ export class AnnotationsController {
 
 	constructor(private annotationsService: AnnotationsService) {}
 
-	// TODO what does "only visible in dev mode" in the comment mean? It's copied from the old API.
-	/** Fetch all annotation tags (Only visible in dev mode) */
+	/** Fetch all annotation tags */
 	@Get("tags")
 	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
-	@SwaggerRemoteRef({ source: "store", ref: "tag" })
+	@SwaggerRemoteRef({ source: "store", ref: "tag", customize: schema => ({ type: "array", items: schema }) })
 	getTags(
 		@Query() _: QueryWithLangDto,
 	): Promise<Tag[]> {
@@ -59,7 +58,6 @@ export class AnnotationsController {
 
 	/** Delete an annotation */
 	@Delete(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "annotation" })
 	async delete(
 		@Param("id") id: string,
 		@Query() _: QueryWithPersonTokenDto,

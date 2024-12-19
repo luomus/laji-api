@@ -136,8 +136,6 @@ export class DocumentValidatorService {
 					return {
 						status: error.status || 500,
 						json: () => ({ error: error.response }),
-						// error: error.response,
-						// _body: JSON.stringify(error)
 					};
 				}
 			}
