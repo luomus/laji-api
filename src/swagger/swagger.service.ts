@@ -64,7 +64,7 @@ export class SwaggerService {
 			this.logger.error("Failed to fetch remote swagger. Our swagger document is broken!", { entry });
 		}
 	}
-	
+
 
 	patch(document: OpenAPIObject) {
 		if (Object.values(this.remoteSwaggers).some(({ document }) => !document)) {
@@ -131,6 +131,17 @@ export class SwaggerService {
 							(operation.responses as any)[responseCode].content = {
 								"application/json": { schema }
 							};
+
+							if (isSwaggerRemoteRefEntry(entry) && ["post", "put"].includes(operationName)) {
+								operation.requestBody = {
+									required: true,
+									content: {
+										"application/json": {
+											schema: { "$ref": `#/components/schemas/${entry.ref}` }
+										}
+									}
+								};
+							}
 						}
 					}
 				});

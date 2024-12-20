@@ -199,7 +199,6 @@ export class DocumentsController {
 		return this.documentsService.get(id, person);
 	}
 
-	// TODO need to add swagger customization to get the whole MY.document schema for the body.
 	/** Create a new document */
 	@Post()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })
