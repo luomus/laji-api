@@ -7,19 +7,18 @@ import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
-import { SerializeEntry, entryHasWhiteList, isSerializeEntry } from "src/serialization/serialize.decorator";
+import { entryHasWhiteList, isSerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object-factory";
 import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-properties-accessor";
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { JSONSerializable } from "src/typing.utils";
+import { JSONSerializable, isObject } from "src/typing.utils";
 import { STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
-import {
-	FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger
-} from "src/decorators/remote-swagger-merge.decorator";
+import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
+	from "src/decorators/remote-swagger-merge.decorator";
 
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
@@ -120,25 +119,29 @@ export class SwaggerService {
 								continue;
 							}
 
-							const responseCode = operationName === "post" ? "201" : "200";
-							const existingSchema =
-								getOperationResponseCodeSchemaOrCreateIfNotExists(operation, responseCode);
 
-							const schema: SchemaItem = pipe(
-								applyEntry(entry, document),
-								paginateAsNeededWith(operation),
-							)(existingSchema);
-							(operation.responses as any)[responseCode].content = {
-								"application/json": { schema }
-							};
+							if (entry.applyToResponse !== false) {
+								const responseCode = operationName === "post" ? "201" : "200";
+								const existingSchema =
+									getOperationResponseCodeSchemaOrCreateIfNotExists(operation, responseCode);
+								const schema: SchemaItem = pipe(
+									applyEntryToResponse(entry, document),
+									paginateAsNeededWith(operation),
+								)(existingSchema);
+								(operation.responses as any)[responseCode].content = {
+									"application/json": { schema }
+								};
+							}
 
 							if (isSwaggerRemoteRefEntry(entry) && ["post", "put"].includes(operationName)) {
+								let schema: SchemaItem = { "$ref": `#/components/schemas/${entry.ref}` };
+								if (entry.customizeRequestSchema) {
+									schema = entry.customizeRequestSchema(schema);
+								}
 								operation.requestBody = {
 									required: true,
 									content: {
-										"application/json": {
-											schema: { "$ref": `#/components/schemas/${entry.ref}` }
-										}
+										"application/json": { schema }
 									}
 								};
 							}
@@ -153,8 +156,8 @@ export class SwaggerService {
 	private entrySideEffectForSchema(schema: Record<string, SchemaItem>, entry: SwaggerCustomizationEntry) {
 		if (isSwaggerRemoteRefEntry(entry)) {
 			this.remoteRefEntrySideEffectForSchema(schema, entry);
-		} else if (isSerializeEntry(entry)) {
-			this.serializeEntrySideEffectsForSchema(schema, entry);
+		} else if (hasSchemaDefinitionName(entry)) {
+			this.customSchemaDefinitionNameEntrySideEffectsForSchema(schema, entry);
 		}
 	}
 
@@ -169,13 +172,17 @@ export class SwaggerService {
 		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchema);
 	}
 
-	private serializeEntrySideEffectsForSchema(schema: SwaggerSchema, entry: SerializeEntry) {
-		if (entry.schemaDefinitionName) {
+	private customSchemaDefinitionNameEntrySideEffectsForSchema(
+		schema: SwaggerSchema, entry: SwaggerCustomizationEntry
+	) {
+		if (isSerializeEntry(entry)) {
 			const jsonSchema = getJsonSchema(entry.serializeInto);
 			if (entryHasWhiteList(entry)) {
 				whitelistKeys((jsonSchema.properties as any), entry.serializeOptions.whitelist);
 			}
-			schema![entry.schemaDefinitionName] = jsonSchema;
+			if (entry.schemaDefinitionName) {
+				schema![entry.schemaDefinitionName] = jsonSchema;
+			}
 		}
 	}
 
@@ -248,15 +255,19 @@ const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | Ref
 		? parseURIFragmentIdentifierRepresentation(document, (schema as any).$ref)
 		: schema;
 
-const applyEntry = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
+const hasSchemaDefinitionName = (entry: unknown): entry is { schemaDefinitionName: string } =>
+	isObject(entry) && !!entry.schemaDefinitionName;
+
+const applyEntryToResponse = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
 	(schema: SchemaItem): SchemaItem => {
 		if (isSwaggerRemoteRefEntry(entry)) {
 			schema = replaceWithRemote(entry, schema, document);
-		} else if (isSerializeEntry(entry)) {
-			schema = replaceWithSerialized(entry, schema);
 		}
-		if (entry.customize) {
-			schema = entry.customize(schema);
+		if (hasSchemaDefinitionName(entry)) {
+			schema = replaceWithRefToCustomSchemaDefinitionName(entry, schema);
+		}
+		if (entry.customizeResponseSchema) {
+			schema = entry.customizeResponseSchema(schema);
 		}
 		return schema;
 	};
@@ -272,7 +283,7 @@ const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, doc
 	}
 };
 
-const replaceWithSerialized = (entry: SerializeEntry, schema: SchemaItem) => (
+const replaceWithRefToCustomSchemaDefinitionName = (entry: { schemaDefinitionName: string }, schema: SchemaItem) => (
 	entry.schemaDefinitionName
 		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
 		: schema

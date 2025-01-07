@@ -4,9 +4,15 @@ import { SerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaItem } from "./swagger.service";
 
 
-export type SwaggerCustomizationCommon = {
-	/** Function to customize the OpenAPI schema. Has higher precedence than `replacePointer` */
-	customize?: (schema: SchemaItem) => SchemaItem;
+export type HasSchemaDefinitionName = { schemaDefinitionName: string };
+
+export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
+	/** Function to customize the OpenAPI response schema. Has higher precedence than `replacePointer` */
+	customizeResponseSchema?: (schema: SchemaItem) => SchemaItem;
+	/** Function to customize the OpenAPI request body schema. */
+	customizeRequestSchema?: (schema: SchemaItem) => SchemaItem;
+	/** The remote ref is applied to response (201 or 200). Defaults to true. */
+	applyToResponse?: boolean;
 }
 
 export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & {

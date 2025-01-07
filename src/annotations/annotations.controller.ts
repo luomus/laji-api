@@ -22,7 +22,11 @@ export class AnnotationsController {
 	/** Fetch all annotation tags */
 	@Get("tags")
 	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto))
-	@SwaggerRemoteRef({ source: "store", ref: "tag", customize: schema => ({ type: "array", items: schema }) })
+	@SwaggerRemoteRef({
+		source: "store",
+		ref: "tag",
+		customizeResponseSchema: schema => ({ type: "array", items: schema })
+	})
 	getTags(
 		@Query() _: QueryWithLangDto,
 	): Promise<Tag[]> {

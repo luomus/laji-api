@@ -8,7 +8,7 @@ export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	ref: string,
 	/**
 	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
-	 * Uses JSON pointer notation. Has lower precedence than `customize`.
+	 * Uses JSON pointer notation. Has lower precedence than `customizeResponseSchema`.
 	 */
 	replacePointer?: string;
 };

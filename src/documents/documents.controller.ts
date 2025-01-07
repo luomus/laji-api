@@ -43,6 +43,13 @@ export class DocumentsController {
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
 	 * */
 	@Post("batch")
+	@SwaggerRemoteRef({
+		source: "store",
+		ref: "document", 
+		replacePointer: "/items",
+		applyToResponse: false,
+		customizeRequestSchema: schema => ({ type: "array", items: schema })
+	})
 	@HttpCode(200)
 	async startBatchJob(
 		@Body() documents: Document[],

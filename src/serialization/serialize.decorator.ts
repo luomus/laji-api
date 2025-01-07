@@ -1,22 +1,22 @@
 import { Newable, isObject } from "src/typing.utils";
 import { SerializeOptions } from "src/serialization/serialization.utils";
-import { SwaggerCustomizationCommon, createSwaggerScanner } from "src/swagger/swagger-scanner";
+import { HasSchemaDefinitionName, SwaggerCustomizationCommon, createSwaggerScanner } from "src/swagger/swagger-scanner";
 import { UseInterceptors, applyDecorators } from "@nestjs/common";
 import { createNewSerializingInterceptorWith } from "./serializing.interceptor";
 
 const SERIALIZE_METADATA = "SERIALIZE_METADATA";
 
-type HasSchemaDefinitionName = { schemaDefinitionName: string };
-
 type SerializeBase = {
 	serializeInto: Newable<unknown>;
 };
+
 type SerializeEntryWithWhiteList = SerializeBase
 	& { serializeOptions: HasWhitelist }
 	& HasSchemaDefinitionName;
+
 type SerializeEntryWithoutWhiteList = SerializeBase
-	& { serializeOptions?: HasNotWhitelist }
-	& Partial<HasSchemaDefinitionName>;
+	& { serializeOptions?: HasNotWhitelist };
+
 export type SerializeEntry = SwaggerCustomizationCommon
 	& (SerializeEntryWithWhiteList | SerializeEntryWithoutWhiteList);
 
@@ -30,20 +30,20 @@ export const isSerializeEntry = (entry: unknown): entry is SerializeEntry =>
 type HasWhitelist = SerializeOptions & Required<Pick<SerializeOptions, "whitelist">>;
 type HasNotWhitelist = Omit<SerializeOptions, "whitelist">
 
-type SReturnT = (target: any, propertyKey: any) => void;
+type SerializeReturnType = (target: any, propertyKey: any) => void;
 
 type SerializeOverload = {
 	(serializeInto: Newable<unknown>, serializeOptions: HasWhitelist, swaggerSchemaDefinitionName: string)
-		: SReturnT
+		: SerializeReturnType;
 	(serializeInto: Newable<unknown>, serializeOptions?: HasNotWhitelist, swaggerSchemaDefinitionName?: string)
-		: SReturnT;
+		: SerializeReturnType;
 }
 
 export const SERIALIZE_OPTIONS_METADATA = "SERIALIZE_OPTIONS_METADATA";
 
 /**
  * Apply our custom serialization to the response. If you provide a whitelist, it's mandatory to also provide a name
- * for the Swagger schema definition.
+ * for the Swagger schema definition (`swaggerSchemaDefinitionName`).
  */
 export const Serialize: SerializeOverload = (...params) =>
 	applyDecorators(
