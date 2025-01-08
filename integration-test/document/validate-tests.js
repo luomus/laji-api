@@ -32,7 +32,7 @@ describe("/documents/validate", function() {
 
 	it("allows valid remote validators", function (done) {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"];
+		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = {
 			formID: testForm,
 			namedPlaceID: testNP,
@@ -59,7 +59,7 @@ describe("/documents/validate", function() {
 
 	it("doesn't allow document to existing named place if already count", function (done) {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"];
+		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = {
 			formID: testForm,
 			namedPlaceID: testNP,
@@ -99,7 +99,7 @@ describe("/documents/validate", function() {
 
 	it("allows document to existing if editing document", function (done) {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"];
+		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;;
 		const document = {
 			id: docID,
 			formID: testForm,
@@ -127,7 +127,8 @@ describe("/documents/validate", function() {
 
 	it("doesn't run validators when only warning validators are selected" , function (done) {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"] + "&type=warning";
+		const query = basePath + "?access_token=" + config["access_token"]
+			+ "&type=warning&personToken=" + config.user.token;
 		const document = {
 			formID: testForm,
 			namedPlaceID: testNP,

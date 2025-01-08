@@ -107,58 +107,51 @@ export class DocumentsController {
 	async validate(
 		@Body() document: Document,
 		@Query() query: ValidateQueryDto,
-		@ApiUser() apiUser: ApiUserEntity
+		@ApiUser() apiUser: ApiUserEntity,
+		@PersonToken({ required: false }) person?: Person
 	): Promise<unknown> {
-		const { validator, personToken, validationErrorFormat, type } = query;
+		const { validator, validationErrorFormat, type } = query;
 		if (validator) {
 			return this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
-		} else {
-			// Backward compatibility with old API, where batch jobs are handled by this endpoint.
-			if (document instanceof Array) {
-				if (!personToken) {
-					throw new HttpException("Person token is required for batch operation", 422);
-				}
-				const person = await this.personsService.getByToken(personToken);
-				return this.documentsBatchService.start(document, person, apiUser);
-			} else if (isBatchJobDto(document)) {
-				if (!personToken) {
-					throw new HttpException("Person token is required for batch operation", 422);
-				}
-				const person = await this.personsService.getByToken(personToken);
-				return this.documentsBatchService.getStatus(
-					document.id,
-					person,
-					 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-					// typings bit awkward.
-					validationErrorFormat!
-				);
-			}
-
-			if (!document.formID) {
-				throw new ValidationException({ "/formID": ["Missing required param formID"] });
-			}
-
-			const form = await this.formsService.get(document.formID);
-
-			if (form?.options?.secondaryCopy) {
-				if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
-					throw new HttpException(
-						"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
-						422);
-				}
-				const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
-				if (!personToken) {
-					throw new HttpException("Person token is for batch operation", 422);
-				}
-				const person = await this.personsService.getByToken(personToken);
-				return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
-			}
-
-			const populatedDocument = await this.documentsService.populateMutably(document, undefined, apiUser);
-			return this.documentValidatorService.validate(populatedDocument, type!);
 		}
+
+		if (!person) {
+			throw new HttpException("Person token is required for document validation", 422);
+		}
+
+		// Backward compatibility with old API, where batch jobs are handled by this endpoint.
+		if (document instanceof Array) {
+			return this.documentsBatchService.start(document, person, apiUser);
+		} else if (isBatchJobDto(document)) {
+			return this.documentsBatchService.getStatus(
+				document.id,
+				person,
+				 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
+				// typings bit awkward.
+				validationErrorFormat!
+			);
+		}
+
+		if (!document.formID) {
+			throw new ValidationException({ "/formID": ["Missing required param formID"] });
+		}
+
+		const form = await this.formsService.get(document.formID);
+
+		if (form?.options?.secondaryCopy) {
+			if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
+				throw new HttpException(
+					"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
+					422);
+			}
+			const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
+			return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
+		}
+
+		const populatedDocument = await this.documentsService.populateMutably(document, undefined, apiUser);
+		return this.documentValidatorService.validate(populatedDocument, person, type!);
 	}
 
 	/** Get count of documents by type (currently just "byYear") */

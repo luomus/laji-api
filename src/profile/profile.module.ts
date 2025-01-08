@@ -24,6 +24,5 @@ const StoreResourceService: FactoryProvider<StoreService<Profile>> = {
 	providers: [ProfileService, StoreResourceService],
 	imports: [StoreClientModule, PersonTokenModule, NotificationsModule],
 	exports: [ProfileService]
-
 })
 export class ProfileModule {}

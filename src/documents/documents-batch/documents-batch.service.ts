@@ -172,7 +172,7 @@ export class DocumentsBatchService {
 				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument) && !isSecondaryDocument(populatedDocument)) {
-					await this.documentValidatorService.validate(populatedDocument);
+					await this.documentValidatorService.validate(populatedDocument, person);
 				} else {
 					await this.secondaryDocumentsService.validate(populatedDocument, person);
 				}

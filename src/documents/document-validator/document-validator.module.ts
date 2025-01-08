@@ -12,6 +12,7 @@ import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 	from "./validators/named-place-not-too-near-other-places.validator.service";
 import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
+import { ProfileModule } from "src/profile/profile.module";
 
 @Module({
 	providers: [
@@ -21,7 +22,13 @@ import { UniqueNamedPlaceAlternativeIDsValidatorService }
 		NamedPlaceNotTooNearOtherPlacesValidatorService,
 		UniqueNamedPlaceAlternativeIDsValidatorService
 	],
-	imports: [FormsModule, TaxaModule, forwardRef(() => DocumentsModule), forwardRef(() => NamedPlacesModule)],
+	imports: [
+		FormsModule,
+		TaxaModule,
+		forwardRef(() => DocumentsModule),
+		forwardRef(() => NamedPlacesModule),
+		ProfileModule
+	],
 	exports: [DocumentValidatorService]
 })
 export class DocumentValidatorModule {}

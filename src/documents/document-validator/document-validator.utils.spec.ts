@@ -14,7 +14,7 @@ describe("document-validator.utils", () => {
 			expect(joinJSONPaths("/basepath", "/subpath")).toBe("/basepath/subpath");
 		});
 
-		it("errors for subpath if it's not a JSON pointre", () => {
+		it("errors for subpath if it's not a JSON pointer", () => {
 			expect(() => joinJSONPaths("/basepath", "subpath")).toThrowError();
 		});
 
