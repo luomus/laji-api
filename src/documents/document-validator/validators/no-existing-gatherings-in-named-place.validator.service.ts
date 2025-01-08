@@ -3,7 +3,7 @@ import { Document } from "@luomus/laji-schema";
 import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
 import { dateToISODate, isValidDate } from "src/utils";
 import { HttpException, Injectable } from "@nestjs/common";
-import { DocumentValidator, ValidationException, joinJSONPaths } from "../document-validator.utils";
+import { DocumentValidator, ValidationException, joinJSONPointers } from "../document-validator.utils";
 import { FormsService } from "src/forms/forms.service";
 
 @Injectable()
@@ -60,7 +60,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 	}
 
 	getPeriod(form: FormSchemaFormat, document: Document, path?: string) {
-		const errorPath = joinJSONPaths(path, "/gatheringEvent/dateBegin");
+		const errorPath = joinJSONPointers(path, "/gatheringEvent/dateBegin");
 		if (!document.gatheringEvent || !document.gatheringEvent.dateBegin) {
 			throw new ValidationException({ [errorPath]: ["Date is required"] });
 		}
