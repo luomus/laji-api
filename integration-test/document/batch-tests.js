@@ -99,7 +99,6 @@ describe("/documents/batch", function() {
 			const res = await request(this.server)
 				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
 				.send();
-			console.log(JSON.stringify(res.body));
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
 			res.body.should.have.property("status");
