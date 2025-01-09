@@ -15,7 +15,7 @@ export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		cors: true,
 	});
-	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,verbose,debug").split(",");
+	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,log,verbose,debug").split(",");
 	const logger = app.get(LoggerService);
 	app.useLogger(logger);
 	app.useLogger(logLevels as LogLevel[]);
@@ -67,7 +67,7 @@ export async function bootstrap() {
 	app.useStaticAssets("static");
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
-		.setTitle("API documentation")
+		.setTitle("Laji API")
 		.setDescription(description)
 		.setVersion("0")
 		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")
@@ -80,6 +80,8 @@ export async function bootstrap() {
 		swaggerOptions: {
 			persistAuthorization: true,
 			docExpansion: "none",
+			tagsSorter: "alpha",
+			operationsSorter: "alpha"
 		},
 		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
 		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()
@@ -89,7 +91,8 @@ export async function bootstrap() {
 			try {
 				return app.get(SwaggerService).patch(swaggerDoc);
 			} catch (e) {
-				return undefined as unknown as any;
+				new Logger().error(e, e.stack);
+				return undefined as any;
 			}
 		}
 	});

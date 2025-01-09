@@ -7,7 +7,8 @@
 		"plugins": [{
 			"name": "@nestjs/swagger",
 			"options": {
-				"introspectComments": true
+				"introspectComments": true,
+				"controllerKeyOfComment": "summary"
 			}
 		}],
 		"assets": ["mail/templates/**/*"]

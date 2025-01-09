@@ -1,9 +1,9 @@
 import { Area as AreaI } from "@luomus/laji-schema";
-import { HasContext, QueryWithLangDto, QueryWithPagingDto } from "../common.dto";
+import { HasJsonLdContext, QueryWithLangDto, QueryWithPagingDto } from "../common.dto";
 import { IntersectionType } from "@nestjs/swagger";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
 
-export type Area = AreaI & HasContext & { id: string };
+export type Area = AreaI & HasJsonLdContext & { id: string };
 
 export enum AreaTypeDto {
 	country = "ML.country",

@@ -1,4 +1,4 @@
-import { QueryWithPagingDto, MultiLang, HasContext, QueryWithLangDto } from "../common.dto";
+import { QueryWithPagingDto, MultiLang, HasJsonLdContext, QueryWithLangDto } from "../common.dto";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
@@ -8,7 +8,7 @@ export enum MetadataStatus {
 	Hidden = "MY.metadataStatusHidden"
 }
 
-export class TriplestoreCollection extends HasContext {
+export class TriplestoreCollection extends HasJsonLdContext {
 	id: string;
 	metadataStatus?: MetadataStatus;
 	isPartOf?: string;
@@ -59,7 +59,7 @@ export class TriplestoreCollection extends HasContext {
 // The listed props are omitted because we need to override their type (into "T", and some of them always string).
 // "T" is used according to whether the response should have a certain lang used, or whether it is returned with
 // the whole multi lang object values.
-export class Collection<T extends string | MultiLang = MultiLang> extends OmitType(TriplestoreCollection, [
+export class Collection extends OmitType(TriplestoreCollection, [
 	"collectionName",
 	"description",
 	"concealmentBasis",
@@ -68,13 +68,13 @@ export class Collection<T extends string | MultiLang = MultiLang> extends OmitTy
 	"dataQualityDescription",
 	"dataUseTerm"
 ]) {
-	collectionName: T;
-	description?: T;
-	concealmentBasis?: T;
-	onlineUrl?: T;
-	longName: T;
-	dataQualityDescription?: T;
-	dataUseTerm?: T;
+	collectionName: MultiLang;
+	description?: MultiLang;
+	concealmentBasis?: MultiLang;
+	onlineUrl?: MultiLang;
+	longName: MultiLang;
+	dataQualityDescription?: MultiLang;
+	dataUseTerm?: MultiLang;
 
 	hasChildren?: boolean;
 

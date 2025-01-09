@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CompleteMultiLang, HasContext, Lang, LANGS, MultiLang } from "src/common.dto";
+import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
 import { MetadataService } from "src/metadata/metadata.service";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { isObject } from "src/typing.utils";
@@ -11,15 +11,16 @@ export class LangService {
 
 	constructor(private metadataService: MetadataService) {}
 
-	async contextualTranslateWith<T, R = T>(
-		context: string,
-		lang: Lang = Lang.en,
-		langFallback = true,
-		extraMultiLangKeys: (keyof T)[] = []
-	) {
-		const multiLangKeys = [...extraMultiLangKeys, ...(await this.getMultiLangKeys(context))];
+	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean)
+		: Promise<(item: T) => MultiLangAsString<T>>
+	async contextualTranslateWith<T>(jsonLdContext: string, lang: Lang.multi, langFallback?: boolean)
+		: Promise<(item: T) => T>
+	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Lang, langFallback?: boolean)
+		: Promise<(item: T) => (T | MultiLangAsString<T>)>
+	async contextualTranslateWith<T>(jsonLdContext: string, lang: Lang = Lang.en, langFallback = true) {
+		const multiLangKeys = await this.getMultiLangKeys(jsonLdContext);
 
-		return (item: T): R => {
+		return (item: T): T | MultiLangAsString<T> => {
 			const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
 				(acc as any)[prop] = getLangValue(((item as any)[prop] as (MultiLang | undefined)), lang, langFallback);
 				return acc;
@@ -27,20 +28,27 @@ export class LangService {
 			return {
 				...item,
 				...multiLangValuesTranslated
-			} as unknown as R;
+			} as unknown as T | MultiLangAsString<T>;
 		};
 	}
 
-	async translate<T extends HasContext, R extends HasContext = T>
-	(item: T, lang?: Lang, langFallback?: boolean, extraMultiLangKeys?: (keyof T)[]) {
+	async translate<T extends HasJsonLdContext>(item: T, lang: Exclude<Lang, Lang.multi>, langFallback?: boolean)
+		: Promise<MultiLangAsString<T>>
+	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang.multi, langFallback?: boolean)
+		: Promise<T>
+	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang, langFallback?: boolean)
+		: Promise<T | MultiLangAsString<T>>
+	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang, langFallback?: boolean)
+		: Promise<T | MultiLangAsString<T>>
+	{
 		return (
-			await this.contextualTranslateWith<T, R>(item["@context"], lang, langFallback, extraMultiLangKeys)
+			await this.contextualTranslateWith<T>(item["@context"], lang, langFallback)
 		)(item);
 	}
 
 	@IntelligentMemoize()
-	async getMultiLangKeys(context: string): Promise<string[]> {
-		const contextProperties = await this.metadataService.getPropertiesForContext(context);
+	async getMultiLangKeys(jsonLdContext: string): Promise<string[]> {
+		const contextProperties = await this.metadataService.getPropertiesForJsonLdContext(jsonLdContext);
 		const keys = Object.keys(contextProperties).reduce((keys, propertyKey) => {
 			const property = contextProperties[propertyKey]!;
 			if (property.multiLanguage) {

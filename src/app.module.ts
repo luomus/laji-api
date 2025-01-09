@@ -47,6 +47,8 @@ import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions
 import { OrganizationsModule } from "./organizations/organizations.module";
 import { LoggerInterceptor } from "./interceptors/logger.interceptor";
 import { LoggerModule } from "./logger/logger.module";
+import { InformalTaxonGroupsModule } from "./informal-taxon-groups/informal-taxon-groups.module";
+import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 
 @Module({
 	imports: [
@@ -99,10 +101,15 @@ import { LoggerModule } from "./logger/logger.module";
 		ChecklistModule,
 		ChecklistVersionsModule,
 		OrganizationsModule,
-		LoggerModule
+		LoggerModule,
+		InformalTaxonGroupsModule
 	],
 	controllers: [AppController],
 	providers: [
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: LoggerInterceptor
+		},
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: SerializingInterceptor
@@ -116,12 +123,12 @@ import { LoggerModule } from "./logger/logger.module";
 			useClass: PersonTokenInterceptor
 		},
 		{
-			provide: APP_INTERCEPTOR,
-			useClass: LoggerInterceptor
-		},
-		{
 			provide: APP_PIPE,
 			useValue: new ValidationPipe({ transform: true })
+		},
+		{
+			provide: APP_FILTER,
+			useClass: ErrorLoggerFilter
 		},
 		{
 			provide: APP_FILTER,

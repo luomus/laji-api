@@ -10,6 +10,8 @@ import { Person } from "src/persons/person.dto";
 import { StoreService } from "src/store/store.service";
 import { documentsStoreConfig } from "./documents.module";
 
+const mockPerson = (person: Partial<Person>) => ({ ...person, isImporter: () => false }) as Person;
+
 describe("DocumentsService caching", () => {
 	let service: DocumentsService;
 	const mockFormPermissionsService = {
@@ -86,8 +88,8 @@ describe("DocumentsService caching", () => {
 		jest.spyOn(mockCollectionsService, "findDescendants").mockResolvedValue([]);
 		jest.spyOn(mockFormsService, "findListedByCollectionID").mockResolvedValue([]);
 		jest.spyOn(mockHttpService, "get").mockResolvedValue({ member: ["result"] });
-		const result1 = await service.getPage({ collectionID: "foo" }, { id: ADMIN } as Person);
-		const result2 = await service.getPage({ collectionID: "foo" }, { id: ADMIN } as Person);
+		const result1 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: ADMIN }));
+		const result2 = await service.getPage( { collectionID: "foo" }, mockPerson({ id: ADMIN }));
 		expect(result1).toBe(result2);
 	});
 
@@ -104,13 +106,13 @@ describe("DocumentsService caching", () => {
 		jest.spyOn(mockFormPermissionsService, "hasEditRightsOf").mockResolvedValue(true);
 		jest.spyOn(mockDocumentValidatorService, "validate").mockResolvedValue(undefined);
 		jest.spyOn(mockHttpService, "post").mockResolvedValue({ ...document, id: "foo" });
-		const result1 = await service.getPage({ collectionID: "foo" }, { id: ADMIN } as Person);
+		const result1 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: ADMIN }));
 		await service.create(
 			document as any,
 			{ id: "anybody", isImporter: () => false } as any,
 			{ systemID: "foo" } as any
 		);
-		const result2 = await service.getPage({ collectionID: "foo" }, { id: ADMIN } as Person);
+		const result2 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: ADMIN }));
 		expect(result1).not.toBe(result2);
 	});
 
@@ -122,8 +124,8 @@ describe("DocumentsService caching", () => {
 		jest.spyOn(mockCollectionsService, "findDescendants").mockResolvedValue([]);
 		jest.spyOn(mockFormsService, "findListedByCollectionID").mockResolvedValue([]);
 		jest.spyOn(mockHttpService, "get").mockResolvedValue({ member: ["result"] });
-		const result1 = await service.getPage({ collectionID: "foo" }, { id: PERSON } as Person);
-		const result2 = await service.getPage({ collectionID: "foo" }, { id: PERSON } as Person);
+		const result1 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: PERSON }));
+		const result2 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: PERSON }));
 		expect(result1).not.toBe(result2);
 	});
 
@@ -131,7 +133,7 @@ describe("DocumentsService caching", () => {
 		const PERSON = "PERSON";
 		const FRIEND = "FRIEND";
 		jest.spyOn(mockHttpService, "get").mockResolvedValue({ member: ["result"] });
-		const result1 = await service.getPage({ }, { id: PERSON } as Person);
+		const result1 = await service.getPage({ }, mockPerson({ id: PERSON }));
 		await service.create(
 			{ creator: "FRIEND", editors: ["PERSON"], formID: "foo" } as any,
 			{ id: FRIEND, isImporter: () => false } as Person,

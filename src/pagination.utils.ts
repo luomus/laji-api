@@ -1,5 +1,5 @@
-import { Lang } from "./common.dto";
-import { MaybePromise, isObject } from "./typing.utils";
+import { HasJsonLdContext, Lang } from "./common.dto";
+import { MaybePromise, isObject, omitForKeys } from "./typing.utils";
 import { pipe } from "./utils";
 
 export class PaginatedDto<T> {
@@ -17,33 +17,36 @@ export const isPaginatedDto = <T>(maybePaginated: unknown): maybePaginated is Pa
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
 		.every(k => k in maybePaginated);
 
-export const pageResult = <T>(data: T[], page = 1, pageSize = 20, lang = Lang.en): PaginatedDto<T> => {
+export const paginateArray = <T extends Partial<HasJsonLdContext>> (
+	data: T[], page = 1, pageSize = 20, lang = Lang.en
+): PaginatedDto<Omit<T, "@context">> => {
 	if (page <= 0) {
 		page = 1;
 	}
 
 	const total = data.length;
-	const  result: Omit<PaginatedDto<T>, "@context" | "lastPage"> = {
+	const  result = {
 		total,
 		results: data.slice((page - 1) * pageSize, page * pageSize),
 		currentPage: page,
 		pageSize
 	};
-	return paginateAlreadyPaged(result, lang);
+	return paginateAlreadyPaginated(result, lang);
 };
 
-export const paginateAlreadyPaged =
-	<T>(pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nextPage">, lang = Lang.en) => pipe(
+export const paginateAlreadyPaginated = <T extends Partial<HasJsonLdContext>>(
+	pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nexPage">, lang = Lang.en
+): PaginatedDto<Omit<T, "@context">> => pipe(
 		addLastPrevAndNextPage,
-		addContextToPaged<T>(lang)
+		addContextToPageLikeResult<T, PaginatedDto<T>>(lang)
 	)(pagedResult);
 
-type HasLastPrevAndNext = { lastPage: number;  prevPage?: number; nextPage?: number; }
+type HasLastAndMaybePrevNext = { lastPage: number;  prevPage?: number; nextPage?: number; }
 
 export const addLastPrevAndNextPage = <
 	T,
 	R extends { results: T[], currentPage: number; pageSize: number; total: number; }
->(pagedResult: R): R & HasLastPrevAndNext => {
+>(pagedResult: R): R & HasLastAndMaybePrevNext => {
 	const result: R & { lastPage: number; prevPage?: number; nextPage?: number; } = {
 		...pagedResult,
 		lastPage: Math.max(Math.ceil(pagedResult.total / pagedResult.pageSize), 1)
@@ -57,16 +60,22 @@ export const addLastPrevAndNextPage = <
 	return result;
 };
 
-const addContextToPaged = <T>(lang = Lang.en) => (paged: Omit<PaginatedDto<T>, "@context">): PaginatedDto<T> => {
-	const context = (paged.results[0] as any)?.["@context"];
-	const results = context
-		? paged.results.map(i => {
-			const _i = { ...i };
-			delete (_i as any)["@context"];
-			return _i;
-		}) : paged.results;
-	return { ...paged, results, "@context": context || `http://schema.laji.fi/context/generic-${lang}.jsonld` };
-};
+export const addContextToPageLikeResult = <T extends Partial<HasJsonLdContext>, R extends { results: T[] }>
+	(lang = Lang.en) => (hasResults: R)
+	: Omit<R, "results"> & { results: Omit<T, "@context">[] } & HasJsonLdContext => {
+		const context = hasResults.results[0]?.["@context"];
+		const results = context
+			? hasResults.results.map(omitForKeys("@context"))
+			: hasResults.results;
+		return {
+			...hasResults,
+			results,
+			"@context": context || `http://schema.laji.fi/context/generic-${lang}.jsonld`
+		};
+	};
+
+export const isPageLikeResult = <T>(maybeHasResults: any): maybeHasResults is { results: T[] } =>
+	isObject(maybeHasResults) && "results" in maybeHasResults;
 
 export const getAllFromPagedResource = async <T>(
 	getPage: (page: number) => Promise<PaginatedDto<T>>
@@ -82,7 +91,7 @@ export const getAllFromPagedResource = async <T>(
 
 /**
  * Creates a function that maps the input items of a "result" with the given predicate.
- * The "result" is either a page, an array or a single object.
+ * The "result" is either a page (or page-like, meaning that it has { "results": any }, an array or a single object.
  * */
 function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: T) => Promise<R>)
@@ -94,7 +103,7 @@ function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: T | T[] | PaginatedDto<T>) => Promise<R | R[] | PaginatedDto<R>>)
 {
 	return async (result: T | T[] | PaginatedDto<T>): Promise<R | R[] | PaginatedDto<R>> => {
-		if (isPaginatedDto(result)) {
+		if (isPageLikeResult(result)) {
 			const mappedResults: R[] = [];
 			for (const r of result.results) {
 				mappedResults.push(await predicate(r));

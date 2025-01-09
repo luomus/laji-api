@@ -172,7 +172,7 @@ export class DocumentsBatchService {
 				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument) && !isSecondaryDocument(populatedDocument)) {
-					await this.documentValidatorService.validate(populatedDocument);
+					await this.documentValidatorService.validate(populatedDocument, person);
 				} else {
 					await this.secondaryDocumentsService.validate(populatedDocument, person);
 				}
@@ -293,6 +293,10 @@ const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, job
 
 const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat) => {
 	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(job);
+
+	if (exposedJob.phase !== BatchJobPhase.completed) {
+		delete exposedJob.documents;
+	}
 
 	if (job.status.processed === job.documents.length) {
 		exposedJob.errors = job.errors.map(e => e === null

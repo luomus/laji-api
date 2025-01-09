@@ -3,7 +3,7 @@ import { Observable, catchError, tap, throwError } from "rxjs";
 import { Request } from "src/request";
 import { joinOnlyStrings } from "src/utils";
 
-type TimeStampedRequest = Request & { lajiApiTimeStamp: number };
+export type TimeStampedRequest = Request & { lajiApiTimeStamp: number };
 
 @Injectable()
 export class LoggerInterceptor implements NestInterceptor {
@@ -25,7 +25,7 @@ export class LoggerInterceptor implements NestInterceptor {
 	}
 }
 
-const stringifyRequest = (request: TimeStampedRequest, timestamp = true) => {
+export const stringifyRequest = (request: TimeStampedRequest, timestamp = true) => {
 	const userId = request.person?.id;
 	const { apiUser } = request;
 	return joinOnlyStrings(

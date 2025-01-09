@@ -1,4 +1,4 @@
-import { HasContext } from "src/common.dto";
+import { HasJsonLdContext } from "src/common.dto";
 import { IsOptionalBoolean } from  "src/serialization/serialization.utils";
 import { Person as _Person } from "@luomus/laji-schema/models";
 import { Exclude } from "class-transformer";
@@ -12,7 +12,7 @@ enum RoleAnnotation {
 	expert = "MMAN.expert"
 };
 
-export class Person extends HasContext implements Omit<_Person, "role" | "fullName"> {
+export class Person extends HasJsonLdContext implements Omit<_Person, "role" | "fullName"> {
 	id: string;
 	emailAddress: string;
 	@Exclude() inheritedName?: string;

@@ -36,13 +36,15 @@ export class QueryWithPersonTokenDto {
 	@IsString() personToken: string;
 }
 
-export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {};
+export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {}
 
 export class QueryWithLangAndMaybePersonTokenDto extends IntersectionType(
 	QueryWithLangDto,
 	QueryWithMaybePersonTokenDto) {};
 
-export class QueryWithPagingAndLangDto extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {
+export class QueryWithPagingAndLang extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {}
+
+export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingAndLang {
 	/**
 	 * Comma separated ids
 	 */
@@ -58,6 +60,14 @@ export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, 
 	return multiLangItem[lang];
 };
 
-export class HasContext {
+export class HasJsonLdContext {
 	"@context": string;
 }
+
+export type MultiLangAsString<T> = {
+	[K in keyof T]: T[K] extends MultiLang
+	? string
+	: T[K] extends object
+	? MultiLangAsString<T[K]>
+	: T[K];
+};

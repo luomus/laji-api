@@ -120,7 +120,7 @@ export class TriplestoreService {
 		const jsonldContext = isArrayResult
 			? (jsonld["@graph"] as any)[0]["@type"]
 			: jsonld["@type"];
-		const metadataContext = await this.metadataService.getPropertiesForContext(
+		const metadataContext = await this.metadataService.getPropertiesForJsonLdContext(
 			MetadataService.parseContext(jsonldContext)
 		);
 		const formatted = (isArrayResult

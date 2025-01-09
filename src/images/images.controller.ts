@@ -21,6 +21,7 @@ export class ImagesController {
 
 	/** Upload image and get temporary id */
 	@Post()
+	@HttpCode(200)
 	@ApiOkResponse({ type: FileUploadResponse })
 	async upload(
 		@Query() _: QueryWithPersonTokenDto,

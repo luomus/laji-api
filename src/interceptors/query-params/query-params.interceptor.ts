@@ -4,7 +4,7 @@ import { Request } from "express";
 import { isQueryWithLangDto, QueryWithPagingDto, QueryWithLangDto, isQueryWithPagingDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
-import { pageResult, applyToResult } from "src/pagination.utils";
+import { paginateArray, applyToResult } from "src/pagination.utils";
 import { Newable } from "src/typing.utils";
 import { serializeInto as _serializeInto, SerializeOptions } from "src/serialization/serialization.utils";
 import { plainToClass } from "class-transformer";
@@ -43,23 +43,21 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 
 			const query = plainToClass(QueryDto, rawQuery);
 			const { lang, langFallback, page, pageSize } = query;
-			let context: string | undefined;
-			if (isQueryWithLangDto(query)) {
-				if (Array.isArray(result)) {
-					context = result[0]?.["@context"];
-				} else {
-					context = result["@context"];
-				}
-			}
+			const sample = isQueryWithLangDto(query)
+				? Array.isArray(result)
+					? result[0]
+					: result
+				: undefined;
 			if (isQueryWithPagingDto(query)) {
-				result = pageResult(result, page, pageSize, lang);
+				result = paginateArray(result, page, pageSize, lang);
 			}
-			if (isQueryWithLangDto(query)) {
-				if (!context) {
+			if (isQueryWithLangDto(query) && sample) {
+				const jsonLdContext = sample["@context"];
+				if (!jsonLdContext) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
 				return applyToResult(
-					await this.langService.contextualTranslateWith(context, lang, langFallback)
+					await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback)
 				)(result);
 			}
 			return result;

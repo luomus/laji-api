@@ -1,14 +1,14 @@
 import { isObject } from "src/typing.utils";
-import { createSwaggerScanner } from "./swagger-scanner";
+import { SwaggerCustomizationCommon, createSwaggerScanner } from "./swagger-scanner";
 
-export type SwaggerRemoteRefEntry = {
+export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
 	source: "store",
 	/** The name of the schema object in the remote OpenAPI document's schemas */
 	ref: string,
 	/**
 	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
-	 * Uses JSON pointer notation.
+	 * Uses JSON pointer notation. Has lower precedence than `customizeResponseSchema`.
 	 */
 	replacePointer?: string;
 };

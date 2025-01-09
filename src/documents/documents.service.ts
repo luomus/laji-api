@@ -332,7 +332,7 @@ export class DocumentsService {
 			throw new HttpException("Insufficient rights to use this form", 403);
 		}
 
-		await this.documentValidatorService.validate(document);
+		await this.documentValidatorService.validate(document, person);
 	}
 
 	async namedPlaceSideEffects(document: Document & { id: string }, person: Person) {

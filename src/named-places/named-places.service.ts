@@ -204,12 +204,18 @@ export class NamedPlacesService {
 			throw new HttpException("Only admin can reserve to other user", 403);
 		}
 
+		await this.formsService.checkWriteAccessIfDisabled(place.collectionID, person);
+
+		if (!await this.formPermissionsService.hasEditRightsOf(place.collectionID, person)) {
+			throw new HttpException("You need permission to the form to reserve a place", 403);
+		}
+
 		const forPerson = personID
 			? await this.personsService.getByPersonId(personID)
 			: person;
 		place.reserve = { reserver: forPerson.id, until: dateToISODate(untilDate) };
 
-		const updated = await this.update(place.id, place, person);
+		const updated = await this.store.update(place);
 		void this.mailService.sendNamedPlaceReserved(person, { place, until: dateToISODate(untilDate) });
 		return updated;
 	}

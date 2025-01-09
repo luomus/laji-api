@@ -12,7 +12,7 @@ describe("/documents/batch", function() {
 		const documents = new Array(12).fill(
 			{
 				"formID":"JX.519",
-				"gatheringEvent":{ "leg":["MA.308"], "dateBegin":"2024-05-28" },
+				"gatheringEvent":{ "leg":[config.user.model.id], "dateBegin":"2024-05-28" },
 				"gatherings":[ {
 					"geometry":{ "type":"Point","coordinates":[27.74034,63.965225],"coordinateVerbatim":"25 60" },
 					"units":[
@@ -26,6 +26,7 @@ describe("/documents/batch", function() {
 		let countBeforeSend;
 
 		before(async function () {
+			this.timeout(10000);
 			countBeforeSend = (await request(this.server)
 				.get(`${basePath}/count/byYear?access_token=${config.access_token}&personToken=${config.user.token}`).send()
 			).body.find(countResponse => countResponse.year === "2024").count;
@@ -59,11 +60,11 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("documents");
+			res.body.should.not.have.property("documents");
 			res.body.should.have.property("errors");
 		});
 
-		it("job status can be followed during background validation, and it doesn't contain documents or errors while it's processing", async function() {
+		it("job status can be followed during background validation, and it doesn't contain documents but contains errors while it's processing", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -84,14 +85,14 @@ describe("/documents/batch", function() {
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.have.property("documents");
+				res.body.should.not.have.property("documents");
 				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			assert.equal(processed === documents.length);
 		});
 
-		it("job status contains documents and errors after completing validation", async function() {
+		it("job status doesn't contain documents but contains errors after completing validation", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -105,6 +106,7 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
 			res.body.should.have.property("errors");
+			res.body.should.not.have.property("documents");
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
 		});
@@ -123,11 +125,11 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("documents");
+			res.body.should.not.have.property("documents");
 			res.body.should.have.property("errors");
 		});
 
-		it("job status can be followed during background completion, and it doesn't contain documents or errors while it's processing", async function() {
+		it("job status can be followed during background completion, and it doesn't contain documents but contains errors while it's processing", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -148,7 +150,7 @@ describe("/documents/batch", function() {
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.have.property("documents");
+				res.body.should.not.have.property("documents");
 				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
@@ -205,7 +207,7 @@ describe("/documents/batch", function() {
 			{
 				"id": "testID",
 				"formID":"MHL.618",
-				"gatheringEvent":{ "leg":["MA.308"], "dateBegin":"2024-05-28" },
+				"gatheringEvent":{ "leg":[config.user.model.id], "dateBegin":"2024-05-28" },
 				"gatherings":[ {
 					"geometry":{ "type":"Point","coordinates":[27.74034,63.965225],"coordinateVerbatim":"25 60" },
 					"units":[
@@ -231,11 +233,11 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("documents");
+			res.body.should.not.have.property("documents");
 			res.body.should.have.property("errors");
 		});
 
-		it("job status can be followed during background validation, and it doesn't contain documents or errors while it's processing", async function() {
+		it("job status can be followed during background validation, and it doesn't contain documents but contains errors while it's processing", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -256,14 +258,14 @@ describe("/documents/batch", function() {
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.have.property("documents");
+				res.body.should.not.have.property("documents");
 				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			assert.equal(processed === documents.length);
 		});
 
-		it("job status contains documents and errors after completing validation", async function() {
+		it("job status doesn't contain documents but contains errors after completing validation", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -276,8 +278,8 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
+			res.body.should.not.have.property("documents");
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
 		});
@@ -296,11 +298,11 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("documents");
+			res.body.should.not.have.property("documents");
 			res.body.should.have.property("errors");
 		});
 
-		it("job status can be followed during background completion, and it doesn't contain documents or errors while it's processing", async function() {
+		it("job status can be followed during background completion, and it doesn't contain documents but contains errors while it's processing", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -320,7 +322,7 @@ describe("/documents/batch", function() {
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.have.property("documents");
+				res.body.should.not.have.property("documents");
 				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
@@ -376,7 +378,7 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed").eql(0);
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.have.property("documents");
+			res.body.should.not.have.property("documents");
 			res.body.should.have.property("errors");
 
 			// Wait until processed.

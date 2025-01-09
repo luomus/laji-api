@@ -13,11 +13,11 @@ import { QueryWithPersonTokenDto } from "src/common.dto";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
 import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
-import { ValidationException } from "./document-validator/document-validator.utils";
+import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -26,6 +26,7 @@ import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @ApiTags("Documents")
 @UseFilters(ValidatiorErrorFormatFilter)
+@ApiExtraModels(ErrorsObj)
 @LajiApiController("documents")
 export class DocumentsController {
 	constructor(
@@ -42,6 +43,13 @@ export class DocumentsController {
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
 	 * */
 	@Post("batch")
+	@SwaggerRemoteRef({
+		source: "store",
+		ref: "document", 
+		replacePointer: "/items",
+		applyToResponse: false,
+		customizeRequestSchema: schema => ({ type: "array", items: schema })
+	})
 	@HttpCode(200)
 	async startBatchJob(
 		@Body() documents: Document[],
@@ -99,58 +107,51 @@ export class DocumentsController {
 	async validate(
 		@Body() document: Document,
 		@Query() query: ValidateQueryDto,
-		@ApiUser() apiUser: ApiUserEntity
+		@ApiUser() apiUser: ApiUserEntity,
+		@PersonToken({ required: false }) person?: Person
 	): Promise<unknown> {
-		const { validator, personToken, validationErrorFormat, type } = query;
+		const { validator, validationErrorFormat, type } = query;
 		if (validator) {
 			return this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
-		} else {
-			// Backward compatibility with old API, where batch jobs are handled by this endpoint.
-			if (document instanceof Array) {
-				if (!personToken) {
-					throw new HttpException("Person token is required for batch operation", 422);
-				}
-				const person = await this.personsService.getByToken(personToken);
-				return this.documentsBatchService.start(document, person, apiUser);
-			} else if (isBatchJobDto(document)) {
-				if (!personToken) {
-					throw new HttpException("Person token is required for batch operation", 422);
-				}
-				const person = await this.personsService.getByToken(personToken);
-				return this.documentsBatchService.getStatus(
-					document.id,
-					person,
-					 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-					// typings bit awkward.
-					validationErrorFormat!
-				);
-			}
-
-			if (!document.formID) {
-				throw new ValidationException({ "/formID": ["Missing required param formID"] });
-			}
-
-			const form = await this.formsService.get(document.formID);
-
-			if (form?.options?.secondaryCopy) {
-				if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
-					throw new HttpException(
-						"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
-						422);
-				}
-				const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
-				if (!personToken) {
-					throw new HttpException("Person token is for batch operation", 422);
-				}
-				const person = await this.personsService.getByToken(personToken);
-				return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
-			}
-
-			const populatedDocument = await this.documentsService.populateMutably(document, undefined, apiUser);
-			return this.documentValidatorService.validate(populatedDocument, type!);
 		}
+
+		if (!person) {
+			throw new HttpException("Person token is required for document validation", 422);
+		}
+
+		// Backward compatibility with old API, where batch jobs are handled by this endpoint.
+		if (document instanceof Array) {
+			return this.documentsBatchService.start(document, person, apiUser);
+		} else if (isBatchJobDto(document)) {
+			return this.documentsBatchService.getStatus(
+				document.id,
+				person,
+				 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
+				// typings bit awkward.
+				validationErrorFormat!
+			);
+		}
+
+		if (!document.formID) {
+			throw new ValidationException({ "/formID": ["Missing required param formID"] });
+		}
+
+		const form = await this.formsService.get(document.formID);
+
+		if (form?.options?.secondaryCopy) {
+			if (!isSecondaryDocument(document) && !isSecondaryDocumentDelete(document)) {
+				throw new HttpException(
+					"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
+					422);
+			}
+			const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
+			return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
+		}
+
+		const populatedDocument = await this.documentsService.populateMutably(document, undefined, apiUser);
+		return this.documentValidatorService.validate(populatedDocument, person, type!);
 	}
 
 	/** Get count of documents by type (currently just "byYear") */
@@ -198,7 +199,6 @@ export class DocumentsController {
 		return this.documentsService.get(id, person);
 	}
 
-	// TODO need to add swagger customization to get the whole MY.document schema for the body.
 	/** Create a new document */
 	@Post()
 	@SwaggerRemoteRef({ source: "store", ref: "document" })

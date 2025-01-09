@@ -21,6 +21,7 @@ export class AudioController {
 
 	/** Upload audio and get temporary id */
 	@Post()
+	@HttpCode(200)
 	@ApiOkResponse({
 		type: FileUploadResponse
 	})

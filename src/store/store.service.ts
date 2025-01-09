@@ -1,5 +1,5 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
-import { getAllFromPagedResource, paginateAlreadyPaged, PaginatedDto } from "src/pagination.utils";
+import { getAllFromPagedResource, paginateAlreadyPaginated, PaginatedDto } from "src/pagination.utils";
 import { JSONObjectSerializable, KeyOf, MaybeArray, hasKey, omitForKeys } from "src/typing.utils";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doForDefined, getCacheTTL } from "src/utils";
@@ -8,9 +8,10 @@ import { QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyF
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { AxiosRequestConfig } from "axios";
 import { StoreDeleteResponse } from "./store.dto";
+import { HasJsonLdContext } from "src/common.dto";
 
 export type StoreQueryResult<T> = {
-	member: T[];
+	member: (T & HasJsonLdContext)[];
 	totalItems: number;
 	pageSize: number;
 	page: number;
@@ -52,7 +53,7 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 		selectedFields: MaybeArray<KeyOf<Resource>> = [],
 		sorts: MaybeArray<Sort<Resource>> = [],
 		cacheOptions?: QueryCacheOptions<ResourceQuery>
-	): Promise<PaginatedDto<Resource & { id: string }>> {
+	): Promise<PaginatedDto<Omit<Resource, "@context"> & { id: string }>> {
 		const cacheConfig = this.config.cache && this.getCacheConfig(cacheOptions);
 		let cacheKey: string | undefined;
 		if (cachingIsEnabled(cacheConfig)) {
@@ -362,10 +363,8 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 	}
 }
 
-export const pageAdapter = <T>(result: StoreQueryResult<T>): PaginatedDto<T> => {
-	const { totalItems, member, currentPage, pageSize } = result;
-	return paginateAlreadyPaged({ results: member, total: totalItems, pageSize, currentPage });
-};
+export const pageAdapter = <T>({ totalItems, member, currentPage, pageSize }: StoreQueryResult<T>)=>
+	paginateAlreadyPaginated({ results: member, total: totalItems, pageSize, currentPage });
 
 const cachingIsEnabled = (cache?: StoreCacheOptions<never>) => cache && cache.enabled !== false;
 

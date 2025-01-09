@@ -1,4 +1,4 @@
-/** Is what you would intuitively call an object. That is, it's typeof === "object" but not `Array` or `null`. */
+/** Is what you would intuitively call an object. That is, it's `typeof === "object"` but not `Array` or `null`. */
 export const isObject = (any: unknown): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;
 

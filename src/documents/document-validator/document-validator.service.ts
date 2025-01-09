@@ -19,6 +19,8 @@ import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
 import { dotNotationToJSONPointer } from "src/utils";
+import { Person } from "src/persons/person.dto";
+import { ProfileService } from "src/profile/profile.service";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -26,6 +28,7 @@ export class DocumentValidatorService {
 	constructor(
 		private formsService: FormsService,
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
+		private profileService: ProfileService,
 		// These following services are used even though TS doesn't know about it. They are called dynamically in
 		// `validateWithValidationStrategy()`.
 		private taxonBelongsToInformalTaxonGroupValidatorService: TaxonBelongsToInformalTaxonGroupValidatorService,
@@ -36,12 +39,12 @@ export class DocumentValidatorService {
 		this.extendLajiValidate();
 	}
 
-	async validate(document: Populated<Document>, type?: ValidationType) {
+	async validate(document: Populated<Document>, person: Person, type?: ValidationType) {
 		if (document.isTemplate) {
 			return;
 		}
 
-		await this.validateLinkings(document);
+		await this.validateLinkings(document, person);
 
 		const form = await this.formsService.get(document.formID, Format.schema);
 		const strict = form.options?.strict !== false;
@@ -91,13 +94,37 @@ export class DocumentValidatorService {
 		}
 	}
 
-	private async validateLinkings(document: Document) {
-		if (document.namedPlaceID) {
-			try {
-				await this.namedPlacesService.get(document.namedPlaceID);
-			} catch (e) {
-				throw new HttpException("Named place not found or not public", 422);
+	private async validateLinkings(document: Document, person: Person) {
+		await this.validatePersonLinkings(document, person);
+		await this.validateNamedPlaceLinking(document);
+	}
+
+	private async validatePersonLinkings(document: Document, person: Person) {
+		const persons = [
+			...(document.gatheringEvent?.leg || [])
+				.map((leg, i) => ({ personString: leg, path: `/document/gatheringEvent/${i}/leg` })),
+			...(document.editors || [])
+				.map((editor, i) => ({ personString: editor, path: `/document/editors/${i}` }))
+		];
+
+		const { friends } = await this.profileService.getByPersonIdOrCreate(person.id);
+
+		for (const { personString, path } of persons) {
+			if (personString.toUpperCase().startsWith("MA.") && ![person.id, ...friends].includes(personString)) {
+				throw new ValidationException({ [path]: ["MA codes must be yourself or your friend!"] });
 			}
+		}
+	}
+
+	private async validateNamedPlaceLinking(document: Document) {
+		if (!document.namedPlaceID) {
+			return;
+		}
+
+		try {
+			await this.namedPlacesService.get(document.namedPlaceID);
+		} catch (e) {
+			throw new ValidationException({ "/namedPlaceID": ["Named place not found or not public"] });
 		}
 	}
 
@@ -136,8 +163,6 @@ export class DocumentValidatorService {
 					return {
 						status: error.status || 500,
 						json: () => ({ error: error.response }),
-						// error: error.response,
-						// _body: JSON.stringify(error)
 					};
 				}
 			}
