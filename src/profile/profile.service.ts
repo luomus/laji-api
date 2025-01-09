@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { PersonTokenService } from "src/person-token/person-token.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
@@ -8,8 +8,6 @@ import * as equals from "fast-deep-equal";
 
 @Injectable()
 export class ProfileService {
-
-	private logger = new Logger(ProfileService.name);
 
 	constructor(
 		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Profile>,
