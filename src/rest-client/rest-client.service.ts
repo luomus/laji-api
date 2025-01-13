@@ -159,13 +159,13 @@ export class RestClientService<T = unknown> {
 			}
 		}
 		const result = await firstValueFrom(
-			this.httpService.get<S>(this.getHostAndPath(path), this.getRequestConfig(config)).pipe(map(r =>
+			this.httpService.get<S>(hostAndPath, this.getRequestConfig(config)).pipe(map(r =>
 				options?.transformer ? options.transformer(r.data) : r.data
 			))
 		);
 		if (cacheConf) {
 			cacheForHostAndPath![url] = result;
-			await this.cache!.set(this.getHostAndPath(path), cacheForHostAndPath!, getCacheTTL(cacheConf));
+			await this.cache!.set(hostAndPath, cacheForHostAndPath!, getCacheTTL(cacheConf));
 		}
 		return result;
 	}
