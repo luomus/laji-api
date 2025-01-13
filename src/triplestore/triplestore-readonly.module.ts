@@ -7,6 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { MetadataService } from "src/metadata/metadata.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
+import { CACHE_1_H } from "src/utils";
 
 export const TriplestoreReadonlyRestClient: FactoryProvider<RestClientService<never>> = {
 	provide: TRIPLESTORE_CLIENT,
@@ -16,8 +17,9 @@ export const TriplestoreReadonlyRestClient: FactoryProvider<RestClientService<ne
 				name: "triplestore-readonly",
 				host: config.get<string>("TRIPLESTORE_READONLY_HOST"),
 				auth: config.get<string>("TRIPLESTORE_READONLY_AUTH"),
+				cache: { ttl: CACHE_1_H }
 			}, cache),
-	inject: [HttpService, ConfigService],
+	inject: [HttpService, ConfigService, RedisCacheService],
 };
 
 const TriplestoreReadonlyService: FactoryProvider<TriplestoreService> = {

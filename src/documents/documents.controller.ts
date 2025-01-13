@@ -45,7 +45,7 @@ export class DocumentsController {
 	@Post("batch")
 	@SwaggerRemoteRef({
 		source: "store",
-		ref: "document", 
+		ref: "document",
 		replacePointer: "/items",
 		applyToResponse: false,
 		customizeRequestSchema: schema => ({ type: "array", items: schema })

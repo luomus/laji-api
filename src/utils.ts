@@ -9,7 +9,7 @@ export const CACHE_30_MIN = CACHE_1_MIN * 30;
 export const CACHE_1_H = CACHE_1_MIN * 60;
 
 export type CacheOptions = {
-	/** Milliseconds for the cache TTL, true for default TTL. */
+	/** Milliseconds for the cache TTL, true for no TTL (does not expire). */
 	cache?: number | true;
 }
 
@@ -232,7 +232,7 @@ export const dotNotationToJSONPointer = (pointer: string) => {
 export const isJSONPointer = (pointer: string) =>
 	pointer === "" || pointer[0] === "/";
 
-/** Filters non strings (or numbers) out and joins with " " */
+/** Filters all except strings and numbers out and joins them with " " */
 export const joinOnlyStrings = (...array: (unknown)[]) => {
 	return array.filter(m => typeof m === "string" || typeof m === "number").join(" ");
 };
