@@ -5,7 +5,7 @@ import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { JSONObjectSerializable, Newable, isObject } from "src/typing.utils";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CacheOptions, doForDefined, getCacheTTL } from "src/utils";
+import { CacheOptions, doForDefined, getCacheTTL, pipe } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 type CacheOptionsObjectConfig = {
@@ -19,12 +19,9 @@ type CacheOptionsObjectConfig = {
 	 * DELETE is done to "/:id"
 	 */
 	singleResourceEndpoint?: boolean
-	/** Milliseconds for the cache TTL */
+	/** Milliseconds for the cache TTL. If not given, cache doesn't expire at all. */
 	ttl?: number;
 }
-
-const isCacheOptionsObject = (cache: CacheOptions["cache"] | CacheOptionsObjectConfig)
-	: cache is CacheOptionsObjectConfig => isObject(cache);
 
 export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & {
 	/**
@@ -64,16 +61,29 @@ const joinOverflowWithRightSide = (str: string, str2: string) =>
  * Caching can be configured to be for all request, or request-specific. Request-specific caching can be done by adding
  * the `cache` option to each method (get, put, post, del). The client must give the option to bust the cache for a
  * path.
+ *
+ * Caching includes Redis cache and also in-flight request deduplication.
  */
+// Both caches (Redis and the in-flight request cache in app memory) use a structure where there's a map
+// between host + path (without query params), and it's values are a map between full uri (host, path, query params) and
+// their results. This way we can bust the cache by just a path.
+//
+// Given host = "https://foo.com" and path = "bar", the Redis/in-flight cache maps look like this:
+//
+// { "https://foo.com/bar": {
+// "https://foo.com/bar?param1=foo": "cached example value 1",
+// "https://foo.com/bar?param2=bar": "cached example value 2",
+// } }
 @Injectable()
 export class RestClientService<T = unknown> {
 
-	private logger = new Logger(joinOverflowWithRightSide(RestClientService.name, this.config.name));
+	private readonly logger = new Logger(joinOverflowWithRightSide(RestClientService.name, this.config.name));
+	private readonly hostAndPathToInFlightRequests = new Map<string, Map<string, Promise<any>>>();
 
 	constructor(
 		private readonly httpService: HttpService,
 		@Inject("REST_CLIENT_CONFIG") private readonly config: RestClientConfig<T>,
-		private cache?: RedisCacheService
+		private readonly cache?: RedisCacheService
 	) { }
 
 	private getRequestConfig(config: AxiosRequestConfig = {}) {
@@ -130,23 +140,18 @@ export class RestClientService<T = unknown> {
 		return this.config.cache;
 	}
 
-	private async getWithCache<S>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>)
+	private async getCachedOrFetch<S>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>)
 	: Promise<S> {
-		// We cache a map where keys are the path without query params, and the keys are the full uri with host, path and query params.
-		// This way we can bust the cache by just the path.
-		//
-		// Example for cachedByPath, where this.path = "https://foo.bar", path = "path":
-		// { "https://foo.bar/path": {
-		// "https://foo.bar/path?param1=foo": "cached example value 1",
-		// "https://foo.bar/path?param2=bar": "cached example value 2",
-		// } }
-		let cachedByHostAndPath: Record<string, S>;
+		// Read the comment for the class at the top to understand the map structure.
+		let cacheForHostAndPath: Record<string, S> | undefined;
 		const url = this.getURL(path, this.getRequestConfig(config));
-		if (this.getCacheConf(options)) {
-			cachedByHostAndPath = await this.cache!.get<Record<string, S>>(this.getHostAndPath(path))
+		const cacheConf = this.getCacheConf(options);
+		const hostAndPath = this.getHostAndPath(path);
+		if (cacheConf) {
+			cacheForHostAndPath = await this.cache!.get<Record<string, S>>(hostAndPath)
 				|| {} as Record<string, S>;
-			const cached = url in cachedByHostAndPath
-				? cachedByHostAndPath[url]
+			const cached = url in cacheForHostAndPath
+				? cacheForHostAndPath[url]
 				: undefined;
 			if (cached) {
 				this.logger.debug(`GET (CACHED) ${url}`);
@@ -158,25 +163,52 @@ export class RestClientService<T = unknown> {
 				options?.transformer ? options.transformer(r.data) : r.data
 			))
 		);
-		const cacheConf = this.getCacheConf(options);
 		if (cacheConf) {
-			/* eslint-disable @typescript-eslint/no-non-null-assertion */
-			cachedByHostAndPath![url] = result;
-			await this.cache!.set(this.getHostAndPath(path), cachedByHostAndPath!, getCacheTTL(cacheConf));
-			/* eslint-enable @typescript-eslint/no-non-null-assertion */
+			cacheForHostAndPath![url] = result;
+			await this.cache!.set(this.getHostAndPath(path), cacheForHostAndPath!, getCacheTTL(cacheConf));
 		}
 		return result;
 	}
 
-	async get<S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>) {
-		return RestClientService.applyOptions<S>(await this.getWithCache<S>(path, config, options), options);
+	private getWithInFlightDeduplication<S>(
+		path?: string,
+		config?: AxiosRequestConfig
+	) { return async (createRequest: () => Promise<S>): Promise<S> => {
+		const url = this.getURL(path, this.getRequestConfig(config));
+		const hostAndPath = this.getHostAndPath(path);
+		// Read the comment for the class at the top to understand the map structure.
+		const inFlightRequestsForHostAndPath = this.hostAndPathToInFlightRequests.get(hostAndPath);
+		if (inFlightRequestsForHostAndPath?.has(url)) {
+			this.logger.debug(`GET (IN-FLIGHT) ${url}`);
+			return (inFlightRequestsForHostAndPath.get(url) as Promise<S>);
+		}
+		if (!this.hostAndPathToInFlightRequests.has(hostAndPath)) {
+			this.hostAndPathToInFlightRequests.set(hostAndPath, new Map());
+		}
+		const inFlightRequest = createRequest();
+		this.hostAndPathToInFlightRequests.get(hostAndPath)!.set(url, inFlightRequest);
+		let result: Awaited<S>;
+		try {
+			result = await inFlightRequest;
+		} finally {
+			this.hostAndPathToInFlightRequests.get(hostAndPath)?.delete(url);
+		}
+		return result;
+	}; }
+
+	async get<S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>): Promise<S> {
+		return pipe(
+			this.getWithInFlightDeduplication<S>(path, config),
+			async (request: Promise<S>) => RestClientService.applyOptions<S>(await request, options)
+		)(() => this.getCachedOrFetch<S>(path, config, options));
 	}
 
 	async post<Out = T, In = T>(
 		path?: string,
 		body?: In, config?: AxiosRequestConfig,
 		options?: RestClientOptions<Out>
-	) {
+	): Promise<Out> {
+		this.flushInFlightCache(path, options);
 		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.post<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
@@ -190,7 +222,8 @@ export class RestClientService<T = unknown> {
 		body?: In,
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<Out>
-	) {
+	): Promise<Out> {
+		this.flushInFlightCache(path, options);
 		const result = RestClientService.applyOptions(await firstValueFrom(
 			this.httpService.put<Out>(this.getHostAndPath(path), body, this.getRequestConfig(config))
 				.pipe(map(r => r.data))
@@ -199,7 +232,12 @@ export class RestClientService<T = unknown> {
 		return result;
 	}
 
-	async delete<Out = unknown>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<never>) {
+	async delete<Out = unknown>(
+		path?: string,
+		config?: AxiosRequestConfig,
+		options?: RestClientOptions<never>
+	): Promise<Out> {
+		this.flushInFlightCache(path, options);
 		const result = await firstValueFrom(
 			this.httpService.delete<Out>(this.getHostAndPath(path), this.getRequestConfig(config))
 				.pipe(map(r => r.data))
@@ -213,9 +251,17 @@ export class RestClientService<T = unknown> {
 		if (!cache) {
 			return;
 		}
-		if (isCacheOptionsObject(cache) && cache.singleResourceEndpoint) {
+		if (isObject(cache) && cache.singleResourceEndpoint) {
 			await this.cache!.del(this.getHostAndPath());
 		}
 		await this.cache!.del(this.getHostAndPath(path));
+	}
+
+	flushInFlightCache(path?: string, options?: RestClientOptions<unknown>) {
+		const cache = this.getCacheConf(options);
+		if (isObject(cache) && cache.singleResourceEndpoint) {
+			this.hostAndPathToInFlightRequests.delete(this.getHostAndPath());
+		}
+		this.hostAndPathToInFlightRequests.delete(this.getHostAndPath(path));
 	}
 }

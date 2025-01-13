@@ -131,12 +131,15 @@ function logOutgoingRequests(httpService: HttpService) {
 	});
 
 	const responseLogger = (config: any, method: "verbose" | "error", status?: number) => {
-		if (!config) return;
+		if (!config) {
+			return;
+		}
 		const logger = getLoggerFromAxiosConfig(config);
 		const { lajiApiTimeStamp } = (config as any).meta || {};
+		const query = new URLSearchParams(config?.params).toString();
 		logger[method](joinOnlyStrings("END",
 			config.method?.toUpperCase(),
-			config.url,
+			config.url + (query ? `?${query}` : ""),
 			status && `[STATUS ${status}]`,
 			lajiApiTimeStamp && `[${Date.now() - lajiApiTimeStamp}ms]`
 		));
@@ -146,7 +149,7 @@ function logOutgoingRequests(httpService: HttpService) {
 		responseLogger(response.config, "verbose", response.status);
 		return response;
 	}, error => {
-		responseLogger(error.config, "error", error.response.status);
+		responseLogger(error.config, "error", error?.response?.status);
 		return Promise.reject(error);
 	});
 }
