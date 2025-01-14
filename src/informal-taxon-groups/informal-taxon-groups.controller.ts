@@ -3,7 +3,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { InformalTaxonGroupsService } from "./informal-taxon-groups.service";
-import { Lang, QueryWithLangDto, QueryWithPagingAndLangAndIdIn, QueryWithPagingAndLang } from "src/common.dto";
+import { Lang, QueryWithLangDto, QueryWithPagingAndLangAndIdIn } from "src/common.dto";
 import { SwaggerRemoteRef, SwaggerRemoteRefEntry } from "src/swagger/swagger-remote.decorator";
 import { SchemaItem } from "src/swagger/swagger.service";
 import { ResultsArray } from "src/interceptors/results-array.interceptor";
@@ -71,14 +71,6 @@ export class InformalTaxonGroupsController {
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
 	getChildren(@Param("id") id: string, @Query() _: QueryWithLangDto) {
 		return this.informalTaxonGroupsService.getChildren(id);
-	}
-
-	/** Get informal taxon group's parents */
-	@Get(":id/parents")
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLang))
-	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
-	async getParents(@Param("id") id: string, @Query() _: QueryWithPagingAndLang) {
-		return [await this.informalTaxonGroupsService.getParent(id)];
 	}
 
 	/** Get informal taxon group's parents */
