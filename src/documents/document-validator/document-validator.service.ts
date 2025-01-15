@@ -21,6 +21,7 @@ import { UniqueNamedPlaceAlternativeIDsValidatorService }
 import { dotNotationToJSONPointer } from "src/utils";
 import { Person } from "src/persons/person.dto";
 import { ProfileService } from "src/profile/profile.service";
+import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -29,6 +30,7 @@ export class DocumentValidatorService {
 		private formsService: FormsService,
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		private profileService: ProfileService,
+		private formPermissionsService: FormPermissionsService,
 		// These following services are used even though TS doesn't know about it. They are called dynamically in
 		// `validateWithValidationStrategy()`.
 		private taxonBelongsToInformalTaxonGroupValidatorService: TaxonBelongsToInformalTaxonGroupValidatorService,
@@ -100,7 +102,12 @@ export class DocumentValidatorService {
 	}
 
 	private async validatePersonLinkings(document: Document, person: Person) {
-		const persons = [
+		const { collectionID } = document;
+		if (collectionID && await this.formPermissionsService.isAdminOf(collectionID, person)) {
+			return;
+		}
+
+		const personValidations = [
 			...(document.gatheringEvent?.leg || [])
 				.map((leg, i) => ({ personString: leg, path: `/document/gatheringEvent/${i}/leg` })),
 			...(document.editors || [])
@@ -109,7 +116,7 @@ export class DocumentValidatorService {
 
 		const { friends } = await this.profileService.getByPersonIdOrCreate(person.id);
 
-		for (const { personString, path } of persons) {
+		for (const { personString, path } of personValidations) {
 			if (personString.toUpperCase().startsWith("MA.") && ![person.id, ...friends].includes(personString)) {
 				throw new ValidationException({ [path]: ["MA codes must be yourself or your friend!"] });
 			}

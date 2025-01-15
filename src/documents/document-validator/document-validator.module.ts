@@ -13,6 +13,7 @@ import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
 import { ProfileModule } from "src/profile/profile.module";
+import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
 
 @Module({
 	providers: [
@@ -27,7 +28,8 @@ import { ProfileModule } from "src/profile/profile.module";
 		TaxaModule,
 		forwardRef(() => DocumentsModule),
 		forwardRef(() => NamedPlacesModule),
-		ProfileModule
+		ProfileModule,
+		FormPermissionsModule
 	],
 	exports: [DocumentValidatorService]
 })
