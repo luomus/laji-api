@@ -199,7 +199,10 @@ export class FormPermissionsService {
 	}
 
 	async isAdminOf(collectionID: string, person: Person) {
-		const permissions = await this.getByCollectionIDAndPerson(collectionID, person);
+		const permissions = await this.findByCollectionIDAndPerson(collectionID, person);
+		if (!permissions) {
+			return false;
+		}
 		return isAdminOf(permissions, person);
 	}
 
