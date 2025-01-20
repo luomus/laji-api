@@ -268,14 +268,21 @@ export class DocumentsService {
 		return true;
 	}
 
-	async deriveCollectionIDMutably<T extends { formID?: string }>(mutableTarget: T)
-		: Promise<T & { formID: string, collectionID: string }> {
+	async deriveCollectionIDMutably<T extends { formID?: string, namedPlaceID?: string, collectionID?: string }>
+	(mutableTarget: T): Promise<T & { collectionID: string }> {
 		if (!mutableTarget.formID) {
 			throw new ValidationException({ "/formID": ["Missing required property formID"] });
 		}
-		(mutableTarget as any).collectionID = (await this.formsService.get(mutableTarget.formID)).collectionID
+		if (mutableTarget.namedPlaceID) {
+			const namedPlace = await this.namedPlacesService.get(mutableTarget.namedPlaceID);
+			if (namedPlace.collectionID) {
+				mutableTarget.collectionID = namedPlace.collectionID;
+				return mutableTarget as T & { collectionID: string };
+			}
+		}
+		mutableTarget.collectionID = (await this.formsService.get(mutableTarget.formID)).collectionID
 			|| DEFAULT_COLLECTION;
-		return mutableTarget as T & { formID: string, collectionID: string };
+		return mutableTarget as T & { collectionID: string };
 	}
 
 	async populateCommonsMutably<T extends Document>(
@@ -313,7 +320,7 @@ export class DocumentsService {
 		person: Person | undefined,
 		apiUser: ApiUserEntity,
 		overwriteSourceID = true
-	): Promise<WithNonNullableKeys<Populated<T>, "sourceID">> {
+	): Promise<Populated<WithNonNullableKeys<T, "sourceID">>> {
 		const withSourceID = populateSourceIDMutably(document, apiUser, overwriteSourceID);
 		return this.populateCommonsMutably(withSourceID, person);
 	};

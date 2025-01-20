@@ -22,6 +22,7 @@ import { dotNotationToJSONPointer } from "src/utils";
 import { Person } from "src/persons/person.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { CollectionsService } from "src/collections/collections.service";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -31,6 +32,7 @@ export class DocumentValidatorService {
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		private profileService: ProfileService,
 		private formPermissionsService: FormPermissionsService,
+		private collectionsService: CollectionsService,
 		// These following services are used even though TS doesn't know about it. They are called dynamically in
 		// `validateWithValidationStrategy()`.
 		private taxonBelongsToInformalTaxonGroupValidatorService: TaxonBelongsToInformalTaxonGroupValidatorService,
@@ -96,7 +98,7 @@ export class DocumentValidatorService {
 		}
 	}
 
-	private async validateLinkings(document: Document, person: Person) {
+	private async validateLinkings(document: Populated<Document>, person: Person) {
 		await this.validatePersonLinkings(document, person);
 		await this.validateNamedPlaceLinking(document);
 	}
@@ -123,13 +125,22 @@ export class DocumentValidatorService {
 		}
 	}
 
-	private async validateNamedPlaceLinking(document: Document) {
+	private async validateNamedPlaceLinking(document: Populated<Document>) {
 		if (!document.namedPlaceID) {
 			return;
 		}
 
 		try {
-			await this.namedPlacesService.get(document.namedPlaceID);
+			const namedPlace = await this.namedPlacesService.get(document.namedPlaceID);
+			const form = await this.formsService.get(document.formID);
+			if (namedPlace.collectionID && form.collectionID && namedPlace.collectionID !== form.collectionID) {
+				const collectionChildren = await this.collectionsService.findDescendants(form.collectionID);
+				if (!collectionChildren.find(child => child.id === namedPlace.collectionID)) {
+					throw new ValidationException({
+						"/namedPlaceID": ["Named place doesn't belong to the forms collection or it's descendants."]
+					});
+				}
+			}
 		} catch (e) {
 			throw new ValidationException({ "/namedPlaceID": ["Named place not found or not public"] });
 		}

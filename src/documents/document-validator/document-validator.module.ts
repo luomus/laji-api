@@ -14,6 +14,7 @@ import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
 import { ProfileModule } from "src/profile/profile.module";
 import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
+import { CollectionsModule } from "src/collections/collections.module";
 
 @Module({
 	providers: [
@@ -29,7 +30,8 @@ import { FormPermissionsModule } from "src/forms/form-permissions/form-permissio
 		forwardRef(() => DocumentsModule),
 		forwardRef(() => NamedPlacesModule),
 		ProfileModule,
-		FormPermissionsModule
+		FormPermissionsModule,
+		CollectionsModule
 	],
 	exports: [DocumentValidatorService]
 })

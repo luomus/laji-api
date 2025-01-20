@@ -124,7 +124,6 @@ export class NamedPlacesService {
 	}
 
 	async create(place: NamedPlace, person: Person) {
-
 		if (!person.isImporter() && !place.owners.includes(person.id)) {
 			place.owners.push(person.id);
 		}
