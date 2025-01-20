@@ -4,7 +4,7 @@ import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
 import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
-import { WithNonNullableKeys } from "src/typing.utils";
+import { PickNonNullableKeys, WithNonNullableKeys } from "src/typing.utils";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 
 export class GetDocumentsDto extends IntersectionType(
@@ -59,7 +59,7 @@ export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperat
 
 export type NewPrimaryDocument = Omit<Document, "id">;
 
-export type SecondaryDocument = Document & { id: string };
+export type SecondaryDocument = WithNonNullableKeys<Document, "id">;
 
 export type SecondaryDocumentDelete = {
 	id: string;
@@ -83,7 +83,7 @@ export const isSecondaryDocumentOperation = (document: Document | SecondaryDocum
 
 export type PopulatedSecondaryDocumentOperation =
 	Populated<SecondaryDocument>
-	| (SecondaryDocumentDelete & { formID: string; collectionID: string });
+	| (SecondaryDocumentDelete & PickNonNullableKeys<Document, "formID" | "collectionID">);
 
 export type SecondaryDocumentDeleteResponse = Pick<Document,
 	"formID"
