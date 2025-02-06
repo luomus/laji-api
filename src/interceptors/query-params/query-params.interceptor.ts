@@ -1,13 +1,15 @@
 import { CallHandler, ExecutionContext, Injectable, mixin, NestInterceptor } from "@nestjs/common";
 import { from, Observable, switchMap } from "rxjs";
 import { Request } from "express";
-import { isQueryWithLangDto, QueryWithPagingDto, QueryWithLangDto, isQueryWithPagingDto } from "src/common.dto";
+import { isQueryWithLangDto, QueryWithPagingDto, QueryWithLangDto, isQueryWithPagingDto, HasJsonLdContext }
+	from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { promisePipe } from "src/utils";
 import { paginateArray, applyToResult } from "src/pagination.utils";
 import { Newable } from "src/typing.utils";
 import { serializeInto as _serializeInto, SerializeOptions } from "src/serialization/serialization.utils";
 import { plainToClass } from "class-transformer";
+import { applyLangToJsonLdContext } from "src/json-ld.utils";
 
 /**
  * Creates an interceptor that handles applying the paging and language related query params to the result.
@@ -49,16 +51,17 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 					: result
 				: undefined;
 			if (isQueryWithPagingDto(query)) {
-				result = paginateArray(result, page, pageSize, lang);
+				result = paginateArray(result, page, pageSize);
 			}
 			if (isQueryWithLangDto(query) && sample) {
 				const jsonLdContext = sample["@context"];
 				if (!jsonLdContext) {
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
-				return applyToResult(
-					await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback)
+				const translated = await applyToResult(
+					await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback),
 				)(result);
+				return applyLangToJsonLdContext(translated as HasJsonLdContext, lang);
 			}
 			return result;
 		};

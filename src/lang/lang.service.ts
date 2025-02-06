@@ -1,15 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
-import { MetadataService } from "src/metadata/metadata.service";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { isObject } from "src/typing.utils";
+import { isObject, KeyOf } from "src/typing.utils";
+import * as jsonld from "jsonld";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
 @Injectable()
 export class LangService {
-
-	constructor(private metadataService: MetadataService) {}
 
 	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean)
 		: Promise<(item: T) => MultiLangAsString<T>>
@@ -48,15 +46,13 @@ export class LangService {
 
 	@IntelligentMemoize()
 	async getMultiLangKeys(jsonLdContext: string): Promise<string[]> {
-		const contextProperties = await this.metadataService.getPropertiesForJsonLdContext(jsonLdContext);
-		const keys = Object.keys(contextProperties).reduce((keys, propertyKey) => {
-			const property = contextProperties[propertyKey]!;
-			if (property.multiLanguage) {
-				keys.push(property.shortName);
+		const inlineJsonLContext = (await jsonld.documentLoader(jsonLdContext)).document["@context"];
+		return (Object.keys(inlineJsonLContext) as (KeyOf<jsonld.JsonLdDocument>)[]).reduce((multiLangKeys, key) => {
+			if (inlineJsonLContext[key]["@container"] === "@language") {
+				multiLangKeys.push(key);
 			}
-			return keys;
-		}, [] as string[]);
-		return keys;
+			return multiLangKeys;
+		}, []);
 	}
 }
 

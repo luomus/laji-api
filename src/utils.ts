@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { MaybePromise, isObject } from "./typing.utils";
+import { MaybePromise, isObject } from "src/typing.utils";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
@@ -205,20 +205,24 @@ export const dateToISODate = (date: Date): string => date.toISOString().split("T
 // TS is wrong here, `Date.parse()` accepts `Date`.
 export const isValidDate = (date?: Date) => !isNaN(Date.parse(date as unknown as string));
 
+
+/** @throws Error if array is shorter than n */
+export const nthFromNonEmptyArr = (n: number) => <T>(arr: T[]): T => {
+	if (arr.length - 1 < n) {
+		throw new Error(`Array doesn't have index ${n}`);
+	}
+	return arr[n]!;
+};
+
+/** @throws Error if array is empty */
+export const firstFromNonEmptyArr = nthFromNonEmptyArr(0);
+
 /** @throws Error if array is empty */
 export const lastFromNonEmptyArr = <T>(arr: T[]): T => {
 	if (arr.length === 0) {
 		throw new Error("Array was empty");
 	}
 	return arr[arr.length - 1]!;
-};
-
-/** @throws Error if array is empty */
-export const firstFromNonEmptyArr = <T>(arr: T[]): T => {
-	if (arr.length === 0) {
-		throw new Error("Array was empty");
-	}
-	return arr[0]!;
 };
 
 export const dotNotationToJSONPointer = (pointer: string) => {

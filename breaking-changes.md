@@ -44,15 +44,6 @@ Error messages might change.
 
 ## JSON-LD
 
-###  @context path
-
-Will be changed like so:
-
-```
--  "@context": "http://schema.laji.fi/context/person-en.jsonld"
-+  "@context": "http://tun.fi/MA.person"
-```
-
 ### Paged result contexts
 
 In old api most paged results have `@context` in the root. Pre-paged results being an exception. New API doesn't make exceptions in this - all paged results have `@context` in the root and the items don't have `@context` property.

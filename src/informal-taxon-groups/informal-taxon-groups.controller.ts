@@ -7,6 +7,7 @@ import { Lang, QueryWithLangDto, QueryWithPagingAndLangAndIdIn } from "src/commo
 import { SwaggerRemoteRef, SwaggerRemoteRefEntry } from "src/swagger/swagger-remote.decorator";
 import { SchemaItem } from "src/swagger/swagger.service";
 import { ResultsArray } from "src/interceptors/results-array.interceptor";
+import { applyLangToJsonLdContext } from "src/json-ld.utils";
 
 const wrapSchemaToJsonLdContextResults = (schema: SchemaItem) => ({
 	type: "object",
@@ -43,10 +44,10 @@ export class InformalTaxonGroupsController {
 	@Get("tree")
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
 	async getTree(@Query() { lang = Lang.en, langFallback }: QueryWithLangDto) {
-		return ({
+		return applyLangToJsonLdContext({
 			results: await this.informalTaxonGroupsService.getTranslatedTree(lang, langFallback),
 			"@context": await this.informalTaxonGroupsService.getJsonLdContext()
-		});
+		}, lang);
 	}
 
 	/** Get first level of the informal taxon group tree */

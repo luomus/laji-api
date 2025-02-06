@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsInt, IsString, isObject } from "class-validator";
-import { CommaSeparatedStrings, IsOptionalBoolean } from "./serialization/serialization.utils";
+import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { IntersectionType, PartialType } from "@nestjs/swagger";
 
 export enum Lang {
