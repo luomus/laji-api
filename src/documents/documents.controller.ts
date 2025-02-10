@@ -20,7 +20,6 @@ import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatio
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
-import { PersonsService } from "src/persons/persons.service";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 
@@ -35,7 +34,6 @@ export class DocumentsController {
 		private secondaryDocumentsService: SecondaryDocumentsService,
 		private formsService: FormsService,
 		private documentsBatchService: DocumentsBatchService,
-		private personsService: PersonsService
 	) {}
 
 	/**
