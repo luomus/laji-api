@@ -19,7 +19,6 @@ import { STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
 import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
 	from "src/decorators/remote-swagger-merge.decorator";
-
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
@@ -46,6 +45,7 @@ export class SwaggerService {
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);
 		this.patchRemoteSwaggers = this.patchRemoteSwaggers.bind(this);
 		this.fetchRemoteSwagger = this.fetchRemoteSwagger.bind(this);
+		this.patchMultiLangs = this.patchMultiLangs.bind(this);
 	}
 
 	@Interval(CACHE_30_MIN)
@@ -77,7 +77,8 @@ export class SwaggerService {
 	private memoizedPatch(document: OpenAPIObject) {
 		return pipe(
 			this.patchRemoteSwaggers,
-			this.patchRemoteRefs
+			this.patchRemoteRefs,
+			this.patchMultiLangs
 		)(document);
 	}
 
@@ -119,14 +120,13 @@ export class SwaggerService {
 								continue;
 							}
 
-
 							if (entry.applyToResponse !== false) {
 								const responseCode = operationName === "post" ? "201" : "200";
 								const existingSchema =
 									getOperationResponseCodeSchemaOrCreateIfNotExists(operation, responseCode);
 								const schema: SchemaItem = pipe(
 									applyEntryToResponse(entry, document),
-									paginateAsNeededWith(operation),
+									paginateAsNeededWith(operation)
 								)(existingSchema);
 								(operation.responses as any)[responseCode].content = {
 									"application/json": { schema }
@@ -149,6 +149,13 @@ export class SwaggerService {
 					}
 				});
 			});
+		});
+		return document;
+	}
+
+	private patchMultiLangs(document: OpenAPIObject) {
+		Object.keys(document.components!.schemas!).forEach(key => {
+			document.components!.schemas![key] = multiLangAsString(document.components!.schemas![key]!);
 		});
 		return document;
 	}
@@ -319,6 +326,22 @@ export const paginateAsNeededWith = (operation: OperationObject) =>
 		(isPagedOperation(operation) && !isPagedSchema(schema))
 			? asPagedResponse(schema)
 			: schema;
+
+const multiLangAsString = <T extends SchemaObject | ReferenceObject>(schema: T): T | { type: "string" } => {
+	if (isSchemaObject(schema) && schema.properties) {
+		if (["fi", "sv", "en"].every(lang => Object.keys(schema.properties!).includes(lang))) {
+			return { type: "string" };
+		} else {
+			Object.keys(schema.properties).forEach(property => {
+				schema.properties![property] = multiLangAsString(schema.properties![property]!);
+			});
+			return schema;
+		}
+	} else if (!isSchemaObject(schema) && schema.$ref === "#/components/schemas/multiLang") {
+		return { type: "string" };
+	}
+	return schema;
+};
 
 export const getOperationResponseCodeSchemaOrCreateIfNotExists = (operation: OperationObject, responseCode: string)
 	: SchemaItem =>
