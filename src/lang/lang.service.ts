@@ -1,32 +1,37 @@
 import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { isObject, KeyOf } from "src/typing.utils";
+import { isJSONObjectSerializable, isObject, JSONObjectSerializable, KeyOf, omit } from "src/typing.utils";
 import * as jsonld from "jsonld";
+import * as jp from "jsonpath";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
+
+const JSON_LD_KEYWORDS = new Set(["@id", "@type", "@value", "@language", "@list", "@set", "@context"]);
 
 @Injectable()
 export class LangService {
 
-	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean)
-		: Promise<(item: T) => MultiLangAsString<T>>
-	async contextualTranslateWith<T>(jsonLdContext: string, lang: Lang.multi, langFallback?: boolean)
-		: Promise<(item: T) => T>
-	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Lang, langFallback?: boolean)
-		: Promise<(item: T) => (T | MultiLangAsString<T>)>
-	async contextualTranslateWith<T>(jsonLdContext: string, lang: Lang = Lang.en, langFallback = true) {
-		const multiLangKeys = await this.getMultiLangKeys(jsonLdContext);
-
+	async contextualTranslateWith<T>(
+		jsonLdContext: string | JSONObjectSerializable, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean
+	) : Promise<(item: T) => MultiLangAsString<T>>
+	async contextualTranslateWith<T>(
+		jsonLdContext: string | JSONObjectSerializable, lang: Lang.multi, langFallback?: boolean
+	): Promise<(item: T) => T>
+	async contextualTranslateWith<T>(
+		jsonLdContext: string | JSONObjectSerializable, lang?: Lang, langFallback?: boolean
+	): Promise<(item: T) => (T | MultiLangAsString<T>)>
+	async contextualTranslateWith<T>(
+		jsonLdContext: string | JSONObjectSerializable, lang: Lang = Lang.en, langFallback = true
+	) {
+		const multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
 		return (item: T): T | MultiLangAsString<T> => {
-			const multiLangValuesTranslated = multiLangKeys.reduce((acc: Partial<T>, prop: string) => {
-				(acc as any)[prop] = getLangValue(((item as any)[prop] as (MultiLang | undefined)), lang, langFallback);
-				return acc;
-			}, {});
-			return {
-				...item,
-				...multiLangValuesTranslated
-			} as unknown as T | MultiLangAsString<T>;
+			multiLangJSONPaths.forEach(jsonPath =>
+				jp.apply(item, jsonPath, (value: MultiLang) => {
+					return getLangValue(value, lang, langFallback);
+				})
+			);
+			return item;
 		};
 	}
 
@@ -45,14 +50,11 @@ export class LangService {
 	}
 
 	@IntelligentMemoize()
-	async getMultiLangKeys(jsonLdContext: string): Promise<string[]> {
-		const inlineJsonLContext = (await jsonld.documentLoader(jsonLdContext)).document["@context"];
-		return (Object.keys(inlineJsonLContext) as (KeyOf<jsonld.JsonLdDocument>)[]).reduce((multiLangKeys, key) => {
-			if (inlineJsonLContext[key]["@container"] === "@language") {
-				multiLangKeys.push(key);
-			}
-			return multiLangKeys;
-		}, []);
+	async getMultiLangJSONPaths(jsonLdContext: string | JSONObjectSerializable): Promise<string[]> {
+		const inlineJsonLdContext = typeof jsonLdContext === "string"
+			? (await jsonld.documentLoader(jsonLdContext)).document["@context"]
+		 : jsonLdContext;
+		return getMultiLangJSONPaths(inlineJsonLdContext);
 	}
 }
 
@@ -117,3 +119,41 @@ export const translateMaybeMultiLang: TranslateMaybeMultiLang  =
 		}
 		return value as T;
 	};
+
+const getMultiLangJSONPaths = (jsonLdContext: JSONObjectSerializable): string[] => {
+	const getMultiLangJSONPathsRecursively = (
+		iteratedJsonLdContext: JSONObjectSerializable,
+		iteratedJSONPath: string
+	): string[] => {
+		if (iteratedJsonLdContext["@container"] === "@set") {
+			return getMultiLangJSONPathsRecursively(
+				omit(iteratedJsonLdContext, "@container"),
+				`${iteratedJSONPath}[*]`
+			);
+		} else if (iteratedJsonLdContext["@container"] === "@language") {
+			return [iteratedJSONPath];
+		// Detect an object with properties by checking if it has other properties than json-ld reserved keywords.
+		} else if (Object.keys(iteratedJsonLdContext).some(key => !JSON_LD_KEYWORDS.has(key))) {
+			return Object.keys(iteratedJsonLdContext).reduce((jsonPaths, key) => {
+				if (JSON_LD_KEYWORDS.has(key)) {
+					return jsonPaths;
+				}
+				return [...jsonPaths, ...getMultiLangJSONPathsRecursively(
+					(iteratedJsonLdContext[key] as JSONObjectSerializable),
+					`${iteratedJSONPath}.${key}`
+				)];
+			}, [] as string[]);
+		}
+		return [];
+	};
+	return (Object.keys(jsonLdContext) as (KeyOf<jsonld.JsonLdDocument>)[]).reduce((jsonPaths, key) => {
+		const value = jsonLdContext[key];
+		if (!isJSONObjectSerializable(value)) {
+			return jsonPaths;
+		}
+		return [
+			...jsonPaths,
+			...getMultiLangJSONPathsRecursively(value, `$.${key}`)
+		];
+	}, [] as string[]);
+};

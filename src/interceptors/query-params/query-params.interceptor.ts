@@ -53,6 +53,7 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 			if (isQueryWithPagingDto(query)) {
 				result = paginateArray(result, page, pageSize);
 			}
+
 			if (isQueryWithLangDto(query) && sample) {
 				const jsonLdContext = sample["@context"];
 				if (!jsonLdContext) {

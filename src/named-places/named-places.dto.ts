@@ -46,21 +46,30 @@ export class GetNamedPlacePageDto extends IntersectionType(
 ) {
 	/** Collection id. Child collections are also fetched. */
 	collectionID: string;
+
 	/** Include only items with these ids. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() idIn?: string[];
+
 	/** alternative ID. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() alternativeIDs?: string[];
+
 	/** municipality area code. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() municipality?: string[];
+
 	/** bird association area code. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() birdAssociationArea?: string[];
+
 	/** Return only selected fields per place. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() selectedFields?: (keyof NamedPlace)[];
+
 	@CommaSeparatedStrings() taxonIDs?: string[];
+
 	/** Filter by tags. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() tags?: string[];
+
 	/** Include public named places (used only when personToken is given). Defaults to true. */
 	@IsOptionalBoolean() includePublic?: boolean = true;
+
 	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). Defaults to false. */
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }

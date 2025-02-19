@@ -3,6 +3,7 @@ import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { OmitType } from "@nestjs/swagger";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { IsString } from "class-validator";
+import { JSONSchemaObject } from "src/json-schema.utils";
 
 export enum Format {
 	schema = "schema",
@@ -105,52 +106,5 @@ export class AcceptAccessDto {
 }
 
 export class RevokeAccessDto extends OmitType(AcceptAccessDto, ["type"]) {}
-
-// We use our own typings instead of "json-schema" package because we use only a subset of the schema,
-// and so it'll be easier to work with this subset.
-export type JSONSchema =
-	JSONSchemaObject
-	| JSONSchemaArray
-	| JSONSchemaNumber
-	| JSONSchemaInteger
-	| JSONSchemaBoolean
-	| JSONSchemaString
-	| JSONSchemaEnumOneOf;
-
-type JSONShemaTypeCommon<T, D> = {
-	type: T;
-	default?: D;
-	title?: string;
-}
-
-export type JSONSchemaObject = JSONShemaTypeCommon<"object", Record<string, unknown>> & {
-	properties: Record<string, JSONSchema>;
-	required?: string[];
-}
-
-export function isJSONSchemaObject(schema: JSONSchema): schema is JSONSchemaObject {
-	return schema.type === "object";
-}
-
-export type JSONSchemaArray = JSONShemaTypeCommon<"array", unknown[]> & {
-	items: JSONSchema;
-	uniqueItems?: boolean;
-}
-
-export type JSONSchemaNumber = JSONShemaTypeCommon<"number", number>;
-
-export type JSONSchemaInteger = JSONShemaTypeCommon<"integer", number>;
-
-export type JSONSchemaBoolean = JSONShemaTypeCommon<"boolean", boolean>;
-
-export type JSONSchemaString = JSONShemaTypeCommon<"string", string>;
-
-export type JSONSchemaEnumOneOf = JSONSchemaString & {
-	oneOf: {const: string, title: string}[];
-}
-
-export function isJSONSchemaEnumOneOf(jsonSchema: JSONSchema): jsonSchema is JSONSchemaEnumOneOf {
-	return !!(jsonSchema as any).oneOf;
-}
 
 export type Hashed<T> = T & { "$id": string }

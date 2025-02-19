@@ -17,7 +17,7 @@ export const isPaginatedDto = <T>(maybePaginated: unknown): maybePaginated is Pa
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
 		.every(k => k in maybePaginated);
 
-export const paginateArray = <T extends Partial<HasJsonLdContext>>(
+export const paginateArray = <T extends Partial<HasJsonLdContext> | Record<string, unknown>>(
 	data: T[], page = 1, pageSize = 20
 ): PaginatedDto<Omit<T, "@context">> => {
 	if (page <= 0) {
@@ -34,7 +34,7 @@ export const paginateArray = <T extends Partial<HasJsonLdContext>>(
 	return paginateAlreadyPaginated(result);
 };
 
-export const paginateAlreadyPaginated = <T extends Partial<HasJsonLdContext>>(
+export const paginateAlreadyPaginated = <T extends Partial<HasJsonLdContext> | Record<string, unknown>>(
 	pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nexPage">
 ): PaginatedDto<Omit<T, "@context">> => pipe(
 		addLastPrevAndNextPage,
@@ -49,7 +49,9 @@ export const addLastPrevAndNextPage = <
 >(pagedResult: R): R & HasLastAndMaybePrevNext => {
 	const result: R & { lastPage: number; prevPage?: number; nextPage?: number; } = {
 		...pagedResult,
-		lastPage: Math.max(Math.ceil(pagedResult.total / pagedResult.pageSize), 1)
+		lastPage: pagedResult.pageSize === 0
+			? 1
+			: Math.max(Math.ceil(pagedResult.total / pagedResult.pageSize), 1)
 	};
 	if (result.currentPage > 1) {
 		result.prevPage = result.currentPage - 1;

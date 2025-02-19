@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
-import { FormSchemaFormat, Format, Hashed, JSONSchema, JSONSchemaArray, JSONSchemaObject }
-	from "src/forms/dto/form.dto";
+import { FormSchemaFormat, Format, Hashed } from "src/forms/dto/form.dto";
+import { JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/json-schema.utils";
 import { JSONObjectSerializable, isObject } from "src/typing.utils";
 import { Populated, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
 import { Document } from "@luomus/laji-schema";
@@ -206,7 +206,7 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 			if (metaKeys.some(k => key === k)) {
 				return;
 			}
-			if (!(schema as JSONSchemaObject).properties[key]) {
+			if (!(schema as JSONSchemaObject).properties?.[key]) {
 				throw new HttpException(
 					"Unprocessable Entity",
 					422,
@@ -216,7 +216,7 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 			if (key === "geometry") { // Don't validate internals of the geometry, as the type is just an empty object.
 				return;
 			}
-			recursively(data[key], (schema as JSONSchemaObject).properties[key]!);
+			recursively(data[key], (schema as JSONSchemaObject).properties![key]!);
 		}); else if (Array.isArray(data)) {
 			data.forEach(item => recursively(item, (schema as JSONSchemaArray).items));
 		}

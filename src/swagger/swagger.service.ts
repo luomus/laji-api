@@ -33,7 +33,6 @@ export class SwaggerService {
 		instance: {
 			fetchSwagger: FetchSwagger,
 			patchSwagger: PatchSwagger
-
 		},
 		document?: OpenAPIObject
 	}> = {};
@@ -313,7 +312,7 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
 
-const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
+export const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
 	!!(schema as any).type
 	|| !!(schema as any).anyOf
 	|| !!(schema as any).oneOf;

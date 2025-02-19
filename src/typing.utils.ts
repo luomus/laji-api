@@ -53,6 +53,16 @@ export type PickNonNullableKeys<T, K extends keyof T> = {
 	[P in K]-?: NonNullable<T[P]>;
 };
 
+export type DeepNonNullable<T> = {
+  [P in keyof T]-?: NonNullable<T[P]> extends object
+    ? DeepNonNullable<NonNullable<T[P]>>
+    : NonNullable<T[P]>;
+};
+
+export type WithDeepNonNullableKeys<T, K extends keyof T> = Omit<T, K> & {
+	[P in K]-?: DeepNonNullable<T[P]>;
+};
+
 export type MaybeContextual = { "@context"?: string, id?: string };
 export type RemoteContextual<T extends { "@context"?: string, id?: string }> =
 	WithNonNullableKeys<T, "@context" | "id">;

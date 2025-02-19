@@ -16,7 +16,6 @@ export class OrganizationsController {
 
 	/** Find an organization by id */
 	@Get(":id")
-	// @Serialize(OrganizationDto)
 	@Serialize(OrganizationDto, { whitelist: [
 		"id",
 		"@context",

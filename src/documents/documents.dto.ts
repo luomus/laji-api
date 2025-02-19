@@ -28,12 +28,16 @@ export class GetDocumentsDto extends IntersectionType(
 	@ApiProperty({ name: "namedPlace" }) // Need both decorators for renaming.
 	@Expose({ name: "namedPlace" })
 	namedPlaceID?: string;
+
 	/** Collection id. Child collections are also fetched. */
 	collectionID?: string;
+
 	/** Limit the list of documents to a certain source application. */
 	sourceID?: string;
+
 	/** Use this form's features for the request. */
 	formID?: string;
+
 	/** Comma separated list of field names to include in the response */
 	@CommaSeparatedStrings() selectedFields?: (keyof Document)[];
 }
@@ -143,12 +147,16 @@ export class ValidateQueryDto extends IntersectionType(
 ) {
 	/** Json path of the field being validated (defaults to the whole document). */
 	field?: string;
+
 	/** Taxon belongs to informal taxon group only: Validate that taxon belongs to informal taxon group(s). Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() informalTaxonGroup?: string[];
+
 	/** Name of the validator to run (default all specified in the form). */
 	validator?: ValidationStrategy;
+
 	/** Run validators of this type */
 	type?: ValidationType = ValidationType.error;
+
 	/** Format of validation error details */
 	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
 }

@@ -10,7 +10,7 @@ import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 type CacheOptionsObjectConfig = {
 	/**
-	 * If it's single endpoint, this option enables smarter caching strategy. If it's a singleResourceEndpoint, it must be
+	 * If it's single resource endpoint, this option enables smarter caching strategy. If enabled, the client must be
 	 * always used like this:
 	 *
 	 * GET is done to "/" and "/:id"
