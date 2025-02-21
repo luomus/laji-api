@@ -55,7 +55,7 @@ export class FormsController {
 		@Query() { type }: AcceptAccessDto,
 		@PersonToken() person: Person
 	) {
-		return this.formPermissionsService.acceptAccess(collectionID, personID, type, person);
+		return this.formPermissionsService.acceptAccess(collectionID, personID, type!, person);
 	}
 
 	/** Remove access to form */
