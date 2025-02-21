@@ -11,8 +11,8 @@ describe("/documents", function() {
 		formID: "MHL.119",
 		editors: [config.user.model.id, config.user.friend_id],
 		dateCreated: "2015-01-01T00:00:00+03:00",
-		creator: "MA.0",
-		editor: "MA.1",
+		creator: config.user.model.id,
+		editor: config.user.model.id,
 		gatheringEvent: {
 			dateBegin: "2017-10-12",
 			leg: ["Viltsu"]
