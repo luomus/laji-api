@@ -20,9 +20,14 @@ $ npm ci
 
 Fill in `.env` file, using `.env.example` as as template.
 
-You need to also install the oracle instantclient. Follow the instructions at https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip
+#### Other requirements
+
+* [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) >= 5
+* [Oracle Instantclient](https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip)
 
 ### Run
+
+Start Redis, and then run:
 
 ```bash
 $ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
@@ -32,7 +37,7 @@ $ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
 
 #### Unit tests
 
-Unit tests coverage so far only some core logic. They act as documentation for how they are supposed to work.
+Unit tests coverage so far only some core logic. They act also as documentation for how they are supposed to work.
 
 ```bash
 npm test

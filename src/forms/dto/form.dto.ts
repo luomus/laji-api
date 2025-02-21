@@ -93,6 +93,11 @@ export class TransformDto extends QueryWithPersonTokenDto {
 	lang?: Lang = Lang.en;
 }
 
+enum AcceptAccess {
+	admin = "admin",
+	editor = "editor"
+}
+
 export class AcceptAccessDto {
 	/**
 	 * 	Person token who is authorised to accept requests
@@ -102,7 +107,7 @@ export class AcceptAccessDto {
 	/**
 	 * Access type
 	 */
-	type: "editor" | "admin" = "editor";
+	type?: AcceptAccess = AcceptAccess.editor;
 }
 
 export class RevokeAccessDto extends OmitType(AcceptAccessDto, ["type"]) {}
