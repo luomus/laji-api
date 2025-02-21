@@ -1,4 +1,4 @@
-import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Profile } from "src/profile/profile.dto";
 import { ProfileService } from "src/profile/profile.service";
@@ -74,5 +74,12 @@ export class PersonsController {
 		@Query() { block }: RemoveFriendDto
 	) {
 		return this.profileService.removeFriend(personToken, friendPersonID, block);
+	}
+
+  /** Check if given email has an existing account */
+  @Get("exists-by-email/:email")
+	@HttpCode(204)
+	async checkExistsByEmail(@Param("email") email: string) {
+		return await this.personsService.checkByEmail(email);
 	}
 }

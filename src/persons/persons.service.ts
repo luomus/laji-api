@@ -33,6 +33,18 @@ export class PersonsService {
 		)(this.triplestoreService.get(personId, { cache: CACHE_5_MIN }));
 	}
 
+	async checkByEmail(email: string) {
+		const persons = await this.triplestoreService.find<Person>({
+			type: "MA.person",
+			predicate: "MA.emailAddress",
+			object: email
+		}, { cache: CACHE_5_MIN });
+
+		if (persons?.length === 0) {
+			throw new HttpException("Account not found", 404);
+		}
+	}
+
 	async isICTAdmin(personToken: string) {
 		const person = await this.getByToken(personToken);
 		return person.role?.includes(Role.Admin) || false;

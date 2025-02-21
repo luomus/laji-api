@@ -4,6 +4,39 @@ const { request } = require("chai");
 describe("/person", function() {
 	var basePath = config["urls"]["person"];
 
+	it("returns 401 when fetching with email and no access token specified", function(done) {
+		var query = basePath + "/exists-by-email/" + config["user"]["model"]["emailAddress"];
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				res.should.have.status(401);
+				done();
+			});
+	});
+
+	it("returns 204 when fetching with email and access token specified", function(done) {
+		var query = basePath + "/exists-by-email/" + config["user"]["model"]["emailAddress"]
+			+ "?access_token=" + config["access_token"];;
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				res.should.have.status(204);
+				done();
+			});
+	});
+
+
+	it("returns 404 when fetching with non-existing email and access token specified", function(done) {
+		var query = basePath + "/exists-by-email/test"
+			+ "?access_token=" + config["access_token"];;
+		request(this.server)
+			.get(query)
+			.end(function(err, res) {
+				res.should.have.status(404);
+				done();
+			});
+	});
+
 	it("returns 401 when fetching with id and no access token specified", function(done) {
 		var query = basePath + "/by-id/" + config["user"]["model"]["id"];
 		request(this.server)
