@@ -33,14 +33,14 @@ export class PersonsService {
 		)(this.triplestoreService.get(personId, { cache: CACHE_5_MIN }));
 	}
 
-	async checkByEmail(email: string) {
-		const persons = await this.triplestoreService.find<Person>({
+	async checkExistsByEmail(email: string) {
+		const persons = await this.triplestoreService.count({
 			type: "MA.person",
 			predicate: "MA.emailAddress",
 			object: email
 		}, { cache: CACHE_5_MIN });
 
-		if (persons?.length === 0) {
+		if (persons === 0) {
 			throw new HttpException("Account not found", 404);
 		}
 	}

@@ -80,6 +80,6 @@ export class PersonsController {
   @Get("exists-by-email/:email")
 	@HttpCode(204)
 	async checkExistsByEmail(@Param("email") email: string) {
-		return await this.personsService.checkByEmail(email);
+		await this.personsService.checkExistsByEmail(email);
 	}
 }
