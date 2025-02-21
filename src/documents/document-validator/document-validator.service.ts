@@ -103,8 +103,8 @@ export class DocumentValidatorService {
 		await this.validateNamedPlaceLinking(document);
 	}
 
-	private async validatePersonLinkings(document: Document, person: Person) {
-		const { collectionID } = document;
+	private async validatePersonLinkings(document: Populated<Document>, person: Person) {
+		const { collectionID, creator } = document;
 		if (collectionID && await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
@@ -116,11 +116,11 @@ export class DocumentValidatorService {
 				.map((editor, i) => ({ personString: editor, path: `/document/editors/${i}` }))
 		];
 
-		const { friends } = await this.profileService.getByPersonIdOrCreate(person.id);
+		const { friends } = await this.profileService.getByPersonIdOrCreate(creator);
 
 		for (const { personString, path } of personValidations) {
-			if (personString.toUpperCase().startsWith("MA.") && ![person.id, ...friends].includes(personString)) {
-				throw new ValidationException({ [path]: ["MA codes must be yourself or your friend!"] });
+			if (personString.toUpperCase().startsWith("MA.") && ![creator, ...friends].includes(personString)) {
+				throw new ValidationException({ [path]: ["MA codes must be the creator or the creator's friend!"] });
 			}
 		}
 	}
