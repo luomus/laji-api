@@ -52,7 +52,7 @@ export class InformalTaxonGroupsController {
 
 	/** Get first level of the informal taxon group tree */
 	@Get("roots")
-	@UseInterceptors(ResultsArray, createQueryParamsInterceptor(QueryWithLangDto))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto), ResultsArray)
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
 	getRoots(@Query() _: QueryWithLangDto) {
 		return this.informalTaxonGroupsService.getRoots();
@@ -68,7 +68,7 @@ export class InformalTaxonGroupsController {
 
 	/** Get an informal taxon group's immediate children */
 	@Get(":id/children")
-	@UseInterceptors(ResultsArray, createQueryParamsInterceptor(QueryWithLangDto))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto), ResultsArray)
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
 	getChildren(@Param("id") id: string, @Query() _: QueryWithLangDto) {
 		return this.informalTaxonGroupsService.getChildren(id);
@@ -84,7 +84,7 @@ export class InformalTaxonGroupsController {
 
 	/** Get informal taxon group's siblings */
 	@Get(":id/siblings")
-	@UseInterceptors(ResultsArray, createQueryParamsInterceptor(QueryWithLangDto))
+	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangDto), ResultsArray)
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
 	getSiblings(@Param("id") id: string, @Query() _: QueryWithLangDto) {
 		return this.informalTaxonGroupsService.getSiblings(id);
