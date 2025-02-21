@@ -4,9 +4,9 @@ import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
-import { CacheOptions, asArray, promisePipe } from "src/utils";
+import { CacheOptions, asArray, nthFromNonEmptyArr, promisePipe } from "src/utils";
 import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
-import { MultiLang } from "src/common.dto";
+import { HasJsonLdContext, MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 
@@ -121,7 +121,7 @@ export class TriplestoreService {
 			? (jsonld["@graph"] as any)[0]["@type"]
 			: jsonld["@type"];
 		const metadataContext = await this.metadataService.getPropertiesForJsonLdContext(
-			MetadataService.parseContext(jsonldContext)
+			MetadataService.parseQNameLocalPartFromJsonLdContext(jsonldContext)
 		);
 		const formatted = (isArrayResult
 			? await Promise.all((jsonld["@graph"] as any).map((i: any) =>
@@ -140,7 +140,8 @@ export class TriplestoreService {
 			resolveResources,
 			adhereToSchemaWith(context),
 			dropPrefixes,
-			rmIdAndType
+			rmIdAndType,
+			useSchemaLajiFiJsonldContext
 		)(jsonld);
 	}
 
@@ -304,3 +305,11 @@ const rmIdAndType = (data: JSONObjectSerializable) => {
 	}
 	return d;
 };
+
+const useSchemaLajiFiJsonldContext = (data: HasJsonLdContext) => {
+	const qname = nthFromNonEmptyArr(1)(data["@context"].split("http://tun.fi"));
+	data["@context"] =  `http://schema.laji.fi/context/${dropQnamePrefix(qname)}.jsonld`;
+	return data;
+};
+
+const dropQnamePrefix = (qname: string) => qname.replace(/^[^.]+\./, "");

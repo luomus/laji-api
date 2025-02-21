@@ -48,16 +48,19 @@ export class MetadataService {
 
 	/** Get a property map for a context. */
 	async getPropertiesForJsonLdContext(context: string) {
-		const properties = (await this.getContexts())[MetadataService.parseContext(context)];
+		const properties = (await this.getContexts())[MetadataService.parseQNameLocalPartFromJsonLdContext(context)];
 		if (!properties) {
 			throw new Error(`Unknown context "${context}"`);
 		}
 		return properties;
 	}
 
-	static parseContext(context: string) {
+	static parseQNameLocalPartFromJsonLdContext(context: string) {
 		if (context.startsWith("http://tun.fi")) {
 			return context.replace("http://tun.fi/", "");
+		}
+		if (context.startsWith("http://schema.laji.fi")) {
+			return context.replace("http://schema.laji.fi/context/", "").replace(".jsonld", "");
 		}
 		return context;
 	}

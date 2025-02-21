@@ -1,6 +1,6 @@
-import { HasJsonLdContext, Lang } from "./common.dto";
-import { MaybePromise, isObject, omitForKeys } from "./typing.utils";
-import { pipe } from "./utils";
+import { HasJsonLdContext } from "src/common.dto";
+import { MaybePromise, isObject, omitForKeys } from "src/typing.utils";
+import { pipe } from "src/utils";
 
 export class PaginatedDto<T> {
 	currentPage: number;
@@ -17,8 +17,8 @@ export const isPaginatedDto = <T>(maybePaginated: unknown): maybePaginated is Pa
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
 		.every(k => k in maybePaginated);
 
-export const paginateArray = <T extends Partial<HasJsonLdContext>> (
-	data: T[], page = 1, pageSize = 20, lang = Lang.en
+export const paginateArray = <T extends Partial<HasJsonLdContext>>(
+	data: T[], page = 1, pageSize = 20
 ): PaginatedDto<Omit<T, "@context">> => {
 	if (page <= 0) {
 		page = 1;
@@ -31,14 +31,14 @@ export const paginateArray = <T extends Partial<HasJsonLdContext>> (
 		currentPage: page,
 		pageSize
 	};
-	return paginateAlreadyPaginated(result, lang);
+	return paginateAlreadyPaginated(result);
 };
 
 export const paginateAlreadyPaginated = <T extends Partial<HasJsonLdContext>>(
-	pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nexPage">, lang = Lang.en
+	pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nexPage">
 ): PaginatedDto<Omit<T, "@context">> => pipe(
 		addLastPrevAndNextPage,
-		addContextToPageLikeResult<T, PaginatedDto<T>>(lang)
+		addContextToPageLikeResult<T, PaginatedDto<T>>
 	)(pagedResult);
 
 type HasLastAndMaybePrevNext = { lastPage: number;  prevPage?: number; nextPage?: number; }
@@ -61,18 +61,17 @@ export const addLastPrevAndNextPage = <
 };
 
 export const addContextToPageLikeResult = <T extends Partial<HasJsonLdContext>, R extends { results: T[] }>
-	(lang = Lang.en) => (hasResults: R)
-	: Omit<R, "results"> & { results: Omit<T, "@context">[] } & HasJsonLdContext => {
-		const context = hasResults.results[0]?.["@context"];
-		const results = context
-			? hasResults.results.map(omitForKeys("@context"))
-			: hasResults.results;
-		return {
-			...hasResults,
-			results,
-			"@context": context || `http://schema.laji.fi/context/generic-${lang}.jsonld`
-		};
+	(hasResults: R) : Omit<R, "results"> & { results: Omit<T, "@context">[] } & HasJsonLdContext => {
+	const jsonLdContext = hasResults.results[0]?.["@context"];
+	const results = jsonLdContext
+		? hasResults.results.map(omitForKeys("@context"))
+		: hasResults.results;
+	return {
+		...hasResults,
+		results,
+		"@context": jsonLdContext || "http://schema.laji.fi/context/generic.jsonld"
 	};
+};
 
 export const isPageLikeResult = <T>(maybeHasResults: any): maybeHasResults is { results: T[] } =>
 	isObject(maybeHasResults) && "results" in maybeHasResults;
