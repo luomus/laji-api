@@ -109,8 +109,8 @@ describe("DocumentsService caching", () => {
 		const result1 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: ADMIN }));
 		await service.create(
 			document as any,
-			{ id: "anybody", isImporter: () => false } as any,
-			{ systemID: "foo" } as any
+			{ systemID: "foo" } as any,
+			{ id: "anybody", isImporter: () => false } as Person
 		);
 		const result2 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: ADMIN }));
 		expect(result1).not.toBe(result2);
@@ -136,8 +136,8 @@ describe("DocumentsService caching", () => {
 		const result1 = await service.getPage({ }, mockPerson({ id: PERSON }));
 		await service.create(
 			{ creator: "FRIEND", editors: ["PERSON"], formID: "foo" } as any,
-			{ id: FRIEND, isImporter: () => false } as Person,
-			{ systemID: "foo" } as any
+			{ systemID: "foo" } as any,
+			{ id: FRIEND, isImporter: () => false } as Person
 		);
 		const result2 = await service.getPage({ }, { id: PERSON } as Person);
 		expect(result1).not.toBe(result2);

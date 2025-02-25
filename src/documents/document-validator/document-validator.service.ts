@@ -43,7 +43,7 @@ export class DocumentValidatorService {
 		this.extendLajiValidate();
 	}
 
-	async validate(document: Populated<Document>, person: Person, type?: ValidationType) {
+	async validate(document: Populated<Document>, person?: Person, type?: ValidationType) {
 		if (document.isTemplate) {
 			return;
 		}
@@ -98,8 +98,10 @@ export class DocumentValidatorService {
 		}
 	}
 
-	private async validateLinkings(document: Populated<Document>, person: Person) {
-		await this.validatePersonLinkings(document, person);
+	private async validateLinkings(document: Populated<Document>, person?: Person) {
+		if (person) {
+			await this.validatePersonLinkings(document, person);
+		}
 		await this.validateNamedPlaceLinking(document);
 	}
 
