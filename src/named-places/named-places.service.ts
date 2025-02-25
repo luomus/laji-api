@@ -135,12 +135,13 @@ export class NamedPlacesService {
 		return this.store.create(place);
 	}
 
-	async update(id: string, place: NamedPlace, person: Person) {
+	async update(id: string, place: NamedPlace, person?: Person) {
 		const existing = await this.get(id, person);
 
 		await this.checkWriteAccess(existing, person);
 
-		if (!person.isImporter()
+		if (person
+			&& !person.isImporter()
 			&& existing.owners.includes(person.id)
 			&& !place.owners.includes(person.id)
 		) {
@@ -230,10 +231,10 @@ export class NamedPlacesService {
 		return this.store.update(place);
 	}
 
-	private async checkWriteAccess(place: NamedPlace, person: Person): Promise<void> {
+	private async checkWriteAccess(place: NamedPlace, person?: Person): Promise<void> {
 		const { collectionID, public: isPublic, owners } = place;
 
-		if (!collectionID && owners.includes(person.id)) {
+		if (!collectionID && person && owners.includes(person.id)) {
 			return;
 		}
 
@@ -243,11 +244,11 @@ export class NamedPlacesService {
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
-		if (!isPublic || await this.formPermissionsService.isAdminOf(collectionID, person)) {
+		if (!isPublic || person && await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
 
-		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
+		if (person && !await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
 			throw new HttpException("Insufficient permission to form to make public named places", 403);
 		}
 		const allowedToAddPublic = !!await this.formsService.findFor(

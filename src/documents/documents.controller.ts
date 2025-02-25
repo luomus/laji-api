@@ -4,7 +4,8 @@ import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Us
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
-	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto } from "./documents.dto";
+	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto, UpdateDocumentDto 
+} from "./documents.dto";
 import { PaginatedDto } from "src/pagination.utils";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -148,7 +149,7 @@ export class DocumentsController {
 			return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
 		}
 
-		const populatedDocument = await this.documentsService.populateMutably(document, undefined, apiUser);
+		const populatedDocument = await this.documentsService.populateMutably(document, apiUser);
 		return this.documentValidatorService.validate(populatedDocument, person, type!);
 	}
 
@@ -203,10 +204,13 @@ export class DocumentsController {
 	async create(
 		@Body() document: Document,
 		@Query() { validationErrorFormat }: CreateDocumentDto,
-		@PersonToken() person: Person,
-		@ApiUser() apiUser: ApiUserEntity
+		@ApiUser() apiUser: ApiUserEntity,
+		@PersonToken({ required: false }) person?: Person,
 	): Promise<Document> {
 		if (isBatchJobDto(document)) {
+			if (!person) {
+				throw new HttpException("Can't do batch update without a person token", 422);
+			}
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 			// 	// typings a bit awkward.
 			return this.documentsBatchService.complete(
@@ -227,6 +231,9 @@ export class DocumentsController {
 					"Secondary document should have 'id' property, (and 'delete' if it's a deletion)",
 					422);
 			}
+			if (!person) {
+				throw new HttpException("Secondary data must be sent with a person token", 422);
+			}
 			// The return type for secondary document deletion isn't actually Document. This remains undocumented by our
 			// Swagger document.
 			return this.secondaryDocumentsService.create(document as SecondaryDocument, person) as Promise<Document>;
@@ -234,8 +241,8 @@ export class DocumentsController {
 
 		return this.documentsService.create(
 			document as Document,
-			person,
-			apiUser
+			apiUser,
+			person
 		);
 	}
 
@@ -245,7 +252,7 @@ export class DocumentsController {
 	async update(
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,
-		@Query() _: CreateDocumentDto,
+		@Query() _: UpdateDocumentDto,
 		@PersonToken() person: Person,
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
