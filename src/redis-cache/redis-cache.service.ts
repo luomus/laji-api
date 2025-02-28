@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { createClient } from "redis";
 
 @Injectable()
@@ -7,8 +8,12 @@ export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 	private client: ReturnType<typeof createClient>;
 	private logger = new Logger(RedisCacheService.name);
 
+	constructor(private config: ConfigService) {}
+
 	async onModuleInit() {
-		this.client = await createClient()
+		this.client = await createClient({
+			url: this.config.get("REDIS_URL"), // Defaults to localhost on port 6379.
+		})
 		  .on("error", err => {
 				this.logger.error("Connecting to redis failed!");
 				throw new Error("Connecting to redis failed with message: " + err);

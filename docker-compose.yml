@@ -1,0 +1,27 @@
+# This file is for running the app in production
+version: "3.8"
+
+services:
+  laji-api:
+    build: .
+    ports:
+      - "0.0.0.0:${PORT:-3004}:3004"  # Default to 3004 if PORT is not set
+      #- "0.0.0.0:3004:3004"  # Default to 3004 if PORT is not set
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
