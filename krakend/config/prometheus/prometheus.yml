@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'krakend'
+    static_configs:
+      - targets: ['krakend:9090']
+#  - job_name: 'laji-api'
+#    static_configs:
+#      - targets: ['laji-api:3004']

@@ -1,0 +1,5103 @@
+{
+ "$schema": "https://www.krakend.io/schema/v3.json",
+ "version": 3,
+ "timeout": "3600s",
+ "cache_ttl": "300s",
+ "output_encoding": "no-op",
+ "name": "Tenera API",
+ "endpoints": [
+  {
+   "endpoint": "/v0/information",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/information",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+			 "http://host.docker.internal:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/multi",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/multi",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/search/download",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "searchParams"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/search/download",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/gathering/statistics",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "aggregateBy",
+    "orderBy",
+    "onlyCount",
+    "excludeNulls",
+    "pessimisticDateRangeHandling",
+    "pageSize",
+    "page",
+    "cache",
+    "countryId",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "collectionId",
+    "collectionIdExplicit",
+    "includeSubCollections",
+    "qualityIssues",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonCensus",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/gathering/statistics",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/dataset-permissions",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/dataset-permissions",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/unit/list",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "selected",
+    "orderBy",
+    "crs",
+    "featureType",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "hasSample",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/unit/list",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/collections/{id}/children",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/collections/{id}/children",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/organizations/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/organizations/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/validate-delete/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/validate-delete/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/annotations/tags",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/annotations/tags",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/permissions",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/permissions",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/annotations",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "rootID",
+    "personToken",
+    "page",
+    "pageSize"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/annotations",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/annotations",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/annotations",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/taxa/aggregate",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "informalGroupFilters",
+    "redListEvaluationGroups",
+    "invasiveSpeciesMainGroups",
+    "adminStatusFilters",
+    "redListStatusFilters",
+    "typesOfOccurrenceFilters",
+    "typesOfOccurrenceNotFilters",
+    "primaryHabitat",
+    "anyHabitat",
+    "latestRedListEvaluation.threatenedAtArea",
+    "latestRedListEvaluation.redListStatus",
+    "latestRedListEvaluation.primaryHabitat",
+    "latestRedListEvaluation.anyHabitat",
+    "latestRedListEvaluation.primaryThreat",
+    "latestRedListEvaluation.threats",
+    "latestRedListEvaluation.primaryEndangermentReason",
+    "latestRedListEvaluation.endangermentReasons",
+    "taxonRanks",
+    "taxonSets",
+    "selectedFields",
+    "aggregateBy",
+    "langFallback",
+    "species",
+    "parentTaxonId",
+    "hasLatestRedListEvaluation",
+    "invasiveSpeciesFilter",
+    "hasMediaFilter",
+    "hasDescriptionFilter",
+    "hasBoldData",
+    "includeHidden",
+    "includeMedia",
+    "includeDescriptions",
+    "includeRedListEvaluations",
+    "onlyFinnish",
+    "checklist",
+    "checklistVersion",
+    "id"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/taxa/aggregate",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/multi/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/multi/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/permissions/{collectionID}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/permissions/{collectionID}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/permissions/{collectionID}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/permissions/{collectionID}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/filters/{filter}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/filters/{filter}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "format",
+    "lang",
+    "expand"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person-token/{personToken}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person-token/{personToken}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person-token/{personToken}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person-token/{personToken}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/areas",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "idIn",
+    "areaType",
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/areas",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/unit/aggregate",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "aggregateBy",
+    "orderBy",
+    "crs",
+    "featureType",
+    "onlyCount",
+    "taxonCounts",
+    "gatheringCounts",
+    "pairCounts",
+    "atlasCounts",
+    "excludeNulls",
+    "pessimisticDateRangeHandling",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "hasSample",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/unit/aggregate",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/unit/count",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "format",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "hasSample",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/unit/count",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/unit/statistics",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "aggregateBy",
+    "orderBy",
+    "onlyCount",
+    "taxonCounts",
+    "gatheringCounts",
+    "pairCounts",
+    "atlasCounts",
+    "excludeNulls",
+    "pessimisticDateRangeHandling",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "countryId",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "collectionId",
+    "collectionIdExplicit",
+    "includeSubCollections",
+    "individualCountMin",
+    "wild",
+    "qualityIssues",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonCensus",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/unit/statistics",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/information/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/information/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/tsv2rows",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "datasetId"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/tsv2rows",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/units/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/units/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{tempId}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{tempId}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/exists-by-email/{email}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/exists-by-email/{email}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/search",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "pageSize",
+    "page",
+    "searchParams"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/search",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/permissions/{collectionID}/{personID}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/permissions/{collectionID}/{personID}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/permissions/{collectionID}/{personID}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "type"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/permissions/{collectionID}/{personID}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{id}/large.jpg",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{id}/large.jpg",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}/friends/{friendPersonID}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}/friends/{friendPersonID}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}/friends/{friendPersonID}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}/friends/{friendPersonID}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}/friends/{friendPersonID}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "block"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}/friends/{friendPersonID}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/taxa/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "informalGroupFilters",
+    "redListEvaluationGroups",
+    "invasiveSpeciesMainGroups",
+    "adminStatusFilters",
+    "redListStatusFilters",
+    "typesOfOccurrenceFilters",
+    "typesOfOccurrenceNotFilters",
+    "primaryHabitat",
+    "anyHabitat",
+    "latestRedListEvaluation.threatenedAtArea",
+    "latestRedListEvaluation.redListStatus",
+    "latestRedListEvaluation.primaryHabitat",
+    "latestRedListEvaluation.anyHabitat",
+    "latestRedListEvaluation.primaryThreat",
+    "latestRedListEvaluation.threats",
+    "latestRedListEvaluation.primaryEndangermentReason",
+    "latestRedListEvaluation.endangermentReasons",
+    "taxonRanks",
+    "taxonSets",
+    "selectedFields",
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback",
+    "species",
+    "parentTaxonId",
+    "hasLatestRedListEvaluation",
+    "invasiveSpeciesFilter",
+    "hasMediaFilter",
+    "hasDescriptionFilter",
+    "hasBoldData",
+    "includeHidden",
+    "includeMedia",
+    "includeDescriptions",
+    "includeRedListEvaluations",
+    "onlyFinnish",
+    "checklist",
+    "checklistVersion",
+    "sortOrder",
+    "id"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/taxa/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/annotations/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/annotations/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/checklist-versions/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/checklist-versions/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/collections/roots",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/collections/roots",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/batch",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/batch",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms/transform",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "lang"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms/transform",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets/validate-delete/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets/validate-delete/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/notifications/{personToken}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "onlyUnSeen",
+    "page",
+    "pageSize"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/notifications/{personToken}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}/wav",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}/wav",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "validationErrorFormat",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups/{id}/children",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups/{id}/children",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/dataset-permissions/{datasetId}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/dataset-permissions/{datasetId}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/dataset-permissions/{datasetId}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/dataset-permissions/{datasetId}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/tsv2rows/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "datasetId"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/tsv2rows/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/enumeration-labels/{enumeration}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/enumeration-labels/{enumeration}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places/{id}/reservation",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "personID",
+    "until"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places/{id}/reservation",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places/{id}/reservation",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places/{id}/reservation",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits/validate-delete/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits/validate-delete/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/by-id/{personId}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/by-id/{personId}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/by-id/{personId}/profile",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/by-id/{personId}/profile",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/collections/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/collections/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{id}/square.jpg",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{id}/square.jpg",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "idIn",
+    "alternativeIDs",
+    "municipality",
+    "birdAssociationArea",
+    "selectedFields",
+    "taxonIDs",
+    "tags",
+    "collectionID",
+    "includePublic",
+    "includeUnits",
+    "personToken",
+    "page",
+    "pageSize"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/enumeration-labels",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/enumeration-labels",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups/roots",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups/roots",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups/tree",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups/tree",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets/validate-update/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets/validate-update/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/document/aggregate",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "aggregateBy",
+    "orderBy",
+    "onlyCount",
+    "excludeNulls",
+    "pessimisticDateRangeHandling",
+    "pageSize",
+    "page",
+    "cache",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "formId",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "documentId",
+    "documentIdPrefix",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "hasDocumentMedia",
+    "hasMedia",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "qualityIssues",
+    "collectionQuality",
+    "completeListTaxonId",
+    "completeListType",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "editorPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/document/aggregate",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/checklist-versions",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "idIn",
+    "lang",
+    "langFallback",
+    "page",
+    "pageSize"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/checklist-versions",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/gathering/aggregate",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "aggregateBy",
+    "orderBy",
+    "crs",
+    "featureType",
+    "onlyCount",
+    "excludeNulls",
+    "pessimisticDateRangeHandling",
+    "pageSize",
+    "page",
+    "cache",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "qualityIssues",
+    "collectionQuality",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonCensus",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/gathering/aggregate",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/checklists",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "idIn",
+    "lang",
+    "langFallback",
+    "page",
+    "pageSize"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/checklists",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/dataset-permissions/validate-update/{datasetId}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/dataset-permissions/validate-update/{datasetId}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/annotation/list",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "selected",
+    "orderBy",
+    "crs",
+    "featureType",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "annotationType",
+    "includeSystemAnnotations",
+    "annotatedSameOrAfter",
+    "annotatedSameOrBefore",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "hasSample",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/annotation/list",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/units",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/units",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/checklists/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/checklists/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups/{id}/parent",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups/{id}/parent",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/notifications/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/notifications/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/notifications/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/notifications/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}/profile",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}/profile",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}/profile",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}/profile",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/person/{personToken}/profile",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/person/{personToken}/profile",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "informalTaxonGroup",
+    "field",
+    "validator",
+    "type",
+    "validationErrorFormat",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups/validate-update/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups/validate-update/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/unitMedia/list",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "selected",
+    "orderBy",
+    "crs",
+    "featureType",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "hasSample",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/unitMedia/list",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/areas/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/areas/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/collections",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "idIn",
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/collections",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/stats",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "namedPlace"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/stats",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/document",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "format",
+    "documentId",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/document",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}/thumbnail.jpg",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}/thumbnail.jpg",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/search",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "datasetId",
+    "pageSize",
+    "searchParams"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/search",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/rows/validate-update/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/rows/validate-update/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/count/byYear",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "collectionID",
+    "formID",
+    "namedPlace",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/count/byYear",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{tempId}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{tempId}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/traits/validate-update/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/traits/validate-update/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets/validate",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets/validate",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/trait-groups/validate-delete/{id}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/trait-groups/validate-delete/{id}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/annotation/aggregate",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "aggregateBy",
+    "orderBy",
+    "crs",
+    "featureType",
+    "onlyCount",
+    "excludeNulls",
+    "pessimisticDateRangeHandling",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "annotationType",
+    "includeSystemAnnotations",
+    "annotatedSameOrAfter",
+    "annotatedSameOrBefore",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "hasSample",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/annotation/aggregate",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/batch/{jobID}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "validationErrorFormat",
+    "publicityRestrictions",
+    "dataOrigin",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/batch/{jobID}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents/batch/{jobID}",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "validationErrorFormat",
+    "publicityRestrictions",
+    "dataOrigin",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents/batch/{jobID}",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/information/index",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/information/index",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/taxa",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "informalGroupFilters",
+    "redListEvaluationGroups",
+    "invasiveSpeciesMainGroups",
+    "adminStatusFilters",
+    "redListStatusFilters",
+    "typesOfOccurrenceFilters",
+    "typesOfOccurrenceNotFilters",
+    "primaryHabitat",
+    "anyHabitat",
+    "latestRedListEvaluation.threatenedAtArea",
+    "latestRedListEvaluation.redListStatus",
+    "latestRedListEvaluation.primaryHabitat",
+    "latestRedListEvaluation.anyHabitat",
+    "latestRedListEvaluation.primaryThreat",
+    "latestRedListEvaluation.threats",
+    "latestRedListEvaluation.primaryEndangermentReason",
+    "latestRedListEvaluation.endangermentReasons",
+    "taxonRanks",
+    "taxonSets",
+    "selectedFields",
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback",
+    "species",
+    "parentTaxonId",
+    "hasLatestRedListEvaluation",
+    "invasiveSpeciesFilter",
+    "hasMediaFilter",
+    "hasDescriptionFilter",
+    "hasBoldData",
+    "includeHidden",
+    "includeMedia",
+    "includeDescriptions",
+    "includeRedListEvaluations",
+    "onlyFinnish",
+    "checklist",
+    "checklistVersion",
+    "sortOrder",
+    "id"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/taxa",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/push",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "documentId",
+    "sourceId"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/push",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/push",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "sourceId"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/push",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "idIn",
+    "page",
+    "pageSize",
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "includeUnits"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/named-places/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/named-places/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/polygon",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken",
+    "crs",
+    "geoJSON",
+    "wkt",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/polygon",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/informal-taxon-groups/{id}/siblings",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/informal-taxon-groups/{id}/siblings",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/api-users/renew",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/api-users/renew",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "namedPlace",
+    "selectedFields",
+    "observationYear",
+    "templates",
+    "collectionID",
+    "sourceID",
+    "formID",
+    "page",
+    "pageSize",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/documents",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "validationErrorFormat",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/documents",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "pageSize",
+    "page"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/forms",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/forms",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}/mp3",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}/mp3",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/images/{id}/thumbnail.jpg",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/images/{id}/thumbnail.jpg",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/filters",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/filters",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/polygon/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "format",
+    "crs"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/polygon/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}",
+   "method": "DELETE",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}",
+     "encoding": "no-op",
+     "method": "DELETE",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "lang",
+    "langFallback",
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}",
+   "method": "PUT",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}",
+     "encoding": "no-op",
+     "method": "PUT",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/audio/{id}/flac",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/audio/{id}/flac",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/trait/datasets",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "personToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/trait/datasets",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/warehouse/query/sample/list",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "selected",
+    "orderBy",
+    "crs",
+    "featureType",
+    "pageSize",
+    "page",
+    "cache",
+    "taxonId",
+    "target",
+    "useIdentificationAnnotations",
+    "includeSubTaxa",
+    "includeNonValidTaxa",
+    "onlyNonValidTaxa",
+    "informalTaxonGroupId",
+    "informalTaxonGroupIdNot",
+    "informalTaxonGroupIdIncludingReported",
+    "administrativeStatusId",
+    "redListStatusId",
+    "taxonAdminFiltersOperator",
+    "typeOfOccurrenceId",
+    "typeOfOccurrenceIdNot",
+    "primaryHabitat",
+    "anyHabitat",
+    "occurrenceCountMax",
+    "occurrenceCountFinlandMax",
+    "finnish",
+    "invasive",
+    "sensitive",
+    "higherTaxon",
+    "taxonRankId",
+    "countryId",
+    "finnishMunicipalityId",
+    "biogeographicalProvinceId",
+    "elyCentreId",
+    "provinceId",
+    "area",
+    "namedPlaceId",
+    "namedPlaceTag",
+    "birdAssociationAreaId",
+    "formId",
+    "time",
+    "timeAccuracy",
+    "yearMonth",
+    "dayOfYear",
+    "season",
+    "keyword",
+    "collectionId",
+    "collectionIdExplicit",
+    "collectionIdNot",
+    "collectionIdExplicitNot",
+    "includeSubCollections",
+    "sourceId",
+    "recordBasis",
+    "superRecordBasis",
+    "lifeStage",
+    "sex",
+    "invasiveControl",
+    "invasiveControlled",
+    "documentId",
+    "documentIdPrefix",
+    "gatheringId",
+    "unitId",
+    "sampleId",
+    "individualId",
+    "individualCountMin",
+    "individualCountMax",
+    "loadedSameOrAfter",
+    "loadedSameOrBefore",
+    "firstLoadedSameOrAfter",
+    "firstLoadedSameOrBefore",
+    "createdDateYear",
+    "coordinates",
+    "polygon",
+    "polygonId",
+    "coordinateAccuracyMax",
+    "wgs84CenterPoint",
+    "ykj1km",
+    "ykj10km",
+    "ykj50km",
+    "ykj100km",
+    "ykj1kmCenter",
+    "ykj10kmCenter",
+    "ykj50kmCenter",
+    "ykj100kmCenter",
+    "sourceOfCoordinates",
+    "typeSpecimen",
+    "wild",
+    "breedingSite",
+    "local",
+    "alive",
+    "identificationBasis",
+    "samplingMethod",
+    "plantStatusCode",
+    "hasDocumentMedia",
+    "hasGatheringMedia",
+    "hasUnitMedia",
+    "hasUnitImages",
+    "hasUnitAudio",
+    "hasUnitVideo",
+    "hasUnitModel",
+    "hasMedia",
+    "teamMember",
+    "teamMemberId",
+    "secureReason",
+    "secureLevel",
+    "secured",
+    "annotated",
+    "qualityIssues",
+    "collectionQuality",
+    "recordQuality",
+    "collectionAndRecordQuality",
+    "reliability",
+    "effectiveTag",
+    "unidentified",
+    "needsCheck",
+    "completeListTaxonId",
+    "completeListType",
+    "taxonSetId",
+    "taxonCensus",
+    "sampleCollectionId",
+    "hasSample",
+    "sampleMultiple",
+    "sampleType",
+    "sampleQuality",
+    "sampleStatus",
+    "sampleMaterial",
+    "unitFact",
+    "gatheringFact",
+    "documentFact",
+    "sampleFact",
+    "partition",
+    "hasValue",
+    "atlasCode",
+    "atlasClass",
+    "onlyNonStateLands",
+    "editorPersonToken",
+    "observerPersonToken",
+    "editorOrObserverPersonToken",
+    "editorOrObserverIsNotPersonToken",
+    "permissionToken",
+    "format"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/warehouse/query/sample/list",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/api-users",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [
+    "accessToken"
+   ],
+   "backend": [
+    {
+     "url_pattern": "/api-users",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  },
+  {
+   "endpoint": "/v0/api-users",
+   "method": "POST",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/api-users",
+     "encoding": "no-op",
+     "method": "POST",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type"
+   ]
+  },
+  {
+   "endpoint": "/lajiapi/management/prometheus",
+   "method": "GET",
+   "output_encoding": "no-op",
+   "timeout": "3600s",
+   "input_query_strings": [],
+   "backend": [
+    {
+     "url_pattern": "/management/prometheus",
+     "encoding": "no-op",
+     "method": "GET",
+     "host": [
+      "http://laji-api:3004"
+     ],
+     "disable_host_sanitize": false
+    }
+   ],
+   "input_headers": [
+    "Content-Type",
+    "Authorization"
+   ]
+  }
+ ],
+ "extra_config": {
+	 "router": {
+		 "logger_skip_paths": [
+			 "/__health"
+		 ]
+	 },
+	 "security/cors": {
+		 "allow_origins": [
+			 "*"
+		 ],
+		 "expose_headers": [
+			 "Authorization",
+			 "Content-Length",
+			 "Content-Type",
+			 "Access-Control-Allow-Origin"
+		 ],
+		 "max_age": "12h",
+		 "allow_methods": [
+			 "GET",
+			 "HEAD",
+			 "POST",
+			 "PUT",
+			 "DELETE",
+			 "CONNECT",
+			 "OPTIONS",
+			 "TRACE",
+			 "PATCH"
+		 ],
+		 "allow_headers": [
+			 "Authorization",
+			 "Content-Length",
+			 "Accept-Language",
+			 "Content-Type",
+			 "Access-Control-Allow-Origin"
+		 ],
+		 "debug": true
+	 },
+	 "telemetry/logging": {
+		 "level": "DEBUG",
+		 "prefix": "[TEST]",
+		 "syslog": true,
+		 "stdout": true,
+		 "format": "default"
+	 },
+	 "telemetry/opentelemetry": {
+		 "service_name": "krakend_prometheus_service",
+		 "metric_reporting_period": 1,
+		 "exporters": {
+			 "prometheus": [
+				 {
+					 "name": "local_prometheus",
+					 "port": 9090,
+					 "process_metrics": true,
+					 "go_metrics": true
+				 }
+			 ]
+		 }
+	 },
+	 "metrics": {
+		 "type": "prometheus",
+		 "address": ":9090"
+	 }
+ }
+}

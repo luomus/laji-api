@@ -6,7 +6,6 @@ services:
     build: .
     ports:
       - "0.0.0.0:${PORT:-3004}:3004"  # Default to 3004 if PORT is not set
-      #- "0.0.0.0:3004:3004"  # Default to 3004 if PORT is not set
     environment:
       - REDIS_URL=redis://redis:6379
     depends_on:
