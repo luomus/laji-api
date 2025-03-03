@@ -156,7 +156,7 @@ export class DocumentsBatchService {
 			try {
 				const populatedDocument = await (isSecondaryDocumentDelete(document)
 					? this.secondaryDocumentsService.populateMutably(document, person)
-					: this.documentsService.populateMutably(document, person, apiUser));
+					: this.documentsService.populateMutably(document, apiUser, person));
 
 				if (!isSecondaryDocumentDelete(populatedDocument) && !populatedDocument.dataOrigin) {
 					populatedDocument.dataOrigin = [DataOrigin.dataOriginSpreadsheetFile];

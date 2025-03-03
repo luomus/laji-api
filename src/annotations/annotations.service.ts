@@ -1,4 +1,4 @@
-import { Annotation, Tag, Document, RequiredRolesEnum } from "@luomus/laji-schema/models";
+import { Annotation, Tag, Document, MMANRequiredRolesEnum } from "@luomus/laji-schema/models";
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { DocumentsService } from "src/documents/documents.service";
@@ -114,7 +114,7 @@ export class AnnotationsService {
 		}
 	};
 
-	private async validateRole(rootID: string, role: RequiredRolesEnum, person: Person) {
+	private async validateRole(rootID: string, role: MMANRequiredRolesEnum, person: Person) {
 		let document: Document;
 		switch (role) {
 		case "MMAN.basic":

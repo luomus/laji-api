@@ -12,32 +12,64 @@ Check the [wiki](https://github.com/luomus/laji-api/wiki) for a more technically
 
 [Nest](https://github.com/nestjs/nest)
 
-### Installation
+### Installation & running
+
+Fill in `.env` file, using `.env.example` as a template.
+
+The app can be ran inside a docker, or directly on the host machine.
+
+#### Docker (recommended)
+
+Use `docker` to build & start the app:
+
+```bash
+npm run docker
+```
+
+*Hint:* The docker container runs any npm script, `start:dev` being the default. You can run other scripts like so:
+
+```bash
+npm run docker -- test:e2e-old
+```
+
+#### Without Docker
+
+Install the dependencies:
 
 ```bash
 $ npm ci
 ```
 
-Fill in `.env` file, using `.env.example` as as template.
-
-#### Other requirements
+Install the following:
 
 * [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) >= 5
-* [Oracle Instantclient](https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip)
+* [Oracle Instant Client](https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip)
 
-### Run
 
-Start Redis, and then run:
+##### Running
 
+1. Start Redis
+2. Make sure the Oracle Instant Client is installed at `/opt/oracle/instantclient` or adjust the next step accordingly:
+3. 
 ```bash
 $ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
 ```
 
 ### Test
 
+Hint: The npm command works also with the aforementioned Docker container. These examples run `npm` directly for simplicity.
+
 #### Unit tests
 
-Unit tests coverage so far only some core logic. They act also as documentation for how they are supposed to work.
+Unit tests cover so far only some core logic. They act also as documentation for how they are supposed to work.
+
+With Docker:
+
+```bash
+npm run docker -- test
+```
+
+Without Docker:
 
 ```bash
 npm test
@@ -47,10 +79,17 @@ npm test
 
 Currently we rely on the e2e tests from the old api. Fill in `integration-test/config.json` and then you can run the tests:
 
+With Docker:
+
+```bash
+$ npm run docker -- test:e2e-old
+```
+
+Without Docker:
+
 ```bash
 $ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run test:e2e-old
 ```
-
 
 ## Contact
 

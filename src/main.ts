@@ -70,6 +70,7 @@ export async function bootstrap() {
 		.setTitle("Laji API")
 		.setDescription(description)
 		.setVersion("0")
+		.addServer(configService.get("SWAGGER_SERVER") as string)
 		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")
 		.build()
 	);

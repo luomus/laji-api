@@ -1,0 +1,53 @@
+services:
+  krakend:
+    # The :watch image restarts the service automatically when the configuration files change.
+    # Do not use this image in production, it's meant to speed up your testing and development.
+    image: devopsfaith/krakend:watch
+    volumes:
+      - ./config/krakend:/etc/krakend
+    ports:
+      - "1234:1234"
+      - "8080:8080"
+      - "8090:8090"
+    command: ["run", "-d", "-c", "/etc/krakend/krakend.json"]
+    depends_on:
+      - laji-api
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./config/prometheus:/etc/prometheus"
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000" # The default port is 3000, but because laji.fi is ran there locally so we use 3001 for now.
+    environment:
+      # Not set up yet, uses default user/pass
+      #GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+      #GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+      GF_AUT_ANONYMOUS_ENABLED: "true"
+    volumes:
+      - "./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources"
+      - "./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards"
+      - "./config/grafana/data/dashboards:/var/lib/grafana/dashboards"
+      - grafana_data:/var/lib/grafana  # Persistent volume for Grafana data
+    #env_file: "../.env" # Tried to pull user/pass from here, didn't work
+
+  laji-api:
+    build: ..
+    ports:
+      - "0.0.0.0:${PORT:-3004}:3004"  # Default to 3004 if PORT is not set
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  grafana_data:  # Define the volume for Grafana

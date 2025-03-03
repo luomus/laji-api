@@ -64,7 +64,7 @@ export class FormsService {
 		return (await this.getListing()).filter(f => f.collectionID === collectionID);
 	}
 
-	async checkWriteAccessIfDisabled(collectionID: string | undefined, person: Person): Promise<void> {
+	async checkWriteAccessIfDisabled(collectionID?: string, person?: Person): Promise<void> {
 		if (!collectionID) {
 			return;
 		}
@@ -74,7 +74,7 @@ export class FormsService {
 			return;
 		}
 
-		if (!person.role.includes(Role.Admin)) {
+		if (!person || !person.role.includes(Role.Admin)) {
 			throw new HttpException("Unprocessable Entity", 422, { cause: "Form is disabled" });
 		}
 	}

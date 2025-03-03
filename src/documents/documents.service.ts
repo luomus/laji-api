@@ -167,11 +167,13 @@ export class DocumentsService {
 
 	async create(
 		unpopulatedDocument: Document,
-		person: Person,
-		apiUser: ApiUserEntity
+		apiUser: ApiUserEntity,
+		person?: Person,
 	) {
-		const document = await this.populateMutably(unpopulatedDocument, person, apiUser);
-		populateCreatorAndEditorMutably(document, person);
+		const document = await this.populateMutably(unpopulatedDocument, apiUser, person);
+		if (person) {
+			populateCreatorAndEditorMutably(document, person);
+		}
 		await this.validate(document, person);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, person);
@@ -198,7 +200,7 @@ export class DocumentsService {
 			}
 		}
 
-		const document = await this.populateMutably(unpopulatedDocument, person, apiUser, false);
+		const document = await this.populateMutably(unpopulatedDocument, apiUser, person, false);
 
 		if (!person.isImporter()) {
 			document.editor = person.id;
@@ -287,7 +289,7 @@ export class DocumentsService {
 
 	async populateCommonsMutably<T extends Document>(
 		document: T,
-		person: Person | undefined,
+		person?: Person
 	): Promise<Populated<T>> {
 		// TODO remove after Mobiilivihko fixed. There's a issue about this.
 		if (document.gatheringEvent && document.gatheringEvent.dateBegin === "") {
@@ -317,8 +319,8 @@ export class DocumentsService {
 
 	async populateMutably<T extends Document>(
 		document: T,
-		person: Person | undefined,
 		apiUser: ApiUserEntity,
+		person?: Person,
 		overwriteSourceID = true
 	): Promise<Populated<WithNonNullableKeys<T, "sourceID">>> {
 		const withSourceID = populateSourceIDMutably(document, apiUser, overwriteSourceID);
@@ -327,22 +329,29 @@ export class DocumentsService {
 
 	async validate(
 		document: Populated<Document>,
-		person: Person
+		person?: Person
 	) {
 		const { collectionID } = document;
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
-		await this.checkHasReadRightsTo(document, person);
+		if (!person) {
+			const form = await this.formsService.get(document.formID);
+			if (!form.options?.openForm) {
+				throw new HttpException("Person token is required if form isn't open form (MHL.openForm)", 403);
+			}
+		} else {
+			await this.checkHasReadRightsTo(document, person);
 
-		if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
-			throw new HttpException("Insufficient rights to use this form", 403);
+			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
+				throw new HttpException("Insufficient rights to use this form", 403);
+			}
 		}
 
 		await this.documentValidatorService.validate(document, person);
 	}
 
-	async namedPlaceSideEffects(document: Document & { id: string }, person: Person) {
+	async namedPlaceSideEffects(document: Document & { id: string }, person?: Person) {
 		if (document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
 			|| !document.formID
 			|| !document.namedPlaceID
@@ -378,7 +387,7 @@ export class DocumentsService {
 			} catch (e) {
 				this.logger.error("Failed to update prepopulatedDocument.",
 					e,
-					{ document: document.id, namedPlace: place.id, person: person.id }
+					{ document: document.id, namedPlace: place.id, person: person?.id || null }
 				);
 			}
 		}

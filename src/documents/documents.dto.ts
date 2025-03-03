@@ -50,12 +50,20 @@ export enum ValidationErrorFormat {
 	dotNotation = "dotNotation"
 }
 
-export class CreateDocumentDto extends IntersectionType(
-	QueryWithPersonTokenDto
-) {
+class HasValidationErrorFormat {
 	/** Format of validation error details */
 	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.remote;
 }
+
+export class CreateDocumentDto extends IntersectionType(
+	PartialType(QueryWithPersonTokenDto),
+	HasValidationErrorFormat
+) { }
+
+export class UpdateDocumentDto extends IntersectionType(
+	QueryWithPersonTokenDto,
+	HasValidationErrorFormat
+) {}
 
 export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is NewPrimaryDocument =>
