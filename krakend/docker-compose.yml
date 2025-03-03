@@ -12,12 +12,14 @@ services:
     command: ["run", "-d", "-c", "/etc/krakend/krakend.json"]
     depends_on:
       - laji-api
+
   prometheus:
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
       - "./config/prometheus:/etc/prometheus"
+
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -50,4 +52,4 @@ services:
       - "6379:6379"
 
 volumes:
-  grafana_data:  # Define the volume for Grafana
+  grafana_data:  # Define the volume for Grafana so the state is saved to disk

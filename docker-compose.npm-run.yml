@@ -8,14 +8,12 @@ services:
       context: .
       dockerfile: Dockerfile.npm-run
     ports:
-      - "3004:3004"  # Default to 3004 if PORT is not set
-      #- "${PORT:-3004}:3004"  # Default to 3004 if PORT is not set
+      - "${PORT:-3004}:3004"  # Default to 3004 if PORT is not set
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://localhost:6379
     volumes:
       - .:/usr/src/app
-    networks:
-      - backend
+    network_mode: "host"
     depends_on:
       - redis
     entrypoint: ["npm", "run"]  # Always run `npm run` by default
@@ -26,9 +24,3 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    networks:
-      - backend
-
-networks:
-  backend:
-    driver: bridge
