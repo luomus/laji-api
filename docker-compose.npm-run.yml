@@ -12,7 +12,7 @@ services:
     environment:
       - REDIS_URL=redis://localhost:6379
     volumes:
-      - .:/usr/src/app
+      - .:/app
     network_mode: "host"
     depends_on:
       - redis
