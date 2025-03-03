@@ -1,5 +1,4 @@
-# This Dockerfile is for running the app in production. It must be connected to
-# Redis with docker-compose.yml.
+# This Dockerfile is for running the app in production. It is be connected to Redis with docker-compose.yml.
 
 # Use an Oracle Instant Client base image
 FROM oraclelinux:8 AS oracle-client

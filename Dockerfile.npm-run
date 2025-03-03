@@ -1,5 +1,4 @@
-# This file is for running any npm commands in docker. It is connected to redis
-# with docker-compose.npm-run.yml.
+# This Dockerfile is for running any npm commands in docker. It is connected to redis with docker-compose.npm-run.yml.
 
 # Use an Oracle Instant Client base image
 FROM oraclelinux:8 AS oracle-client
