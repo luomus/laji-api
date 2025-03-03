@@ -23,7 +23,7 @@ services:
     ports:
       - "3001:3000" # The default port is 3000, but because laji.fi is ran there locally so we use 3001 for now.
     environment:
-			# Not set up yet, uses default user/pass
+      # Not set up yet, uses default user/pass
       #GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
       #GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
       GF_AUT_ANONYMOUS_ENABLED: "true"
