@@ -1,6 +1,7 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaPageDto, TaxaBaseQuery, Taxon, TaxonElastic } from "./taxa.dto";
+import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaPageDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
+	from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
 import { asArray, firstFromNonEmptyArr } from "src/utils";
@@ -37,32 +38,27 @@ export class TaxaService {
 		return match;
 	}
 
-	async getPage(query: GetTaxaPageDto) {
-		const elasticQ: ElasticQuery = {
-			...queryToElasticQuery(query),
-			from: query.pageSize! * (query.page! - 1),
-			size: query.pageSize!,
-			sort: mapSortOrder(query)
-		};
-
-		const elasticPage = await this.taxaElasticClient.post<ElasticResponse>(
-			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion]}/taxa/_search`,
-			elasticQ
+	private search(query: Partial<TaxaBaseQuery>) {
+		return this.taxaElasticClient.post<ElasticResponse>(
+			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa/_search`,
+			queryToElasticQuery(query)
 		);
-		return pageAdapter(elasticPage, query);
+	}
+
+	async getPage(query: GetTaxaPageDto) {
+		return pageAdapter(await this.search(query), query);
 	}
 
 	async getAggregate(query: GetTaxaAggregateDto) {
-		const elasticQ = {
-			...queryToElasticQuery(query),
-			aggs: mapAggregates(query)
-		};
-				
-		const elasticResponse = await this.taxaElasticClient.post<ElasticResponse>(
-			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion]}/taxa/_search`,
-			elasticQ
-		);
-		return mapResponseAggregations(elasticResponse.aggregations, query.aggregateBy);
+		return mapResponseAggregations((await this.search(query)).aggregations, query.aggregateBy);
+	}
+
+	async getBySubject(id: string, query: GetTaxonDto) {
+		const [taxon] = (await this.search({ ...query, id, checklistVersion: ChecklistVersion.current })).hits.hits;
+		if (!taxon) {
+			throw new HttpException("Taxon not found", 404);
+		}
+		return taxon._source;
 	}
 }
 
@@ -202,7 +198,7 @@ const mapSortOrder = ({ sortOrder }: GetTaxaPageDto) => {
 };
 
 type QueryParamStrategy<T extends ElasticQuery = ElasticQuery> = (
-	query: TaxaBaseQuery,
+	query: Partial<TaxaBaseQuery>,
 	queryParam: keyof TaxaBaseQuery,
 	elasticQ: T,
 ) => T;
@@ -211,7 +207,7 @@ type QueryParamStrategy<T extends ElasticQuery = ElasticQuery> = (
 const mapToElasticParamAs = <T extends ElasticQuery, K extends keyof T>(
 	elasticQParam: K
 ) => (
-		injectionalStrategy: (query: TaxaBaseQuery, queryParam: keyof TaxaBaseQuery) => T[K]
+		injectionalStrategy: (query: Partial<TaxaBaseQuery>, queryParam: keyof TaxaBaseQuery) => T[K]
 	): QueryParamStrategy<T> => (
 		query, queryParam, elasticQ
 	) => {
@@ -272,14 +268,20 @@ const addAsFilter = (elasticQFilterParam?: string): QueryParamStrategy => (query
 
 const bypass: QueryParamStrategy = (_, __, elasticQ) => elasticQ;
 
-type MappedQueryParam = Exclude<keyof TaxaBaseQuery, "checklistVersion">;
-
 /**
  * The mapping between the incoming query and the elastic query.
  *
  * The keys are the incoming query params, and the values are strategies for how to map the query arguments into an elastic query.
  */
 const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> = {
+	aggregateBy: mapToElasticParamAs("aggs")(mapAggregates),
+	aggregateSize: bypass,
+	lang: bypass,
+	langFallback: bypass,
+	checklistVersion: bypass,
+	page: mapToElasticParamAs("from")(({ page, pageSize }) => pageSize! * (page! - 1)),
+	pageSize: mapAs("size"),
+	sortOrder: mapToElasticParamAs("sort")(mapSortOrder),
 	species: ifIsTrue(addAsFilter()),
 	redListEvaluationGroups: ifIsTrue(addAsFilter()),
 	invasiveSpeciesMainGroups: ifIsTrue(addAsFilter()),
@@ -316,6 +318,7 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 	),
 	includeDescriptions: ifIsTrue(removeFromExclude("descriptions")),
 	includeHidden: ifIsFalsy(addAsFilter("hiddenTaxon")),
+	id: ifIsTruthy(addAsFilter()),
 	// TODO later on might need to refactor this. It was taken from /taxa (species query) in lajiapi which might not be
 	// generally appliable but only relevant to that endpoint maybe. See server/models/taxon/taxon-species.ts @ old lajiapi
 	parentTaxonId: ifIsTrue(({ parentTaxonId, includeHidden }, _, elasticQ) => {
@@ -323,11 +326,10 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 		elasticQ[isPartOfProp] = parentTaxonId;
 		return elasticQ;
 	}),
-	checklistVersion: bypass
 };
 
-const queryToElasticQuery = (query: TaxaBaseQuery): ElasticQuery =>
-	(Object.keys(query) as MappedQueryParam[]).reduce((elasticQ: ElasticQuery, queryParam) => {
+const queryToElasticQuery = (query: Partial<TaxaBaseQuery>): ElasticQuery =>
+	(Object.keys(query) as (keyof TaxaBaseQuery)[]).reduce((elasticQ: ElasticQuery, queryParam) => {
 		const strategy = queryParamToEsQueryParam[queryParam];
 		if (!strategy || query[queryParam] === undefined) {
 			return elasticQ;

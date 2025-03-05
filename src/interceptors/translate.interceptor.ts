@@ -42,7 +42,9 @@ export class Translator implements NestInterceptor {
 			const translated = await applyToResult(
 				await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback),
 			)(result);
-			return applyLangToJsonLdContext(translated as HasJsonLdContext, lang);
+			return typeof jsonLdContext === "string"
+				? applyLangToJsonLdContext(translated as HasJsonLdContext, lang)
+				: translated;
 		}
 		return result;
 	};

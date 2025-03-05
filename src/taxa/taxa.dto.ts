@@ -1,6 +1,7 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { IntersectionType } from "@nestjs/swagger";
+import { IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Transform, Type, plainToInstance } from "class-transformer";
+import { IsNumber, IsOptional } from "class-validator";
 import { MultiLangDto, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
 import { RemoteSwaggerSchema } from "src/decorators/remote-swagger-schema.decorator";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
@@ -16,7 +17,7 @@ export enum ChecklistVersion {
 	"MR.484" = "MR.484",
 }
 
-export class TaxaBaseQuery {
+export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {
 	/**	Show only taxa that have been marked as species */
 	@IsOptionalBoolean() species?: boolean = false;
 
@@ -129,23 +130,19 @@ export class TaxaBaseQuery {
 	@CommaSeparatedStrings() selectedFields?: string[];
 
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
-	checklist: string = "MR.1";
+	checklist?: string = "MR.1";
 
 	/** Checklist version to be used. Defaults to the latest version. */
-	checklistVersion: ChecklistVersion = ChecklistVersion.current;
-}
+	checklistVersion?: ChecklistVersion = ChecklistVersion.current;
 
-export class GetTaxaPageDto extends IntersectionType(TaxaBaseQuery, QueryWithPagingDto, QueryWithLangDto) {
 	/**
 	 * Sorting field of the species (one of 'taxonomic' | 'scientific_name' | 'finnish_name') and optional sort order 'desc' | 'asc'.
 	 * Order defaults to 'asc'. The sort field and order are separated by a space character.
 	 *
 	 * Defaults to 'taxonomic'
 	 * */
-	sortOrder: string = "taxonomic";
-}
+	sortOrder?: string = "taxonomic";
 
-export class GetTaxaAggregateDto extends TaxaBaseQuery {
 	/**
 	 * Aggregate by these fields. Multiple values are separated by a comma (,). Different aggregations can be made at the
 	 * same time using semicolon as separator (;) and aggregates can be named giving "=name" at the end of each
@@ -156,7 +153,25 @@ export class GetTaxaAggregateDto extends TaxaBaseQuery {
 	 * */
 	@CommaSeparatedStrings(";") aggregateBy: string[];
 	aggregateSize = 10;
+
+	// It's never in the query params really because it's actually a path param. We include it in the query param so the taxa
+	// service's `queryToElasticQuery` can handle it.
+	id?: string;
 }
+
+export class GetTaxaPageDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize"]) {}
+
+export class GetTaxaAggregateDto extends OmitType(TaxaBaseQuery, ["page", "pageSize", "lang", "sortOrder"]) {}
+
+export class GetTaxonDto extends PickType(TaxaBaseQuery, [
+	"lang",
+	"langFallback",
+	"selectedFields",
+	"includeMedia",
+	"includeDescriptions",
+	"includeRedListEvaluations",
+	"includeHidden"
+]) {}
 
 class InformalTaxonGroup extends _InformalTaxonGroup {
 	id: string;
