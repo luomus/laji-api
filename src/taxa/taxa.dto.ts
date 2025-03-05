@@ -154,14 +154,20 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	@CommaSeparatedStrings(";") aggregateBy: string[];
 	aggregateSize = 10;
 
-	// It's never in the query params really because it's actually a path param. We include it in the query param so the taxa
+	// { These are never in the query params really because it's actually a path param. We include it in the query param so the taxa
 	// service's `queryToElasticQuery` can handle it.
 	id?: string;
+	parents?: string;
+	nonHiddenParents: string;
+	// }
 }
 
 export class GetTaxaPageDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize"]) {}
 
-export class GetTaxaAggregateDto extends OmitType(TaxaBaseQuery, ["page", "pageSize", "lang", "sortOrder"]) {}
+export class GetTaxaAggregateDto extends OmitType(
+	TaxaBaseQuery,
+	["page", "pageSize", "lang", "sortOrder", "parentTaxonId"]
+) {}
 
 export class GetTaxonDto extends PickType(TaxaBaseQuery, [
 	"lang",
@@ -173,6 +179,8 @@ export class GetTaxonDto extends PickType(TaxaBaseQuery, [
 	"includeHidden"
 ]) {}
 
+export class GetTaxaChildrenDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize", "page", "pageSize"]) {}
+
 class InformalTaxonGroup extends _InformalTaxonGroup {
 	id: string;
 }
@@ -180,7 +188,7 @@ class InformalTaxonGroup extends _InformalTaxonGroup {
 export type Taxon = {
 		vernacularName?: string;
 		informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
-};
+}
 
 class RedListEvaluation {
 	@Exclude() primaryHabitatSearchStrings: string;
@@ -200,6 +208,6 @@ export class TaxonElastic {
 	@Exclude() depth: any;
 	@Exclude() nonHiddenDepth: any;
 	@Exclude() nonHiddenParents: any;
-	parents: any;
+	nameAccordingTo: string;
 	[key: string]: unknown;
 }

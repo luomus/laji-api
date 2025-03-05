@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaPageDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
+import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaPageDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
 	from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
@@ -39,13 +39,21 @@ export class TaxaService {
 	}
 
 	private search(query: Partial<TaxaBaseQuery>) {
+		return this.elasticSearch(queryToElasticQuery(query), query.checklistVersion!);
+	}
+
+	private elasticSearch(query: ElasticQuery, checklistVersion: ChecklistVersion) {
 		return this.taxaElasticClient.post<ElasticResponse>(
-			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa/_search`,
-			queryToElasticQuery(query)
+			`taxon_${CHECKLIST_VERSION_MAP[checklistVersion!]}/taxa/_search`,
+			query
 		);
 	}
 
 	async getPage(query: GetTaxaPageDto) {
+		if (query.parentTaxonId) {
+			const isPartOfProp = query.includeHidden ? "parents" : "nonHiddenParents";
+			query[isPartOfProp] = query.parentTaxonId;
+		}
 		return pageAdapter(await this.search(query), query);
 	}
 
@@ -53,12 +61,49 @@ export class TaxaService {
 		return mapResponseAggregations((await this.search(query)).aggregations, query.aggregateBy);
 	}
 
-	async getBySubject(id: string, query: GetTaxonDto) {
+	async getBySubject(id: string, query: GetTaxonDto = {}) {
 		const [taxon] = (await this.search({ ...query, id, checklistVersion: ChecklistVersion.current })).hits.hits;
 		if (!taxon) {
 			throw new HttpException("Taxon not found", 404);
 		}
 		return taxon._source;
+	}
+
+	async getChildren(id: string, query: GetTaxaChildrenDto) {
+		const taxon = await this.getBySubject(id);
+		const childrenQuery: Partial<TaxaBaseQuery> = {
+			...query,
+			checklist: taxon.nameAccordingTo || "MR.1",
+			pageSize: 10000 // This has worked so far to get all taxa...
+		};
+		const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
+		if (childrenQuery.selectedFields) {
+			childrenQuery.selectedFields = [
+				...childrenQuery.selectedFields,
+				query.includeHidden ? "isPartOf" : "isPartOfNonHidden",
+				depthProp,
+				"nameAccordingTo"
+			];
+		}
+		if (childrenQuery.includeHidden) {
+			childrenQuery.parents = id;
+		} else {
+			childrenQuery.nonHiddenParents = id;
+		}
+
+		const childrenElasticQuery = queryToElasticQuery(childrenQuery);
+
+		childrenElasticQuery.query.bool.must = {
+			...(childrenElasticQuery.query.bool.must || {}),
+			range: {
+				[depthProp]: { gte: taxon[depthProp], lte: taxon[depthProp] + 1 }
+			}
+		};
+
+		return resultsAdapter(
+			await this.elasticSearch(childrenElasticQuery, childrenQuery.checklistVersion!),
+			query
+		);
 	}
 }
 
@@ -93,6 +138,7 @@ type ElasticQuery = {
 		bool: {
 			filter?: { term: Record<string, MaybeArray<string | number | boolean>> }[];
 			must_not?: { terms: Record<string, MaybeArray<string>> }[];
+			must?: { range: Record<string,  { gte: number, lte: number }> };
 		}
 	};
 	_source: { excludes: string[] } | string[];
@@ -279,6 +325,7 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 	lang: bypass,
 	langFallback: bypass,
 	checklistVersion: bypass,
+	parentTaxonId: bypass,
 	page: mapToElasticParamAs("from")(({ page, pageSize }) => pageSize! * (page! - 1)),
 	pageSize: mapAs("size"),
 	sortOrder: mapToElasticParamAs("sort")(mapSortOrder),
@@ -319,13 +366,8 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 	includeDescriptions: ifIsTrue(removeFromExclude("descriptions")),
 	includeHidden: ifIsFalsy(addAsFilter("hiddenTaxon")),
 	id: ifIsTruthy(addAsFilter()),
-	// TODO later on might need to refactor this. It was taken from /taxa (species query) in lajiapi which might not be
-	// generally appliable but only relevant to that endpoint maybe. See server/models/taxon/taxon-species.ts @ old lajiapi
-	parentTaxonId: ifIsTrue(({ parentTaxonId, includeHidden }, _, elasticQ) => {
-		const isPartOfProp = includeHidden ? "parents" : "nonHiddenParents";
-		elasticQ[isPartOfProp] = parentTaxonId;
-		return elasticQ;
-	}),
+	parents: ifIsTruthy(addAsFilter()),
+	nonHiddenParents: ifIsTrue(addAsFilter())
 };
 
 const queryToElasticQuery = (query: Partial<TaxaBaseQuery>): ElasticQuery =>
@@ -347,6 +389,10 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 		pageSize: query.pageSize!,
 		currentPage: query.page!
 	});
+
+const resultsAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) => ({
+	results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query))
+});
 
 const mapPageItem = (taxon: TaxonElastic, query: GetTaxaPageDto) =>
 	query.includeHidden

@@ -1,7 +1,7 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { Get, Param, Query, UseInterceptors, ValidationPipe } from "@nestjs/common";
-import { GetTaxaAggregateDto, GetTaxaPageDto, TaxonElastic } from "./taxa.dto";
+import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
+import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaPageDto, TaxonElastic } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translate.interceptor";
 import { createNewSerializingInterceptorWith } from "src/serialization/serializing.interceptor";
@@ -22,7 +22,7 @@ export class TaxaController {
 
 	/** Get an aggregate from the taxonomic backbone */
 	@Get("aggregate")
-	getAggregate(@Query(new ValidationPipe({ whitelist: true })) query: GetTaxaAggregateDto) {
+	getAggregate(@Query() query: GetTaxaAggregateDto) {
 		return this.taxaService.getAggregate(query);
 	}
 
@@ -30,7 +30,15 @@ export class TaxaController {
 	@Get(":id")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
 	@ApiOkResponse({ type: TaxonElastic })
-	get(@Query(new ValidationPipe({ whitelist: true })) query: GetTaxaPageDto, @Param("id") id: string) {
+	get(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getBySubject(id, query);
+	}
+
+	/** Get children of a taxon */
+	@Get(":id/children")
+	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
+	@ApiOkResponse({ type: TaxonElastic })
+	getChildren(@Param("id") id: string, @Query() query: GetTaxaChildrenDto) {
+		return this.taxaService.getChildren(id, query);
 	}
 }
