@@ -1,7 +1,7 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
-import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaPageDto, TaxonElastic } from "./taxa.dto";
+import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, TaxonElastic, TaxonElasticDescription } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translate.interceptor";
 import { createNewSerializingInterceptorWith } from "src/serialization/serializing.interceptor";
@@ -40,5 +40,12 @@ export class TaxaController {
 	@ApiOkResponse({ type: TaxonElastic })
 	getChildren(@Param("id") id: string, @Query() query: GetTaxaChildrenDto) {
 		return this.taxaService.getChildren(id, query);
+	}
+
+	/** Get children of a taxon */
+	@Get(":id/descriptions")
+	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticDescription))
+	getDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
+		return this.taxaService.getDescriptions(id, query);
 	}
 }

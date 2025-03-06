@@ -1,5 +1,5 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { IntersectionType, OmitType, PickType } from "@nestjs/swagger";
+import { ApiHideProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Transform, Type, plainToInstance } from "class-transformer";
 import { IsNumber, IsOptional } from "class-validator";
 import { MultiLangDto, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
@@ -154,11 +154,11 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	@CommaSeparatedStrings(";") aggregateBy: string[];
 	aggregateSize = 10;
 
-	// { These are never in the query params really because it's actually a path param. We include it in the query param so the taxa
-	// service's `queryToElasticQuery` can handle it.
-	id?: string;
-	parents?: string;
-	nonHiddenParents: string;
+	// { These are never in the query params really. We include them in this base class so the taxa service's
+	// `queryToElasticQuery` can handle it.
+	@ApiHideProperty() id?: string;
+	@ApiHideProperty() parents?: string;
+	@ApiHideProperty() nonHiddenParents: string;
 	// }
 }
 
@@ -180,6 +180,8 @@ export class GetTaxonDto extends PickType(TaxaBaseQuery, [
 ]) {}
 
 export class GetTaxaChildrenDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize", "page", "pageSize"]) {}
+
+export class GetTaxaDescriptionsDto extends PickType(TaxaBaseQuery, ["checklistVersion", "lang", "langFallback"]) {}
 
 class InformalTaxonGroup extends _InformalTaxonGroup {
 	id: string;
@@ -211,3 +213,10 @@ export class TaxonElastic {
 	nameAccordingTo: string;
 	[key: string]: unknown;
 }
+
+@RemoteSwaggerSchema({
+	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
+	swaggerPath: "openapi-v3.json",
+	ref: "Content"
+})
+export class TaxonElasticDescription { }

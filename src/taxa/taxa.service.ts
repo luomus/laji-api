@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaPageDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
+import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
 	from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
@@ -91,19 +91,25 @@ export class TaxaService {
 			childrenQuery.nonHiddenParents = id;
 		}
 
-		const childrenElasticQuery = queryToElasticQuery(childrenQuery);
+		const elasticQuery = queryToElasticQuery(childrenQuery);
 
-		childrenElasticQuery.query.bool.must = {
-			...(childrenElasticQuery.query.bool.must || {}),
+		elasticQuery.query.bool.must = {
+			...(elasticQuery.query.bool.must || {}),
 			range: {
 				[depthProp]: { gte: taxon[depthProp], lte: taxon[depthProp] + 1 }
 			}
 		};
 
-		return resultsAdapter(
-			await this.elasticSearch(childrenElasticQuery, childrenQuery.checklistVersion!),
-			query
-		);
+		return this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!);
+		// Waiting for https://github.com/luomus/laji-api/issues/57, needs front end migration
+		// return resultsAdapter(
+		// 	await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
+		// 	query
+		// );
+	}
+
+	async getDescriptions(id: string, query: GetTaxaDescriptionsDto) {
+		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions;
 	}
 }
 
@@ -390,9 +396,9 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 		currentPage: query.page!
 	});
 
-const resultsAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) => ({
-	results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query))
-});
+// const resultsAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) => ({
+// 	results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query))
+// });
 
 const mapPageItem = (taxon: TaxonElastic, query: GetTaxaPageDto) =>
 	query.includeHidden
