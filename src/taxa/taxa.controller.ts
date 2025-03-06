@@ -51,6 +51,14 @@ export class TaxaController {
 		return this.taxaService.getParents(id, query);
 	}
 
+	/** Get species (and aggregates, subspecies, etc) of the taxon */
+	@Get(":id/species")
+	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
+	@ApiOkResponse({ type: TaxonElastic })
+	getSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
+		return this.taxaService.getSpeciesPage(id, query);
+	}
+
 	/** Get description texts of a taxon */
 	@Get(":id/descriptions")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticDescription))

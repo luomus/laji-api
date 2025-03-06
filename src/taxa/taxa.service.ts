@@ -54,6 +54,10 @@ export class TaxaService {
 			const isPartOfProp = query.includeHidden ? "parents" : "nonHiddenParents";
 			query[isPartOfProp] = query.parentTaxonId;
 		}
+		if (query.id) {
+			query[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = query.id;
+		}
+
 		return pageAdapter(await this.search(query), query);
 	}
 
@@ -133,6 +137,10 @@ export class TaxaService {
 		// 	await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
 		// 	query
 		// );
+	}
+
+	async getSpeciesPage(id: string, query: GetTaxaPageDto) {
+		return this.getPage({ species: true, ...query, id  });
 	}
 
 	async getDescriptions(id: string, query: GetTaxaDescriptionsDto) {
@@ -408,6 +416,8 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 	id: ifIsTruthy(addAsFilter()),
 	parents: ifIsTruthy(addAsFilter()),
 	nonHiddenParents: ifIsTrue(addAsFilter()),
+	nonHiddenParentsIncludeSelf: addAsFilter(),
+	parentsIncludeSelf: addAsFilter(),
 	ids: ifIsTruthy((query, queryParam, elasticQ) => {
 		elasticQ.query.ids = { values: (query[queryParam] as string[]) };
 		return elasticQ;

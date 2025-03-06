@@ -160,6 +160,8 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	@ApiHideProperty() ids?: string[];
 	@ApiHideProperty() parents?: string;
 	@ApiHideProperty() nonHiddenParents: string;
+	@ApiHideProperty() nonHiddenParentsIncludeSelf: string;
+	@ApiHideProperty() parentsIncludeSelf: string;
 	// }
 }
 
