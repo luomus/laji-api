@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
+import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
 	from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
@@ -62,7 +62,11 @@ export class TaxaService {
 	}
 
 	async getBySubject(id: string, query: GetTaxonDto = {}) {
-		const [taxon] = (await this.search({ ...query, id, checklistVersion: ChecklistVersion.current })).hits.hits;
+		const [taxon] =  (await this.search({
+			id,
+			checklistVersion: ChecklistVersion.current,
+			...query
+		})).hits.hits;
 		if (!taxon) {
 			throw new HttpException("Taxon not found", 404);
 		}
@@ -93,6 +97,9 @@ export class TaxaService {
 
 		const elasticQuery = queryToElasticQuery(childrenQuery);
 
+		if (!elasticQuery.query.bool) {
+			elasticQuery.query.bool = {};
+		}
 		elasticQuery.query.bool.must = {
 			...(elasticQuery.query.bool.must || {}),
 			range: {
@@ -100,7 +107,27 @@ export class TaxaService {
 			}
 		};
 
-		return this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!);
+		return arrayAdapter(
+			await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
+			query
+		);
+		// Waiting for https://github.com/luomus/laji-api/issues/57, needs front end migration
+		// return resultsAdapter(
+		// 	await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
+		// 	query
+		// );
+	}
+
+	async getParents(id: string, query: GetTaxaParentsDto) {
+		const taxon = await this.getBySubject(id, { selectedFields: ["nonHiddenParents"] });
+		const parents = await this.search({
+			ids: taxon.nonHiddenParents,
+			checklistVersion: ChecklistVersion.current,
+			sortOrder: "taxonomic",
+			pageSize: 10000,
+			...query
+		});
+		return arrayAdapter(parents, query);
 		// Waiting for https://github.com/luomus/laji-api/issues/57, needs front end migration
 		// return resultsAdapter(
 		// 	await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
@@ -145,11 +172,12 @@ type ElasticQuery = {
 	"latestRedListEvaluation.anyHabitatSearchStrings"?: string[];
 
 	query: {
-		bool: {
+		bool?: {
 			filter?: { term: Record<string, MaybeArray<string | number | boolean>> }[];
 			must_not?: { terms: Record<string, MaybeArray<string>> }[];
 			must?: { range: Record<string,  { gte: number, lte: number }> };
-		}
+		},
+		ids?: { values: string[] }
 	};
 	_source: { excludes: string[] } | string[];
 };
@@ -305,7 +333,8 @@ const removeFromExclude = <T extends ElasticQuery>(...keys: string[])
 	};
 
 const mapTypesOfOccurrenceNotFilters: QueryParamStrategy = (query, queryParam, elasticQ) => {
-	const { bool } = elasticQ.query;
+	const { bool = { } } = elasticQ.query;
+	elasticQ.query.bool = bool;
 	bool.must_not = bool.must_not || [];
 	const arg = query[queryParam] as string[];
 	bool.must_not.push({ terms: { "typesOfOccurrenceNotFilters": arg } });
@@ -314,7 +343,8 @@ const mapTypesOfOccurrenceNotFilters: QueryParamStrategy = (query, queryParam, e
 
 /** @param elasticQueryParam The elastic query filter param. Defaults to the input query param */
 const addAsFilter = (elasticQFilterParam?: string): QueryParamStrategy => (query, queryParam, elasticQ) => {
-	const { bool } = elasticQ.query;
+	const { bool = {} } = elasticQ.query;
+	elasticQ.query.bool = bool;
 	bool.filter = bool.filter || [];
 	asArray(query[queryParam]!).forEach(queryArg => {
 		bool.filter!.push({ term: { [elasticQFilterParam ?? queryParam]: queryArg } });
@@ -377,7 +407,11 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 	includeHidden: ifIsFalsy(addAsFilter("hiddenTaxon")),
 	id: ifIsTruthy(addAsFilter()),
 	parents: ifIsTruthy(addAsFilter()),
-	nonHiddenParents: ifIsTrue(addAsFilter())
+	nonHiddenParents: ifIsTrue(addAsFilter()),
+	ids: ifIsTruthy((query, queryParam, elasticQ) => {
+		elasticQ.query.ids = { values: (query[queryParam] as string[]) };
+		return elasticQ;
+	})
 };
 
 const queryToElasticQuery = (query: Partial<TaxaBaseQuery>): ElasticQuery =>
@@ -389,7 +423,7 @@ const queryToElasticQuery = (query: Partial<TaxaBaseQuery>): ElasticQuery =>
 		return strategy(query, queryParam, elasticQ);
 	}, {
 		 _source: { excludes: ["multimedia", "descriptions", "redListEvaluations", "latestRedListEvaluation"] },
-		query: { bool: {} }
+		query: { }
 	});
 
 const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
@@ -404,7 +438,10 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 // 	results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query))
 // });
 
-const mapPageItem = (taxon: TaxonElastic, query: GetTaxaPageDto) =>
+const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) => 
+	hits.hits.map(({ _source }) =>  mapPageItem(_source, query));
+
+const mapPageItem = (taxon: TaxonElastic, query: Partial<TaxaBaseQuery>) =>
 	query.includeHidden
 		? { ...taxon, parents: taxon.nonHiddenParents }
 		: taxon;

@@ -1,7 +1,7 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
-import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia } from "./taxa.dto";
+import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translate.interceptor";
 import { createNewSerializingInterceptorWith } from "src/serialization/serializing.interceptor";
@@ -40,6 +40,15 @@ export class TaxaController {
 	@ApiOkResponse({ type: TaxonElastic })
 	getChildren(@Param("id") id: string, @Query() query: GetTaxaChildrenDto) {
 		return this.taxaService.getChildren(id, query);
+	}
+
+
+	/** Get parents of a taxon */
+	@Get(":id/parents")
+	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
+	@ApiOkResponse({ type: TaxonElastic })
+	getParents(@Param("id") id: string, @Query() query: GetTaxaParentsDto) {
+		return this.taxaService.getParents(id, query);
 	}
 
 	/** Get description texts of a taxon */

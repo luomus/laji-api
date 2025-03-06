@@ -157,6 +157,7 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	// { These are never in the query params really. We include them in this base class so the taxa service's
 	// `queryToElasticQuery` can handle it.
 	@ApiHideProperty() id?: string;
+	@ApiHideProperty() ids?: string[];
 	@ApiHideProperty() parents?: string;
 	@ApiHideProperty() nonHiddenParents: string;
 	// }
@@ -180,6 +181,11 @@ export class GetTaxonDto extends PickType(TaxaBaseQuery, [
 ]) {}
 
 export class GetTaxaChildrenDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize", "page", "pageSize"]) {}
+
+export class GetTaxaParentsDto extends PickType(
+	TaxaBaseQuery,
+	["lang", "langFallback", "selectedFields", "checklistVersion"]
+) {}
 
 export class GetTaxaDescriptionsDto extends PickType(TaxaBaseQuery, ["checklistVersion", "lang", "langFallback"]) {}
 
@@ -209,7 +215,7 @@ export class TaxonElastic {
 	@Exclude() isPartOfNonHidden: any;
 	@Exclude() depth: any;
 	@Exclude() nonHiddenDepth: any;
-	@Exclude() nonHiddenParents: any;
+	@Exclude() nonHiddenParents: string[];
 	nameAccordingTo: string;
 	[key: string]: unknown;
 }
