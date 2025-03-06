@@ -220,3 +220,10 @@ export class TaxonElastic {
 	ref: "Content"
 })
 export class TaxonElasticDescription { }
+
+@RemoteSwaggerSchema({
+	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
+	swaggerPath: "openapi-v3.json",
+	ref: "Image"
+})
+export class TaxonElasticMedia { }

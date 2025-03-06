@@ -111,6 +111,10 @@ export class TaxaService {
 	async getDescriptions(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions;
 	}
+
+	async getMedia(id: string, query: GetTaxaDescriptionsDto) {
+		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia;
+	}
 }
 
 type ElasticQuery = {
