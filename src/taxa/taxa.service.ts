@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { ChecklistVersion, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
+import { ChecklistVersion, GetSpeciesAggregateDto, GetSpeciesPageDto, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
 	from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
@@ -64,6 +64,18 @@ export class TaxaService {
 
 	async getAggregate(query: GetTaxaAggregateDto) {
 		return mapResponseAggregations((await this.search(query)).aggregations, query.aggregateBy);
+	}
+
+	async getSpeciesPage(query: GetSpeciesPageDto) {
+		console.log('get species page', query);
+		return this.getPage({ ...query, species: true });
+	}
+
+	async getSpeciesAggregate(query: GetSpeciesAggregateDto) {
+		return mapResponseAggregations(
+			(await this.search({ ...query, species: true })).aggregations,
+			query.aggregateBy
+		);
 	}
 
 	async getBySubject(id: string, query: GetTaxonDto = {}) {

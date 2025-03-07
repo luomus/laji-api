@@ -172,6 +172,16 @@ export class GetTaxaAggregateDto extends OmitType(
 	["page", "pageSize", "lang", "sortOrder", "parentTaxonId"]
 ) {}
 
+export class GetSpeciesPageDto extends OmitType(
+	GetTaxaPageDto,
+	["species", "parentTaxonId"]
+) {}
+
+export class GetSpeciesAggregateDto extends OmitType(
+	GetTaxaAggregateDto,
+	["species"]
+) {}
+
 export class GetTaxonDto extends PickType(TaxaBaseQuery, [
 	"lang",
 	"langFallback",

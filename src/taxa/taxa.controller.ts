@@ -26,6 +26,18 @@ export class TaxaController {
 		return this.taxaService.getAggregate(query);
 	}
 
+	/** Get a page of species */
+	@Get("species")
+	getSpeciesPage(@Query() query: GetTaxaPageDto) {
+		return this.taxaService.getSpeciesPage(query);
+	}
+
+	/** Get a species aggregate from the taxonomic backbone */
+	@Get("species/aggregate")
+	getSpeciesAggregate(@Query() query: GetTaxaAggregateDto) {
+		return this.taxaService.getSpeciesAggregate(query);
+	}
+
 	/** Get a page from the taxonomic backbone */
 	@Get(":id")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
