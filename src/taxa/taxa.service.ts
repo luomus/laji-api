@@ -43,6 +43,7 @@ export class TaxaService {
 	}
 
 	private elasticSearch(query: ElasticQuery, checklistVersion: ChecklistVersion) {
+		console.log(JSON.stringify(query, undefined, 2));
 		return this.taxaElasticClient.post<ElasticResponse>(
 			`taxon_${CHECKLIST_VERSION_MAP[checklistVersion!]}/taxa/_search`,
 			query
@@ -104,12 +105,16 @@ export class TaxaService {
 		if (!elasticQuery.query.bool) {
 			elasticQuery.query.bool = {};
 		}
-		elasticQuery.query.bool.must = {
+
+		const { bool = {} } = elasticQuery.query;
+		elasticQuery.query.bool = bool;
+		bool.must = bool.must || [];
+		bool.must.push({
 			...(elasticQuery.query.bool.must || {}),
 			range: {
 				[depthProp]: { gte: taxon[depthProp], lte: taxon[depthProp] + 1 }
 			}
-		};
+		});
 
 		return arrayAdapter(
 			await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
@@ -146,6 +151,7 @@ export class TaxaService {
 	async getTaxonSpeciesAggregate(id: string, query: GetTaxaAggregateDto) {
 		return this.getAggregate({ ...query, species: true, id });
 	}
+
 
 	async getTaxonDescriptions(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions;
@@ -185,14 +191,18 @@ type ElasticQuery = {
 
 	query: {
 		bool?: {
-			filter?: { term: Record<string, MaybeArray<string | number | boolean>> }[];
-			must_not?: { terms: Record<string, MaybeArray<string>> }[];
-			must?: { range: Record<string,  { gte: number, lte: number }> };
+			filter?: ElasticQueryBoolNode[];
+			must_not?: ElasticQueryBoolNode[];
+			must?: ElasticQueryBoolNode[];
 		},
 		ids?: { values: string[] }
 	};
 	_source: { excludes: string[] } | string[];
 };
+
+type ElasticQueryBoolNode = { terms: Record<string, MaybeArray<string | number | boolean>> }
+	| { term: Record<string, string | number | boolean> }
+	| { range: Record<string,  { gte: number, lte: number }> };
 
 type AggregateNode = Record<string, { terms: { field: string, size: number }, aggs?: AggregateNode }>;
 
@@ -327,10 +337,8 @@ const ifIs = (
 	return elasticQ;
 };
 
-const ifIsTrue = ifIs(true);
 const ifIsTruthy = ifIs((arg: unknown) => !!arg);
 const ifIsFalsy = ifIs((arg: unknown) => !arg);
-const ifIsTrueOrUndefined = ifIs((arg?: boolean) => [true, undefined].includes(arg));
 
 const removeFromExclude = <T extends ElasticQuery>(...keys: string[])
 	: QueryParamStrategy<T> => (_, __, elasticQ) => {
@@ -344,17 +352,8 @@ const removeFromExclude = <T extends ElasticQuery>(...keys: string[])
 		} };
 	};
 
-const mapTypesOfOccurrenceNotFilters: QueryParamStrategy = (query, queryParam, elasticQ) => {
-	const { bool = { } } = elasticQ.query;
-	elasticQ.query.bool = bool;
-	bool.must_not = bool.must_not || [];
-	const arg = query[queryParam] as string[];
-	bool.must_not.push({ terms: { "typesOfOccurrenceNotFilters": arg } });
-	return elasticQ;
-};
-
 /** @param elasticQueryParam The elastic query filter param. Defaults to the input query param */
-const addAsFilter = (elasticQFilterParam?: string): QueryParamStrategy => (query, queryParam, elasticQ) => {
+const addToBooleanQueryFilter = (elasticQFilterParam?: string): QueryParamStrategy => (query, queryParam, elasticQ) => {
 	const { bool = {} } = elasticQ.query;
 	elasticQ.query.bool = bool;
 	bool.filter = bool.filter || [];
@@ -362,6 +361,33 @@ const addAsFilter = (elasticQFilterParam?: string): QueryParamStrategy => (query
 		bool.filter!.push({ term: { [elasticQFilterParam ?? queryParam]: queryArg } });
 	});
 	return elasticQ;
+};
+
+/** @param elasticQueryParam The elastic query filter param. Defaults to the input query param */
+const addToBooleanQueryMust = (elasticQFilterParam?: string): QueryParamStrategy => (query, queryParam, elasticQ) => {
+	const { bool = {} } = elasticQ.query;
+	elasticQ.query.bool = bool;
+	bool.must = bool.must || [];
+	bool.must!.push({ terms: { [elasticQFilterParam ?? queryParam]: query[queryParam]! } });
+	return elasticQ;
+};
+
+const addToBooleanQueryMustNot = (elasticQFilterParam?: string): QueryParamStrategy =>
+	(query, queryParam, elasticQ) => {
+
+		const { bool = { } } = elasticQ.query;
+		elasticQ.query.bool = bool;
+		bool.must_not = bool.must_not || [];
+		const arg = query[queryParam] as (string | boolean | number)[];
+		bool.must_not.push({ terms: { [elasticQFilterParam ?? queryParam]: arg } });
+		return elasticQ;
+	};
+
+const addToBooleanQuery = (elasticQFilterParam?: string): QueryParamStrategy => (query, queryParam, elasticQ) => {
+	const arg = query[queryParam];
+	return Array.isArray(arg)
+		? addToBooleanQueryMust(elasticQFilterParam)(query, queryParam, elasticQ)
+		: addToBooleanQueryFilter(elasticQFilterParam)(query, queryParam, elasticQ);
 };
 
 const bypass: QueryParamStrategy = (_, __, elasticQ) => elasticQ;
@@ -373,59 +399,59 @@ const bypass: QueryParamStrategy = (_, __, elasticQ) => elasticQ;
  */
 const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> = {
 	aggregateBy: mapToElasticParamAs("aggs")(mapAggregates),
+	page: mapToElasticParamAs("from")(({ page, pageSize }) => pageSize! * (page! - 1)),
+	pageSize: mapAs("size"),
+	sortOrder: mapToElasticParamAs("sort")(mapSortOrder),
+	species: ifIsTruthy(addToBooleanQuery()),
+	redListEvaluationGroups: ifIsTruthy(addToBooleanQuery()),
+	invasiveSpeciesMainGroups: ifIsTruthy(addToBooleanQuery()),
+	"latestRedListEvaluation.threatenedAtArea": ifIsTruthy(addToBooleanQuery()),
+	"latestRedListEvaluation.redListStatus": ifIsTruthy(addToBooleanQuery()),
+	"latestRedListEvaluation.primaryThreat": ifIsTruthy(addToBooleanQuery()),
+	"latestRedListEvaluation.threats": ifIsTruthy(addToBooleanQuery()),
+	"latestRedListEvaluation.primaryEndangermentReason": ifIsTruthy(addToBooleanQuery()),
+	hasLatestRedListEvaluation: ifIsTruthy(addToBooleanQuery()),
+	"latestRedListEvaluation.endangermentReasons": ifIsTruthy(addToBooleanQuery()),
+	taxonSets: ifIsTruthy(addToBooleanQuery()),
+	onlyFinnish: ifIsTruthy(addToBooleanQuery("finnish")),
+	invasiveSpeciesFilter: ifIsTruthy(addToBooleanQuery("invasiveSpecies")),
+	informalGroupFilters: ifIsTruthy(addToBooleanQuery("informalTaxonGroups")),
+	typesOfOccurrenceFilters: ifIsTruthy(addToBooleanQuery("typeOfOccurrenceInFinland")),
+	typesOfOccurrenceNotFilters: addToBooleanQueryMustNot(),
+	adminStatusFilters: ifIsTruthy(addToBooleanQuery("administrativeStatuses")),
+	redListStatusFilters: ifIsTruthy(addToBooleanQuery("latestRedListStatusFinland.status")),
+	taxonRanks: ifIsTruthy(addToBooleanQuery("taxonRank")),
+	hasMediaFilter: ifIsTruthy(addToBooleanQuery("hasMultimedia")),
+	hasDescriptionFilter: ifIsTruthy(addToBooleanQuery("hasDescriptions")),
+	hasBoldData: ifIsTruthy(addToBooleanQuery("hasBold")),
+	checklist: addToBooleanQuery("nameAccordingTo"),
+	primaryHabitat: ifIsTruthy(addToBooleanQuery("primaryHabitat.habitat")),
+	anyHabitat: ifIsTruthy(addToBooleanQuery("anyHabitatSearchStrings")),
+	"latestRedListEvaluation.primaryHabitat":
+		ifIsTruthy(addToBooleanQuery("latestRedListEvaluation.primaryHabitatSearchStrings")),
+	"latestRedListEvaluation.anyHabitat":
+	ifIsTruthy(addToBooleanQuery("latestRedListEvaluation.anyHabitatSearchStrings")),
+	selectedFields: mapAs("_source"),
+	includeMedia: ifIsTruthy(removeFromExclude("multimedia")),
+	includeRedListEvaluations: ifIsTruthy(
+		removeFromExclude("redListEvaluations", "latestRedListEvaluation")
+	),
+	includeDescriptions: ifIsTruthy(removeFromExclude("descriptions")),
+	includeHidden: ifIsFalsy(addToBooleanQuery("hiddenTaxon")),
+	id: ifIsTruthy(addToBooleanQuery()),
+	parents: ifIsTruthy(addToBooleanQuery()),
+	nonHiddenParents: ifIsTruthy(addToBooleanQuery()),
+	nonHiddenParentsIncludeSelf: ifIsTruthy(addToBooleanQuery()),
+	parentsIncludeSelf: addToBooleanQuery(),
+	ids: ifIsTruthy((query, queryParam, elasticQ) => {
+		elasticQ.query.ids = { values: (query[queryParam] as string[]) };
+		return elasticQ;
+	}),
 	aggregateSize: bypass,
 	lang: bypass,
 	langFallback: bypass,
 	checklistVersion: bypass,
-	parentTaxonId: bypass,
-	page: mapToElasticParamAs("from")(({ page, pageSize }) => pageSize! * (page! - 1)),
-	pageSize: mapAs("size"),
-	sortOrder: mapToElasticParamAs("sort")(mapSortOrder),
-	species: ifIsTrue(addAsFilter()),
-	redListEvaluationGroups: ifIsTrue(addAsFilter()),
-	invasiveSpeciesMainGroups: ifIsTrue(addAsFilter()),
-	"latestRedListEvaluation.threatenedAtArea": ifIsTrue(addAsFilter()),
-	"latestRedListEvaluation.redListStatus": ifIsTrue(addAsFilter()),
-	"latestRedListEvaluation.primaryThreat": ifIsTrue(addAsFilter()),
-	"latestRedListEvaluation.threats": ifIsTrue(addAsFilter()),
-	"latestRedListEvaluation.primaryEndangermentReason": ifIsTrue(addAsFilter()),
-	hasLatestRedListEvaluation: ifIsTrue(addAsFilter()),
-	"latestRedListEvaluation.endangermentReasons": ifIsTrue(addAsFilter()),
-	taxonSets: ifIsTruthy(addAsFilter()),
-	onlyFinnish: ifIsTrueOrUndefined(addAsFilter("finnish")),
-	invasiveSpeciesFilter: ifIsTrue(addAsFilter("invasiveSpecies")),
-	informalGroupFilters: ifIsTrue(addAsFilter("informalTaxonGroups")),
-	typesOfOccurrenceFilters: ifIsTrue(addAsFilter("typeOfOccurrenceInFinland")),
-	typesOfOccurrenceNotFilters: mapTypesOfOccurrenceNotFilters,
-	adminStatusFilters: ifIsTrue(addAsFilter("administrativeStatuses")),
-	redListStatusFilters: ifIsTrue(addAsFilter("latestRedListStatusFinland.status")),
-	taxonRanks: ifIsTrue(addAsFilter("taxonRank")),
-	hasMediaFilter: ifIsTrue(addAsFilter("hasMultimedia")),
-	hasDescriptionFilter: ifIsTrue(addAsFilter("hasDescriptions")),
-	hasBoldData: ifIsTrue(addAsFilter("hasBold")),
-	checklist: addAsFilter("nameAccordingTo"),
-	primaryHabitat: ifIsTrue(addAsFilter("primaryHabitat.habitat")),
-	anyHabitat: ifIsTrue(addAsFilter("anyHabitatSearchStrings")),
-	"latestRedListEvaluation.primaryHabitat":
-		ifIsTrue(addAsFilter("latestRedListEvaluation.primaryHabitatSearchStrings")),
-	"latestRedListEvaluation.anyHabitat":
-	ifIsTrue(addAsFilter("latestRedListEvaluation.anyHabitatSearchStrings")),
-	selectedFields: mapAs("_source"),
-	includeMedia: ifIsTrue(removeFromExclude("multimedia")),
-	includeRedListEvaluations: ifIsTrue(
-		removeFromExclude("redListEvaluations", "latestRedListEvaluation")
-	),
-	includeDescriptions: ifIsTrue(removeFromExclude("descriptions")),
-	includeHidden: ifIsFalsy(addAsFilter("hiddenTaxon")),
-	id: ifIsTruthy(addAsFilter()),
-	parents: ifIsTruthy(addAsFilter()),
-	nonHiddenParents: ifIsTrue(addAsFilter()),
-	nonHiddenParentsIncludeSelf: addAsFilter(),
-	parentsIncludeSelf: addAsFilter(),
-	ids: ifIsTruthy((query, queryParam, elasticQ) => {
-		elasticQ.query.ids = { values: (query[queryParam] as string[]) };
-		return elasticQ;
-	})
+	parentTaxonId: bypass
 };
 
 const queryToElasticQuery = (query: Partial<TaxaBaseQuery>): ElasticQuery =>
