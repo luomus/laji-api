@@ -122,7 +122,7 @@ export class TaxaService {
 		// );
 	}
 
-	async getParents(id: string, query: GetTaxaParentsDto) {
+	async getTaxonParents(id: string, query: GetTaxaParentsDto) {
 		const taxon = await this.getBySubject(id, { selectedFields: ["nonHiddenParents"] });
 		const parents = await this.search({
 			ids: taxon.nonHiddenParents,
@@ -139,15 +139,20 @@ export class TaxaService {
 		// );
 	}
 
-	async getSpeciesPage(id: string, query: GetTaxaPageDto) {
-		return this.getPage({ species: true, ...query, id  });
+	async getTaxonSpeciesPage(id: string, query: GetTaxaPageDto) {
+		return this.getPage({ ...query, species: true, id });
 	}
 
-	async getDescriptions(id: string, query: GetTaxaDescriptionsDto) {
+	async getTaxonSpeciesAggregate(id: string, query: GetTaxaAggregateDto) {
+		return this.getAggregate({ ...query, species: true, id });
+	}
+
+
+	async getTaxonDescriptions(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions;
 	}
 
-	async getMedia(id: string, query: GetTaxaDescriptionsDto) {
+	async getTaxonMedia(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia;
 	}
 }

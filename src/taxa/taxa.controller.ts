@@ -38,38 +38,37 @@ export class TaxaController {
 	@Get(":id/children")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
 	@ApiOkResponse({ type: TaxonElastic })
-	getChildren(@Param("id") id: string, @Query() query: GetTaxaChildrenDto) {
+	getTaxonChildren(@Param("id") id: string, @Query() query: GetTaxaChildrenDto) {
 		return this.taxaService.getChildren(id, query);
 	}
-
 
 	/** Get parents of a taxon */
 	@Get(":id/parents")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
 	@ApiOkResponse({ type: TaxonElastic })
-	getParents(@Param("id") id: string, @Query() query: GetTaxaParentsDto) {
-		return this.taxaService.getParents(id, query);
+	getTaxonParents(@Param("id") id: string, @Query() query: GetTaxaParentsDto) {
+		return this.taxaService.getTaxonParents(id, query);
 	}
 
-	/** Get species (and aggregates, subspecies, etc) of the taxon */
+	/** Get species and subspecies of the taxon */
 	@Get(":id/species")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
 	@ApiOkResponse({ type: TaxonElastic })
-	getSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
-		return this.taxaService.getSpeciesPage(id, query);
+	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
+		return this.taxaService.getTaxonSpeciesPage(id, query);
 	}
 
 	/** Get description texts of a taxon */
 	@Get(":id/descriptions")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticDescription))
-	getDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
-		return this.taxaService.getDescriptions(id, query);
+	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
+		return this.taxaService.getTaxonDescriptions(id, query);
 	}
 
 	/** Get media objects texts of a taxon */
 	@Get(":id/media")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticMedia))
-	getMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
-		return this.taxaService.getMedia(id, query);
+	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
+		return this.taxaService.getTaxonMedia(id, query);
 	}
 }
