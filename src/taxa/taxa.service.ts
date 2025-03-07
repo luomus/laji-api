@@ -147,7 +147,6 @@ export class TaxaService {
 		return this.getAggregate({ ...query, species: true, id });
 	}
 
-
 	async getTaxonDescriptions(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions;
 	}
