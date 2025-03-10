@@ -38,15 +38,11 @@ export class TaxaService {
 		return match;
 	}
 
-	private search(query: Partial<TaxaBaseQuery>) {
-		return this.elasticSearch(queryToElasticQuery(query), query.checklistVersion!);
-	}
-
-	private elasticSearch(query: ElasticQuery, checklistVersion: ChecklistVersion) {
-		console.log(JSON.stringify(query, undefined, 2));
+	private elasticSearch(query: Partial<TaxaBaseQuery>, taxon?: TaxonElastic) {
+		console.log(JSON.stringify(queryToElasticQuery(query, taxon), undefined, 2));
 		return this.taxaElasticClient.post<ElasticResponse>(
-			`taxon_${CHECKLIST_VERSION_MAP[checklistVersion!]}/taxa/_search`,
-			query
+			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa/_search`,
+			queryToElasticQuery(query, taxon)
 		);
 	}
 
@@ -59,27 +55,26 @@ export class TaxaService {
 			query[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = query.id;
 		}
 
-		return pageAdapter(await this.search(query), query);
+		return pageAdapter(await this.elasticSearch(query), query);
 	}
 
 	async getAggregate(query: GetTaxaAggregateDto) {
-		return mapResponseAggregations((await this.search(query)).aggregations, query.aggregateBy);
+		return mapResponseAggregations((await this.elasticSearch(query)).aggregations, query.aggregateBy);
 	}
 
 	async getSpeciesPage(query: GetSpeciesPageDto) {
-		console.log('get species page', query);
 		return this.getPage({ ...query, species: true });
 	}
 
 	async getSpeciesAggregate(query: GetSpeciesAggregateDto) {
 		return mapResponseAggregations(
-			(await this.search({ ...query, species: true })).aggregations,
+			(await this.elasticSearch({ ...query, species: true })).aggregations,
 			query.aggregateBy
 		);
 	}
 
 	async getBySubject(id: string, query: GetTaxonDto = {}) {
-		const [taxon] =  (await this.search({
+		const [taxon] =  (await this.elasticSearch({
 			id,
 			checklistVersion: ChecklistVersion.current,
 			...query
@@ -95,7 +90,8 @@ export class TaxaService {
 		const childrenQuery: Partial<TaxaBaseQuery> = {
 			...query,
 			checklist: taxon.nameAccordingTo || "MR.1",
-			pageSize: 10000 // This has worked so far to get all taxa...
+			pageSize: 10000, // This has worked so far to get all taxa...
+			depth: true
 		};
 		const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
 		if (childrenQuery.selectedFields) {
@@ -112,36 +108,14 @@ export class TaxaService {
 			childrenQuery.nonHiddenParents = id;
 		}
 
-		const elasticQuery = queryToElasticQuery(childrenQuery);
-
-		if (!elasticQuery.query.bool) {
-			elasticQuery.query.bool = {};
-		}
-
-		const { bool = {} } = elasticQuery.query;
-		elasticQuery.query.bool = bool;
-		bool.must = bool.must || [];
-		bool.must.push({
-			...(elasticQuery.query.bool.must || {}),
-			range: {
-				[depthProp]: { gte: taxon[depthProp], lte: taxon[depthProp] + 1 }
-			}
-		});
-
-		return arrayAdapter(
-			await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
-			query
-		);
+		return arrayAdapter(await this.elasticSearch(childrenQuery, taxon), query);
 		// Waiting for https://github.com/luomus/laji-api/issues/57, needs front end migration
-		// return resultsAdapter(
-		// 	await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
-		// 	query
-		// );
+		// return resultsAdapter(await this.search(childrenQuery, taxon), query);
 	}
 
 	async getTaxonParents(id: string, query: GetTaxaParentsDto) {
 		const taxon = await this.getBySubject(id, { selectedFields: ["nonHiddenParents"] });
-		const parents = await this.search({
+		const parents = await this.elasticSearch({
 			ids: taxon.nonHiddenParents,
 			checklistVersion: ChecklistVersion.current,
 			sortOrder: "taxonomic",
@@ -319,6 +293,7 @@ type QueryParamStrategy<T extends ElasticQuery = ElasticQuery> = (
 	query: Partial<TaxaBaseQuery>,
 	queryParam: keyof TaxaBaseQuery,
 	elasticQ: T,
+	taxon?: TaxonElastic
 ) => T;
 
 /** Map to given **elasticQParam with** the given strategy */
@@ -341,10 +316,10 @@ const ifIs = (
 ) => (
 	strategy: QueryParamStrategy
 ): QueryParamStrategy => (
-	query, queryParam, elasticQ
+	query, queryParam, elasticQ, taxon
 ) => {
 	if (typeof condition === "function" && condition(query[queryParam]) || query[queryParam] === condition) {
-		return strategy(query, queryParam, elasticQ);
+		return strategy(query, queryParam, elasticQ, taxon);
 	}
 	return elasticQ;
 };
@@ -394,6 +369,20 @@ const addToBooleanQueryMustNot = (elasticQFilterParam?: string): QueryParamStrat
 		bool.must_not.push({ terms: { [elasticQFilterParam ?? queryParam]: arg } });
 		return elasticQ;
 	};
+
+const addDepth: QueryParamStrategy = (query, _, elasticQ, taxon) => {
+	const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
+
+	const { bool = { } } = elasticQ.query;
+	elasticQ.query.bool = bool;
+	bool.must = bool.must || [];
+	bool.must.push({
+		range: {
+			[depthProp]: { gte: taxon![depthProp], lte: taxon![depthProp] + 1 }
+		}
+	});
+	return elasticQ;
+};
 
 const addToBooleanQuery = (elasticQFilterParam?: string): QueryParamStrategy => (query, queryParam, elasticQ) => {
 	const arg = query[queryParam];
@@ -459,6 +448,7 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 		elasticQ.query.ids = { values: (query[queryParam] as string[]) };
 		return elasticQ;
 	}),
+	depth: ifIsTruthy(addDepth),
 	aggregateSize: bypass,
 	lang: bypass,
 	langFallback: bypass,
@@ -466,13 +456,13 @@ const queryParamToEsQueryParam: Record<keyof TaxaBaseQuery, QueryParamStrategy> 
 	parentTaxonId: bypass
 };
 
-const queryToElasticQuery = (query: Partial<TaxaBaseQuery>): ElasticQuery =>
+const queryToElasticQuery = (query: Partial<TaxaBaseQuery>, taxon?: TaxonElastic): ElasticQuery =>
 	(Object.keys(query) as (keyof TaxaBaseQuery)[]).reduce((elasticQ: ElasticQuery, queryParam) => {
 		const strategy = queryParamToEsQueryParam[queryParam];
 		if (!strategy || query[queryParam] === undefined) {
 			return elasticQ;
 		}
-		return strategy(query, queryParam, elasticQ);
+		return strategy(query, queryParam, elasticQ, taxon);
 	}, {
 		 _source: { excludes: ["multimedia", "descriptions", "redListEvaluations", "latestRedListEvaluation"] },
 		query: { }
