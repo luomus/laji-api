@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { ChecklistVersion, GetSpeciesAggregateDto, GetSpeciesPageDto, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, GetTaxonDto, TaxaBaseQuery, Taxon, TaxonElastic }
+import { ChecklistVersion, GetSpeciesAggregateDto, GetSpeciesPageDto, GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, GetTaxonDto, TaxaBaseQuery, TaxaSearchDto, Taxon, TaxonElastic }
 	from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
@@ -26,11 +26,12 @@ export class TaxaService {
 	) {}
 
 	async get(id: string, selectedFields?: MaybeArray<string>): Promise<Taxon> {
-		const query: JSONObjectSerializable = { q: id };
+		const query: TaxaSearchDto = { q: id };
 		if (selectedFields) {
 			query.selectedFields = asArray(selectedFields).join(",");
 		}
-		const { matches } = (await this.taxaClient.get<{ matches: Taxon[]; }>("", { params: query }));
+
+		const matches = (await this.search(query));
 		const [match] = matches;
 		if (!match) {
 			throw new HttpException("Taxon not found", 404);
@@ -38,8 +39,12 @@ export class TaxaService {
 		return match;
 	}
 
+	async search(query: TaxaSearchDto) {
+		const { matches } = (await this.taxaClient.get<{ matches: Taxon[]; }>("", { params: query }));
+		return matches || [];
+	}
+
 	private elasticSearch(query: Partial<TaxaBaseQuery>, taxon?: TaxonElastic) {
-		console.log(JSON.stringify(queryToElasticQuery(query, taxon), undefined, 2));
 		return this.taxaElasticClient.post<ElasticResponse>(
 			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa/_search`,
 			queryToElasticQuery(query, taxon)
@@ -480,7 +485,7 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 // 	results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query))
 // });
 
-const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) => 
+const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) =>
 	hits.hits.map(({ _source }) =>  mapPageItem(_source, query));
 
 const mapPageItem = (taxon: TaxonElastic, query: Partial<TaxaBaseQuery>) =>

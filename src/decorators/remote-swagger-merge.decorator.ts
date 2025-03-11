@@ -43,7 +43,7 @@ export abstract class MergesRemoteSwagger {
 export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") =>
 	(document: OpenAPIObject, remoteDocument: OpenAPIObject): OpenAPIObject => {
 		const remotePaths = Object.keys(remoteDocument.paths).reduce((paths, p) => {
-			if (typeof pathMatcher === "string" &&  !p.startsWith(pathMatcher)) {
+			if (typeof pathMatcher === "string" && !p.startsWith(pathMatcher)) {
 				return paths;
 			}
 			const pathItem = remoteDocument.paths[p]!;

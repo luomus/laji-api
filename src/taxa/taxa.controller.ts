@@ -1,7 +1,8 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
-import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia } from "./taxa.dto";
+import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto,
+	TaxaSearchDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translate.interceptor";
 import { createNewSerializingInterceptorWith } from "src/serialization/serializing.interceptor";
@@ -11,6 +12,14 @@ import { createNewSerializingInterceptorWith } from "src/serialization/serializi
 export class TaxaController {
 
 	constructor(private taxaService: TaxaService) {}
+
+	/** Taxon name search */
+	@Get("search")
+	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
+	@ApiOkResponse({ type: TaxonElastic })
+	search(@Query() query: TaxaSearchDto) {
+		return this.taxaService.search(query);
+	}
 
 	/** Get a page from the taxonomic backbone */
 	@Get()

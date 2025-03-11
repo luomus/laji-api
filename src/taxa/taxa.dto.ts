@@ -1,5 +1,5 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { ApiHideProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Transform, Type, plainToInstance } from "class-transformer";
 import { IsNumber, IsOptional } from "class-validator";
 import { MultiLangDto, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
@@ -246,3 +246,56 @@ export class TaxonElasticDescription { }
 	ref: "Image"
 })
 export class TaxonElasticMedia { }
+
+export class TaxaSearchDto extends QueryWithLangDto {
+	/** Name to search */
+	@ApiProperty({ name: "query" }) q: string;
+
+	// Used only internally
+	@ApiHideProperty() id?: string;
+
+	/** Limit the page size of results */
+	limit?: number = 10;
+
+	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
+	checklist?: string;
+
+	/** Filter based on taxon set(s). Multiple values are separated by a comma (,) */
+	taxonSets?: string;
+
+	/** Search taxa from specified informal taxon group(s). Multiple values are separated by a comma (,) */
+	informalTaxonGroup?: string;
+
+	/** Include hidden taxa in the response */
+	includeHidden?: boolean = false;
+
+	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
+	includeNameTypes?: string;
+
+	/** Filter based on language of the matching name. Multiple values are separated by a comma (,) */
+	includeLanguages?: string;
+
+	/** Exclude taxa from specified informal taxon group(s). Multiple values are separated by a comma (,) */
+	excludedInformalTaxonGroup?: string;
+
+	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
+	matchType?: string;
+
+	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
+	excludeNameTypes?: string;
+
+	/** Filter to include only species (and subspecies) */
+	onlySpecies?: boolean = false;
+
+	/** Filter to include only Finnish taxa */
+	onlyFinnish?: boolean = false;
+
+	/** Filter to include only invasive species */
+	onlyInvasive?: boolean = false;
+
+	/** If observationMode is set, "sp." is catenated to higher tax scientific names */
+	observationMode?: boolean = false;
+
+	/** Multiple values are separated by a comma (,) */
+	selectedFields?: string;
+}
