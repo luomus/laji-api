@@ -2,7 +2,7 @@ import { Newable, isObject } from "src/typing.utils";
 import { SerializeOptions } from "src/serialization/serialization.utils";
 import { HasSchemaDefinitionName, SwaggerCustomizationCommon, createSwaggerScanner } from "src/swagger/swagger-scanner";
 import { UseInterceptors, applyDecorators } from "@nestjs/common";
-import { createNewSerializingInterceptorWith } from "./serializing.interceptor";
+import { Serializer } from "./serializer.interceptor";
 
 const SERIALIZE_METADATA = "SERIALIZE_METADATA";
 
@@ -48,7 +48,7 @@ export const SERIALIZE_OPTIONS_METADATA = "SERIALIZE_OPTIONS_METADATA";
 export const Serialize: SerializeOverload = (...params) =>
 	applyDecorators(
 		SwaggerSerializeOptionsApplied(...params),
-		UseInterceptors(createNewSerializingInterceptorWith(params[0], params[1]))
+		UseInterceptors(Serializer(params[0], params[1]))
 	);
 
 export const SwaggerSerializeOptionsApplied: SerializeOverload = (

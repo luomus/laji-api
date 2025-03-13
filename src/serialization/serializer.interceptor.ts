@@ -5,9 +5,9 @@ import { applyToResult } from "src/pagination.utils";
 import { Newable } from "src/typing.utils";
 import { instanceToPlain } from "class-transformer";
 
-export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>, serializeOptions?: SerializeOptions) {
+export function Serializer(serializeInto?: Newable<any>, serializeOptions?: SerializeOptions) {
 	@Injectable()
-	class SerializingInterceptor implements NestInterceptor {
+	class Serializer implements NestInterceptor {
 		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 			return next.handle().pipe(switchMap(async result => {
 				if (serializeInto) {
@@ -18,6 +18,5 @@ export function createNewSerializingInterceptorWith(serializeInto?: Newable<any>
 			}));
 		}
 	}
-	return mixin(SerializingInterceptor) as any;
+	return mixin(Serializer) as any;
 }
-export const SerializingInterceptor = createNewSerializingInterceptorWith();
