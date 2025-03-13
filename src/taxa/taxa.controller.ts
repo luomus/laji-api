@@ -4,7 +4,7 @@ import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto,
 	TaxaSearchDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia, TaxonSearchResponse } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
-import { Translator } from "src/interceptors/translate.interceptor";
+import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
