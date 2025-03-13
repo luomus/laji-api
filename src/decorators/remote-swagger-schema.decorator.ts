@@ -7,7 +7,7 @@ export type RemoteSwaggerSchemaOptions = {
 }
 
 /**
- * Adds a remote swagger JSON schema model for the decorated class. This metadata is consumed by the **translator
+ * Adds a remote swagger JSON schema model for the decorated class. This metadata is consumed by the **Translator
  * interceptor**, that can transform the JSON schema into JSON-LD context, which is needed for knowing which properties
  * are multi lang.
  */

@@ -1,7 +1,7 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
 import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Transform, Type, plainToInstance } from "class-transformer";
-import { IsNumber, IsOptional } from "class-validator";
+import { IsInt, IsNumber, IsOptional } from "class-validator";
 import { MultiLangDto, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
 import { RemoteSwaggerSchema } from "src/decorators/remote-swagger-schema.decorator";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
@@ -152,7 +152,7 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	 * or the name if it was given.
 	 * */
 	@CommaSeparatedStrings(";") aggregateBy: string[];
-	aggregateSize = 10;
+	@Type(() => Number) @IsInt() aggregateSize = 10;
 
 	// { These are never in the query params really. We include them in this base class so the taxa service's
 	// `queryToElasticQuery` can handle it.
@@ -175,7 +175,7 @@ export class GetTaxaAggregateDto extends OmitType(
 
 export class GetSpeciesPageDto extends OmitType(
 	GetTaxaPageDto,
-	["species", "parentTaxonId"]
+	["species", "parentTaxonId", "taxonRanks"]
 ) {}
 
 export class GetSpeciesAggregateDto extends OmitType(
@@ -232,6 +232,13 @@ export class TaxonElastic {
 	nameAccordingTo: string;
 	[key: string]: unknown;
 }
+
+@RemoteSwaggerSchema({
+	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
+	swaggerPath: "openapi-v3.json",
+	ref: "TaxonSearchResponse"
+})
+export class TaxonSearchResponse { }
 
 @RemoteSwaggerSchema({
 	swaggerHostConfigKey: "LAJI_BACKEND_HOST",

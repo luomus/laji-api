@@ -2,7 +2,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto,
-	TaxaSearchDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia } from "./taxa.dto";
+	TaxaSearchDto, TaxonElastic, TaxonElasticDescription, TaxonElasticMedia, TaxonSearchResponse } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translate.interceptor";
 import { createNewSerializingInterceptorWith } from "src/serialization/serializing.interceptor";
@@ -15,8 +15,8 @@ export class TaxaController {
 
 	/** Taxon name search */
 	@Get("search")
-	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
-	@ApiOkResponse({ type: TaxonElastic })
+	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonSearchResponse))
+	@ApiOkResponse({ type: TaxonSearchResponse })
 	search(@Query() query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
@@ -74,6 +74,7 @@ export class TaxaController {
 	/** Get species and subspecies of the taxon */
 	@Get(":id/species")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
+	// @SwaggerRemoteRef({ source: "store", ref: "form" })
 	@ApiOkResponse({ type: TaxonElastic })
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
@@ -81,7 +82,6 @@ export class TaxaController {
 
 	/** Get species and subspecies of the taxon */
 	@Get(":id/species/aggregate")
-	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
 	@ApiOkResponse({ type: TaxonElastic })
 	getTaxonSpeciesAggregate(@Param("id") id: string, @Query() query: GetTaxaAggregateDto) {
 		return this.taxaService.getTaxonSpeciesAggregate(id, query);
@@ -89,6 +89,7 @@ export class TaxaController {
 
 	/** Get description texts of a taxon */
 	@Get(":id/descriptions")
+	@ApiOkResponse({ type: TaxonElasticDescription })
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticDescription))
 	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonDescriptions(id, query);
@@ -96,6 +97,7 @@ export class TaxaController {
 
 	/** Get media objects texts of a taxon */
 	@Get(":id/media")
+	@ApiOkResponse({ type: TaxonElasticMedia })
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticMedia))
 	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonMedia(id, query);
