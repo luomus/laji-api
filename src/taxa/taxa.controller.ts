@@ -6,6 +6,7 @@ import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTax
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translate.interceptor";
 import { createNewSerializingInterceptorWith } from "src/serialization/serializing.interceptor";
+import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
 @ApiTags("Taxon")
 @LajiApiController("taxa")
@@ -16,7 +17,7 @@ export class TaxaController {
 	/** Taxon name search */
 	@Get("search")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonSearchResponse))
-	@ApiOkResponse({ type: TaxonSearchResponse })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "TaxonSearchResponse" })
 	search(@Query() query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
@@ -24,7 +25,7 @@ export class TaxaController {
 	/** Get a page from the taxonomic backbone */
 	@Get()
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
-	@ApiOkResponse({ type: TaxonElastic })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon" })
 	getPage(@Query() query: GetTaxaPageDto) {
 		return this.taxaService.getPage(query);
 	}
@@ -50,7 +51,7 @@ export class TaxaController {
 	/** Get a page from the taxonomic backbone */
 	@Get(":id")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
-	@ApiOkResponse({ type: TaxonElastic })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon" })
 	get(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getBySubject(id, query);
 	}
@@ -58,7 +59,7 @@ export class TaxaController {
 	/** Get children of a taxon */
 	@Get(":id/children")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
-	@ApiOkResponse({ type: TaxonElastic })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon" })
 	getTaxonChildren(@Param("id") id: string, @Query() query: GetTaxaChildrenDto) {
 		return this.taxaService.getChildren(id, query);
 	}
@@ -66,7 +67,7 @@ export class TaxaController {
 	/** Get parents of a taxon */
 	@Get(":id/parents")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
-	@ApiOkResponse({ type: TaxonElastic })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon" })
 	getTaxonParents(@Param("id") id: string, @Query() query: GetTaxaParentsDto) {
 		return this.taxaService.getTaxonParents(id, query);
 	}
@@ -74,30 +75,28 @@ export class TaxaController {
 	/** Get species and subspecies of the taxon */
 	@Get(":id/species")
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElastic))
-	// @SwaggerRemoteRef({ source: "store", ref: "form" })
-	@ApiOkResponse({ type: TaxonElastic })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon" })
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
 	}
 
 	/** Get species and subspecies of the taxon */
 	@Get(":id/species/aggregate")
-	@ApiOkResponse({ type: TaxonElastic })
 	getTaxonSpeciesAggregate(@Param("id") id: string, @Query() query: GetTaxaAggregateDto) {
 		return this.taxaService.getTaxonSpeciesAggregate(id, query);
 	}
 
 	/** Get description texts of a taxon */
 	@Get(":id/descriptions")
-	@ApiOkResponse({ type: TaxonElasticDescription })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Content" })
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticDescription))
 	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonDescriptions(id, query);
 	}
 
-	/** Get media objects texts of a taxon */
+	/** Get media objects of a taxon */
 	@Get(":id/media")
-	@ApiOkResponse({ type: TaxonElasticMedia })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Image" })
 	@UseInterceptors(Translator, createNewSerializingInterceptorWith(TaxonElasticMedia))
 	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonMedia(id, query);

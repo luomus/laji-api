@@ -3,7 +3,7 @@ import { SwaggerCustomizationCommon, createSwaggerScanner } from "./swagger-scan
 
 export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
-	source: "store",
+	source: "store" | "laji-backend",
 	/** The name of the schema object in the remote OpenAPI document's schemas */
 	ref: string,
 	/**
