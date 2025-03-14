@@ -2,7 +2,7 @@ import { instanceToPlain, Exclude, Expose, plainToInstance, Transform } from "cl
 import { Newable } from "src/typing.utils";
 import { whitelistKeys } from "src/utils";
 import { applyDecorators } from "@nestjs/common";
-import { IsBoolean } from "class-validator";
+import { IsBoolean, IsOptional } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export type SerializeOptions = {
@@ -13,8 +13,7 @@ export type SerializeOptions = {
 
 /**
  * NestJS has it's own implementation for serialization, but it doesn't work when used with the swagger CLI plugin.
- *   It for example won't respect the default values of the classes when serializing. So, we have a custom
- *   implementation.
+ * It for example won't respect the default values of the classes when serializing. So, we have a custom implementation.
  */
 export const serializeInto = <T>(Class: Newable<T>, options?: SerializeOptions) => (item: any): T => {
 	const {
@@ -44,18 +43,20 @@ export const serialize = <T>(item: any, Class: Newable<T>, options?: SerializeOp
 
 const optionalBooleanMapper = new Map([
 	  ["true", true],
-	  ["false", false]
+	  ["false", false],
+	  ["undefined", undefined]
 ]);
 
 export const IsOptionalBoolean = () => applyDecorators(
+	IsOptional(),
 	IsBoolean(),
 	// https://github.com/typestack/class-transformer/issues/676
 	Transform(({ value }) => optionalBooleanMapper.get(value)),
 );
 
-export const CommaSeparatedStrings = () => applyDecorators(
+export const CommaSeparatedStrings = (delimiter = ",") => applyDecorators(
 	Transform(({ value }: { value: string }) => value.trim().length
-		? value.split(",").filter(id => !!id)
+		? value.split(delimiter).filter(id => !!id)
 		: undefined
 	),
 	ApiProperty({ type: String, required: false })

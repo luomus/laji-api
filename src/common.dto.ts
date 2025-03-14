@@ -56,6 +56,12 @@ export const LANGS: Exclude<Lang, Lang.multi>[] = [Lang.fi, Lang.sv, Lang.en];
 export type CompleteMultiLang = Record<Exclude<Lang, Lang.multi>, string>;
 export type MultiLang = Partial<CompleteMultiLang>;
 
+export class MultiLangDto {
+	fi?: string;
+	en?: string;
+	sv?: string;
+}
+
 export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, Lang.multi>): (string | undefined) => {
 	return multiLangItem[lang];
 };

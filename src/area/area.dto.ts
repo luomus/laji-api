@@ -20,8 +20,10 @@ export class GetAreaPageDto extends IntersectionType(
 ) {
 	// For backward compatibility. We're going to deprecate it and use areaType.
 	type?: unknown;
+
 	/** Area type */
 	areaType?: AreaTypeDto;
+
 	/**	Include only items with the given ids. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() idIn?: string[];
 }

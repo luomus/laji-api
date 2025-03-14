@@ -15,10 +15,11 @@ import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagge
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { JSONSerializable, isObject } from "src/typing.utils";
-import { STORE_CLIENT } from "src/provider-tokens";
+import { GLOBAL_CLIENT, STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
 import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
 	from "src/decorators/remote-swagger-merge.decorator";
+import { ConfigService } from "@nestjs/config";
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
@@ -29,17 +30,19 @@ export class SwaggerService {
 	private logger = new Logger(SwaggerService.name);
 
 	storeSwaggerDoc?: OpenAPIObject;
+	lajiBackendSwaggerDoc?: OpenAPIObject;
 	remoteSwaggers: Record<string, {
 		instance: {
 			fetchSwagger: FetchSwagger,
 			patchSwagger: PatchSwagger
-
 		},
 		document?: OpenAPIObject
 	}> = {};
 
 	constructor(
 		@Inject(STORE_CLIENT) private storeClient: RestClientService<JSONSerializable>,
+		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<JSONSerializable>,
+		private config: ConfigService,
 		private moduleRef: ModuleRef
 	) {
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);
@@ -51,6 +54,8 @@ export class SwaggerService {
 	@Interval(CACHE_30_MIN)
 	async warmup() {
 		this.storeSwaggerDoc = await this.storeClient.get("documentation-json");
+		this.lajiBackendSwaggerDoc =
+			await this.globalClient.get(`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`);
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
 	}
 
@@ -198,6 +203,8 @@ export class SwaggerService {
 		switch (entry.source) {
 		case "store":
 			return this.storeSwaggerDoc!;
+		case "laji-backend":
+			return this.lajiBackendSwaggerDoc!;
 		}
 	}
 
@@ -313,7 +320,7 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
 
-const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
+export const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
 	!!(schema as any).type
 	|| !!(schema as any).anyOf
 	|| !!(schema as any).oneOf;
