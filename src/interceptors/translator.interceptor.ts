@@ -37,7 +37,7 @@ export class Translator implements NestInterceptor {
 		const jsonLdContext = await this.getJsonLdContext(sample);
 		if (sample) {
 			if (!jsonLdContext) {
-				throw new Error("QueryParamsInterceptor failed to get the @context for item");
+				throw new Error("Translator failed to get the @context for item");
 			}
 			const translated = await applyToResult(
 				await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback),

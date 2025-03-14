@@ -50,6 +50,7 @@ import { InformalTaxonGroupsModule } from "./informal-taxon-groups/informal-taxo
 import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 import { GlobalRestClientModule } from "./rest-client/global-rest-client.module";
 import { Serializer } from "./serialization/serializer.interceptor";
+import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.interceptor";
 
 @Module({
 	imports: [
@@ -114,7 +115,7 @@ import { Serializer } from "./serialization/serializer.interceptor";
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: Serializer()
+			useClass: InstanceToPlainInterceptor
 		},
 		{
 			provide: APP_INTERCEPTOR,
