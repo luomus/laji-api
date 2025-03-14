@@ -119,8 +119,6 @@ export class TaxaService {
 		}
 
 		return arrayAdapter(await this.elasticSearch(childrenQuery, taxon), query);
-		// Waiting for https://github.com/luomus/laji-api/issues/57, needs front end migration
-		// return resultsAdapter(await this.search(childrenQuery, taxon), query);
 	}
 
 	async getTaxonParents(id: string, query: GetTaxaParentsDto) {
@@ -133,11 +131,6 @@ export class TaxaService {
 			...query
 		});
 		return arrayAdapter(parents, query);
-		// Waiting for https://github.com/luomus/laji-api/issues/57, needs front end migration
-		// return resultsAdapter(
-		// 	await this.elasticSearch(elasticQuery, childrenQuery.checklistVersion!),
-		// 	query
-		// );
 	}
 
 	async getTaxonSpeciesPage(id: string, query: GetTaxaPageDto) {
@@ -165,10 +158,6 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 		pageSize: query.pageSize!,
 		currentPage: query.page!
 	});
-
-// const resultsAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) => ({
-// 	results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query))
-// });
 
 const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) =>
 	hits.hits.map(({ _source }) =>  mapPageItem(_source, query));
