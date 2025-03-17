@@ -9,6 +9,7 @@ const GlobalRestClient: FactoryProvider<RestClientService<never>> = {
 	useFactory: (httpService: HttpService, cache: RedisCacheService) =>
 		new RestClientService(httpService, {
 			name: "global",
+			cache: true
 		}, cache),
 	inject: [HttpService, RedisCacheService],
 };
