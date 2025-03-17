@@ -1,8 +1,8 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
 import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
-import { Exclude, Type } from "class-transformer";
+import { Exclude, Expose, Type } from "class-transformer";
 import { IsInt } from "class-validator";
-import { QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
+import { MultiLang, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { WithNonNullableKeys } from "src/typing.utils";
 
@@ -224,6 +224,7 @@ export class TaxonElastic {
 	@Exclude() nonHiddenDepth: any;
 	@Exclude() nonHiddenParents: string[];
 	nameAccordingTo: string;
+	vernacularName: MultiLang;
 	[key: string]: unknown;
 }
 

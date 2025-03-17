@@ -7,7 +7,7 @@ import {
 } from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
-import { asArray } from "src/utils";
+import { asArray, pipe } from "src/utils";
 import { paginateAlreadyPaginated } from "src/pagination.utils";
 import { ElasticResponse, queryToElasticQuery } from "./taxa-elastic-query";
 
@@ -92,7 +92,7 @@ export class TaxaService {
 		if (!taxon) {
 			throw new HttpException("Taxon not found", 404);
 		}
-		return taxon._source;
+		return mapTaxon(taxon._source, query);
 	}
 
 	async getChildren(id: string, query: GetTaxaChildrenDto) {
@@ -153,19 +153,33 @@ export class TaxaService {
 
 const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 	paginateAlreadyPaginated({
-		results: hits.hits.map(({ _source }) =>  mapPageItem(_source, query)),
+		results: hits.hits.map(({ _source }) =>  mapTaxon(_source, query)),
 		total: hits.total,
 		pageSize: query.pageSize!,
 		currentPage: query.page!
 	});
 
 const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) =>
-	hits.hits.map(({ _source }) =>  mapPageItem(_source, query));
+	hits.hits.map(({ _source }) =>  mapTaxon(_source, query));
 
-const mapPageItem = (taxon: TaxonElastic, query: Partial<TaxaBaseQuery>) =>
+const mapTaxonParents = (query: Partial<TaxaBaseQuery>) => (taxon: TaxonElastic): TaxonElastic =>
 	query.includeHidden
-		? { ...taxon, parents: taxon.nonHiddenParents }
+		? { ...taxon, parents: taxon.nonHiddenParents } as unknown as TaxonElastic
 		: taxon;
+
+const addVernacularNameTranslations = (taxon: TaxonElastic) => ({
+	...taxon,
+	vernacularNameFi: taxon.vernacularName?.fi,
+	vernacularNameSv: taxon.vernacularName?.sv,
+	vernacularNameEn: taxon.vernacularName?.en,
+});
+
+const mapTaxon = (taxon: TaxonElastic, query: Partial<TaxaBaseQuery>)
+	: TaxonElastic =>
+	pipe(
+		mapTaxonParents(query),
+		addVernacularNameTranslations
+	)(taxon);
 
 const mapResponseAggregations = (
 	aggsResult: ElasticResponse["aggregations"],

@@ -305,7 +305,7 @@ const applyEntryToResponse = (entry: SwaggerCustomizationEntry, document: OpenAP
 			schema = replaceWithRefToCustomSchemaDefinitionName(entry, schema);
 		}
 		if (entry.customizeResponseSchema) {
-			schema = entry.customizeResponseSchema(schema);
+			schema = entry.customizeResponseSchema(schema, document);
 		}
 		return schema;
 	};

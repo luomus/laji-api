@@ -92,7 +92,7 @@ export const getAllFromPagedResource = async <T>(
 
 /**
  * Creates a function that maps the input items of a "result" with the given predicate.
- * The "result" is either a page (or page-like, meaning that it has { "results": any }, an array or a single object.
+ * The "result" is either a page (or page-like, meaning that it has { "results": any }), an array or a single object.
  * */
 function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 	: ((result: T) => Promise<R>)

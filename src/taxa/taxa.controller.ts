@@ -9,11 +9,21 @@ import { Serializer } from "src/serialization/serializer.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { ResultsArray } from "src/interceptors/results-array.interceptor";
 import { SchemaItem } from "src/swagger/swagger.service";
+import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 
 const wrapIntoResults = (schema: SchemaItem) => ({
 	type: "object",
 	properties: { results: schema, "@context": { type: "string" } }
 });
+
+const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
+	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
+	["vernacularNameFi", "vernacularNameSv", "vernacularNameEn"].forEach(property => {
+		schema.properties![property] = { type: "string" };
+	});
+	return schema;
+};
 
 @ApiTags("Taxon")
 @LajiApiController("taxa")
@@ -66,7 +76,12 @@ export class TaxaController {
 	/** Get a page from the taxonomic backbone */
 	@Version("1")
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "Taxon",
+		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we need to do it just once here.
+		jsonLdContext: "taxon-elastic"
+	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	get(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getBySubject(id, query);
