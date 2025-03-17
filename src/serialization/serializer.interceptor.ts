@@ -8,9 +8,7 @@ export function Serializer(serializeInto: Newable<any>, serializeOptions?: Seria
 	@Injectable()
 	class Serializer implements NestInterceptor {
 		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-			return next.handle().pipe(switchMap(result => 
-				applyToResult(_serializeInto(serializeInto, serializeOptions))(result)
-			));
+			return next.handle().pipe(switchMap(applyToResult(_serializeInto(serializeInto, serializeOptions))));
 		}
 	}
 	return mixin(Serializer) as any;

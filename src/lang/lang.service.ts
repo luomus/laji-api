@@ -2,8 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { isJSONObjectSerializable, isObject, JSONObjectSerializable, KeyOf, omit } from "src/typing.utils";
-import * as jsonld from "jsonld";
 import * as jp from "jsonpath";
+import { JsonLdService } from "src/json-ld/json-ld.service";
+import { JsonLdDocument } from "jsonld";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
@@ -12,17 +13,16 @@ const JSON_LD_KEYWORDS = new Set(["@id", "@type", "@value", "@language", "@list"
 @Injectable()
 export class LangService {
 
+	constructor(private jsonLdService: JsonLdService) {}
+
+	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean)
+		: Promise<(item: T) => MultiLangAsString<T>>
+	async contextualTranslateWith<T>(jsonLdContext: string, lang: Lang.multi, langFallback?: boolean)
+		: Promise<(item: T) => T>
+	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Lang, langFallback?: boolean)
+		: Promise<(item: T) => (T | MultiLangAsString<T>)>
 	async contextualTranslateWith<T>(
-		jsonLdContext: string | JSONObjectSerializable, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean
-	) : Promise<(item: T) => MultiLangAsString<T>>
-	async contextualTranslateWith<T>(
-		jsonLdContext: string | JSONObjectSerializable, lang: Lang.multi, langFallback?: boolean
-	): Promise<(item: T) => T>
-	async contextualTranslateWith<T>(
-		jsonLdContext: string | JSONObjectSerializable, lang?: Lang, langFallback?: boolean
-	): Promise<(item: T) => (T | MultiLangAsString<T>)>
-	async contextualTranslateWith<T>(
-		jsonLdContext: string | JSONObjectSerializable, lang: Lang = Lang.en, langFallback = true
+		jsonLdContext: string, lang: Lang = Lang.en, langFallback = true
 	) {
 		const multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
 		return (item: T): T | MultiLangAsString<T> => {
@@ -50,11 +50,9 @@ export class LangService {
 	}
 
 	@IntelligentMemoize()
-	async getMultiLangJSONPaths(jsonLdContext: string | JSONObjectSerializable): Promise<string[]> {
-		const inlineJsonLdContext = typeof jsonLdContext === "string"
-			? (await jsonld.documentLoader(jsonLdContext)).document["@context"]
-		 : jsonLdContext;
-		return getMultiLangJSONPaths(inlineJsonLdContext);
+	async getMultiLangJSONPaths(jsonLdContext: string): Promise<string[]> {
+		const embeddedJsonLdContext = await this.jsonLdService.getEmbeddedContext(jsonLdContext);
+		return getMultiLangJSONPaths(embeddedJsonLdContext);
 	}
 }
 
@@ -146,7 +144,7 @@ const getMultiLangJSONPaths = (jsonLdContext: JSONObjectSerializable): string[] 
 		}
 		return [];
 	};
-	return (Object.keys(jsonLdContext) as (KeyOf<jsonld.JsonLdDocument>)[]).reduce((jsonPaths, key) => {
+	return (Object.keys(jsonLdContext) as (KeyOf<JsonLdDocument>)[]).reduce((jsonPaths, key) => {
 		const value = jsonLdContext[key];
 		if (!isJSONObjectSerializable(value)) {
 			return jsonPaths;

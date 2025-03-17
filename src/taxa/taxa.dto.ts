@@ -1,9 +1,8 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
 import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
-import { Exclude, Expose, Transform, Type, plainToInstance } from "class-transformer";
-import { IsInt, IsNumber, IsOptional } from "class-validator";
-import { MultiLangDto, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
-import { RemoteSwaggerSchema } from "src/decorators/remote-swagger-schema.decorator";
+import { Exclude, Type } from "class-transformer";
+import { IsInt } from "class-validator";
+import { QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { WithNonNullableKeys } from "src/typing.utils";
 
@@ -216,11 +215,6 @@ class RedListEvaluation {
 	@Exclude() anyHabitatSearchStrings: string;
 }
 
-@RemoteSwaggerSchema({
-	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
-	swaggerPath: "openapi-v3.json",
-	ref: "Taxon"
-})
 export class TaxonElastic {
 	intellectualRights: string = "MZ.intellectualRightsCC-BY-4.0";
 	@Type(() => RedListEvaluation) latestRedListEvaluation: RedListEvaluation;
@@ -232,27 +226,6 @@ export class TaxonElastic {
 	nameAccordingTo: string;
 	[key: string]: unknown;
 }
-
-@RemoteSwaggerSchema({
-	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
-	swaggerPath: "openapi-v3.json",
-	ref: "TaxonSearchResponse"
-})
-export class TaxonSearchResponse { }
-
-@RemoteSwaggerSchema({
-	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
-	swaggerPath: "openapi-v3.json",
-	ref: "Content"
-})
-export class TaxonElasticDescription { }
-
-@RemoteSwaggerSchema({
-	swaggerHostConfigKey: "LAJI_BACKEND_HOST",
-	swaggerPath: "openapi-v3.json",
-	ref: "Image"
-})
-export class TaxonElasticMedia { }
 
 export class TaxaSearchDto extends QueryWithLangDto {
 	/** Name to search */

@@ -49,8 +49,8 @@ import { LoggerModule } from "./logger/logger.module";
 import { InformalTaxonGroupsModule } from "./informal-taxon-groups/informal-taxon-groups.module";
 import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 import { GlobalRestClientModule } from "./rest-client/global-rest-client.module";
-import { Serializer } from "./serialization/serializer.interceptor";
 import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.interceptor";
+import { JsonLdModule } from "./json-ld/json-ld.module";
 
 @Module({
 	imports: [
@@ -105,7 +105,8 @@ import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.int
 		OrganizationsModule,
 		LoggerModule,
 		InformalTaxonGroupsModule,
-		GlobalRestClientModule
+		GlobalRestClientModule,
+		JsonLdModule
 	],
 	controllers: [AppController],
 	providers: [

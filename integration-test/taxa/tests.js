@@ -66,7 +66,7 @@ describe("/taxa", function() {
 		const url = `${basePath}/MX.37600?selectedFields=id,hasChildren&access_token=${config.access_token}`;
 		const res = await request(this.server).get(url).set("API-Version", "1");
 		res.should.have.status(200);
-		res.body.should.have.keys(["hasChildren", "id", "intellectualRights"]);
+		res.body.should.have.keys(["hasChildren", "id", "intellectualRights", "@context"]);
 		res.body.id.should.equal("MX.37600");
 	});
 

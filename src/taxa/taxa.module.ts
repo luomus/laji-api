@@ -5,6 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { TaxaService } from "./taxa.service";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { TaxaController } from "./taxa.controller";
+import { SwaggerModule } from "@nestjs/swagger";
 
 const TaxaRestClient: FactoryProvider<RestClientService<never>> = {
 	provide: TAXA_CLIENT,
@@ -28,6 +29,7 @@ const TaxaElasticRestClient: FactoryProvider<RestClientService<never>> = {
 };
 
 @Module({
+	imports: [SwaggerModule],
 	providers: [TaxaService, TaxaRestClient, TaxaElasticRestClient],
 	exports: [TaxaService],
 	controllers: [TaxaController]

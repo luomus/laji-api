@@ -7,7 +7,7 @@ import { Lang, QueryWithLangDto, QueryWithPagingAndLangAndIdIn } from "src/commo
 import { SwaggerRemoteRef, SwaggerRemoteRefEntry } from "src/swagger/swagger-remote.decorator";
 import { SchemaItem } from "src/swagger/swagger.service";
 import { ResultsArray } from "src/interceptors/results-array.interceptor";
-import { applyLangToJsonLdContext } from "src/json-ld.utils";
+import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 
 const wrapSchemaToJsonLdContextResults = (schema: SchemaItem) => ({
 	type: "object",
