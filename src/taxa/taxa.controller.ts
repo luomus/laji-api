@@ -2,6 +2,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { ApiTags } from "@nestjs/swagger";
 import { Get, Param, Query, UseInterceptors, Version } from "@nestjs/common";
 import { GetTaxaAggregateDto, GetTaxaChildrenDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto,
+	GetTaxonDto,
 	TaxaSearchDto, TaxonElastic } from "./taxa.dto";
 import { TaxaService } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
@@ -83,7 +84,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
-	get(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
+	get(@Param("id") id: string, @Query() query: GetTaxonDto) {
 		return this.taxaService.getBySubject(id, query);
 	}
 
