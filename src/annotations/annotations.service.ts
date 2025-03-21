@@ -40,7 +40,7 @@ export class AnnotationsService {
 
 		annotation.created = new Date().toISOString();
 
-		annotation.annotationByPerson = person.id;
+		annotation.annotationByPerson = person.isImporter() ? undefined : person.id;
 		annotation.annotationBySystem = undefined;
 
 		const tags = await this.getTags();
