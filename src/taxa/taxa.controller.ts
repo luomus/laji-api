@@ -47,6 +47,7 @@ export class TaxaController {
 	}
 
 	/** Get a page from the taxonomic backbone */
+	@Version("1")
 	@Get()
 	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
@@ -61,6 +62,7 @@ export class TaxaController {
 	}
 
 	/** Get a page of species */
+	@Version("1")
 	@Get("species")
 	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
