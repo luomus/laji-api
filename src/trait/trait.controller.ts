@@ -2,9 +2,8 @@ import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { All, Logger, Next, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
-import {
-	RemoteSwaggerMerge, MergesRemoteSwagger, patchSwaggerWith
-} from "src/decorators/remote-swagger-merge.decorator";
+import { RemoteSwaggerMerge, MergesRemoteSwagger, patchSwaggerWith }
+	from "src/decorators/remote-swagger-merge.decorator";
 import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { OpenAPIObject } from "@nestjs/swagger";

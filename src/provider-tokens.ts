@@ -10,3 +10,4 @@ export const TRAIT_CLIENT = Symbol();
 export const STORE_CLIENT = Symbol();
 export const WAREHOUSE_CLIENT = Symbol();
 export const INFORMATION_CLIENT = Symbol();
+export const GLOBAL_CLIENT = Symbol();

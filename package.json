@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:e2e-old": "mocha --timeout 6000 --require integration-test/setup.js ./integration-test/{form-permission,forms,collection,person,notifications,api-user,audio,image,warehouse,named-place,trait,document,annotation,area,information}/tests.js ./integration-test/document/validate-tests.js ./integration-test/document/batch-tests.js --exit",
-    "test:e2e-old:ci": "npm run test:e2e-old -- -R xunit --grep @no-ci --invert"
+    "test:e2e-old:ci": "npm run test:e2e-old -- -R xunit --grep @no-ci --invert",
+		"docker": "docker-compose -f docker-compose.npm-run.yml run npm-run"
   },
   "dependencies": {
     "@luomus/laji-schema": "^2.0.101",
@@ -40,6 +41,7 @@
     "handlebars": "^4.7.8",
     "http-proxy-middleware": "^3.0.0",
     "jsonld": "^8.3.3",
+    "jsonpath": "^1.1.1",
     "memoizee": "^0.4.15",
     "nodemailer": "^6.9.5",
     "oracledb": "^5.5.0",
@@ -56,6 +58,7 @@
     "@types/geojson": "^7946.0.14",
     "@types/jest": "29.5.4",
     "@types/jsonld": "^1.5.15",
+    "@types/jsonpath": "^0.2.4",
     "@types/memoizee": "^0.4.11",
     "@types/node": "20.5.9",
     "@types/nodemailer": "^6.4.9",

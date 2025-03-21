@@ -18,7 +18,6 @@ import { PersonsModule } from "./persons/persons.module";
 import { ProfileModule } from "./profile/profile.module";
 import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter";
 import { ProxyToOldApiService } from "./proxy-to-old-api/proxy-to-old-api.service";
-import { SerializingInterceptor } from "./serialization/serializing.interceptor";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
@@ -49,6 +48,9 @@ import { LoggerInterceptor } from "./interceptors/logger.interceptor";
 import { LoggerModule } from "./logger/logger.module";
 import { InformalTaxonGroupsModule } from "./informal-taxon-groups/informal-taxon-groups.module";
 import { ErrorLoggerFilter } from "./filters/error-logger.filter";
+import { GlobalRestClientModule } from "./rest-client/global-rest-client.module";
+import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.interceptor";
+import { JsonLdModule } from "./json-ld/json-ld.module";
 
 @Module({
 	imports: [
@@ -102,7 +104,9 @@ import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 		ChecklistVersionsModule,
 		OrganizationsModule,
 		LoggerModule,
-		InformalTaxonGroupsModule
+		InformalTaxonGroupsModule,
+		GlobalRestClientModule,
+		JsonLdModule
 	],
 	controllers: [AppController],
 	providers: [
@@ -112,7 +116,7 @@ import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: SerializingInterceptor
+			useClass: InstanceToPlainInterceptor
 		},
 		{
 			provide: APP_INTERCEPTOR,
@@ -139,7 +143,7 @@ import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 			provide: APP_FILTER,
 			useClass: ProxyToOldApiFilter
 		},
-		LajiAuthClientService,
+		LajiAuthClientService
 	],
 })
 export class AppModule {}

@@ -1,6 +1,5 @@
 import { Annotation, Tag, Document, MMANRequiredRolesEnum } from "@luomus/laji-schema/models";
 import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { DocumentsService } from "src/documents/documents.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { NotificationsService } from "src/notifications/notifications.service";
@@ -9,8 +8,6 @@ import { StoreService } from "src/store/store.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_10_MIN } from "src/utils";
 import { WarehouseService } from "src/warehouse/warehouse.service";
-
-const ALLOWED_SYSTEMS = ["KE.398"];
 
 @Injectable()
 export class AnnotationsService {
@@ -35,7 +32,7 @@ export class AnnotationsService {
 		return this.store.getPage({ rootID }, page, pageSize);
 	}
 
-	async create(annotation: Annotation, person: Person | undefined, apiUser: ApiUserEntity) {
+	async create(annotation: Annotation, person: Person) {
 		const { rootID } = annotation;
 		if (annotation.id) {
 			throw new HttpException("You should not specify ID when adding primary data!", 406);
@@ -43,19 +40,7 @@ export class AnnotationsService {
 
 		annotation.created = new Date().toISOString();
 
-		if (!person) {
-			const { systemID } = apiUser;
-			if (!systemID || !ALLOWED_SYSTEMS.includes(systemID)) {
-				// eslint-disable-next-line max-len
-				throw new HttpException("You are not allowed to create an annotation with your systemID. Please provide a personToken", 403);
-			}
-
-			annotation.annotationByPerson = undefined;
-			annotation.annotationBySystem = systemID;
-			return this.store.create(annotation);
-		}
-
-		annotation.annotationByPerson = person.id;
+		annotation.annotationByPerson = person.isImporter() ? undefined : person.id;
 		annotation.annotationBySystem = undefined;
 
 		const tags = await this.getTags();
@@ -73,7 +58,7 @@ export class AnnotationsService {
 		checkArrayUniqueness(addedTags, "addedTags items must be unique");
 		checkArrayUniqueness(removedTags, "removedTags items must be unique");
 
-		if (!addedTags.length && !removedTags.length) {
+		if (!addedTags.length && !removedTags.length || person.isImporter()) {
 			return this.store.create(annotation);
 		}
 

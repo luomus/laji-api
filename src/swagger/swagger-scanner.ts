@@ -2,13 +2,14 @@ import { PATH_METADATA } from "@nestjs/common/constants";
 import { SwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { SerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaItem } from "./swagger.service";
+import { OpenAPIObject } from "@nestjs/swagger";
 
 
 export type HasSchemaDefinitionName = { schemaDefinitionName: string };
 
 export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
 	/** Function to customize the OpenAPI response schema. Has higher precedence than `replacePointer` */
-	customizeResponseSchema?: (schema: SchemaItem) => SchemaItem;
+	customizeResponseSchema?: (schema: SchemaItem, document: OpenAPIObject) => SchemaItem;
 	/** Function to customize the OpenAPI request body schema. */
 	customizeRequestSchema?: (schema: SchemaItem) => SchemaItem;
 	/** The remote ref is applied to response (201 or 200). Defaults to true. */

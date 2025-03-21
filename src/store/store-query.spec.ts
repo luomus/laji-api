@@ -1,6 +1,5 @@
 import { parseQuery, getQueryVocabulary } from "./store-query";
 
-
 type Schema = { foo: string | boolean | number, bar: boolean, baz: number, barbabar: number };
 
 const { and, or, exists, not, range } = getQueryVocabulary<Schema>();

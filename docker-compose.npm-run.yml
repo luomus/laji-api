@@ -1,0 +1,26 @@
+# This file is for running any npm commands in docker.
+
+version: "3.8"
+
+services:
+  npm-run:
+    build:
+      context: .
+      dockerfile: Dockerfile.npm-run
+    ports:
+      - "${PORT:-3004}:3004"  # Default to 3004 if PORT is not set
+    environment:
+      - REDIS_URL=redis://localhost:6379
+    volumes:
+      - .:/app
+    network_mode: "host"
+    depends_on:
+      - redis
+    entrypoint: ["npm", "run"]  # Always run `npm run` by default
+    command: ["start:dev"]  # Default argument (overridden if custom command given)
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"

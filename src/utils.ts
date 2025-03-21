@@ -20,7 +20,7 @@ export const getCacheTTL = (cache: CacheOptions["cache"] | { ttl?: number }): un
 			? cache
 			: undefined;
 
-type Reducer<T, R> = {
+type Op<T, R> = {
 	(value: T): R;
 }
 
@@ -37,16 +37,16 @@ type Pipe<I, O> = (input: I) => O;
  */
 /* eslint-disable max-len */
 function pipe<T>(): Pipe<T, T>;
-function pipe<T, A>(op1: Reducer<T, A>): Pipe<T, A>;
-function pipe<T, A, B>(op1: Reducer<T, A>, op2: Reducer<A, B>): Pipe<T, B>;
-function pipe<T, A, B, C>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>): Pipe<T, C>;
-function pipe<T, A, B, C, D>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>): Pipe<T, D>;
-function pipe<T, A, B, C, D, E>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>): Pipe<T, E>;
-function pipe<T, A, B, C, D, E, F>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>): Pipe<T, F>;
-function pipe<T, A, B, C, D, E, F, G>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>): Pipe<T, G>;
-function pipe<T, A, B, C, D, E, F, G, H>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>): Pipe<T, H>;
-function pipe<T, A, B, C, D, E, F, G, H, I>(op1: Reducer<T, A>, op2: Reducer<A, B>, op3: Reducer<B, C>, op4: Reducer<C, D>, op5: Reducer<D, E>, op6: Reducer<E, F>, op7: Reducer<F, G>, op8: Reducer<G, H>, op9: Reducer<H, I>): Pipe<T, I>;
-function pipe<T>(...operations: Reducer<any, any>[]): Pipe<T, any> {
+function pipe<T, A>(op1: Op<T, A>): Pipe<T, A>;
+function pipe<T, A, B>(op1: Op<T, A>, op2: Op<A, B>): Pipe<T, B>;
+function pipe<T, A, B, C>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>): Pipe<T, C>;
+function pipe<T, A, B, C, D>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>, op4: Op<C, D>): Pipe<T, D>;
+function pipe<T, A, B, C, D, E>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>, op4: Op<C, D>, op5: Op<D, E>): Pipe<T, E>;
+function pipe<T, A, B, C, D, E, F>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>, op4: Op<C, D>, op5: Op<D, E>, op6: Op<E, F>): Pipe<T, F>;
+function pipe<T, A, B, C, D, E, F, G>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>, op4: Op<C, D>, op5: Op<D, E>, op6: Op<E, F>, op7: Op<F, G>): Pipe<T, G>;
+function pipe<T, A, B, C, D, E, F, G, H>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>, op4: Op<C, D>, op5: Op<D, E>, op6: Op<E, F>, op7: Op<F, G>, op8: Op<G, H>): Pipe<T, H>;
+function pipe<T, A, B, C, D, E, F, G, H, I>(op1: Op<T, A>, op2: Op<A, B>, op3: Op<B, C>, op4: Op<C, D>, op5: Op<D, E>, op6: Op<E, F>, op7: Op<F, G>, op8: Op<G, H>, op9: Op<H, I>): Pipe<T, I>;
+function pipe<T>(...operations: Op<any, any>[]): Pipe<T, any> {
 	return (initialValue: T) =>
 		operations.reduce((value, fn) => fn(value), initialValue);
 }
@@ -54,7 +54,7 @@ function pipe<T>(...operations: Reducer<any, any>[]): Pipe<T, any> {
 
 type PromisePipe<I, O> = Pipe<MaybePromise<I>, Promise<O>>;
 
-type PromiseReducer<T, R>  = {
+type PromiseOp<T, R>  = {
 	(value: T): R | Promise<R>;
 }
 
@@ -63,22 +63,21 @@ type PromiseReducer<T, R>  = {
  * Creates a function that reduces given input with the given operators.
  *
  * @param {...operations} operators which return the accumulated result which is passed to the next operation.
- *
- * @returns function that is run for the operators for an input.
+ * * @returns function that is run for the operators for an input.
  */
 /* eslint-disable max-len */
 function promisePipe<T>(): PromisePipe<T, T>;
-function promisePipe<T, A>(op1: PromiseReducer<T, A>): PromisePipe<T, A>;
-function promisePipe<T, A, B>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>): PromisePipe<T, B>;
-function promisePipe<T, A, B, C>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>): PromisePipe<T, C>;
-function promisePipe<T, A, B, C, D>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>): PromisePipe<T, D>;
-function promisePipe<T, A, B, C, D, E>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>): PromisePipe<T, E>;
-function promisePipe<T, A, B, C, D, E, F>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>): PromisePipe<T, F>;
-function promisePipe<T, A, B, C, D, E, F, G>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>): PromisePipe<T, G>;
-function promisePipe<T, A, B, C, D, E, F, G, H>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>): PromisePipe<T, H>;
-function promisePipe<T, A, B, C, D, E, F, G, H, I>(op1: PromiseReducer<T, A>, op2: PromiseReducer<A, B>, op3: PromiseReducer<B, C>, op4: PromiseReducer<C, D>, op5: PromiseReducer<D, E>, op6: PromiseReducer<E, F>, op7: PromiseReducer<F, G>, op8: PromiseReducer<G, H>, op9: PromiseReducer<H, I>): PromisePipe<T, I>;
-function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any>;
-function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<T, any> {
+function promisePipe<T, A>(op1: PromiseOp<T, A>): PromisePipe<T, A>;
+function promisePipe<T, A, B>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>): PromisePipe<T, B>;
+function promisePipe<T, A, B, C>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>): PromisePipe<T, C>;
+function promisePipe<T, A, B, C, D>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>): PromisePipe<T, D>;
+function promisePipe<T, A, B, C, D, E>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>, op5: PromiseOp<D, E>): PromisePipe<T, E>;
+function promisePipe<T, A, B, C, D, E, F>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>, op5: PromiseOp<D, E>, op6: PromiseOp<E, F>): PromisePipe<T, F>;
+function promisePipe<T, A, B, C, D, E, F, G>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>, op5: PromiseOp<D, E>, op6: PromiseOp<E, F>, op7: PromiseOp<F, G>): PromisePipe<T, G>;
+function promisePipe<T, A, B, C, D, E, F, G, H>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>, op5: PromiseOp<D, E>, op6: PromiseOp<E, F>, op7: PromiseOp<F, G>, op8: PromiseOp<G, H>): PromisePipe<T, H>;
+function promisePipe<T, A, B, C, D, E, F, G, H, I>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>, op5: PromiseOp<D, E>, op6: PromiseOp<E, F>, op7: PromiseOp<F, G>, op8: PromiseOp<G, H>, op9: PromiseOp<H, I>): PromisePipe<T, I>;
+function promisePipe<T>(...operations: PromiseOp<any, any>[]): PromisePipe<T, any>;
+function promisePipe<T>(...operations: PromiseOp<any, any>[]): PromisePipe<T, any> {
 	return (initialValue: T) => (async () => {
 		let value = await initialValue;
 		for (const fn of operations) {
@@ -87,6 +86,7 @@ function promisePipe<T>(...operations: PromiseReducer<any, any>[]): PromisePipe<
 		return value;
 	})();
 }
+/* eslint-enable max-len */
 
 export { promisePipe, pipe };
 

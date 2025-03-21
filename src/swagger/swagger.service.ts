@@ -15,10 +15,12 @@ import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagge
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { JSONSerializable, isObject } from "src/typing.utils";
-import { STORE_CLIENT } from "src/provider-tokens";
+import { GLOBAL_CLIENT, STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
 import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
 	from "src/decorators/remote-swagger-merge.decorator";
+import { ConfigService } from "@nestjs/config";
+import { JSONSchema } from "src/json-schema.utils";
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
@@ -29,17 +31,19 @@ export class SwaggerService {
 	private logger = new Logger(SwaggerService.name);
 
 	storeSwaggerDoc?: OpenAPIObject;
+	lajiBackendSwaggerDoc?: OpenAPIObject;
 	remoteSwaggers: Record<string, {
 		instance: {
 			fetchSwagger: FetchSwagger,
 			patchSwagger: PatchSwagger
-
 		},
 		document?: OpenAPIObject
 	}> = {};
 
 	constructor(
 		@Inject(STORE_CLIENT) private storeClient: RestClientService<JSONSerializable>,
+		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<JSONSerializable>,
+		private config: ConfigService,
 		private moduleRef: ModuleRef
 	) {
 		this.patchRemoteRefs = this.patchRemoteRefs.bind(this);
@@ -50,8 +54,36 @@ export class SwaggerService {
 
 	@Interval(CACHE_30_MIN)
 	async warmup() {
-		this.storeSwaggerDoc = await this.storeClient.get("documentation-json");
+		this.storeSwaggerDoc = await this.getStoreSwaggerDoc();
+		this.lajiBackendSwaggerDoc = await  this.getLajiBackendSwaggerDoc();
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
+	}
+
+	private getStoreSwaggerDoc() {
+		return this.storeClient.get<OpenAPIObject>("documentation-json");
+	}
+
+	private getLajiBackendSwaggerDoc() {
+		return this.globalClient.get<OpenAPIObject>(`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`);
+	}
+
+	/** Assumes that remote sources are already loaded. */
+	private getRemoteSwaggerDocSync(entry: SwaggerRemoteRefEntry): OpenAPIObject {
+		switch (entry.source) {
+		case "store":
+			return this.storeSwaggerDoc!;
+		case "laji-backend":
+			return this.lajiBackendSwaggerDoc!;
+		}
+	}
+
+	getRemoteSwaggerDoc(entry: SwaggerRemoteRefEntry): Promise<OpenAPIObject> {
+		switch (entry.source) {
+		case "store":
+			return this.getStoreSwaggerDoc();
+		case "laji-backend":
+			return this.getLajiBackendSwaggerDoc();
+		}
 	}
 
 	private async fetchRemoteSwagger(entry: RemoteSwaggerEntry) {
@@ -63,7 +95,6 @@ export class SwaggerService {
 			this.logger.error("Failed to fetch remote swagger. Our swagger document is broken!", { entry });
 		}
 	}
-
 
 	patch(document: OpenAPIObject) {
 		if (Object.values(this.remoteSwaggers).some(({ document }) => !document)) {
@@ -169,7 +200,7 @@ export class SwaggerService {
 	}
 
 	private remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
-		const remoteDoc = this.getRemoteSwaggerDoc(entry);
+		const remoteDoc = this.getRemoteSwaggerDocSync(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
 		const remoteSchema = remoteSchemas[entry.ref];
 		if (!remoteSchema) {
@@ -190,14 +221,6 @@ export class SwaggerService {
 			if (entry.schemaDefinitionName) {
 				schema![entry.schemaDefinitionName] = jsonSchema;
 			}
-		}
-	}
-
-	/** Assumes that remote sources are already loaded. */
-	private getRemoteSwaggerDoc(entry: SwaggerRemoteRefEntry): OpenAPIObject {
-		switch (entry.source) {
-		case "store":
-			return this.storeSwaggerDoc!;
 		}
 	}
 
@@ -231,7 +254,7 @@ export class SwaggerService {
 				const referencedSchemaRefName = lastFromNonEmptyArr(ref.split("/"));
 				if (!schema[referencedSchemaRefName]) {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(
-						this.getRemoteSwaggerDoc(entry), ref
+						this.getRemoteSwaggerDocSync(entry), ref
 					);
 					schema[referencedSchemaRefName] = referencedSchema;
 					traverseAndMerge(referencedSchema);
@@ -240,6 +263,14 @@ export class SwaggerService {
 		};
 
 		traverseAndMerge(referencedRemoteSchema);
+	}
+
+	async getSchemaForEntry(entry: SwaggerRemoteRefEntry) {
+		const remoteSwagger = await this.getRemoteSwaggerDoc(entry);
+		return parseJSONPointer<JSONSchema>(
+			remoteSwagger,
+			`/components/schemas/${entry.ref}`
+		);
 	}
 }
 
@@ -274,7 +305,7 @@ const applyEntryToResponse = (entry: SwaggerCustomizationEntry, document: OpenAP
 			schema = replaceWithRefToCustomSchemaDefinitionName(entry, schema);
 		}
 		if (entry.customizeResponseSchema) {
-			schema = entry.customizeResponseSchema(schema);
+			schema = entry.customizeResponseSchema(schema, document);
 		}
 		return schema;
 	};
@@ -313,7 +344,7 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	required: [ "page", "pageSize", "total", "lastPage", "results"]
 });
 
-const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
+export const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
 	!!(schema as any).type
 	|| !!(schema as any).anyOf
 	|| !!(schema as any).oneOf;

@@ -5,7 +5,7 @@ import { AppModule } from "./app.module";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
-import { LogLevel, Logger } from "@nestjs/common";
+import { LogLevel, Logger, VersioningType } from "@nestjs/common";
 import { LoggerService } from "./logger/logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
@@ -22,6 +22,10 @@ export async function bootstrap() {
 	logOutgoingRequests(app.get(HttpService));
 	app.enableShutdownHooks();
 	new Logger().warn("Old API must be running at localhost:3003\n");
+	app.enableVersioning({
+		type: VersioningType.HEADER,
+		header: "API-Version",
+	});
 
 	app.useBodyParser("json", { limit: "10mb" });
 

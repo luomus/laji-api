@@ -9,8 +9,6 @@ import { Annotation } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { QueryWithLangDto, QueryWithPersonTokenDto } from "src/common.dto";
-import { ApiUser } from "src/decorators/api-user.decorator";
-import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { LangService } from "src/lang/lang.service";
 
 @ApiTags("Annotations")
@@ -54,10 +52,9 @@ export class AnnotationsController {
 	async create(
 		@Body() annotation: Annotation,
 		@Query() _: CreateAnnotationDto,
-		@PersonToken({ required: false }) person: Person,
-		@ApiUser() apiUser: ApiUserEntity
+		@PersonToken() person: Person
 	): Promise<Annotation> {
-		return this.annotationsService.create(annotation, person, apiUser);
+		return this.annotationsService.create(annotation, person);
 	}
 
 	/** Delete an annotation */

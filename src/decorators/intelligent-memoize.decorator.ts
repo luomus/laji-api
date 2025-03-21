@@ -4,7 +4,7 @@ import * as memoize from "memoizee";
  *
  * Memoizes the method, while enabling `@IntelligentInMemoryCache()` to flush it when it likes.
  *
- * Uses the `memoizee` library for memoization. See it's docs for options.
+ * Uses the `memoizee` npm library. See it's docs for options.
  *
  * Options default to `{ promise: true }` - which means that async operations resulting in error aren't memoized.
  */

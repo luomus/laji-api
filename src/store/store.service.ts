@@ -363,7 +363,7 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 	}
 }
 
-export const pageAdapter = <T>({ totalItems, member, currentPage, pageSize }: StoreQueryResult<T>)=>
+const pageAdapter = <T>({ totalItems, member, currentPage, pageSize }: StoreQueryResult<T>) =>
 	paginateAlreadyPaginated({ results: member, total: totalItems, pageSize, currentPage });
 
 const cachingIsEnabled = (cache?: StoreCacheOptions<never>) => cache && cache.enabled !== false;
@@ -371,4 +371,3 @@ const cachingIsEnabled = (cache?: StoreCacheOptions<never>) => cache && cache.en
 export type Sort<ResourceQuery> = KeyOf<ResourceQuery> | { key: KeyOf<ResourceQuery>, desc: true };
 
 const parseSorts = <T>(sorts: Sort<T>[]) => sorts.map(s => typeof s === "string" ? s : `${s.key} desc`).join(",");
-

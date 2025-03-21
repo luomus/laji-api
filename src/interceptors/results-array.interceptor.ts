@@ -5,10 +5,8 @@ import { addContextToPageLikeResult } from "src/pagination.utils";
 @Injectable()
 export class ResultsArray implements NestInterceptor {
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		return next.handle().pipe(map(result => toResultsArray(result)));
+		return next.handle().pipe(map(toResultsArray));
 	}
 }
 
-const toResultsArray = (results: any[]) => {
-	return addContextToPageLikeResult({ results });
-};
+const toResultsArray = (results: any[]) => addContextToPageLikeResult({ results });

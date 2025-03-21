@@ -9,7 +9,7 @@ import { paginateArray, applyToResult } from "src/pagination.utils";
 import { Newable } from "src/typing.utils";
 import { serializeInto as _serializeInto, SerializeOptions } from "src/serialization/serialization.utils";
 import { plainToClass } from "class-transformer";
-import { applyLangToJsonLdContext } from "src/json-ld.utils";
+import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 
 /**
  * Creates an interceptor that handles applying the paging and language related query params to the result.
@@ -53,6 +53,7 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 			if (isQueryWithPagingDto(query)) {
 				result = paginateArray(result, page, pageSize);
 			}
+
 			if (isQueryWithLangDto(query) && sample) {
 				const jsonLdContext = sample["@context"];
 				if (!jsonLdContext) {

@@ -23,7 +23,7 @@ describe("/annotation", function() {
 			.post(query)
 			.send(annotation)
 			.end(function (err, res) {
-				res.should.have.status(403);
+				res.should.have.status(400);
 				done();
 			});
 	});

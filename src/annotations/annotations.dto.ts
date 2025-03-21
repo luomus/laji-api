@@ -1,4 +1,4 @@
-import { IntersectionType, PartialType } from "@nestjs/swagger";
+import { IntersectionType } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
 
@@ -11,4 +11,4 @@ export class GetAnnotationsDto extends IntersectionType(
 }
 
 
-export class CreateAnnotationDto extends PartialType(QueryWithPersonTokenDto) {};
+export class CreateAnnotationDto extends QueryWithPersonTokenDto {};
