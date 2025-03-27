@@ -1,5 +1,5 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
 import { IsInt } from "class-validator";
 import { MultiLang, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
@@ -16,124 +16,73 @@ export enum ChecklistVersion {
 	"MR.484" = "MR.484",
 }
 
-export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {
-	/**	Show only taxa that have been marked as species */
-	@IsOptionalBoolean() species?: boolean = false;
-
-	/**	Filter based on parent taxon id */
-	parentTaxonId?: string;
-
-	/** Filter based on given informal group(s). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() informalGroupFilters?: string[];
-
-	/** Filter based on IUCN red list taxon group(s). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() redListEvaluationGroups?: string[];
-
-	/** Filter based on invasive species main group(s). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() invasiveSpeciesMainGroups?: string[];
-
-	/** Filter based on administrative status(es). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() adminStatusFilters?: string[];
-
-	/** Filter based on the latest red list statu(es). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() redListStatusFilters?: string[];
-
-	/** Filter based on type(s) of occurrence. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() typesOfOccurrenceFilters?: string[];
-
-	/** Will not include these type(s) of occurrence. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() typesOfOccurrenceNotFilters?: string[];
-
-	/** Filter based on taxon primary habitat. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() primaryHabitat?: string[];
-
-	/** Filter based on taxon any habitat.Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() anyHabitat?: string[];
-
-	/** When true will only include taxa which have latest red list evaluation and when false will list those species that don't have the evaluation */
-	@IsOptionalBoolean() hasLatestRedListEvaluation?: boolean;
-
-	/** Filter based on the latest red list evaluation threatened at area(s). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.threatenedAtArea"?: string[];
-
-	/** Filter based on the latest red list evaluation statu(es). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.redListStatus"?: string[];
-
-	/** Filter based on taxon primary habitat. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.primaryHabitat"?: string[];
-
-	/** Filter based on taxon any habitat. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.anyHabitat"?: string[];
-
-	/** Filter based on taxon primary threat. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.primaryThreat"?: string[];
-
-	/** Filter based on taxon threats. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.threats"?: string[];
-
-	/** Filter based on taxon primary endangerment reason. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.primaryEndangermentReason"?: string[];
-
-	/** Filter based on taxon endangerment reasons. Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() "latestRedListEvaluation.endangermentReasons"?: string[];
-
-	/** Filter based on taxon rank(s). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() taxonRanks?: string[];
-
-	/** Filter based on taxon set(s). Multiple values are separated by a comma (,). */
-	@CommaSeparatedStrings() taxonSets?: string[];
-
-	/**
-	 * true: Will include only invasive species.
-	 * false: Will exclude invasive species.
-	 */
-	@IsOptionalBoolean() invasiveSpeciesFilter?: boolean;
-
-	/**
-	 * true: include only species that have media objects attached
-	 * false: exclude species that have media objects attached
-	 */
-	@IsOptionalBoolean() hasMediaFilter?: boolean;
-
-	/**
-	 * true: include only species that have description objects attached
-	 * false: exclude species that have description objects attached
-	 */
-	@IsOptionalBoolean() hasDescriptionFilter?: boolean;
-
-	/**
-	 * true: include only species that have BOLD data
-	 * false: exclude species that have BOLD data
-	 */
-	@IsOptionalBoolean() hasBoldData?: boolean;
-
-	/**
-	 * true: Will show hidden taxa
-	 * false: Hidden taxa are skipped and their non-hidden children raised up in the tree.
-	 */
-	@IsOptionalBoolean() includeHidden?: boolean = false;
-
-	/** Include media objects in the response */
-	@IsOptionalBoolean() includeMedia?: boolean = false;
-
-	/** Include description objects in the response */
-	@IsOptionalBoolean() includeDescriptions?: boolean = false;
-
-	/** Include red list evaluations in the response */
-	@IsOptionalBoolean() includeRedListEvaluations?: boolean = false;
-
-	/** Will include only finnish species */
-	@IsOptionalBoolean() onlyFinnish?: boolean = false;
-
-	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
-	@CommaSeparatedStrings() selectedFields?: string[];
-
+export class TaxaBaseQuery {
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
 	checklist?: string = "MR.1";
 
 	/** Checklist version to be used. Defaults to the latest version. */
 	checklistVersion?: ChecklistVersion = ChecklistVersion.current;
+}
 
+class HasSelectedFields {
+	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
+	@CommaSeparatedStrings() selectedFields?: string[];
+}
+
+class HasParentTaxonId {
+	/**	Filter based on parent taxon id */
+	parentTaxonId?: string;
+}
+
+export class SimpleFilters {
+	/** Filter based on given informal groups. Multiple values are separated by a comma (,). */
+	@CommaSeparatedStrings() informalTaxonGroups?: string[];
+
+	/**
+	 * true: Will include only invasive taxa.
+	 * false: Will exclude invasive taxa.
+	 */
+	@IsOptionalBoolean() invasiveSpecies?: boolean;
+
+	/**
+	 * true: Will include only finnish taxa.
+	 * false: Will exclude finnish taxa.
+	 */
+	@IsOptionalBoolean() finnish?: boolean;
+
+
+	/** Filter by comma separated ids */
+	@CommaSeparatedStrings() id?: string[];
+}
+
+class Inclusions {
+
+	/** Include media objects in the response. Defaults to false. */
+	@IsOptionalBoolean() includeMedia?: boolean = false;
+
+	/** Include description objects in the response. Defaults to false. */
+	@IsOptionalBoolean() includeDescriptions?: boolean = false;
+
+	/** Include red list evaluations in the response. Defaults to false.*/
+	@IsOptionalBoolean() includeRedListEvaluations?: boolean = false;
+}
+
+class HasIncludeHidden {
+	/**
+	 * true: Will show hidden taxa
+	 * false: Hidden taxa are skipped and their non-hidden children raised up in the tree.
+	 */
+	@IsOptionalBoolean() includeHidden?: boolean = false;
+}
+
+class PageLikeTaxaQuery extends IntersectionType(
+	QueryWithPagingDto,
+	QueryWithLangDto,
+	SimpleFilters,
+	HasSelectedFields,
+	Inclusions,
+	HasIncludeHidden
+) {
 	/**
 	 * Sorting field of the species (one of 'taxonomic' | 'scientific_name' | 'finnish_name') and optional sort order 'desc' | 'asc'.
 	 * Order defaults to 'asc'. The sort field and order are separated by a space character.
@@ -141,7 +90,16 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	 * Defaults to 'taxonomic'
 	 * */
 	sortOrder?: string = "taxonomic";
+}
 
+export class GetTaxaPageDto extends IntersectionType(TaxaBaseQuery, PageLikeTaxaQuery, HasParentTaxonId) { }
+
+export class GetTaxaAggregateDto extends IntersectionType(
+	TaxaBaseQuery,
+	SimpleFilters,
+	HasParentTaxonId,
+	HasIncludeHidden
+) {
 	/**
 	 * Aggregate by these fields. Multiple values are separated by a comma (,). Different aggregations can be made at the
 	 * same time using semicolon as separator (;) and aggregates can be named giving "=name" at the end of each
@@ -152,54 +110,17 @@ export class TaxaBaseQuery extends IntersectionType(QueryWithPagingDto, QueryWit
 	 * */
 	@CommaSeparatedStrings(";") aggregateBy: string[];
 	@Type(() => Number) @IsInt() aggregateSize = 10;
-
-	// { These are never in the query params really. We include them in this base class so the taxa service's
-	// `queryToElasticQuery` can handle it.
-	@ApiHideProperty() id?: string;
-	@ApiHideProperty() ids?: string[];
-	@ApiHideProperty() parents?: string;
-	@ApiHideProperty() nonHiddenParents?: string;
-	@ApiHideProperty() nonHiddenParentsIncludeSelf?: string;
-	@ApiHideProperty() parentsIncludeSelf?: string;
-	@ApiHideProperty() depth?: boolean;
-	// }
 }
 
-export class GetTaxaPageDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize"]) {}
+export class GetTaxonDto extends IntersectionType(QueryWithLangDto, HasSelectedFields, Inclusions) {}
 
-export class GetTaxaAggregateDto extends OmitType(
-	TaxaBaseQuery,
-	["page", "pageSize", "lang", "sortOrder", "parentTaxonId"]
-) {}
+export class GetTaxaResultsDto extends OmitType(GetTaxaPageDto, ["page", "pageSize"]) {}
 
-export class GetSpeciesPageDto extends OmitType(
-	GetTaxaPageDto,
-	["species", "parentTaxonId", "taxonRanks"]
-) {}
+export class GetTaxaDescriptionsDto extends IntersectionType(TaxaBaseQuery, QueryWithLangDto) {}
 
-export class GetSpeciesAggregateDto extends OmitType(
-	GetTaxaAggregateDto,
-	["species"]
-) {}
-
-export class GetTaxonDto extends PickType(TaxaBaseQuery, [
-	"lang",
-	"langFallback",
-	"selectedFields",
-	"includeMedia",
-	"includeDescriptions",
-	"includeRedListEvaluations",
-	"includeHidden"
-]) {}
-
-export class GetTaxaChildrenDto extends OmitType(TaxaBaseQuery, ["aggregateBy", "aggregateSize", "page", "pageSize"]) {}
-
-export class GetTaxaParentsDto extends PickType(
-	TaxaBaseQuery,
-	["lang", "langFallback", "selectedFields", "checklistVersion"]
-) {}
-
-export class GetTaxaDescriptionsDto extends PickType(TaxaBaseQuery, ["checklistVersion", "lang", "langFallback"]) {}
+export type AllQueryParams  = TaxaBaseQuery & PageLikeTaxaQuery & GetTaxaAggregateDto & {
+	depth?: boolean;
+};
 
 class InformalTaxonGroup extends _InformalTaxonGroup {
 	id: string;

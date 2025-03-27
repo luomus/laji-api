@@ -59,11 +59,11 @@ export class SwaggerService {
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
 	}
 
-	private getStoreSwaggerDoc() {
-		return this.storeClient.get<OpenAPIObject>("documentation-json");
+	getStoreSwaggerDoc() {
+		return this.storeClient.get<OpenAPIObject>("documentation-json", undefined, { cache: true });
 	}
 
-	private getLajiBackendSwaggerDoc() {
+	getLajiBackendSwaggerDoc() {
 		return this.globalClient.get<OpenAPIObject>(`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`);
 	}
 
@@ -164,17 +164,21 @@ export class SwaggerService {
 								};
 							}
 
-							if (isSwaggerRemoteRefEntry(entry) && ["post", "put"].includes(operationName)) {
-								let schema: SchemaItem = { "$ref": `#/components/schemas/${entry.ref}` };
-								if (entry.customizeRequestSchema) {
-									schema = entry.customizeRequestSchema(schema);
-								}
-								operation.requestBody = {
-									required: true,
-									content: {
-										"application/json": { schema }
+							if (isSwaggerRemoteRefEntry(entry)) {
+								if (["post", "put"].includes(operationName)) {
+									let schema: SchemaItem = { "$ref": `#/components/schemas/${entry.ref}` };
+									if (entry.customizeRequestBodySchema) {
+										schema = entry.customizeRequestBodySchema(
+											schema, document, this.getRemoteSwaggerDocSync(entry)
+										);
 									}
-								};
+									operation.requestBody = {
+										required: ((operation.requestBody || {}) as any).required ?? true,
+										content: {
+											"application/json": { schema }
+										}
+									};
+								}
 							}
 						}
 					}

@@ -1,6 +1,7 @@
 import { HasJsonLdContext, Lang } from "src/common.dto";
 import { JSONObjectSerializable, Newable } from "src/typing.utils";
-import { JSONSchema, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
+import { JSONSchema, TypedJSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef }
+	from "src/json-schema.utils";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { HttpException } from "@nestjs/common";
@@ -65,15 +66,15 @@ export const jsonSchemaToEmbeddedJsonLDContext = (
 			}, {} as JSONObjectSerializable);
 		}
 	}
-	if (schema.type === "array") {
+	if (isJSONSchemaArray(schema)) {
 		return { "@container": "@set", ...jsonSchemaToEmbeddedJsonLDContext(schema.items, jsonSchemaBase) };
-	} else if (schema.type === "string") {
+	} else if ((schema as TypedJSONSchema).type === "string") {
 		return { "@type": "string" };
-	} else if (schema.type === "number") {
+	} else if ((schema as TypedJSONSchema).type === "number") {
 		return { "@type": "number" };
-	} else if (schema.type === "boolean") {
+	} else if ((schema as TypedJSONSchema).type === "boolean") {
 		return { "@type": "boolean" };
-	} else if (schema.type === "integer") {
+	} else if ((schema as TypedJSONSchema).type === "integer") {
 		return { "@type": "integer" };
 	}
 	throw new Error(`Unhandled json schema type ${schema}`);

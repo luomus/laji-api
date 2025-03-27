@@ -1,15 +1,19 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import {
-	ChecklistVersion, GetSpeciesAggregateDto, GetSpeciesPageDto, GetTaxaAggregateDto, GetTaxaChildrenDto,
-	GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaParentsDto, GetTaxonDto, TaxaBaseQuery, TaxaSearchDto,
-	Taxon, TaxonElastic
+	AllQueryParams, ChecklistVersion, GetTaxaAggregateDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaResultsDto,
+	GetTaxonDto, TaxaBaseQuery, TaxaSearchDto, Taxon, TaxonElastic
 } from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
-import { asArray, pipe } from "src/utils";
+import { asArray, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 import { paginateAlreadyPaginated } from "src/pagination.utils";
-import { ElasticResponse, queryToElasticQuery } from "./taxa-elastic-query";
+import { ElasticResponse, TaxaFilters, buildElasticQuery } from "./taxa-elastic-query";
+import { OpenAPIObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { JSONSchema, JSONSchemaObject, TypedJSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef }
+	from "src/json-schema.utils";
+import { SwaggerService } from "src/swagger/swagger.service";
+import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 
 const CHECKLIST_VERSION_MAP: Record<ChecklistVersion, string> = {
 	"current": "current",
@@ -26,7 +30,8 @@ export class TaxaService {
 
 	constructor(
 		@Inject(TAXA_CLIENT) private taxaClient: RestClientService<Taxon>,
-		@Inject(TAXA_ELASTIC_CLIENT) private taxaElasticClient: RestClientService<JSONObjectSerializable>
+		@Inject(TAXA_ELASTIC_CLIENT) private taxaElasticClient: RestClientService<JSONObjectSerializable>,
+		private swaggerService: SwaggerService
 	) {}
 
 	async get(id: string, selectedFields?: MaybeArray<string>): Promise<Taxon> {
@@ -48,44 +53,39 @@ export class TaxaService {
 		return matches || [];
 	}
 
-	private elasticSearch(query: Partial<TaxaBaseQuery>, taxon?: TaxonElastic) {
+	private async elasticSearch(query: Partial<AllQueryParams>, filters?: TaxaFilters, taxon?: TaxonElastic) {
 		return this.taxaElasticClient.post<ElasticResponse>(
 			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa/_search`,
-			queryToElasticQuery(query, taxon)
+			buildElasticQuery(query, filters, await this.getFiltersSchema(), taxon)
 		);
 	}
 
-	async getPage(query: GetTaxaPageDto) {
+	async getPage(query: GetTaxaPageDto, filters: TaxaFilters = {}) {
 		if (query.parentTaxonId) {
 			const isPartOfProp = query.includeHidden ? "parents" : "nonHiddenParents";
-			query[isPartOfProp] = query.parentTaxonId;
+			filters[isPartOfProp] = query.parentTaxonId;
 		}
-		if (query.id) {
-			query[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = query.id;
-			delete query.id;
-		}
-
-		return pageAdapter(await this.elasticSearch(query), query);
+		return pageAdapter(await this.elasticSearch(query, filters), query);
 	}
 
-	async getAggregate(query: GetTaxaAggregateDto) {
-		return mapResponseAggregations((await this.elasticSearch(query)).aggregations, query.aggregateBy);
+	async getAggregate(query: GetTaxaAggregateDto, filters?: TaxaFilters) {
+		return mapResponseAggregations((await this.elasticSearch(query, filters)).aggregations, query.aggregateBy);
 	}
 
-	async getSpeciesPage(query: GetSpeciesPageDto) {
-		return this.getPage({ ...query, species: true });
+	async getSpeciesPage(query: GetTaxaPageDto, filters?: TaxaFilters) {
+		return this.getPage(query, { species: true, ...(filters || {}) });
 	}
 
-	async getSpeciesAggregate(query: GetSpeciesAggregateDto) {
+	async getSpeciesAggregate(query: GetTaxaAggregateDto, filters?: TaxaFilters) {
 		return mapResponseAggregations(
-			(await this.elasticSearch({ ...query, species: true })).aggregations,
+			(await this.elasticSearch(query, { species: true, ...(filters || {}) })).aggregations,
 			query.aggregateBy
 		);
 	}
 
 	async getBySubject(id: string, query: GetTaxonDto = {}) {
 		const [taxon] =  (await this.elasticSearch({
-			id,
+			id: [id],
 			checklistVersion: ChecklistVersion.current,
 			...query
 		})).hits.hits;
@@ -95,9 +95,9 @@ export class TaxaService {
 		return mapTaxon(taxon._source, query);
 	}
 
-	async getChildren(id: string, query: GetTaxaChildrenDto) {
+	async getChildren(id: string, query: GetTaxaResultsDto) {
 		const taxon = await this.getBySubject(id);
-		const childrenQuery: Partial<TaxaBaseQuery> = {
+		const childrenQuery: Partial<AllQueryParams> = {
 			...query,
 			checklist: taxon.nameAccordingTo || "MR.1",
 			pageSize: 10000, // This has worked so far to get all taxa...
@@ -112,19 +112,24 @@ export class TaxaService {
 				"nameAccordingTo"
 			];
 		}
+		const filters: TaxaFilters = {};
 		if (childrenQuery.includeHidden) {
-			childrenQuery.parents = id;
+			filters.parents = id;
 		} else {
-			childrenQuery.nonHiddenParents = id;
+			filters.nonHiddenParents = id;
 		}
 
-		return arrayAdapter(await this.elasticSearch(childrenQuery, taxon), query);
+		return arrayAdapter(await this.elasticSearch(childrenQuery, undefined, taxon), query);
 	}
 
-	async getTaxonParents(id: string, query: GetTaxaParentsDto) {
+	async getTaxonParents(id: string, query: GetTaxaResultsDto) {
 		const taxon = await this.getBySubject(id, { selectedFields: ["nonHiddenParents"] });
+		const parentIds = taxon.nonHiddenParents;
+		if (!parentIds) {
+			return [];
+		}
 		const parents = await this.elasticSearch({
-			ids: taxon.nonHiddenParents,
+			id: parentIds,
 			checklistVersion: ChecklistVersion.current,
 			sortOrder: "taxonomic",
 			pageSize: 10000,
@@ -134,13 +139,16 @@ export class TaxaService {
 	}
 
 	async getTaxonSpeciesPage(id: string, query: GetTaxaPageDto) {
-		return this.getPage({ ...query, species: true, id });
+		const filters: TaxaFilters = { species: true };
+		filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
+		return this.getPage(query, filters);
 	}
 
 	async getTaxonSpeciesAggregate(id: string, query: GetTaxaAggregateDto) {
-		return this.getAggregate({ ...query, species: true, id });
+		const filters: TaxaFilters = { species: true };
+		filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
+		return this.getAggregate(query, { species: true, id });
 	}
-
 
 	async getTaxonDescriptions(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions || [];
@@ -149,7 +157,57 @@ export class TaxaService {
 	async getTaxonMedia(id: string, query: GetTaxaDescriptionsDto) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia;
 	}
+
+	@IntelligentMemoize()
+	async getFiltersSchema() {
+		return getFiltersSchema(await this.swaggerService.getLajiBackendSwaggerDoc());
+	}
 }
+
+export const getFiltersSchema = (remoteDoc: OpenAPIObject) => {
+	const schema = remoteDoc.components!.schemas!.Taxon as JSONSchemaObject;
+	return jsonSchemaIntoFiltersJsonSchema(schema, remoteDoc);
+};
+
+const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: OpenAPIObject): JSONSchemaObject => {
+	const collectProperties = (schema: JSONSchema, path: string[]): { path: string[], schema: JSONSchema }[] => {
+		if (isJSONSchemaRef(schema)) {
+			schema = parseURIFragmentIdentifierRepresentation(swagger, schema.$ref);
+			return collectProperties(schema, path);
+		} else if (isJSONSchemaObject(schema)) {
+			return Object.keys(schema.properties || {}).reduce((collected, property) => {
+				return [
+					...collected,
+					...collectProperties((schema as JSONSchemaObject).properties![property]!, [...path, property])
+				];
+			}, []);
+		} else if (isJSONSchemaArray(schema)) {
+			return collectProperties(schema.items, path);
+		} else if ((schema as TypedJSONSchema).type === "string") {
+			return [{
+				path,
+				schema: { oneOf: [
+					{ type: "string" },
+					{
+						type: "array",
+						items: { "type": "string" }
+					}
+				] }
+			}];
+		} else if ((schema as TypedJSONSchema).type === "boolean") {
+			return [{ path, schema: { type: "boolean" } }];
+		}
+		return [];
+	};
+
+	return {
+		type: "object",
+		properties: collectProperties(schema, []).reduce((properties, { path, schema }) => {
+			properties[path.join(".")] = schema;
+			return properties;
+		}, {} as Record<string, JSONSchema>)
+	};
+};
 
 const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 	paginateAlreadyPaginated({
@@ -162,7 +220,7 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) =>
 	hits.hits.map(({ _source }) =>  mapTaxon(_source, query));
 
-const mapTaxonParents = (query: Partial<TaxaBaseQuery>) => (taxon: TaxonElastic): TaxonElastic =>
+const mapTaxonParents = (query: Partial<AllQueryParams>) => (taxon: TaxonElastic): TaxonElastic =>
 	query.includeHidden
 		? { ...taxon, parents: taxon.nonHiddenParents } as unknown as TaxonElastic
 		: taxon;
@@ -174,7 +232,7 @@ const addVernacularNameTranslations = (taxon: TaxonElastic) => ({
 	vernacularNameEn: taxon.vernacularName?.en,
 });
 
-const mapTaxon = (taxon: TaxonElastic, query: Partial<TaxaBaseQuery>)
+const mapTaxon = (taxon: TaxonElastic, query: Partial<AllQueryParams>)
 	: TaxonElastic =>
 	pipe(
 		mapTaxonParents(query),

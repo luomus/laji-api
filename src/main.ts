@@ -73,7 +73,7 @@ export async function bootstrap() {
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("Laji API")
 		.setDescription(description)
-		.setVersion("0")
+		.setVersion("1")
 		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")
 		.build()
 	);
@@ -85,7 +85,11 @@ export async function bootstrap() {
 			persistAuthorization: true,
 			docExpansion: "none",
 			tagsSorter: "alpha",
-			operationsSorter: "alpha"
+			operationsSorter: "alpha",
+			requestInterceptor: (req: any) => {
+				req.headers["API-Version"] = "1"; // Add your custom header here
+				return req;
+			},
 		},
 		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
 		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()

@@ -4,7 +4,7 @@ import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Us
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
-	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto, UpdateDocumentDto 
+	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto, UpdateDocumentDto
 } from "./documents.dto";
 import { PaginatedDto } from "src/pagination.utils";
 import { Document } from "@luomus/laji-schema";
@@ -47,7 +47,7 @@ export class DocumentsController {
 		ref: "document",
 		replacePointer: "/items",
 		applyToResponse: false,
-		customizeRequestSchema: schema => ({ type: "array", items: schema })
+		customizeRequestBodySchema: schema => ({ type: "array", items: schema })
 	})
 	@HttpCode(200)
 	async startBatchJob(

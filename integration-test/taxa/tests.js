@@ -40,6 +40,16 @@ describe("/taxa", function() {
 		});
 	});
 
+	it("POST / (get page with filters)", function() {
+		it("respects filters", async function() {
+			const url = `${basePath}?access_token=${config.access_token}&pageSize=10`;
+			const res = await request(this.server).post(url).send({ sensitive: true }).set("API-Version", "1");
+			res.should.have.status(200);
+			res.body.results.should.have.lengthOf(10);
+			res.body.results.forEach(taxon => taxon.should.have.property("sensitive").eql(true));
+		});
+	});
+
 	it("GET /aggregate", async function() {
 		const url = `${basePath}/aggregate?aggregateBy=latestRedListEvaluation.threatenedAtArea,redListEvaluationGroups=a&aggregateSize\=2&access_token=${config.access_token}`;
 		const res = await request(this.server).get(url).set("API-Version", "1");
@@ -51,14 +61,24 @@ describe("/taxa", function() {
 		res.body.a[0].values.should.have.keys(["latestRedListEvaluation.threatenedAtArea", "redListEvaluationGroups"]);
 	});
 
-	it("GET /species returns species and is translated and respects informalGroupFilters", async function() {
-		const url = `${basePath}/species?informalGroupFilters=MVL.1&access_token=${config.access_token}`;
+	it("GET /species returns species and is translated and respects informalTaxonGroups", async function() {
+		const url = `${basePath}/species?informalTaxonGroups=MVL.1&access_token=${config.access_token}`;
 		const res = await request(this.server).get(url).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.results.should.have.length.greaterThan(1);
-		res.body.results.every(taxon => {
-			taxon.should.have.property("taxonRank").eql("MX.species")
+		res.body.results.forEach(taxon => {
+			taxon.should.have.property("taxonRank").oneOf(["MX.species", "MX.subspecies"])
 			taxon.informalTaxonGroups.should.include("MVL.1");
+		});
+	});
+
+	it("POST / (get page with filters)", function() {
+		it("respects filters", async function() {
+			const url = `${basePath}/species?access_token=${config.access_token}&pageSize=10`;
+			const res = await request(this.server).post(url).send({ sensitive: true }).set("API-Version", "1");
+			res.should.have.status(200);
+			res.body.results.should.have.lengthOf(10);
+			res.body.results.forEach(taxon => taxon.should.have.property("sensitive").eql(true));
 		});
 	});
 
