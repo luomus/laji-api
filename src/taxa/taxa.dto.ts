@@ -55,6 +55,8 @@ export class SimpleFilters {
 	@CommaSeparatedStrings() id?: string[];
 }
 
+const SimpleFiltersKeys: (keyof SimpleFilters)[] = ["informalTaxonGroups", "invasiveSpecies", "finnish", "id"];
+
 class Inclusions {
 
 	/** Include media objects in the response. Defaults to false. */
@@ -88,11 +90,13 @@ class PageLikeTaxaQuery extends IntersectionType(
 	 * Order defaults to 'asc'. The sort field and order are separated by a space character.
 	 *
 	 * Defaults to 'taxonomic'
-	 * */
+	 */
 	sortOrder?: string = "taxonomic";
 }
 
 export class GetTaxaPageDto extends IntersectionType(TaxaBaseQuery, PageLikeTaxaQuery, HasParentTaxonId) { }
+
+export class GetTaxaPageWithFiltersDto extends OmitType(GetTaxaPageDto, SimpleFiltersKeys) { }
 
 export class GetTaxaAggregateDto extends IntersectionType(
 	TaxaBaseQuery,
@@ -111,6 +115,8 @@ export class GetTaxaAggregateDto extends IntersectionType(
 	@CommaSeparatedStrings(";") aggregateBy: string[];
 	@Type(() => Number) @IsInt() aggregateSize = 10;
 }
+
+export class GetTaxaAggregateWithFiltersDto extends OmitType(GetTaxaAggregateDto, SimpleFiltersKeys) {}
 
 export class GetTaxonDto extends IntersectionType(QueryWithLangDto, HasSelectedFields, Inclusions) {}
 

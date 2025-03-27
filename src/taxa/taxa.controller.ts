@@ -1,8 +1,8 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { Body, Get, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
-import { GetTaxaAggregateDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaResultsDto, GetTaxonDto, TaxaSearchDto,
-	TaxonElastic } from "./taxa.dto";
+import { GetTaxaAggregateDto, GetTaxaAggregateWithFiltersDto, GetTaxaDescriptionsDto, GetTaxaPageDto,
+	GetTaxaPageWithFiltersDto, GetTaxaResultsDto, GetTaxonDto, TaxaSearchDto, TaxonElastic } from "./taxa.dto";
 import { TaxaService, getFiltersSchema } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
@@ -95,7 +95,7 @@ export class TaxaController {
 	})
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
-	getPageWithFilters(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
+	getPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
 	}
 
@@ -112,7 +112,7 @@ export class TaxaController {
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
-	getAggregateWithFilters(@Query() query: GetTaxaAggregateDto, @Body() filters?: TaxaFilters) {
+	getAggregateWithFilters(@Query() query: GetTaxaAggregateWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getAggregate(query, filters);
 	}
 
@@ -136,7 +136,7 @@ export class TaxaController {
 	})
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
-	getSpeciesPageWithFilters(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
+	getSpeciesPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getSpeciesPage(query, filters);
 	}
 
