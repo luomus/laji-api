@@ -29,6 +29,28 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 const addFiltersSchema = (document: OpenAPIObject, remoteDoc: OpenAPIObject) =>
 	getFiltersSchema(remoteDoc);
 
+/* eslint-disable max-len */
+const BODY_DESCRIPTION = `
+The request body is a JSON object where each property represents a filter. 
+Properties are dot-separated (e.g., 'field.subfield') and correspond to the fields of taxon results. For array fields, the filter is done against each array item, so the dot-separated pointer shouldn't include array item path (if 'subfield' is an array that has property 'subsubfield', the pointer would be 'field.subfield.subsubfield').
+For array fields, the dot notation allows filtering by nested properties.
+
+Each filter value can be one of the following types:
+- **boolean**: To filter by true/false values.
+- **string**: To filter by exact string matches.
+- **array of strings**: To filter by multiple possible string values. In this case, the filter acts as an "OR" operator.
+
+Example:
+\`\`\`
+{
+  "species": true,                 // Matches taxa that have "species": true
+  "informalTaxonGroups": "MVL.1",  // Matches taxa with informalTaxonGoup MVL.1
+  "multimedia.author": "somebody"  // Maches taxa with any multimedia item having author "somebody"
+}
+\`\`\`
+`;
+/* eslint-enable max-len */
+
 @ApiTags("Taxon")
 @LajiApiController("taxa")
 export class TaxaController {
@@ -71,7 +93,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false })
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getPageWithFilters(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
@@ -107,7 +129,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false })
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getSpeciesPageWithFilters(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getSpeciesPage(query, filters);

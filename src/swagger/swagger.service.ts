@@ -173,7 +173,8 @@ export class SwaggerService {
 										);
 									}
 									operation.requestBody = {
-										required: ((operation.requestBody || {}) as any).required ?? true,
+										required: true,
+										...(operation.requestBody || {}),
 										content: {
 											"application/json": { schema }
 										}
