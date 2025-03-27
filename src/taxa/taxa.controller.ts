@@ -107,6 +107,11 @@ export class TaxaController {
 
 	/** Get an aggregate of taxa with filters */
 	@Post("aggregate")
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		customizeRequestBodySchema: addFiltersSchema
+	})
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	getAggregateWithFilters(@Query() query: GetTaxaAggregateDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getAggregate(query, filters);
 	}

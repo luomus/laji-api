@@ -164,22 +164,24 @@ export class SwaggerService {
 								};
 							}
 
-							if (isSwaggerRemoteRefEntry(entry)) {
-								if (["post", "put"].includes(operationName)) {
-									let schema: SchemaItem = { "$ref": `#/components/schemas/${entry.ref}` };
-									if (entry.customizeRequestBodySchema) {
-										schema = entry.customizeRequestBodySchema(
-											schema, document, this.getRemoteSwaggerDocSync(entry)
-										);
-									}
-									operation.requestBody = {
-										required: true,
-										...(operation.requestBody || {}),
-										content: {
-											"application/json": { schema }
-										}
-									};
+							if (["post", "put"].includes(operationName)) {
+								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
+									? { "$ref": `#/components/schemas/${entry.ref}` }
+									: (operation.requestBody as any)!.content["application/json"].schema;
+								if (entry.customizeRequestBodySchema) {
+									schema = entry.customizeRequestBodySchema(
+										schema,
+										document,
+										isSwaggerRemoteRefEntry(entry) ? this.getRemoteSwaggerDocSync(entry) : undefined
+									);
 								}
+								operation.requestBody = {
+									required: true,
+									...(operation.requestBody || {}),
+									content: {
+										"application/json": { schema }
+									}
+								};
 							}
 						}
 					}
@@ -207,6 +209,9 @@ export class SwaggerService {
 	private remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
 		const remoteDoc = this.getRemoteSwaggerDocSync(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
+		if (!entry.ref) {
+			return;
+		}
 		const remoteSchema = remoteSchemas[entry.ref];
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
