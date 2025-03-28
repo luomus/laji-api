@@ -5,6 +5,7 @@ import { isJSONObjectSerializable, isObject, JSONObjectSerializable, KeyOf, omit
 import * as jp from "jsonpath";
 import { JsonLdService } from "src/json-ld/json-ld.service";
 import { JsonLdDocument } from "jsonld";
+import { instanceToInstance } from "class-transformer";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
@@ -26,6 +27,8 @@ export class LangService {
 	) {
 		const multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
 		return (item: T): T | MultiLangAsString<T> => {
+			// `jp.apply` acts mutably, so we need to clone the item to keep the translation immutable.
+			item = instanceToInstance(item);
 			multiLangJSONPaths.forEach(jsonPath =>
 				jp.apply(item, jsonPath, (value: MultiLang) => {
 					return getLangValue(value, lang, langFallback);
