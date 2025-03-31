@@ -4,6 +4,14 @@ import { firstFromNonEmptyArr, pipe } from "src/utils";
 import { HttpException } from "@nestjs/common";
 import { JSONSchemaObject } from "src/json-schema.utils";
 
+
+export type TaxaFilters = Record<string, MaybeArray<string> | boolean>;
+
+export type ElasticResponse = {
+	hits: { total: number,  hits: { _source: TaxonElastic }[] };
+	aggregations: JSONObjectSerializable;
+};
+
 type ElasticQuery = {
 	from?: number;
 	pageSize?: number;
@@ -15,24 +23,17 @@ type ElasticQuery = {
 	query: {
 		bool?: {
 			filter?: ElasticQueryBoolNode[];
-			must_not?: ElasticQueryBoolNode[];
-			must?: ElasticQueryBoolNode[];
 		},
 		ids?: { values: string[] }
 	};
 	_source: { excludes: string[] } | string[];
 };
 
-export type TaxaFilters = Record<string, MaybeArray<string> | boolean>;
-
-export type ElasticResponse = {
-	hits: { total: number,  hits: { _source: TaxonElastic }[] };
-	aggregations: JSONObjectSerializable;
-};
-
-type ElasticQueryBoolNode = { terms: Record<string, MaybeArray<string | number | boolean>> }
+type ElasticQueryBoolNode =
+	{ terms: Record<string, MaybeArray<string | number | boolean>> }
 	| { term: Record<string, string | number | boolean> }
-	| { range: Record<string,  { gte: number, lte: number }> };
+	| { range: Record<string,  { gte: number, lte: number }> }
+	| { bool: { must_not?: ElasticQueryBoolNode } };
 
 type AggregateNode = Record<string, { terms: { field: string, size: number }, aggs?: AggregateNode }>;
 
@@ -99,8 +100,8 @@ const addDepth: QueryParamStrategy = (query, _, elasticQ, taxon) => {
 
 	const { bool = { } } = elasticQ.query;
 	elasticQ.query.bool = bool;
-	bool.must = bool.must || [];
-	bool.must.push({
+	bool.filter = bool.filter || [];
+	bool.filter.push({
 		range: {
 			[depthProp]: { gte: taxon![depthProp], lte: taxon![depthProp] + 1 }
 		}
@@ -186,9 +187,9 @@ const applyFiltersToElasticQuery = (filters: TaxaFilters = {}, filtersSchema: JS
 			if (Array.isArray(arg) && typeof arg[0] === "string") {
 				const inclusions: string[] = [];
 				const exclusions: string[] = [];
-				arg.forEach(subArg => (subArg[0] === "!" ? exclusions : inclusions).push(subArg));
-				inclusions.length && addToBooleanQueryMust(param, arg, elasticQuery);
-				exclusions.length && addToBooleanQueryMustNot(param, arg, elasticQuery);
+				arg.forEach(subArg => (subArg[0] === "!" ? exclusions : inclusions).push(subArg.replace(/^!/, "")));
+				inclusions.length && addToBooleanQueryFilter(param, inclusions, elasticQuery);
+				exclusions.length && addToBooleanQueryFilterMustNot(param, exclusions, elasticQuery);
 				continue;
 			}
 			// eslint-disable-next-line max-len
@@ -215,27 +216,21 @@ const withSimpleFiltersFromQuery = (
 	return filters;
 };
 
-const addToBooleanQueryFilter = (param: string, arg: boolean, elasticQ: ElasticQuery) => {
+const addToBooleanQueryFilter = (param: string, arg: boolean | string[], elasticQ: ElasticQuery) => {
 	const { bool = {} } = elasticQ.query;
 	elasticQ.query.bool = bool;
 	bool.filter = bool.filter || [];
-	bool.filter!.push({ term: { [param]: arg } });
+	bool.filter!.push({ [Array.isArray(arg) ? "terms" : "term"]: { [param]: arg } } as any);
 	return elasticQ;
 };
 
-const addToBooleanQueryMust = (param: string, arg: string[], elasticQ: ElasticQuery) => {
+const addToBooleanQueryFilterMustNot = (param: string, arg: string[], elasticQ: ElasticQuery) => {
 	const { bool = {} } = elasticQ.query;
 	elasticQ.query.bool = bool;
-	bool.must = bool.must || [];
-	bool.must!.push({ terms: { [param]: arg } });
-	return elasticQ;
-};
-
-const addToBooleanQueryMustNot = (param: string, arg: string[], elasticQ: ElasticQuery) => {
-	const { bool = {} } = elasticQ.query;
-	elasticQ.query.bool = bool;
-	bool.must_not = bool.must_not || [];
-	bool.must_not!.push({ terms: { [param]: arg } });
+	bool.filter = bool.filter || [];
+	bool.filter!.push({ bool: { must_not: {
+		[Array.isArray(arg) ? "terms" : "term"]: { [param]: arg }
+	} as ElasticQueryBoolNode } });
 	return elasticQ;
 };
 
