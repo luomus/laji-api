@@ -59,11 +59,11 @@ export class SwaggerService {
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
 	}
 
-	private getStoreSwaggerDoc() {
-		return this.storeClient.get<OpenAPIObject>("documentation-json");
+	getStoreSwaggerDoc() {
+		return this.storeClient.get<OpenAPIObject>("documentation-json", undefined, { cache: true });
 	}
 
-	private getLajiBackendSwaggerDoc() {
+	getLajiBackendSwaggerDoc() {
 		return this.globalClient.get<OpenAPIObject>(`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`);
 	}
 
@@ -164,13 +164,20 @@ export class SwaggerService {
 								};
 							}
 
-							if (isSwaggerRemoteRefEntry(entry) && ["post", "put"].includes(operationName)) {
-								let schema: SchemaItem = { "$ref": `#/components/schemas/${entry.ref}` };
-								if (entry.customizeRequestSchema) {
-									schema = entry.customizeRequestSchema(schema);
+							if (["post", "put"].includes(operationName)) {
+								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
+									? { "$ref": `#/components/schemas/${entry.ref}` }
+									: (operation.requestBody as any)!.content["application/json"].schema;
+								if (entry.customizeRequestBodySchema) {
+									schema = entry.customizeRequestBodySchema(
+										schema,
+										document,
+										isSwaggerRemoteRefEntry(entry) ? this.getRemoteSwaggerDocSync(entry) : undefined
+									);
 								}
 								operation.requestBody = {
 									required: true,
+									...(operation.requestBody || {}),
 									content: {
 										"application/json": { schema }
 									}
@@ -202,6 +209,9 @@ export class SwaggerService {
 	private remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
 		const remoteDoc = this.getRemoteSwaggerDocSync(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
+		if (!entry.ref) {
+			return;
+		}
 		const remoteSchema = remoteSchemas[entry.ref];
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
@@ -333,7 +343,7 @@ export const isPagedOperation = (operation: OperationObject) =>
 const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	type: "object",
 	properties: {
-		page: { type: "number" },
+		currentPage: { type: "number" },
 		pageSize: { type: "number" },
 		total: { type: "number" },
 		lastPage: { type: "number" },
@@ -341,7 +351,7 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 		nextPage: { type: "number" },
 		results: { type: "array", items: schema },
 	},
-	required: [ "page", "pageSize", "total", "lastPage", "results"]
+	required: [ "currentPage", "pageSize", "total", "lastPage", "results"]
 });
 
 export const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>

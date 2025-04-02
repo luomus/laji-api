@@ -10,7 +10,7 @@ export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
 	source: "store" | "laji-backend",
 	/** The name of the schema object in the remote OpenAPI document's schemas */
-	ref: string,
+	ref?: string,
 	/**
 	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
 	 * Uses JSON pointer notation. Has lower precedence than `customizeResponseSchema`.
@@ -75,7 +75,7 @@ class AddLocalJsonLdContext implements NestInterceptor {
 	}
 
 	addLocalJsonLdContext(result: any) {
-		const entry: SwaggerRemoteRefEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result); 
+		const entry: SwaggerRemoteRefEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
 		if (!entry || !entry.jsonLdContext) {
 			return result;
 		}

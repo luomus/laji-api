@@ -1,6 +1,4 @@
-// We use our own typings instead of "json-schema" package because we use only a subset of the schema,
-// and so it'll be easier to work with this subset.
-export type JSONSchema =
+export type TypedJSONSchema =
 	JSONSchemaObject
 	| JSONSchemaArray
 	| JSONSchemaNumber
@@ -8,8 +6,14 @@ export type JSONSchema =
 	| JSONSchemaBoolean
 	| JSONSchemaString
 	| JSONSchemaEnumOneOf
-	| JSONSchemaEnum
-	| JSONSchemaRef;
+	| JSONSchemaEnum;
+
+// We use our own typings instead of "json-schema" package because we use only a subset of the schema,
+// and so it'll be easier to work with this subset.
+export type JSONSchema =
+	TypedJSONSchema
+	| JSONSchemaRef
+	| JSONSchemaOneOf;
 
 type JSONShemaTypeCommon<T, D> = {
 	type: T;
@@ -23,13 +27,18 @@ export type JSONSchemaObject = JSONShemaTypeCommon<"object", Record<string, unkn
 }
 
 export function isJSONSchemaObject(schema: JSONSchema): schema is JSONSchemaObject {
-	return !isJSONSchemaRef(schema) && schema.type === "object";
+	return (schema as any).type === "object";
 }
 
 export type JSONSchemaArray = JSONShemaTypeCommon<"array", unknown[]> & {
 	items: JSONSchema;
 	uniqueItems?: boolean;
 }
+
+export function isJSONSchemaArray(jsonSchema: JSONSchema): jsonSchema is JSONSchemaArray {
+	return (jsonSchema as any).type === "array";
+}
+
 
 export type JSONSchemaNumber = JSONShemaTypeCommon<"number", number>;
 
@@ -60,6 +69,10 @@ export type JSONSchemaRef = { $ref: string };
 export function isJSONSchemaRef(jsonSchema: JSONSchema): jsonSchema is JSONSchemaRef {
 	return !!(jsonSchema as any).$ref;
 }
+
+export type JSONSchemaOneOf = {
+	oneOf: JSONSchema[];
+};
 
 /** For compatibility with our JSONSchema types. There already exists `OpenAPIObject` but it's not compatible. */
 export type OpenAPIDocument = { components: { schemas: Record<string, JSONSchema> } };

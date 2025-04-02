@@ -10,8 +10,13 @@ export type HasSchemaDefinitionName = { schemaDefinitionName: string };
 export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
 	/** Function to customize the OpenAPI response schema. Has higher precedence than `replacePointer` */
 	customizeResponseSchema?: (schema: SchemaItem, document: OpenAPIObject) => SchemaItem;
-	/** Function to customize the OpenAPI request body schema. */
-	customizeRequestSchema?: (schema: SchemaItem) => SchemaItem;
+	/** Function to customize the OpenAPI request body schema. The remoteDocument is passed if there is `source` in the options */
+	customizeRequestBodySchema?: (
+		schema: SchemaItem | undefined,
+		document: OpenAPIObject,
+		remoteDocument?: OpenAPIObject
+	) => SchemaItem;
+	customize?: (document: OpenAPIObject, remoteDocument: OpenAPIObject) => OpenAPIObject;
 	/** The remote ref is applied to response (201 or 200). Defaults to true. */
 	applyToResponse?: boolean;
 }
