@@ -198,6 +198,25 @@ export class TaxaController {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
 	}
 
+	/** Get species and subspecies of a taxon */
+	@Version("1")
+	@Post(":id/species")
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "Taxon",
+		jsonLdContext: "taxon-elastic",
+		customizeRequestBodySchema: addFiltersSchema
+	})
+	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	getTaxonSpeciesPageWithFilters(
+		@Param("id") id: string,
+		@Query() query: GetTaxaPageDto,
+		@Body() filters?: TaxaFilters
+	) {
+		return this.taxaService.getTaxonSpeciesPage(id, query, filters);
+	}
+
+
 	/** Get an aggregate of species and subspecies of a taxon */
 	@Get(":id/species/aggregate")
 	getTaxonSpeciesAggregate(@Param("id") id: string, @Query() query: GetTaxaAggregateDto) {
