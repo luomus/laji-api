@@ -79,6 +79,7 @@ export class TaxaController {
 		ref: "Taxon",
 		jsonLdContext: "taxon-elastic"
 	})
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getPage(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
@@ -208,6 +209,7 @@ export class TaxaController {
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	getTaxonSpeciesPageWithFilters(
 		@Param("id") id: string,
 		@Query() query: GetTaxaPageDto,
