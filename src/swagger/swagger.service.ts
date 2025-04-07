@@ -14,13 +14,14 @@ import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { JSONSerializable, isObject } from "src/typing.utils";
+import { JSONSerializable, Newable, isObject } from "src/typing.utils";
 import { GLOBAL_CLIENT, STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
 import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
 	from "src/decorators/remote-swagger-merge.decorator";
 import { ConfigService } from "@nestjs/config";
 import { JSONSchema } from "src/json-schema.utils";
+import { HTTP_CODE_METADATA } from "@nestjs/common/constants";
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
@@ -140,8 +141,8 @@ export class SwaggerService {
 					this.entrySideEffectForSchema(document!.components!.schemas!, entry);
 					for (const iteratedPath of Object.keys(document.paths)) {
 						const pathItem = document.paths[iteratedPath]!;
-						for (const operationName of (["get", "put", "post", "delete"] as const)) {
-							const operation = pathItem[operationName];
+						for (const httpMethod of (["get", "put", "post", "delete"] as const)) {
+							const operation = pathItem[httpMethod];
 
 							if (
 								!operation
@@ -152,9 +153,17 @@ export class SwaggerService {
 							}
 
 							if (entry.applyToResponse !== false) {
-								const responseCode = operationName === "post" ? "201" : "200";
-								const existingSchema =
-									getOperationResponseCodeSchemaOrCreateIfNotExists(operation, responseCode);
+								const responseCode = deduceResponseCode(
+									operation,
+									httpMethod,
+									methodName,
+									entry.instance
+								);
+								const existingSchema = getOperationResponseCodeSchemaOrCreateIfNotExists(
+									operation,
+									httpMethod,
+									methodName,
+									entry.instance);
 								const schema: SchemaItem = pipe(
 									applyEntryToResponse(entry, document),
 									paginateAsNeededWith(operation)
@@ -164,7 +173,7 @@ export class SwaggerService {
 								};
 							}
 
-							if (["post", "put"].includes(operationName)) {
+							if (["post", "put"].includes(httpMethod)) {
 								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
 									? { "$ref": `#/components/schemas/${entry.ref}` }
 									: (operation.requestBody as any)!.content["application/json"].schema;
@@ -384,9 +393,34 @@ const multiLangAsString = <T extends SchemaObject | ReferenceObject>(schema: T):
 	return schema;
 };
 
-export const getOperationResponseCodeSchemaOrCreateIfNotExists = (operation: OperationObject, responseCode: string)
+const deduceResponseCode = (
+	operation: OperationObject,
+	httpMethod: string,
+	methodName: string, instance: Newable<unknown>
+) => {
+	const manuallySelected = Reflect.getMetadata(HTTP_CODE_METADATA, (instance as any).prototype[methodName]);
+	if (manuallySelected) {
+		return manuallySelected;
+	}
+	for (const code of [201, 200]) {
+		const jsonPointer = `/responses/${code}/content/application~1json/schema`;
+		const maybeExistingSchema = parseJSONPointer<SchemaItem | undefined>(operation, jsonPointer, { safely: true });
+		if (maybeExistingSchema) {
+			return code;
+		}
+	}
+	return httpMethod === "post" ? 201 : 200;
+};
+
+export const getOperationResponseCodeSchemaOrCreateIfNotExists = (
+	operation: OperationObject,
+	httpMethod: string,
+	methodName: string,
+	instance: Newable<unknown>
+)
 	: SchemaItem =>
 {
+	const responseCode = deduceResponseCode(operation, httpMethod, methodName, instance);
 	const jsonPointer = `/responses/${responseCode}/content/application~1json/schema`;
 	const existingSchema = parseJSONPointer<SchemaItem | undefined>(operation, jsonPointer, { safely: true });
 	if (existingSchema) {

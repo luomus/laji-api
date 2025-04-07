@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
-import { Body, Get, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
+import { Body, Get, HttpCode, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
 import { GetTaxaAggregateDto, GetTaxaAggregateWithFiltersDto, GetTaxaDescriptionsDto, GetTaxaPageDto,
 	GetTaxaPageWithFiltersDto, GetTaxaResultsDto, GetTaxonDto, TaxaSearchDto, TaxonElastic } from "./taxa.dto";
 import { TaxaService, getFiltersSchema } from "./taxa.service";
@@ -88,13 +88,14 @@ export class TaxaController {
 	/** Get a page of taxa with filters */
 	@Version("1")
 	@Post()
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
@@ -108,11 +109,12 @@ export class TaxaController {
 
 	/** Get an aggregate of taxa with filters */
 	@Post("aggregate")
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	getAggregateWithFilters(@Query() query: GetTaxaAggregateWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getAggregate(query, filters);
 	}
@@ -129,13 +131,14 @@ export class TaxaController {
 	/** Get a page of species with filters */
 	@Version("1")
 	@Post("species")
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getSpeciesPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getSpeciesPage(query, filters);
@@ -202,6 +205,8 @@ export class TaxaController {
 	/** Get species and subspecies of a taxon */
 	@Version("1")
 	@Post(":id/species")
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
@@ -209,7 +214,6 @@ export class TaxaController {
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	getTaxonSpeciesPageWithFilters(
 		@Param("id") id: string,
 		@Query() query: GetTaxaPageDto,

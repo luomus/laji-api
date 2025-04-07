@@ -3,7 +3,7 @@ import { SwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { SerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaItem } from "./swagger.service";
 import { OpenAPIObject } from "@nestjs/swagger";
-
+import { Newable } from "src/typing.utils";
 
 export type HasSchemaDefinitionName = { schemaDefinitionName: string };
 
@@ -23,6 +23,7 @@ export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
 
 export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & {
 	controller: string;
+	instance: Newable<unknown>;
 };
 
 export const swaggerCustomizationEntries: {
@@ -31,7 +32,6 @@ export const swaggerCustomizationEntries: {
 	}
 } = {};
 
-
 /**
  * Creates a class controller that allow usage of a method decorator controlled with param `metadataKey`.
  *
@@ -39,8 +39,8 @@ export const swaggerCustomizationEntries: {
  * */
 export function createSwaggerScanner(metadataKey: string) {
 	return () => (target: any) => {
-		Reflect.ownKeys(target.prototype).forEach(propertyKey => {
-			const entry = Reflect.getMetadata(metadataKey + (propertyKey as string), target.prototype);
+		Reflect.ownKeys(target.prototype).forEach(method => {
+			const entry = Reflect.getMetadata(metadataKey + (method as string), target.prototype);
 
 			if (!entry) {
 				return;
@@ -48,10 +48,10 @@ export function createSwaggerScanner(metadataKey: string) {
 			// The path defined by `@Controller()` decorator.
 			const path = Reflect.getMetadata(PATH_METADATA, target);
 
-			const existingEntries = swaggerCustomizationEntries[path]?.[(propertyKey as string)] || [];
+			const existingEntries = swaggerCustomizationEntries[path]?.[(method as string)] || [];
 			swaggerCustomizationEntries[path] = {
 				...(swaggerCustomizationEntries[path] || {}),
-				[propertyKey]: [ ...existingEntries, { ...entry, controller: target.name } ]
+				[method]: [ ...existingEntries, { ...entry, controller: target.name, instance: target } ]
 			};
 		});
 	};
