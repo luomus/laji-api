@@ -139,8 +139,8 @@ export class TaxaService {
 	}
 
 	async getTaxonSpeciesPage(id: string, query: GetTaxaPageDto, filters: TaxaFilters = {}) {
-		const _filters: TaxaFilters = { ...filters, species: true };
-		_filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
+		filters = { ...filters, species: true };
+		filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
 		return this.getPage(query, filters);
 	}
 
