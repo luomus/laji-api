@@ -12,6 +12,7 @@ import { SchemaItem } from "src/swagger/swagger.service";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
+import { SelectedFieldsInterceptor } from "src/interceptors/selected-fields.interceptor";
 
 const wrapIntoResults = (schema: SchemaItem) => ({
 	type: "object",
@@ -66,7 +67,7 @@ export class TaxaController {
 		customizeResponseSchema: wrapIntoResults,
 		jsonLdContext: "taxon-search"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(SelectedFieldsInterceptor, ResultsArray, Translator)
 	search(@Query() query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
@@ -80,7 +81,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic"
 	})
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	getPage(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
 	}
@@ -96,7 +97,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	getPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
 	}
@@ -123,7 +124,7 @@ export class TaxaController {
 	@Version("1")
 	@Get("species")
 	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	getSpeciesPage(@Query() query: GetTaxaPageDto) {
 		return this.taxaService.getSpeciesPage(query);
 	}
@@ -139,8 +140,9 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	getSpeciesPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
+		console.log("QUERY", query);
 		return this.taxaService.getSpeciesPage(query, filters);
 	}
 
@@ -160,7 +162,7 @@ export class TaxaController {
 		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we need to do it just once here.
 		jsonLdContext: "taxon-elastic"
 	})
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	get(@Param("id") id: string, @Query() query: GetTaxonDto) {
 		return this.taxaService.getBySubject(id, query);
 	}
@@ -174,7 +176,7 @@ export class TaxaController {
 		customizeResponseSchema: wrapIntoResults,
 		jsonLdContext: "taxon-elastic"
 	})
-	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, ResultsArray, Translator, Serializer(TaxonElastic))
 	getTaxonChildren(@Param("id") id: string, @Query() query: GetTaxaResultsDto) {
 		return this.taxaService.getChildren(id, query);
 	}
@@ -188,7 +190,7 @@ export class TaxaController {
 		customizeResponseSchema: wrapIntoResults,
 		jsonLdContext: "taxon-elastic"
 	})
-	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, ResultsArray, Translator, Serializer(TaxonElastic))
 	getTaxonParents(@Param("id") id: string, @Query() query: GetTaxaResultsDto) {
 		return this.taxaService.getTaxonParents(id, query);
 	}
@@ -197,7 +199,7 @@ export class TaxaController {
 	@Version("1")
 	@Get(":id/species")
 	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
 	}
@@ -213,7 +215,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	@UseInterceptors(SelectedFieldsInterceptor, Translator, Serializer(TaxonElastic))
 	getTaxonSpeciesPageWithFilters(
 		@Param("id") id: string,
 		@Query() query: GetTaxaPageDto,
@@ -238,7 +240,7 @@ export class TaxaController {
 		customizeResponseSchema: wrapIntoResults,
 		jsonLdContext: "taxon-description"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(SelectedFieldsInterceptor, ResultsArray, Translator)
 	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonDescriptions(id, query);
 	}
@@ -252,7 +254,7 @@ export class TaxaController {
 		customizeResponseSchema: wrapIntoResults,
 		jsonLdContext: "taxon-media"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(SelectedFieldsInterceptor, ResultsArray, Translator)
 	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonMedia(id, query);
 	}

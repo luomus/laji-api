@@ -35,6 +35,23 @@ export const omit = <T extends object, K extends keyof T>(
 	...keys: K[]
 ) => omitForKeys<T, K>(...keys)(obj);
 
+export const pickForKeys = <T extends object, K extends keyof T = keyof T>(...keys: K[]) =>
+	(obj: T): Pick<T, K> => {
+		const dict = new Set(keys);
+		return (Object.keys(obj) as K[]).reduce((filtered, key) => {
+			if (dict.has(key)) {
+				filtered[key] = obj[key];
+			}
+			return filtered;
+		}, {} as T) as Pick<T, K>;
+	};
+
+export const pick = <T extends object, K extends keyof T>(
+	obj: T,
+	...keys: K[]
+) => pickForKeys<T, K>(...keys)(obj);
+
+
 export const hasKey = <T extends object, K extends keyof T>(
 	obj: T,
 	key: K
