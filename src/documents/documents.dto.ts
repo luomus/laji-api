@@ -126,7 +126,6 @@ export type DatePopulated<T extends Document> = WithNonNullableKeys<T, "dateCrea
 export enum ValidationStrategy {
 	noExistingGatheringsInNamedPlace = "noExistingGatheringsInNamedPlace",
 	wbcNamedPlaceExists = "wbcNamedPlaceExists",
-	overlapWithNamedPlace = "overlapWithNamedPlace",
 	uniqueNamedPlaceAlternativeIDs = "uniqueNamedPlaceAlternativeIDs",
 	namedPlaceNotTooNearOtherPlaces = "namedPlaceNotTooNearOtherPlaces",
 	waterbirdPairCount = "waterbirdPairCount",
