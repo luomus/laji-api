@@ -139,8 +139,7 @@ describe("/documents", function() {
 				res.body.should.have.property("details");
 				res.body.details.should.be.a("object");
 				res.body.details.should.have.property("formID");
-				res.body.details.formID.should.be.a("object");
-				res.body.details.formID.should.have.property("errors");
+				res.body.details.formID.should.be.a("array");
 				done();
 			});
 	});
@@ -181,8 +180,7 @@ describe("/documents", function() {
 				res.body.details.gatherings["0"].units.should.be.a("object");
 				res.body.details.gatherings["0"].units.should.have.property("0");
 				res.body.details.gatherings["0"].units["0"].should.have.property("recordBasis");
-				res.body.details.gatherings["0"].units["0"].recordBasis.should.be.a("object");
-				res.body.details.gatherings["0"].units["0"].recordBasis.should.have.property("errors");
+				res.body.details.gatherings["0"].units["0"].recordBasis.should.be.a("array");
 				done();
 			});
 	});
@@ -754,7 +752,7 @@ describe("/documents", function() {
 					res.body.should.have.property("details");
 					res.body.details.should.be.a("object");
 					res.body.details.should.have.property("locked");
-					res.body.details.locked.should.be.a("object");
+					res.body.details.locked.should.be.a("array");
 					done();
 				});
 		});
