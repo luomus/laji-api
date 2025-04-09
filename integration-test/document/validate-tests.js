@@ -83,11 +83,9 @@ describe("/documents/validate", function() {
 				res.body.error.should.be.deep.equal({
 					"details": {
 						"gatheringEvent": {
-							"dateBegin": {
-								"errors": [
-									"Observation already exists withing the given gathering period."
-								]
-							}
+							"dateBegin": [
+								"Observation already exists withing the given gathering period."
+							]
 						}
 					},
 					"message": "Unprocessable Entity",
@@ -227,11 +225,9 @@ describe("/documents/validate", function() {
 									"units": {
 										"0": {
 											"unitFact": {
-												"autocompleteSelectedTaxonID": {
-													"errors": [
-														"Taxon does not belong to given informal taxon groups."
-													]
-												}
+												"autocompleteSelectedTaxonID": [
+													"Taxon does not belong to given informal taxon groups."
+												]
 											}
 										}
 									}
@@ -289,11 +285,9 @@ describe("/documents/validate", function() {
 									"units": {
 										"1": {
 											"unitFact": {
-												"autocompleteSelectedTaxonID": {
-													"errors": [
-														"Taxon does not belong to given informal taxon groups."
-													]
-												}
+												"autocompleteSelectedTaxonID": [
+													"Taxon does not belong to given informal taxon groups."
+												]
 											}
 										}
 									}
@@ -347,11 +341,9 @@ describe("/documents/validate", function() {
 					res.should.have.status(422);
 					res.body.error.should.be.deep.equal({
 						"details": {
-							"geometry": {
-								"errors": [
-									"There already exists a named place in that location"
-								]
-							}
+							"geometry": [
+								"There already exists a named place in that location"
+							]
 						},
 						"message": "Unprocessable Entity",
 						"statusCode": 422
