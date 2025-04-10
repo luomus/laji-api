@@ -143,7 +143,7 @@ class RedListEvaluation {
 }
 
 export class TaxonElastic {
-	intellectualRights: string = "MZ.intellectualRightsCC-BY-4.0";
+	intellectualRights: string = "MZ.intellectualRightsCC-BY-4.0"; // TODO siirrä array vastauksen juureen
 	@Type(() => RedListEvaluation) latestRedListEvaluation: RedListEvaluation;
 	@Exclude() isPartOf: any;
 	@Exclude() isPartOfNonHidden: any;

@@ -15,7 +15,7 @@ import { TaxaFilters } from "./taxa-elastic-query";
 
 const wrapIntoResults = (schema: SchemaItem) => ({
 	type: "object",
-	properties: { results: schema, "@context": { type: "string" } }
+	properties: { results: { type: "array", items: schema } , "@context": { type: "string" } }
 });
 
 const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
