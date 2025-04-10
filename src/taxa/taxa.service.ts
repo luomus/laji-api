@@ -205,7 +205,8 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 		properties: collectProperties(schema, []).reduce((properties, { path, schema }) => {
 			properties[path.join(".")] = schema;
 			return properties;
-		}, {} as Record<string, JSONSchema>)
+		}, {} as Record<string, JSONSchema>),
+		required: []
 	};
 };
 
