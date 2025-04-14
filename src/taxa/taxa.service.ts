@@ -159,7 +159,7 @@ export class TaxaService {
 	}
 
 	async getTaxonMedia(id: string, query: GetTaxaDescriptionsDto) {
-		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia;
+		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia || [];
 	}
 
 	@IntelligentMemoize()
