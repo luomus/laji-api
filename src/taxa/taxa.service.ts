@@ -35,7 +35,7 @@ export class TaxaService {
 	) {}
 
 	async get(id: string, selectedFields?: MaybeArray<string>): Promise<Taxon> {
-		const query: TaxaSearchDto = { q: id };
+		const query: TaxaSearchDto = { query: id };
 		if (selectedFields) {
 			query.selectedFields = asArray(selectedFields).join(",");
 		}
@@ -49,6 +49,10 @@ export class TaxaService {
 	}
 
 	async search(query: TaxaSearchDto) {
+		if (query.matchType) {
+			(query as any).matchType = query.matchType.toUpperCase();
+		}
+		query.q = query.query;
 		const { matches } = (await this.taxaClient.get<{ matches: Taxon[]; }>("", { params: query }));
 		return matches || [];
 	}

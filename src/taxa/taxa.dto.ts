@@ -155,9 +155,17 @@ export class TaxonElastic {
 	[key: string]: unknown;
 }
 
+enum SearchMatchType {
+	exact = "exact",
+	partial = "partial",
+	likely = "likely"
+}
+
 export class TaxaSearchDto extends QueryWithLangDto {
-	/** Name to search */
-	@ApiProperty({ name: "query" }) q: string;
+	query: string;
+
+	// Used only internally
+	@ApiHideProperty() q?: string;
 
 	// Used only internally
 	@ApiHideProperty() id?: string;
@@ -187,7 +195,7 @@ export class TaxaSearchDto extends QueryWithLangDto {
 	excludedInformalTaxonGroup?: string;
 
 	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
-	matchType?: string;
+	matchType?: SearchMatchType;
 
 	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
 	excludeNameTypes?: string;
