@@ -191,10 +191,10 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 			return [{
 				path,
 				schema: { oneOf: [
-					{ type: "string" },
+					schema,
 					{
 						type: "array",
-						items: { "type": "string" }
+						items: schema
 					}
 				] }
 			}];

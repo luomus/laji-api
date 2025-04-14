@@ -222,7 +222,6 @@ export class TaxaController {
 		return this.taxaService.getTaxonSpeciesPage(id, query, filters);
 	}
 
-
 	/** Get an aggregate of species and subspecies of a taxon */
 	@Get(":id/species/aggregate")
 	getTaxonSpeciesAggregate(@Param("id") id: string, @Query() query: GetTaxaAggregateDto) {
