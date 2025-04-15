@@ -117,8 +117,9 @@ const mapAggregates = ({ aggregateBy, aggregateSize }: GetTaxaAggregateDto) =>
 
 const sortOrders = {
 	taxonomic: "taxonomicOrder",
-	scientific_name: "scientificName",
-	finnish_name: "vernacularName.fi"
+	scientificName: "scientificName",
+	finnishName: "vernacularName.fi",
+	observationCountFinland: "observationCountFinland"
 } as const;
 
 const mapSortOrder = ({ sortOrder }: GetTaxaPageDto) => {
@@ -126,7 +127,7 @@ const mapSortOrder = ({ sortOrder }: GetTaxaPageDto) => {
 		return undefined;
 	}
 	const [sortField, order = "asc"] = sortOrder.split(" ") as [string, ...string[]];
-	const mappedSortField: string | undefined = (sortOrders as any)[sortField];
+	const mappedSortField: string | undefined = (sortOrders as any)[sortField] || sortField;
 	if (!mappedSortField) {
 		// eslint-disable-next-line max-len
 		throw new HttpException("Bad 'sortOrder'. Should be one of 'taxonomic' | 'scientific_name' | 'finnish_name'", 422);
@@ -134,7 +135,7 @@ const mapSortOrder = ({ sortOrder }: GetTaxaPageDto) => {
 	if (order !== "asc" && order !== "desc") {
 		throw new HttpException("Bad sort direction in 'sortOrder'. Should be one of 'asc' | 'desc'", 422);
 	}
-	return [{ [mappedSortField]: { order: order as ("asc" | "desc") } }];
+	return [{ [sortField]: { order: order as ("asc" | "desc") } }];
 };
 
 /**
