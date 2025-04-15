@@ -86,7 +86,7 @@ class PageLikeTaxaQuery extends IntersectionType(
 	HasIncludeHidden
 ) {
 	/**
-	 * Sorting field of the species (one of 'taxonomic' | 'scientificName' | 'vernacularName.fi') and optional sort order 'desc' | 'asc'.
+	 * Sorting field of the species (one of 'taxonomic' | 'scientificName' | 'finnishName') and optional sort order 'desc' | 'asc'.
 	 * Order defaults to 'asc'. The sort field and order are separated by a space character.
 	 *
 	 * Defaults to 'taxonomic'
