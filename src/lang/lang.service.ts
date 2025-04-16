@@ -6,7 +6,7 @@ import { JSONPath } from "jsonpath-plus";
 import { JsonLdService } from "src/json-ld/json-ld.service";
 import { JsonLdDocument } from "jsonld";
 import { instanceToInstance } from "class-transformer";
-import { dictionarify, updateWithJSONPointer } from "src/utils";
+import { dictionarify, lastFromNonEmptyArr, updateWithJSONPointer } from "src/utils";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
@@ -60,7 +60,11 @@ export class LangService {
 					json: item as any,
 					resultType: "pointer", callback:
 					(pointer: string, _: any, { parent, value }: any) => {
-						updateWithJSONPointer(parent, pointer, getLangValue(value, lang, langFallback));
+						updateWithJSONPointer(
+							parent,
+							`/${lastFromNonEmptyArr(pointer.split("/"))}`,
+							getLangValue(value, lang, langFallback)
+						);
 					}
 				});
 			});
