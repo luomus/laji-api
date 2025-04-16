@@ -2,38 +2,68 @@ import { Injectable } from "@nestjs/common";
 import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { isJSONObjectSerializable, isObject, JSONObjectSerializable, KeyOf, omit } from "src/typing.utils";
-import * as jp from "jsonpath";
+import { JSONPath } from "jsonpath-plus";
 import { JsonLdService } from "src/json-ld/json-ld.service";
 import { JsonLdDocument } from "jsonld";
 import { instanceToInstance } from "class-transformer";
+import { dictionarify, updateWithJSONPointer } from "src/utils";
 
 const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
 const JSON_LD_KEYWORDS = new Set(["@id", "@type", "@value", "@language", "@list", "@set", "@context"]);
+
+// Assumes the path starts with "$.", which is the case as we gather the JSON paths ourselves like that in
+// `getMultiLangJSONPaths()`.
+function getFirstTermOfJSONPath(path: string): string {
+	const dotIndex = path.indexOf(".", 2); // Find second dot
+	if (dotIndex === -1) {
+		return path.slice(2);
+	}
+	return path.slice(2, dotIndex);
+}
+
 
 @Injectable()
 export class LangService {
 
 	constructor(private jsonLdService: JsonLdService) {}
 
-	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean)
-		: Promise<(item: T) => MultiLangAsString<T>>
-	async contextualTranslateWith<T>(jsonLdContext: string, lang: Lang.multi, langFallback?: boolean)
-		: Promise<(item: T) => T>
-	async contextualTranslateWith<T>(jsonLdContext: string, lang?: Lang, langFallback?: boolean)
-		: Promise<(item: T) => (T | MultiLangAsString<T>)>
 	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang: Lang = Lang.en, langFallback = true
+		jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean, selectedFields?: string[]
+	) : Promise<(item: T) => MultiLangAsString<T>>
+	async contextualTranslateWith<T>(
+		jsonLdContext: string, lang: Lang.multi, langFallback?: boolean, selectedFields?: string[]
+	) : Promise<(item: T) => T>
+	async contextualTranslateWith<T>(
+		jsonLdContext: string, lang?: Lang, langFallback?: boolean, selectedFields?: string[]
+	) : Promise<(item: T) => (T | MultiLangAsString<T>)>
+	async contextualTranslateWith<T>(
+		jsonLdContext: string, lang: Lang = Lang.en, langFallback = true, selectedFields?: string[]
 	) {
-		const multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
+		if (lang === Lang.multi) {
+			return (item: T) => item;
+		}
+
+		let multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
+
+
+		if (selectedFields) {
+			const selectedFieldsLookup = dictionarify(selectedFields);
+			multiLangJSONPaths = multiLangJSONPaths.filter(path => selectedFieldsLookup[getFirstTermOfJSONPath(path)]);
+		}
+
 		return (item: T): T | MultiLangAsString<T> => {
-			// `jp.apply` acts mutably, so we need to clone the item to keep the translation immutable.
 			item = instanceToInstance(item);
-			multiLangJSONPaths.forEach(jsonPath =>
-				jp.apply(item, jsonPath, (value: MultiLang) => {
-					return getLangValue(value, lang, langFallback);
-				})
-			);
+			multiLangJSONPaths.forEach(path => {
+				JSONPath({
+					path,
+					json: item as any,
+					resultType: "pointer", callback:
+					(pointer: string, _: any, { parent, value }: any) => {
+						updateWithJSONPointer(parent, pointer, getLangValue(value, lang, langFallback));
+					}
+				});
+			});
 			return item;
 		};
 	}

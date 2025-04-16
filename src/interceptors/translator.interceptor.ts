@@ -22,20 +22,25 @@ export class Translator implements NestInterceptor {
 	async translate(rawQuery: QueryWithLangDto, result: any) {
 		const query = plainToClass(QueryWithLangDto, rawQuery);
 		const { lang, langFallback } = query;
+		const selectedFields: string[] | undefined = (query as any).selectedFields?.split(",");
 		const sample = this.takeSample(result);
-		const jsonLdContext = this.getJsonLdContext(sample);
-		if (sample) {
-			if (!jsonLdContext) {
-				throw new Error("Translator failed to get the @context for item");
-			}
-			const translated = await applyToResult(
-				await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback),
-			)(result);
-			return typeof jsonLdContext === "string"
-				? applyToResult(item => applyLangToJsonLdContext(item as HasJsonLdContext, lang))(translated)
-				: translated;
+
+		if (!sample) {
+			return result;
 		}
-		return result;
+
+		const jsonLdContext = this.getJsonLdContext(sample);
+
+		if (!jsonLdContext) {
+			throw new Error("Translator failed to get the @context for item");
+		}
+
+		const translated = await applyToResult(
+			await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback, selectedFields),
+		)(result);
+		return typeof jsonLdContext === "string"
+			? applyToResult(item => applyLangToJsonLdContext(item as HasJsonLdContext, lang))(translated)
+			: translated;
 	};
 
 	private takeSample(result: any) {
