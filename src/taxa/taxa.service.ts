@@ -100,13 +100,14 @@ export class TaxaService {
 	}
 
 	async getChildren(id: string, query: GetTaxaResultsDto) {
-		const taxon = await this.getBySubject(id);
+		const taxon = await this.getBySubject(id, { selectedFields: ["id"] });
 		const childrenQuery: Partial<AllQueryParams> = {
 			...query,
 			checklist: taxon.nameAccordingTo || "MR.1",
 			pageSize: 10000, // This has worked so far to get all taxa...
 			depth: true
 		};
+
 		const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
 		if (childrenQuery.selectedFields) {
 			childrenQuery.selectedFields = [
@@ -123,7 +124,7 @@ export class TaxaService {
 			filters.nonHiddenParents = id;
 		}
 
-		return arrayAdapter(await this.elasticSearch(childrenQuery, undefined, taxon), query);
+		return arrayAdapter(await this.elasticSearch(childrenQuery, filters, taxon), query);
 	}
 
 	async getTaxonParents(id: string, query: GetTaxaResultsDto) {
