@@ -55,5 +55,4 @@ export class ChecklistService {
 	async getAllDict(): Promise<Record<string, Checklist>> {
 		return dictionarifyByKey(await this.getAll(), "id");
 	}
-
 }

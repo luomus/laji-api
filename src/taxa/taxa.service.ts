@@ -88,7 +88,7 @@ export class TaxaService {
 	}
 
 	async getBySubject(id: string, query: GetTaxonDto = {}) {
-		const [taxon] =  (await this.elasticSearch({
+		const [taxon] = (await this.elasticSearch({
 			id: [id],
 			checklistVersion: ChecklistVersion.current,
 			...query

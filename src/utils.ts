@@ -199,7 +199,7 @@ export const asArray = <T>(maybeArr: T | T[]): T[] =>
 /** Returns a function that applies the given predicate to the input, if it's not undefined. */
 export const doForDefined = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
 
-// TODO check for invalid date after documents branch merge
+/** Creates a ISO date string without time ("YYYY-MM-DD") from a Date object  */
 export const dateToISODate = (date: Date): string => date.toISOString().split("T")[0] as string;
 
 // TS is wrong here, `Date.parse()` accepts `Date`.

@@ -76,7 +76,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 				formID: "formID",
 				gatheringEvent: { dateBegin: "2024-02-01" }
 			} as Document;
-			formsServiceMock.get.mockResolvedValue({ options: { periods: [] } } as unknown as FormSchemaFormat);
+			formsServiceMock.get.mockResolvedValue({} as any);
 			documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
 
 			await expect(service.validate(document)).rejects.toThrow(ValidationException);
@@ -89,7 +89,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 				formID: "formID",
 				gatheringEvent: { dateBegin: "2024-02-01" }
 			} as Document;
-			formsServiceMock.get.mockResolvedValue({ options: { periods: [] } } as unknown as FormSchemaFormat);
+			formsServiceMock.get.mockResolvedValue({} as any);
 			documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
 
 			await expect(service.validate(document)).resolves.not.toThrow();
