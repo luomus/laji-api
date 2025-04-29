@@ -84,7 +84,7 @@ describe("/documents/validate", function() {
 					"details": {
 						"gatheringEvent": {
 							"dateBegin": [
-								"Observation already exists withing the given gathering period."
+								"Observation already exists within the given gathering period."
 							]
 						}
 					},
@@ -97,7 +97,7 @@ describe("/documents/validate", function() {
 
 	it("allows document to existing if editing document", function (done) {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;;
+		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = {
 			id: docID,
 			formID: testForm,

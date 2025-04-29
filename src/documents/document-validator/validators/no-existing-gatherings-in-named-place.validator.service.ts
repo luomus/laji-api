@@ -41,14 +41,14 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const isNewDoc = !id;
 		if (isNewDoc) {
 			throw new ValidationException(
-				{ [path]: ["Observation already exists withing the given gathering period."] }
+				{ [path]: ["Observation already exists within the given gathering period."] }
 			);
 		} else {
 			const namedPlaceHasDocumentsForExistingDoc =
 				await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange, id);
-			if (namedPlaceHasDocumentsForExistingDoc) {
+			if (!namedPlaceHasDocumentsForExistingDoc) {
 				throw new ValidationException(
-					{ [path]: ["Observation already exists withing the given gathering period."] }
+					{ [path]: ["Observation already exists within the given gathering period."] }
 				);
 			}
 		}
