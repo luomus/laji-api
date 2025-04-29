@@ -152,6 +152,7 @@ export class TaxonElastic {
 	@Exclude() nonHiddenParents: string[];
 	nameAccordingTo: string;
 	vernacularName: MultiLang;
+	colloquialVernacularName: MultiLang;
 	[key: string]: unknown;
 }
 

@@ -20,7 +20,14 @@ const wrapIntoResults = (schema: SchemaItem) => ({
 
 const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
 	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
-	["vernacularNameFi", "vernacularNameSv", "vernacularNameEn"].forEach(property => {
+	[
+		"vernacularNameFi",
+		"vernacularNameSv",
+		"vernacularNameEn",
+		"colloquialVernacularNameFi",
+		"colloquialVernacularNameSv",
+		"colloquialVernacularNameEn",
+	].forEach(property => {
 		schema.properties![property] = { type: "string" };
 	});
 	return schema;
@@ -31,7 +38,7 @@ const addFiltersSchema = (document: OpenAPIObject, remoteDoc: OpenAPIObject) =>
 
 /* eslint-disable max-len */
 const BODY_DESCRIPTION = `
-The request body is a JSON object where each property represents a filter. 
+The request body is a JSON object where each property represents a filter.
 Properties are dot-separated (e.g., 'field.subfield') and correspond to the fields of taxon results. For array fields, the filter is done against each array item, so the dot-separated pointer shouldn't include array item path (if 'subfield' is an array that has property 'subsubfield', the pointer would be 'field.subfield.subsubfield').
 For array fields, the dot notation allows filtering by nested properties.
 

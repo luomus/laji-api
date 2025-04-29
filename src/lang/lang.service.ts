@@ -46,7 +46,6 @@ export class LangService {
 
 		let multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
 
-
 		if (selectedFields) {
 			const selectedFieldsLookup = dictionarify(selectedFields);
 			multiLangJSONPaths = multiLangJSONPaths.filter(path => selectedFieldsLookup[getFirstTermOfJSONPath(path)]);
