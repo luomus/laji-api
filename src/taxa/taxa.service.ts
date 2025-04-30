@@ -231,26 +231,19 @@ const mapTaxonParents = (query: Partial<AllQueryParams>) => (taxon: TaxonElastic
 		? { ...taxon, parents: taxon.nonHiddenParents } as unknown as TaxonElastic
 		: taxon;
 
-const addVernacularNameTranslations = (taxon: TaxonElastic) => ({
+const addNameMultiLangs = (taxon: TaxonElastic) => ({
 	...taxon,
-	vernacularNameFi: taxon.vernacularName?.fi,
-	vernacularNameSv: taxon.vernacularName?.sv,
-	vernacularNameEn: taxon.vernacularName?.en,
-});
-
-const addColloquialVernacularNameTranslations = (taxon: TaxonElastic) => ({
-	...taxon,
-	colloquialVernacularNameFi: taxon.colloquialVernacularName?.fi,
-	colloquialVernacularNameSv: taxon.colloquialVernacularName?.sv,
-	colloquialVernacularNameEn: taxon.colloquialVernacularName?.en,
+	vernacularNameMultiLang: taxon.vernacularName,
+	alternativeVernacularNameMultiLang: taxon.alternativeVernacularName,
+	colloquialVernacularNameMultiLang: taxon.colloquialVernacularName,
+	obsoleteVernacularNameMultiLang: taxon.obsoleteVernacularName,
 });
 
 const mapTaxon = (taxon: TaxonElastic, query: Partial<AllQueryParams>)
 	: TaxonElastic =>
 	pipe(
 		mapTaxonParents(query),
-		addVernacularNameTranslations,
-		addColloquialVernacularNameTranslations
+		addNameMultiLangs,
 	)(taxon);
 
 const mapResponseAggregations = (

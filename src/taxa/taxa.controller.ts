@@ -21,14 +21,17 @@ const wrapIntoResults = (schema: SchemaItem) => ({
 const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
 	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
 	[
-		"vernacularNameFi",
-		"vernacularNameSv",
-		"vernacularNameEn",
-		"colloquialVernacularNameFi",
-		"colloquialVernacularNameSv",
-		"colloquialVernacularNameEn",
+		"vernacularNameMultiLang",
+		"alternativeVernacularNameMultiLang",
+		"alternativeVernacularNameMultiLang",
+		"obsoleteVernacularNameMultiLang"
 	].forEach(property => {
-		schema.properties![property] = { type: "string" };
+		schema.properties![property] = {
+			type: "object",
+			properties: ["fi", "sv", "en", "se", "ru"].reduce(
+				(properties, lang) => ({ ...properties, [lang]: { type: "string" } }),
+				{})
+		};
 	});
 	return schema;
 };
