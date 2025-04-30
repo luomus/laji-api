@@ -26,7 +26,7 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 		"alternativeVernacularNameMultiLang",
 		"obsoleteVernacularNameMultiLang",
 		"synonymsMultiLang",
-		"tradeNameMultilang"
+		"tradeNameMultiLang"
 	].forEach(property => {
 		schema.properties![property] = {
 			type: "object",

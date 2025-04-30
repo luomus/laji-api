@@ -238,7 +238,7 @@ const addNameMultiLangs = (taxon: TaxonElastic) => ({
 	colloquialVernacularNameMultiLang: taxon.colloquialVernacularName,
 	obsoleteVernacularNameMultiLang: taxon.obsoleteVernacularName,
 	synonymsMultiLang: taxon.synonyms,
-	tradeNameMultilang: taxon.tradeName,
+	tradeNameMultiLang: taxon.tradeName,
 });
 
 const mapTaxon = (taxon: TaxonElastic, query: Partial<AllQueryParams>)
