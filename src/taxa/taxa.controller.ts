@@ -24,7 +24,7 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 	[
 		"vernacularNameMultiLang",
 		"alternativeVernacularNameMultiLang",
-		"alternativeVernacularNameMultiLang",
+		"colloquialVernacularNameMultiLang",
 		"obsoleteVernacularNameMultiLang",
 		"synonymsMultiLang",
 		"tradeNameMultiLang"
