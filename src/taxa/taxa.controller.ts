@@ -12,6 +12,7 @@ import { SchemaItem } from "src/swagger/swagger.service";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
+import { LANGS } from "src/common.dto";
 
 const wrapIntoResults = (schema: SchemaItem) => ({
 	type: "object",
@@ -30,7 +31,7 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 	].forEach(property => {
 		schema.properties![property] = {
 			type: "object",
-			properties: ["fi", "sv", "en", "se", "ru"].reduce(
+			properties: LANGS.reduce(
 				(properties, lang) => ({ ...properties, [lang]: { type: "string" } }),
 				{})
 		};
