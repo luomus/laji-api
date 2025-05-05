@@ -33,8 +33,9 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 			type: "object",
 			properties: LANGS.reduce(
 				(properties, lang) => ({ ...properties, [lang]: { type: "string" } }),
-				{})
-		};
+				{}),
+			_patchMultiLang: false
+		} as any;
 	});
 	return schema;
 };

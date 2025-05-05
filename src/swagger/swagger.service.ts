@@ -378,7 +378,7 @@ export const paginateAsNeededWith = (operation: OperationObject) =>
 			: schema;
 
 const multiLangAsString = <T extends SchemaObject | ReferenceObject>(schema: T): T | { type: "string" } => {
-	if (isSchemaObject(schema) && schema.properties) {
+	if (isSchemaObject(schema) && schema.properties && (schema as any)._patchMultiLang !== false) {
 		if (["fi", "sv", "en"].every(lang => Object.keys(schema.properties!).includes(lang))) {
 			return { type: "string" };
 		} else {
