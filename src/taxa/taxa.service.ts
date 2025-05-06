@@ -237,7 +237,6 @@ const addNameMultiLangs = (taxon: TaxonElastic) => ({
 	alternativeVernacularNameMultiLang: taxon.alternativeVernacularName,
 	colloquialVernacularNameMultiLang: taxon.colloquialVernacularName,
 	obsoleteVernacularNameMultiLang: taxon.obsoleteVernacularName,
-	synonymsMultiLang: taxon.synonyms,
 	tradeNameMultiLang: taxon.tradeName,
 });
 
