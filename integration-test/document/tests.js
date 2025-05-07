@@ -549,8 +549,8 @@ describe("/documents", function() {
 				gatherings: [
 					{
 						"@type": "MY.gathering",
+						id: documentId + "#6",
 						notes: "new notes",
-						id: documentId + "#5",
 						geometry: {
 							"coordinates": [21.3, 60.4],
 							"type": "Point"
@@ -558,18 +558,18 @@ describe("/documents", function() {
 						units: [
 							{
 								"@type": "MY.unit",
-								id: documentId + "#3",
+								id: documentId + "#7",
 								identifications: [
 									{
 										"@type": "MY.identification",
-										id: documentId + "#4",
+										id: documentId + "#8",
 										taxon: "Käki"
 									}
 								],
 								typeSpecimens: [
 									{
 										"@type": "MY.identification",
-										id: documentId + "#6",
+										id: documentId + "#9",
 										typeNotes: "tyyppi tietoa"
 									}
 								]
@@ -585,7 +585,6 @@ describe("/documents", function() {
 						units: [
 							{
 								"@type": "MY.unit",
-								id: documentId + "#3",
 								identifications: [
 									{
 										"@type": "MY.identification",
@@ -682,7 +681,6 @@ describe("/documents", function() {
 						units: [
 							{
 								"@type": "MY.unit",
-								id: documentId + "#3",
 								identifications: [
 									{
 										"@type": "MY.identification",
