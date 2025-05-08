@@ -180,11 +180,13 @@ export class CollectionsService {
 				id: "gbif-dataset:" + collection.key,
 				"@context": "MY.collection",
 				collectionType: "MY.collectionTypeMixed",
-				collectionName: { en: collection.title, fi: "", sv: "" },
-				longName: { en: collection.title, fi: "", sv: "" },
-				description: { en: collection.description, fi: "", sv: "" },
+				collectionName: { en: collection.title },
+				longName: { en: collection.title },
+				description: { en: collection.description },
 				personResponsible: contact.lastName ? contact.lastName + ", " + contact.firstName : contact.firstName,
-				contactEmail: Array.isArray(contact.email) && contact.email.length > 0 ? contact.email[0] : "",
+				contactEmail: Array.isArray(contact.email) && contact.email.length > 0
+					? contact.email[0]
+					: "info@laji.fi",
 				intellectualRights: "MY.intellectualRightsCC-BY",
 				isPartOf: GBIF_DATASET_PARENT
 			};

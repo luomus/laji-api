@@ -35,7 +35,7 @@ export class TaxaService {
 	) {}
 
 	async get(id: string, selectedFields?: MaybeArray<string>): Promise<Taxon> {
-		const query: TaxaSearchDto = { q: id };
+		const query: TaxaSearchDto = { query: id };
 		if (selectedFields) {
 			query.selectedFields = asArray(selectedFields).join(",");
 		}
@@ -49,6 +49,10 @@ export class TaxaService {
 	}
 
 	async search(query: TaxaSearchDto) {
+		if (query.matchType) {
+			(query as any).matchType = query.matchType.toUpperCase();
+		}
+		query.q = query.query;
 		const { matches } = (await this.taxaClient.get<{ matches: Taxon[]; }>("", { params: query }));
 		return matches || [];
 	}
@@ -84,7 +88,7 @@ export class TaxaService {
 	}
 
 	async getBySubject(id: string, query: GetTaxonDto = {}) {
-		const [taxon] =  (await this.elasticSearch({
+		const [taxon] = (await this.elasticSearch({
 			id: [id],
 			checklistVersion: ChecklistVersion.current,
 			...query
@@ -96,13 +100,14 @@ export class TaxaService {
 	}
 
 	async getChildren(id: string, query: GetTaxaResultsDto) {
-		const taxon = await this.getBySubject(id);
+		const taxon = await this.getBySubject(id, { selectedFields: ["id"] });
 		const childrenQuery: Partial<AllQueryParams> = {
 			...query,
 			checklist: taxon.nameAccordingTo || "MR.1",
 			pageSize: 10000, // This has worked so far to get all taxa...
 			depth: true
 		};
+
 		const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
 		if (childrenQuery.selectedFields) {
 			childrenQuery.selectedFields = [
@@ -119,7 +124,7 @@ export class TaxaService {
 			filters.nonHiddenParents = id;
 		}
 
-		return arrayAdapter(await this.elasticSearch(childrenQuery, undefined, taxon), query);
+		return arrayAdapter(await this.elasticSearch(childrenQuery, filters, taxon), query);
 	}
 
 	async getTaxonParents(id: string, query: GetTaxaResultsDto) {
@@ -138,8 +143,8 @@ export class TaxaService {
 		return arrayAdapter(parents, query);
 	}
 
-	async getTaxonSpeciesPage(id: string, query: GetTaxaPageDto) {
-		const filters: TaxaFilters = { species: true };
+	async getTaxonSpeciesPage(id: string, query: GetTaxaPageDto, filters: TaxaFilters = {}) {
+		filters = { ...filters, species: true };
 		filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
 		return this.getPage(query, filters);
 	}
@@ -155,7 +160,7 @@ export class TaxaService {
 	}
 
 	async getTaxonMedia(id: string, query: GetTaxaDescriptionsDto) {
-		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia;
+		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia || [];
 	}
 
 	@IntelligentMemoize()
@@ -187,10 +192,10 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 			return [{
 				path,
 				schema: { oneOf: [
-					{ type: "string" },
+					schema,
 					{
 						type: "array",
-						items: { "type": "string" }
+						items: schema
 					}
 				] }
 			}];
@@ -205,7 +210,8 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 		properties: collectProperties(schema, []).reduce((properties, { path, schema }) => {
 			properties[path.join(".")] = schema;
 			return properties;
-		}, {} as Record<string, JSONSchema>)
+		}, {} as Record<string, JSONSchema>),
+		required: []
 	};
 };
 
@@ -225,18 +231,20 @@ const mapTaxonParents = (query: Partial<AllQueryParams>) => (taxon: TaxonElastic
 		? { ...taxon, parents: taxon.nonHiddenParents } as unknown as TaxonElastic
 		: taxon;
 
-const addVernacularNameTranslations = (taxon: TaxonElastic) => ({
+const addNameMultiLangs = (taxon: TaxonElastic) => ({
 	...taxon,
-	vernacularNameFi: taxon.vernacularName?.fi,
-	vernacularNameSv: taxon.vernacularName?.sv,
-	vernacularNameEn: taxon.vernacularName?.en,
+	vernacularNameMultiLang: taxon.vernacularName,
+	alternativeVernacularNameMultiLang: taxon.alternativeVernacularName,
+	colloquialVernacularNameMultiLang: taxon.colloquialVernacularName,
+	obsoleteVernacularNameMultiLang: taxon.obsoleteVernacularName,
+	tradeNameMultiLang: taxon.tradeName,
 });
 
 const mapTaxon = (taxon: TaxonElastic, query: Partial<AllQueryParams>)
 	: TaxonElastic =>
 	pipe(
 		mapTaxonParents(query),
-		addVernacularNameTranslations
+		addNameMultiLangs,
 	)(taxon);
 
 const mapResponseAggregations = (

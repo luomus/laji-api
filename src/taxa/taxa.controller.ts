@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
-import { Body, Get, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
+import { Body, Get, HttpCode, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
 import { GetTaxaAggregateDto, GetTaxaAggregateWithFiltersDto, GetTaxaDescriptionsDto, GetTaxaPageDto,
 	GetTaxaPageWithFiltersDto, GetTaxaResultsDto, GetTaxonDto, TaxaSearchDto, TaxonElastic } from "./taxa.dto";
 import { TaxaService, getFiltersSchema } from "./taxa.service";
@@ -12,16 +12,30 @@ import { SchemaItem } from "src/swagger/swagger.service";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
+import { LANGS } from "src/common.dto";
 
 const wrapIntoResults = (schema: SchemaItem) => ({
 	type: "object",
-	properties: { results: schema, "@context": { type: "string" } }
+	properties: { results: { type: "array", items: schema } , "@context": { type: "string" } }
 });
 
 const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
 	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
-	["vernacularNameFi", "vernacularNameSv", "vernacularNameEn"].forEach(property => {
-		schema.properties![property] = { type: "string" };
+	[
+		"vernacularName",
+		"alternativeVernacularName",
+		"colloquialVernacularName",
+		"obsoleteVernacularName",
+		"tradeName"
+	].forEach(property => {
+		const origProperty = schema.properties![property] as SchemaObject;
+		schema.properties![`${property}MultiLang`] = {
+			type: "object",
+			properties: LANGS.reduce(
+				(properties, lang) => ({ ...properties, [lang]: origProperty }),
+				{}),
+			_patchMultiLang: false
+		} as any;
 	});
 	return schema;
 };
@@ -31,7 +45,7 @@ const addFiltersSchema = (document: OpenAPIObject, remoteDoc: OpenAPIObject) =>
 
 /* eslint-disable max-len */
 const BODY_DESCRIPTION = `
-The request body is a JSON object where each property represents a filter. 
+The request body is a JSON object where each property represents a filter.
 Properties are dot-separated (e.g., 'field.subfield') and correspond to the fields of taxon results. For array fields, the filter is done against each array item, so the dot-separated pointer shouldn't include array item path (if 'subfield' is an array that has property 'subsubfield', the pointer would be 'field.subfield.subsubfield').
 For array fields, the dot notation allows filtering by nested properties.
 
@@ -87,13 +101,14 @@ export class TaxaController {
 	/** Get a page of taxa with filters */
 	@Version("1")
 	@Post()
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getPage(query, filters);
@@ -107,11 +122,12 @@ export class TaxaController {
 
 	/** Get an aggregate of taxa with filters */
 	@Post("aggregate")
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	getAggregateWithFilters(@Query() query: GetTaxaAggregateWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getAggregate(query, filters);
 	}
@@ -128,13 +144,14 @@ export class TaxaController {
 	/** Get a page of species with filters */
 	@Version("1")
 	@Post("species")
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
-	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getSpeciesPageWithFilters(@Query() query: GetTaxaPageWithFiltersDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getSpeciesPage(query, filters);
@@ -196,6 +213,26 @@ export class TaxaController {
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
+	}
+
+	/** Get species and subspecies of a taxon */
+	@Version("1")
+	@Post(":id/species")
+	@ApiBody({ required: false, description: BODY_DESCRIPTION })
+	@HttpCode(200)
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "Taxon",
+		jsonLdContext: "taxon-elastic",
+		customizeRequestBodySchema: addFiltersSchema
+	})
+	@UseInterceptors(Translator, Serializer(TaxonElastic))
+	getTaxonSpeciesPageWithFilters(
+		@Param("id") id: string,
+		@Query() query: GetTaxaPageDto,
+		@Body() filters?: TaxaFilters
+	) {
+		return this.taxaService.getTaxonSpeciesPage(id, query, filters);
 	}
 
 	/** Get an aggregate of species and subspecies of a taxon */

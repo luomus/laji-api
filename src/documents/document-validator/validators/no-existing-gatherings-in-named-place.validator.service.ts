@@ -1,7 +1,7 @@
 import { DocumentsService } from "src/documents/documents.service";
 import { Document } from "@luomus/laji-schema";
 import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
-import { dateToISODate, isValidDate } from "src/utils";
+import { isValidDate } from "src/utils";
 import { HttpException, Injectable } from "@nestjs/common";
 import { DocumentValidator, ValidationException, joinJSONPointers } from "../document-validator.utils";
 import { FormsService } from "src/forms/forms.service";
@@ -29,11 +29,6 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		}
 		const form = await this.formsService.get(formID, Format.schema);
 		const dateRange = this.getPeriod(form, document, path);
-		if (dateRange === false) {
-			throw new ValidationException(
-				{ [path]: ["Date is not in correct format. Should use format YYYY-MM-DD."] }
-			);
-		}
 
 		const namedPlaceHasDocuments =
 			await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange);
@@ -46,14 +41,14 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const isNewDoc = !id;
 		if (isNewDoc) {
 			throw new ValidationException(
-				{ [path]: ["Observation already exists withing the given gathering period."] }
+				{ [path]: ["Observation already exists within the given gathering period."] }
 			);
 		} else {
 			const namedPlaceHasDocumentsForExistingDoc =
 				await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange, id);
 			if (!namedPlaceHasDocumentsForExistingDoc) {
 				throw new ValidationException(
-					{ [path]: ["Observation already exists withing the given gathering period."] }
+					{ [path]: ["Observation already exists within the given gathering period."] }
 				);
 			}
 		}
@@ -66,14 +61,24 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		}
 		const start =  new Date(document.gatheringEvent.dateBegin);
 		if (!isValidDate(start)) {
-			return false;
+			throw new ValidationException(
+				{ "/namedPlaceID": ["Could not find the named place in the document"] }
+			);
 		}
 
 		const periods = form.options?.periods;
 
 		const comp = ((start.getMonth() + 1) * 100) + start.getDate();
 
-		for (const period of (periods || []).slice().sort()) {
+		if (!periods) {
+			const end = new Date(document.gatheringEvent.dateEnd as string); // TS is wrong, Date accepts undefined.
+			if (!isValidDate(end)) {
+				return { from: start.toISOString(), to: start.toISOString() };
+			}
+			return { from: start.toISOString(), to: end.toISOString() };
+		}
+
+		for (const period of periods.slice().sort()) {
 			const ranges = period.split("/");
 			if (ranges.length !== 2) {
 				throw new HttpException(
@@ -104,14 +109,6 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 					to: start.getFullYear() + "-" + ranges[1]
 				};
 			}
-		}
-
-		if (!Array.isArray(periods)) {
-			const end = new Date(document.gatheringEvent.dateEnd as string); // TS is wrong, Date accepts undefined.
-			if (!isValidDate(end)) {
-				return { from: dateToISODate(start), to: dateToISODate(start) };
-			}
-			return { from: dateToISODate(start), to: dateToISODate(end) };
 		}
 	}
 }

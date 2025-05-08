@@ -45,6 +45,7 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 
 			const query = plainToClass(QueryDto, rawQuery);
 			const { lang, langFallback, page, pageSize } = query;
+			const selectedFields: string[] | undefined = (query as any).selectedFields?.split(",");
 			const sample = isQueryWithLangDto(query)
 				? Array.isArray(result)
 					? result[0]
@@ -60,7 +61,7 @@ export function createQueryParamsInterceptor<T extends (Partial<QueryWithLangDto
 					throw new Error("QueryParamsInterceptor failed to get the @context for item");
 				}
 				const translated = await applyToResult(
-					await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback),
+					await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback, selectedFields),
 				)(result);
 				return applyLangToJsonLdContext(translated as HasJsonLdContext, lang);
 			}

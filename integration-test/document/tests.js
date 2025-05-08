@@ -139,8 +139,7 @@ describe("/documents", function() {
 				res.body.should.have.property("details");
 				res.body.details.should.be.a("object");
 				res.body.details.should.have.property("formID");
-				res.body.details.formID.should.be.a("object");
-				res.body.details.formID.should.have.property("errors");
+				res.body.details.formID.should.be.a("array");
 				done();
 			});
 	});
@@ -181,8 +180,7 @@ describe("/documents", function() {
 				res.body.details.gatherings["0"].units.should.be.a("object");
 				res.body.details.gatherings["0"].units.should.have.property("0");
 				res.body.details.gatherings["0"].units["0"].should.have.property("recordBasis");
-				res.body.details.gatherings["0"].units["0"].recordBasis.should.be.a("object");
-				res.body.details.gatherings["0"].units["0"].recordBasis.should.have.property("errors");
+				res.body.details.gatherings["0"].units["0"].recordBasis.should.be.a("array");
 				done();
 			});
 	});
@@ -551,8 +549,8 @@ describe("/documents", function() {
 				gatherings: [
 					{
 						"@type": "MY.gathering",
+						id: documentId + "#6",
 						notes: "new notes",
-						id: documentId + "#5",
 						geometry: {
 							"coordinates": [21.3, 60.4],
 							"type": "Point"
@@ -560,18 +558,18 @@ describe("/documents", function() {
 						units: [
 							{
 								"@type": "MY.unit",
-								id: documentId + "#3",
+								id: documentId + "#7",
 								identifications: [
 									{
 										"@type": "MY.identification",
-										id: documentId + "#4",
+										id: documentId + "#8",
 										taxon: "Käki"
 									}
 								],
 								typeSpecimens: [
 									{
 										"@type": "MY.identification",
-										id: documentId + "#6",
+										id: documentId + "#9",
 										typeNotes: "tyyppi tietoa"
 									}
 								]
@@ -587,7 +585,6 @@ describe("/documents", function() {
 						units: [
 							{
 								"@type": "MY.unit",
-								id: documentId + "#3",
 								identifications: [
 									{
 										"@type": "MY.identification",
@@ -684,7 +681,6 @@ describe("/documents", function() {
 						units: [
 							{
 								"@type": "MY.unit",
-								id: documentId + "#3",
 								identifications: [
 									{
 										"@type": "MY.identification",
@@ -754,7 +750,7 @@ describe("/documents", function() {
 					res.body.should.have.property("details");
 					res.body.details.should.be.a("object");
 					res.body.details.should.have.property("locked");
-					res.body.details.locked.should.be.a("object");
+					res.body.details.locked.should.be.a("array");
 					done();
 				});
 		});
@@ -903,144 +899,6 @@ describe("/documents", function() {
 				.end(function (err, res) {
 					if (err) return done(err);
 					res.should.have.status(422);
-					done();
-				});
-		});
-
-		it("can update child classes", function(done) {
-			return this.skip(); // TODO this sub id logic in the old API is awful, just don't implement and rm this test?
-			if (!documentId) {
-				return this.skip();
-			}
-			var query = basePath + "/" + documentId +
-				"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-			var document = {
-				id: documentId,
-				editors: [config.user.model.id, config.user.friend_id],
-				creator: config.user.model.id,
-				formID: "MHL.119",
-				gatheringEvent:{
-					dateBegin: "2016-10-12",
-					leg: ["foo", "joku"]
-				},
-				gatherings: [
-					{
-						id: "JX.1",
-						notes: "new notes",
-						geometry: {
-							"coordinates": [21.3, 60.4],
-							"type": "Point"
-						},
-						units: [
-							{
-								"@type": "MY.unit",
-								identifications: [
-									{
-										"@type": "MY.identification",
-										taxon: "Käpytikka"
-									}
-								],
-								typeSpecimens: [
-									{
-										"@type": "MY.typeSpecimen",
-										id: "JX.1#2",
-										typeNotes: "some notes"
-									}
-								]
-							}
-						]
-					},
-					{
-						geometry: {
-							"coordinates": [21.3, 60.4],
-							"type": "Point"
-						},
-						id: documentId + "#3",
-						notes: "Other",
-						units: [
-							{
-								"@type": "MY.unit",
-								identifications: [
-									{
-										"@type": "MY.identification",
-										taxon: "Käpytikka 2"
-									}
-								]
-							}
-						]
-					},
-					{
-						notes: "Keep the id put move down",
-						geometry: {
-							"coordinates": [21.3, 60.4],
-							"type": "Point"
-						},
-						units: [
-							{
-								"@type": "MY.unit",
-								id: documentId + "#3",
-								identifications: [
-									{
-										"@type": "MY.identification",
-										id: "JX.1#1",
-										taxon: "Kotka"
-									},
-									{
-										"@type": "MY.identification",
-										id: documentId + "#4",
-										taxon: "Käki"
-									},
-									{
-										"@type": "MY.identification",
-										id: documentId + "#4",
-										taxon: "vanha"
-									}
-								],
-								typeSpecimens: [
-									{
-										"@type": "MY.typeSpecimen",
-										id: "JX.3#2",
-										typeNotes: "no 100% sure"
-									}
-								]
-							}
-						]
-					}
-				]
-			};
-			request(this.server)
-				.put(query)
-				.send(document)
-				.end(function (err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.body.should.have.any.keys("gatherings");
-					res.body.gatherings.should.have.lengthOf(3);
-					try {
-						document.gatherings[0].id = documentId + "#12";
-						document.gatherings[0].units[0].id = documentId + "#13";
-						document.gatherings[0].units[0].identifications[0].id = documentId + "#14";
-						document.gatherings[0].units[0].typeSpecimens[0].id = documentId + "#15";
-						document.gatherings[1].id = documentId + "#16";
-						document.gatherings[1].units[0].id = documentId + "#17";
-						document.gatherings[1].units[0].identifications[0].id = documentId + "#18";
-						document.gatherings[2].id = documentId + "#19";
-						document.gatherings[2].units[0].identifications[0].id = documentId + "#20";
-						document.gatherings[2].units[0].identifications[2].id = documentId + "#21";
-						document.gatherings[2].units[0].typeSpecimens[0].id = documentId + "#22";
-						document.gatherings[0]["@type"] = "MY.gathering";
-						document.gatherings[1]["@type"] = "MY.gathering";
-						document.gatherings[2]["@type"] = "MY.gathering";
-					} catch (e) {}
-					res.body.gatherings[0].should.deep.equal(document.gatherings[0]);
-					res.body.gatherings[1].should.deep.equal(document.gatherings[1]);
-					res.body.gatherings[2].should.deep.equal(document.gatherings[2]);
-					res.body.should.include({
-						id: documentId,
-						editor: config.user.model.id,
-						creator: config.user.model.id,
-						dateCreated: dateCreated
-					});
 					done();
 				});
 		});

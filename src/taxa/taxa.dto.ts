@@ -1,5 +1,5 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { ApiHideProperty, ApiProperty, IntersectionType, OmitType } from "@nestjs/swagger";
+import { ApiHideProperty, IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
 import { IsInt } from "class-validator";
 import { MultiLang, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
@@ -86,7 +86,7 @@ class PageLikeTaxaQuery extends IntersectionType(
 	HasIncludeHidden
 ) {
 	/**
-	 * Sorting field of the species (one of 'taxonomic' | 'scientific_name' | 'finnish_name') and optional sort order 'desc' | 'asc'.
+	 * Sorting field of the species (one of 'taxonomic' | 'scientificName' | 'finnishName') and optional sort order 'desc' | 'asc'.
 	 * Order defaults to 'asc'. The sort field and order are separated by a space character.
 	 *
 	 * Defaults to 'taxonomic'
@@ -143,7 +143,7 @@ class RedListEvaluation {
 }
 
 export class TaxonElastic {
-	intellectualRights: string = "MZ.intellectualRightsCC-BY-4.0";
+	intellectualRights: string = "MZ.intellectualRightsCC-BY-4.0"; // TODO siirrä array vastauksen juureen
 	@Type(() => RedListEvaluation) latestRedListEvaluation: RedListEvaluation;
 	@Exclude() isPartOf: any;
 	@Exclude() isPartOfNonHidden: any;
@@ -152,12 +152,21 @@ export class TaxonElastic {
 	@Exclude() nonHiddenParents: string[];
 	nameAccordingTo: string;
 	vernacularName: MultiLang;
+	colloquialVernacularName: MultiLang;
 	[key: string]: unknown;
 }
 
+enum SearchMatchType {
+	exact = "exact",
+	partial = "partial",
+	likely = "likely"
+}
+
 export class TaxaSearchDto extends QueryWithLangDto {
-	/** Name to search */
-	@ApiProperty({ name: "query" }) q: string;
+	query: string;
+
+	// Used only internally
+	@ApiHideProperty() q?: string;
 
 	// Used only internally
 	@ApiHideProperty() id?: string;
@@ -187,7 +196,7 @@ export class TaxaSearchDto extends QueryWithLangDto {
 	excludedInformalTaxonGroup?: string;
 
 	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
-	matchType?: string;
+	matchType?: SearchMatchType;
 
 	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
 	excludeNameTypes?: string;
