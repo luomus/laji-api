@@ -33,7 +33,7 @@ describe("/trait", function() {
 			.post(url)
 			.send({})
 			.end(function(err, res) {
-				res.should.have.status(403);
+				res.should.have.status(422);
 				done();
 			});
 	});
