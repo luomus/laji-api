@@ -14,7 +14,7 @@ export class SoundIdentificationController {
 		private config: ConfigService,
 	) {}
 
-	frontendApiUsers = ["KE.389", "KE.841", "KE.542"];
+	frontendApiUsers = ["KE.389", "KE.841", "KE.542", "KE.601"];
 	soundIdentificationProxy = createProxyMiddleware({
 		target: this.config.get<string>("SOUND_IDENTIFICATION_HOST"),
 		changeOrigin: true,
