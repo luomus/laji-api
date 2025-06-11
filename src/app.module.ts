@@ -51,6 +51,7 @@ import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 import { GlobalRestClientModule } from "./rest-client/global-rest-client.module";
 import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.interceptor";
 import { JsonLdModule } from "./json-ld/json-ld.module";
+import { SoundIdentificationModule } from "./sound-identification/sound-identifiation.module";
 
 @Module({
 	imports: [
@@ -106,7 +107,8 @@ import { JsonLdModule } from "./json-ld/json-ld.module";
 		LoggerModule,
 		InformalTaxonGroupsModule,
 		GlobalRestClientModule,
-		JsonLdModule
+		JsonLdModule,
+		SoundIdentificationModule
 	],
 	controllers: [AppController],
 	providers: [
