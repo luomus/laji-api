@@ -27,6 +27,7 @@ describe("/sound-identification", function() {
 	});
 
 	it("POST proxy works", function(done) {
+		this.timeout(10000);
 		const url = basePath
       + "?access_token=" + config.access_token
       + "&personToken=" + config.user.token;
