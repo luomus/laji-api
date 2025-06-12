@@ -12,16 +12,7 @@ const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
 
 const JSON_LD_KEYWORDS = new Set(["@id", "@type", "@value", "@language", "@list", "@set", "@context"]);
 
-// Assumes the path starts with "$.", which is the case as we gather the JSON paths ourselves like that in
-// `getMultiLangJSONPaths()`.
-function getFirstTermOfJSONPath(path: string): string {
-	const dotIndex = path.indexOf(".", 2); // Find second dot
-	if (dotIndex === -1) {
-		return path.slice(2);
-	}
-	return path.slice(2, dotIndex);
-}
-
+export const getFirstTermOfJSONPath = (path: string) => path.match(/\$\.([^.[]+)/)![1] as string;
 
 @Injectable()
 export class LangService {

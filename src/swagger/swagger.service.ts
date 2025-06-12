@@ -56,7 +56,7 @@ export class SwaggerService {
 	@Interval(CACHE_30_MIN)
 	async warmup() {
 		this.storeSwaggerDoc = await this.getStoreSwaggerDoc();
-		this.lajiBackendSwaggerDoc = await  this.getLajiBackendSwaggerDoc();
+		this.lajiBackendSwaggerDoc = await this.getLajiBackendSwaggerDoc();
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
 	}
 
