@@ -16,9 +16,9 @@ describe("/sound-identification", function() {
 
 
 	it("POST returns 400 when no personToken specified", function(done) {
-    const url = basePath
+		const url = basePath
       + "?access_token=" + config.access_token;
-		request(this.server)  
+		request(this.server)
 			.post(url)
 			.end(function(err, res) {
 				res.should.have.status(400);
@@ -27,7 +27,7 @@ describe("/sound-identification", function() {
 	});
 
 	it("POST proxy works", function(done) {
-    const url = basePath
+		const url = basePath
       + "?access_token=" + config.access_token
       + "&personToken=" + config.user.token;
 		request(this.server)
