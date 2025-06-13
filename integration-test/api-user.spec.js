@@ -1,9 +1,11 @@
-var config = require("../config.json");
-var helpers = require("../helpers");
+var config = require("./config.json");
+var helpers = require("./helpers");
 const { request } = require("chai");
+const { url } = helpers;
+const { access_token } = config;
 
 describe("/api-user", function() {
-	var basePath = config["urls"]["api-user"];
+	var basePath = "/api-users";
 
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
@@ -15,10 +17,8 @@ describe("/api-user", function() {
 	});
 
 	it("returns user info", function(done) {
-		var query = basePath +
-			"?access_token=" + config["access_token"];
 		request(this.server)
-			.get(query)
+			.get(url(basePath, { access_token }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -30,9 +30,8 @@ describe("/api-user", function() {
 	});
 
 	it("returns error when no email is given", function(done) {
-		var query = basePath + "?access_token=" + config["access_token"];
 		request(this.server)
-			.post(query)
+			.post(url(basePath, { access_token }))
 			.send({})
 			.end(function(err, res) {
 				res.should.have.status(400);
