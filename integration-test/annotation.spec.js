@@ -1,10 +1,21 @@
-var config = require("../config.json");
-var helpers = require("../helpers");
+var config = require("./config.json");
+var helpers = require("./helpers");
 const { request } = require("chai");
+const { url } = helpers;
+const { access_token, personToken } = config;
+
+const annotation = {
+	rootID: "JX.128736",
+	targetID: "MY.1236#3",
+	notes: "Just a test annotation",
+	type: "MAN.typeOpinion",
+	byRole: "MMAN.basic",
+	addedTags: ["MMAN.26"]
+};
 
 describe("/annotation", function() {
-	const basePath = config["urls"]["annotation"];
-	let anId;
+	const basePath = "/annotations";
+	let savedId;
 
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
@@ -16,12 +27,9 @@ describe("/annotation", function() {
 	});
 
 	it("returns 401 when trying to add without permissions", function(done) {
-		const query = basePath +
-			"?access_token=" + config["access_token"];
-		const annotation = {};
 		request(this.server)
-			.post(query)
-			.send(annotation)
+			.post(url(basePath, { access_token }))
+			.send({})
 			.end(function (err, res) {
 				res.should.have.status(400);
 				done();
@@ -30,12 +38,10 @@ describe("/annotation", function() {
 
 	it("adds annotation", function (done) {
 		this.timeout(10000);
-		const query = basePath +
-			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
+		const document = JSON.parse(JSON.stringify(annotation));
 		request(this.server)
-			.post(query)
-			.send(document)
+			.post(url(basePath, { access_token, personToken }))
+			.send(annotation)
 			.end(function (err, res) {
 				if (err) return done(err);
 				res.should.have.status(201);
@@ -51,20 +57,18 @@ describe("/annotation", function() {
 				document["created"] = res.body["created"];
 				document["annotationByPerson"] = config.user.model.id;
 				res.body.should.eql(document);
-				anId = res.body.id;
+				savedId = res.body.id;
 				done();
 			});
 	});
 
 	it("return 403 when trying to add formAdmin tag with basic user", function (done) {
 		this.timeout(6000);
-		const query = basePath +
-			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
-		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
+		const document = JSON.parse(JSON.stringify(annotation));
 		document["addedTags"].push("MMAN.51");
 		document["rootID"] = "JX.322170"; // line transect document
 		request(this.server)
-			.post(query)
+			.post(url(basePath, { access_token, personToken }))
 			.send(document)
 			.end(function (err, res) {
 				res.should.have.status(403);
@@ -75,12 +79,10 @@ describe("/annotation", function() {
 
 	it("return 403 when trying to add expert tag with basic user", function (done) {
 		this.timeout(6000);
-		const query = basePath +
-			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
 		document["addedTags"] = ["MMAN.33"];
 		request(this.server)
-			.post(query)
+			.post(url(basePath, { access_token, personToken }))
 			.send(document)
 			.end(function (err, res) {
 				res.should.have.status(403);
@@ -90,12 +92,10 @@ describe("/annotation", function() {
 
 	it("return 403 when trying to remove expert tag with basic user", function (done) {
 		this.timeout(6000);
-		const query = basePath +
-			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
 		document["removedTags"] = ["MMAN.33"];
 		request(this.server)
-			.post(query)
+			.post(url(basePath, { access_token, personToken }))
 			.send(document)
 			.end(function (err, res) {
 				res.should.have.status(403);
@@ -105,12 +105,8 @@ describe("/annotation", function() {
 
 	describe("After adding annotation", function() {
 		it("returns annotations when asking list", function(done) {
-			const query = basePath +
-				"?access_token=" + config.access_token +
-				"&personToken=" + config.user.token +
-				"&rootID=" + config.objects.annotation.rootID;
 			request(this.server)
-				.get(query)
+				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }))
 				.end(function(err, res) {
 					res.should.have.status(200);
 					done();
@@ -118,51 +114,23 @@ describe("/annotation", function() {
 		});
 
 		it("returns annotation by rootID", function(done) {
-			if (!anId) {
+			if (!savedId) {
 				this.skip();
 			}
-			const query = basePath + "?access_token=" + config.access_token +
-				"&personToken=" + config.user.token +
-				"&rootID=" + config.objects.annotation.rootID;
 			request(this.server)
-				.get(query)
+				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }))
 				.end(function(err, res) {
 					res.should.have.status(200);
 					done();
 				});
 		});
 
-		//Deprecated behavior, see diary.md
-		// it("returns annotation by full document uri", function(done) {
-		// 	if (!anId) {
-		// 		this.skip();
-		// 	}
-		// 	const query = basePath + "?access_token=" + config.access_token +
-		// 		"&personToken=" + config.user.token +
-		// 		"&rootID=http://tun.fi/" + config.objects.annotation.rootID;
-		// 	request(this.server)
-		// 		.get(query)
-		// 		.end(function(err, res) {
-		// 			if (err) return done(err);
-		// 			res.should.have.status(200);
-		// 			helpers.isPagedResult(res.body, 20, true);
-		// 			res.body[helpers.params.results].filter((annotation) => {
-		// 				annotation.should.have.property("rootID").eql(config.objects.annotation.rootID);
-    //
-		// 				return annotation["id"] === anId;
-		// 			}).should.have.lengthOf(1);
-		// 			done();
-		// 		});
-		// });
-
 		it("requires persontoken", function(done) {
-			if (!anId) {
+			if (!savedId) {
 				this.skip();
 			}
-			const query = basePath + "?access_token=" + config.access_token +
-				"&rootID=" + config.objects.annotation.rootID;
 			request(this.server)
-				.get(query)
+				.get(url(basePath, { access_token, rootID: annotation.rootID }))
 				.end(function(err, res) {
 					res.should.have.status(400);
 					done();
@@ -170,13 +138,11 @@ describe("/annotation", function() {
 		});
 
 		it("requires rootID", function(done) {
-			if (!anId) {
+			if (!savedId) {
 				this.skip();
 			}
-			const query = basePath + "?access_token=" + config.access_token +
-				"&personToken=" + config.user.token;
 			request(this.server)
-				.get(query)
+				.get(url(basePath, { access_token, personToken }))
 				.end(function(err, res) {
 					res.should.have.status(400);
 					done();
@@ -184,13 +150,11 @@ describe("/annotation", function() {
 		});
 
 		it("Does not allow delete without personToken", function(done) {
-			if (!anId) {
+			if (!savedId) {
 				this.skip();
 			}
-			const query = basePath + "/" + anId +
-				"?access_token=" + config.access_token;
 			request(this.server)
-				.delete(query)
+				.delete(url(`${basePath}/${savedId}`, { access_token }))
 				.end(function(err, res) {
 					res.should.have.status(400);
 					done();
@@ -198,13 +162,11 @@ describe("/annotation", function() {
 		});
 
 		it("Does not allow delete with different user", function(done) {
-			if (!anId) {
+			if (!savedId) {
 				this.skip();
 			}
-			const query = basePath + "/" + anId +
-				"?access_token=" + config.access_token + "&personToken=" + config.user.friend_token;
 			request(this.server)
-				.delete(query)
+				.delete(url(`${basePath}/${savedId}`, { access_token, personToken: config.friend.personToken }))
 				.end(function(err, res) {
 					res.should.have.status(403);
 					done();
@@ -212,13 +174,11 @@ describe("/annotation", function() {
 		});
 
 		it("deletes annotation", function(done) {
-			if (!anId) {
+			if (!savedId) {
 				this.skip();
 			}
-			const query = basePath + "/" + anId +
-				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			request(this.server)
-				.delete(query)
+				.delete(url(`${basePath}/${savedId}`, { access_token, personToken }))
 				.end(function(err, res) {
 					res.should.have.status(200);
 					res.body.should.have.property("deleted").eql(true);
@@ -228,20 +188,17 @@ describe("/annotation", function() {
 
 		describe("After deleting annotation", function() {
 			it("returns show that the annotation was deleted", function(done) {
-				if (!anId) {
+				if (!savedId) {
 					this.skip();
 				}
-				const query = basePath + "?access_token=" + config.access_token +
-					"&personToken=" + config.user.token +
-					"&rootID=" + config.objects.annotation.rootID;
 				request(this.server)
-					.get(query)
+					.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }))
 					.end(function(err, res) {
 						if (err) return done(err);
 						res.should.have.status(200);
 						helpers.isPagedResult(res.body, 20, true);
-						res.body[helpers.params.results].filter((annotation) => {
-							return annotation["id"] === anId && annotation["deleted"] !== true;
+						res.body[helpers.params.results].filter((a) => {
+							return a["id"] === savedId && a["deleted"] !== true;
 						}).should.have.lengthOf(0);
 						done();
 					});
