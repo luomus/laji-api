@@ -4,13 +4,13 @@ import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Audio } from "./audio.dto";
-import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
 import { NextFunction, Request, Response } from "express";
-import { QueryWithLangAndMaybePersonTokenDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto }
-	from "../common.dto";
+import { QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
+import { Translator } from "src/interceptors/translator.interceptor";
+import { Serializer } from "src/serialization/serializer.interceptor";
 
 @LajiApiController("audio")
 @ApiTags("Audio")
@@ -37,10 +37,10 @@ export class AudioController {
 
 	/** Get audio by id */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangAndMaybePersonTokenDto, Audio))
+	@UseInterceptors(Translator, Serializer(Audio))
 	get(
 		@Param("id") id: string,
-		@Query() {}: QueryWithLangAndMaybePersonTokenDto,
+		@Query() {}: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person?: Person
 	): Promise<Audio> {
 		return this.abstractMediaService.get(id, person);
@@ -48,7 +48,7 @@ export class AudioController {
 
 	/** Update audio metadata */
 	@Put(":id")
-	@UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
+	@UseInterceptors(Serializer(Audio))
 	updateMetadata(
 		@Param("id") id: string,
 		@Query() _: QueryWithPersonTokenDto,
@@ -119,7 +119,7 @@ export class AudioController {
 
 	/** Upload audio metadata */
 	@Post(":tempId")
-	@UseInterceptors(createQueryParamsInterceptor(undefined, Audio))
+	@UseInterceptors(Serializer(Audio))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
 		@Query() _: QueryWithPersonTokenDto,

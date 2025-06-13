@@ -1,12 +1,14 @@
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { Collection, FindCollectionsDto } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { QueryWithPagingAndLangAndIdIn, QueryWithLangDto } from "../common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { CollectionMultiLangHackInterceptor } from "./collection-multi-lang-hack.interceptor";
+import { Paginator } from "src/interceptors/paginator.interceptor";
+import { Translator } from "src/interceptors/translator.interceptor";
+import { Serializer } from "src/serialization/serializer.interceptor";
 
 @LajiApiController("collections")
 @ApiTags("Collections")
@@ -17,10 +19,7 @@ export class CollectionsController {
 
 	/** Get all collections */
 	@Get()
-	@UseInterceptors(
-		CollectionMultiLangHackInterceptor,
-		createQueryParamsInterceptor(QueryWithPagingAndLangAndIdIn, Collection)
-	)
+	@UseInterceptors(Paginator, CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async getPage(@Query() { idIn }: QueryWithPagingAndLangAndIdIn) {
 		return this.collectionsService.findCollections(idIn);
@@ -28,10 +27,7 @@ export class CollectionsController {
 
 	/** Get all root collections */
 	@Get("roots")
-	@UseInterceptors(
-		CollectionMultiLangHackInterceptor,
-		createQueryParamsInterceptor(FindCollectionsDto, Collection)
-	)
+	@UseInterceptors(Paginator, CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findRoots(@Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findRoots();
@@ -39,10 +35,7 @@ export class CollectionsController {
 
 	/** Get collection by id */
 	@Get(":id")
-	@UseInterceptors(
-		CollectionMultiLangHackInterceptor,
-		createQueryParamsInterceptor(QueryWithLangDto, Collection)
-	)
+	@UseInterceptors(CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	get(@Param("id") id: string, @Query() {}: QueryWithLangDto) {
 		return this.collectionsService.get(id);
@@ -50,10 +43,7 @@ export class CollectionsController {
 
 	/** Get child collections */
 	@Get(":id/children")
-	@UseInterceptors(
-		CollectionMultiLangHackInterceptor,
-		createQueryParamsInterceptor(FindCollectionsDto, Collection)
-	)
+	@UseInterceptors(Paginator, CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findChildren(@Param("id") id: string, @Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findChildren(id);

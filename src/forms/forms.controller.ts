@@ -6,11 +6,11 @@ import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
-import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
+import { Paginator } from "src/interceptors/paginator.interceptor";
 
 @ApiTags("Form")
 @LajiApiController("forms")
@@ -72,7 +72,7 @@ export class FormsController {
 	/** Get a page of forms */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLangAndIdIn))
+	@UseInterceptors(Paginator)
 	getPage(@Query() { lang }: QueryWithPagingAndLangAndIdIn) {
 		return this.formsService.getListing(lang);
 	}
