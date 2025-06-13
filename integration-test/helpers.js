@@ -54,5 +54,19 @@ module.exports = {
 		after(function(done) {
 			server.close(done);
 		});
+	},
+	url: (host, query) => {
+		if (!query || !Object.keys(query).length) {
+			return host;
+		}
+		const queryWithArraysAsCommaSeparatedString = Object.keys(query).reduce((q, k) => {
+			let v = query[k];
+			if (Array.isArray(v)) {
+				v = v.join(",");
+			}
+			q[k] = v;
+			return q;
+		}, {});
+		return host + "?" + new URLSearchParams(queryWithArraysAsCommaSeparatedString).toString();
 	}
 };
