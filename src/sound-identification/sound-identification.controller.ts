@@ -4,8 +4,6 @@ import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
-import { PersonToken } from "src/decorators/person-token.decorator";
-import { Person } from "src/persons/person.dto";
 
 @Controller("sound-identification")
 export class SoundIdentificationController {
@@ -31,7 +29,6 @@ export class SoundIdentificationController {
 	@Post("/")
 	proxy(
 		@ApiUser() apiUser: ApiUserEntity,
-		@PersonToken() __: Person,
 		@Req() req: Request,
 		@Res() res: Response,
 		@Next() next: NextFunction
