@@ -112,7 +112,7 @@ const addDepth: QueryParamStrategy = (query, _, elasticQ, taxon) => {
 const mapAggregates = ({ aggregateBy, aggregateSize }: GetTaxaAggregateDto) =>
 	aggregateBy.reduce((aggs, aggsString) => {
 		const aggsFields = firstFromNonEmptyArr(aggsString.split("=")).split(",");
-		return mapAggs(aggs, aggsFields, aggregateSize) as AggregateNode;
+		return mapAggs(aggs, aggsFields, aggregateSize!) as AggregateNode;
 	}, {} as AggregateNode);
 
 const sortOrders = {

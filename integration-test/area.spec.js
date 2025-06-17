@@ -1,9 +1,11 @@
-var config = require("../config.json");
-var helpers = require("../helpers");
+var config = require("./config.json");
+var helpers = require("./helpers");
 const { request } = require("chai");
+const { url } = helpers;
+const { access_token } = config;
 
 describe("/area", function() {
-	var basePath = config["urls"]["area"];
+	const basePath = "/areas";
 
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
@@ -17,7 +19,7 @@ describe("/area", function() {
 	it("returns 401 when no access token specified for id", function(done) {
 		this.timeout(5000);
 		request(this.server)
-			.get(basePath + "/" + config["id"]["area_country"])
+			.get(`${basePath}/ML.206`)
 			.end(function(err, res) {
 				res.should.have.status(401);
 				done();
@@ -27,17 +29,15 @@ describe("/area", function() {
 	it("returns countries", function(done) {
 		this.timeout(5000);
 		var pageSize = 248;
-		var query = basePath +
-			"?areaType=ML.country&pageSize="+ pageSize+"&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query)
+			.get(url(basePath, { areaType: "ML.country", pageSize, access_token }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body, pageSize, true);
 				res.body[helpers.params.results].should.have.lengthOf(pageSize);
 				res.body[helpers.params.results].filter((country) => {
-					return country["id"] === config["id"]["area_country"];
+					return country["id"] ===  "ML.206"; // a country
 				}).should.have.lengthOf(1);
 				res.body[helpers.params.results].filter((area) => {
 					return area["areaType"] === "ML.country"
@@ -49,17 +49,15 @@ describe("/area", function() {
 	it("returns countries with deprecated type", function(done) {
 		this.timeout(5000);
 		var pageSize = 248;
-		var query = basePath +
-			"?type=country&pageSize="+ pageSize+"&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query)
+			.get(url(basePath, { type: "country", pageSize, access_token }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body, pageSize, true);
 				res.body[helpers.params.results].should.have.lengthOf(pageSize);
 				res.body[helpers.params.results].filter((country) => {
-					return country["id"] === config["id"]["area_country"];
+					return country["id"] === "ML.206"; // a country
 				}).should.have.lengthOf(1);
 				res.body[helpers.params.results].filter((area) => {
 					return area["areaType"] === "ML.country"
@@ -71,60 +69,46 @@ describe("/area", function() {
 	it("returns municipalities", function(done) {
 		this.timeout(5000);
 		var pageSize = 2;
-		var testId = config["id"]["area_municipality"];
-		var query = basePath +
-			"?type=municipality&idIn=" + testId + "," + config["id"]["country"] + "&pageSize="+ pageSize+"&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query)
+			.get(url(basePath, { type: "municipality", idIn: "ML.352", pageSize, access_token }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body, pageSize);
 				res.body[helpers.params.results].filter((municipality) => {
-					return municipality["id"] === testId;
+					return municipality["id"] === "ML.352"; // a municipality
 				}).should.have.lengthOf(1);
-				res.body.should.include({total: 1});
+				res.body.should.include({ total: 1 });
 				done();
 			});
 	});
 
 	it("returns by ids", function(done) {
-		var ids = [
-			config["id"]["area_municipality"],
-			config["id"]["area_country"],
-			config["id"]["area_biogeographical"],
-			config["id"]["area_iucn"],
-		];
-		var query = basePath +
-			"?idIn=" + ids.join(",") + "&pageSize="+ ids.length +"&access_token=" + config["access_token"];
+		const idIn = ["ML.352", "ML.206", "ML.253",  "ML.691"];
 		request(this.server)
-			.get(query)
+			.get(url(basePath, { idIn, pageSize: idIn.length, access_token: config.access_token }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
-				helpers.isPagedResult(res.body, ids.length);
+				helpers.isPagedResult(res.body, idIn.length);
 				res.body[helpers.params.results].filter((area) => {
-					return  ids.indexOf(area["id"]) > -1;
-				}).should.have.lengthOf(ids.length);
-				res.body.should.include({total: ids.length});
+					return idIn.indexOf(area["id"]) > -1;
+				}).should.have.lengthOf(idIn.length);
+				res.body.should.include({ total: idIn.length });
 				done();
 			});
 	});
 
 	it("returns by id", function(done) {
 		this.timeout(5000);
-		var testId = config["id"]["area_iucn"];
-		var query = basePath + "/" + testId +
-			"?access_token=" + config["access_token"];
 		request(this.server)
-			.get(query)
+			.get(url(`${basePath}/ML.691`, { access_token }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.should.have.property("id");
-				res.body.should.include({id: testId});
+				res.body.should.include({ id: "ML.691" });
 				done();
 			});
 	});
-
 });

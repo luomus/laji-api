@@ -164,6 +164,18 @@ export class TaxaController {
 		return this.taxaService.getSpeciesAggregate(query);
 	}
 
+	/** Get a species aggregate with filters */
+	@Post("species/aggregate")
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "Taxon",
+		jsonLdContext: "taxon-elastic",
+		customizeRequestBodySchema: addFiltersSchema
+	})
+	getSpeciesAggregateWithFilters(@Query() query: GetTaxaAggregateDto, @Body() filters?: TaxaFilters) {
+		return this.taxaService.getSpeciesAggregate(query, filters);
+	}
+
 	/** Get a taxon by id */
 	@Version("1")
 	@Get(":id")

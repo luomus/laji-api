@@ -1,16 +1,16 @@
 import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { AcceptAccessDto, Form, Format, QueryWithPagingAndLangAndIdIn, GetDto, RevokeAccessDto, TransformDto }
+import { AcceptAccessDto, Form, Format, GetDto, RevokeAccessDto, TransformDto }
 	from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
-import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithLangDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
-import { createQueryParamsInterceptor } from "src/interceptors/query-params/query-params.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
+import { ResultsArray } from "src/interceptors/results-array.interceptor";
 
 @ApiTags("Form")
 @LajiApiController("forms")
@@ -72,8 +72,8 @@ export class FormsController {
 	/** Get a page of forms */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithPagingAndLangAndIdIn))
-	getPage(@Query() { lang }: QueryWithPagingAndLangAndIdIn) {
+	@UseInterceptors(ResultsArray)
+	getPage(@Query() { lang }: QueryWithLangDto) {
 		return this.formsService.getListing(lang);
 	}
 

@@ -205,7 +205,6 @@ export const dateToISODate = (date: Date): string => date.toISOString().split("T
 // TS is wrong here, `Date.parse()` accepts `Date`.
 export const isValidDate = (date?: Date) => !isNaN(Date.parse(date as unknown as string));
 
-
 /** @throws Error if array is shorter than n */
 export const nthFromNonEmptyArr = (n: number) => <T>(arr: T[]): T => {
 	if (arr.length - 1 < n) {

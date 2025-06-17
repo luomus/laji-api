@@ -5,12 +5,11 @@ import { NextFunction, Request, Response } from "express";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
-import { createQueryParamsInterceptor } from "../interceptors/query-params/query-params.interceptor";
-import { QueryWithLangAndMaybePersonTokenDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto }
-	from "../common.dto";
+import { QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
+import { Serializer } from "src/serialization/serializer.interceptor";
 
 @LajiApiController("images")
 @ApiTags("Image")
@@ -35,10 +34,10 @@ export class ImagesController {
 
 	/** Get image by id */
 	@Get(":id")
-	@UseInterceptors(createQueryParamsInterceptor(QueryWithLangAndMaybePersonTokenDto, Image))
+	@UseInterceptors(Serializer(Image))
 	get(
 		@Param("id") id: string,
-		@Query() {}: QueryWithLangAndMaybePersonTokenDto,
+		@Query() {}: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person?: Person
 	): Promise<Image> {
 		return this.abstractMediaService.get(id, person);
@@ -46,7 +45,7 @@ export class ImagesController {
 
 	/** Update image metadata */
 	@Put(":id")
-	@UseInterceptors(createQueryParamsInterceptor(undefined, Image))
+	@UseInterceptors(Serializer(Image))
 	updateMetadata(
 		@Param("id") id: string,
 		@Query() _: QueryWithPersonTokenDto,
@@ -104,7 +103,7 @@ export class ImagesController {
 
 	/** Upload image metadata */
 	@Post(":tempId")
-	@UseInterceptors(createQueryParamsInterceptor(undefined, Image))
+	@UseInterceptors(Serializer(Image))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
 		@Query() _: QueryWithPersonTokenDto,

@@ -113,7 +113,7 @@ export class GetTaxaAggregateDto extends IntersectionType(
 	 * or the name if it was given.
 	 * */
 	@CommaSeparatedStrings(";") aggregateBy: string[];
-	@Type(() => Number) @IsInt() aggregateSize = 10;
+	@Type(() => Number) @IsInt() aggregateSize?: number = 10;
 }
 
 export class GetTaxaAggregateWithFiltersDto extends OmitType(GetTaxaAggregateDto, SimpleFiltersKeys) {}
