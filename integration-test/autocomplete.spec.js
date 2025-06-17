@@ -1,13 +1,18 @@
-var config = require("../config.json");
-var helpers = require("../helpers");
+var config = require("./config.json");
+var helpers = require("./helpers");
 const { request } = require("chai");
+const { url } = helpers;
+const { access_token, personToken } = config;
+
+const friendName = "Unit Tester 1 (Test)";
+const friendGroup = "Test";
 
 describe("/autocomplete", function() {
-	var basePath = config["urls"]["autocomplete"];
+	var basePath = "/autocomplete";
 
 	it("returns 401 when no access token specified", function(done) {
 		request(this.server)
-			.get(basePath + "/taxon")
+			.get(`${basePath}/taxon`)
 			.end(function(err, res) {
 				res.should.have.status(401);
 				done();
@@ -17,10 +22,8 @@ describe("/autocomplete", function() {
 	it("returns taxons with default size", function(done) {
 		var defaultSize = 10;
 		var searchWord = "käki";
-		var query = basePath + "/taxon" +
-			"?access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&q=" + searchWord)
+			.get(url(`${basePath}/taxon`, { access_token, q: searchWord }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -34,10 +37,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("returns taxons with payload", function(done) {
-		var query = basePath + "/taxon" +
-			"?includePayload=true&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&q=VAn%20Van")
+			.get(url(`${basePath}/taxon`, { access_token, q: "VAn Van", includePayload: true }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -50,10 +51,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("returns taxons with sp suffix for taxon ranks higher than genum if observationMode is true", function(done) {
-		var query = basePath + "/taxon" +
-			"?includePayload=true&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&q=parus&observationMode=true")
+			.get(url(`${basePath}/taxon`, { access_token, q: "parus", includePayload: true, observationMode: true }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -64,11 +63,10 @@ describe("/autocomplete", function() {
 			});
 	});
 
+	// eslint-disable-next-line max-len
 	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if observationMode is false", function(done) {
-		var query = basePath + "/taxon" +
-			"?includePayload=true&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&q=parus")
+			.get(url(`${basePath}/taxon`, { access_token, q: "parus", includePayload: true }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -79,11 +77,10 @@ describe("/autocomplete", function() {
 			});
 	});
 
+	// eslint-disable-next-line max-len
 	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if isn't scientific name", function(done) {
-		var query = basePath + "/taxon" +
-			"?includePayload=true&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&q=varpus")
+			.get(url(`${basePath}/taxon`, { access_token, q: "varpus", includePayload: true }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -95,74 +92,54 @@ describe("/autocomplete", function() {
 	});
 
 	it("returns friends", function(done) {
-		if (!config.user.friend_token) {
-			this.skip();
-		}
-		var friend = config["user"]["friend"];
-		var query = basePath + "/friends" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query)
+			.get(url(`${basePath}/friends`, { access_token, personToken }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.filter((res) => {
 					res.should.have.keys("key", "value");
 					res["value"].should.not.contain("undefined");
-					return res["value"] === friend;
+					return res["value"] === friendName;
 				}).should.have.lengthOf(1);
 				done();
 			});
 	});
 
 	it("returns friends when querying", function(done) {
-		if (!config.user.friend_token) {
-			this.skip();
-		}
-		var friend = config["user"]["friend"];
-		var query = basePath + "/friends" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&q=" + friend.substring(0,3))
+			.get(url(`${basePath}/friends`, { access_token, personToken, q: friendName.substring(0, 3) }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.filter((res) => {
 					res.should.have.keys("key", "value");
 					res["value"].should.not.contain("undefined");
-					return res["value"] === friend;
+					return res["value"] === friendName;
 				}).should.have.lengthOf(1);
 				done();
 			});
 	});
 
 	it("returns friend name and group in payload", function(done) {
-		if (!config.user.friend_token) {
-			this.skip();
-		}
-		var friend = config["user"]["friend"];
-		var friendGroup = config["user"]["friend_group"];
-		var query = basePath + "/friends" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"] + "&includePayload=true";
 		request(this.server)
-			.get(query + "&q=" + friend.substring(0,3))
+			.get(url(`${basePath}/friends`, {
+				access_token, personToken,  includePayload: true, q: friendName.substring(0, 3)
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.filter((item) => {
 					item.payload.should.have.keys("name", "group");
-					return item["value"] === friend && item.payload["group"] === friendGroup;
+					return item["value"] === friendName && item.payload["group"] === friendGroup;
 				}).should.have.lengthOf(1);
 				done();
 			});
 	});
 
 	it("returns line transect unit for line transect form id (MHL.1)", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=llx")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "llx" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -175,11 +152,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses line transect unit taxon correct for loxia", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=loxiax")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "loxiax" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -192,11 +166,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses line transect unit taxon correct for loxsp.", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=loxsp.x")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "loxsp.x" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -209,11 +180,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses line transect unit taxon correct for loxsp", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
-
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=loxspx")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "loxspx" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -226,10 +194,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("O type number is not parsed like pair in line transect unit taxon", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=tt13O")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "tt13O" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -242,11 +208,10 @@ describe("/autocomplete", function() {
 			});
 	});
 
+	// eslint-disable-next-line max-len
 	it("O type number is not parsed like pair in line transect unit taxon with taxa that is counted in 5", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=PASDOM17o")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "PASDOM17o" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -260,10 +225,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("PARI type multiplier is always 2", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=tt7PARI")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "tt7PARI" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -277,10 +240,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("PARI type multiplier is always 2 even when species is normally multiplied by 5", function(done) {
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&formID=MHL.1&q=PASDOM7PARI")
+			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "PASDOM7PARI" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -304,33 +265,40 @@ describe("/autocomplete", function() {
 		function validateProperty(item, prop, value) {
 			return props[prop] === undefined ?
 				item.should.not.have.property(prop) :
-				item.should.have.property(prop).eql(value)
+				item.should.have.property(prop).eql(value);
 		}
 
 		body.every(item => item.should.have.keys("key", "value", "payload"));
 
 		body.every(item => validateProperty(item.payload.interpretedFrom, "taxon", name));
 		body.every(item => validateProperty(item.payload.interpretedFrom, "count", count));
-		body.every(item => validateProperty(item.payload.interpretedFrom, "maleIndividualCount", `${maleIndividualCount}`));
-		body.every(item => validateProperty(item.payload.interpretedFrom, "femaleIndividualCount", `${femaleIndividualCount}`));
+		body.every(item => validateProperty(
+			item.payload.interpretedFrom, "maleIndividualCount", `${maleIndividualCount}`)
+		);
+		body.every(item => validateProperty(
+			item.payload.interpretedFrom, "femaleIndividualCount", `${femaleIndividualCount}`)
+		);
 
-		Object.keys({count, maleIndividualCount, femaleIndividualCount}).forEach(prop => {
-			body.every(item => validateProperty(item.payload.unit, prop, props[prop]))
+		Object.keys({ count, maleIndividualCount, femaleIndividualCount }).forEach(prop => {
+			body.every(item => validateProperty(item.payload.unit, prop, props[prop]));
 		});
 	}
 
-	const query = basePath + "/unit" +
-		"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 	const name = "Parus major";
 	const count = "85";
 	const maleIndividualCount = 42;
 	const femaleIndividualCount = 43;
 
 	it("return unit payload with taxon data", function(done) {
-		const params = {count, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -345,11 +313,16 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses trip report unit query string correct when all fields present", function(done) {
-		const params = {count, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -362,11 +335,16 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses trip report unit query string correct when count is missing", function(done) {
-		const params = {count: undefined, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count: undefined, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -379,11 +357,16 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses trip report unit query string correct when taxon is missing", function(done) {
-		const params = {count, name: undefined, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name: undefined, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -396,11 +379,16 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses trip report unit query string correct when femaleIndividualCount is missing", function(done) {
-		const params = {count, name, maleIndividualCount, femaleIndividualCount: undefined};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount: undefined };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -411,12 +399,18 @@ describe("/autocomplete", function() {
 			});
 	});
 
+	// eslint-disable-next-line max-len
 	it("parses trip report unit query string correct when maleIndividualCount and femaleIndividualCount are missing", function(done) {
-		const params = {count, name, maleIndividualCount: undefined, femaleIndividualCount: undefined};
+		const params = { count, name, maleIndividualCount: undefined, femaleIndividualCount: undefined };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -428,11 +422,16 @@ describe("/autocomplete", function() {
 	});
 
 	it("parses trip report unit query string correct when count is non numeric", function(done) {
-		const params = {count: "many", name, maleIndividualCount: femaleIndividualCount};
-		const _params =  Object.keys({...params, count: undefined, name: `many ${name}`}).map(param => params[param])
+		const params = { count: "many", name, maleIndividualCount: femaleIndividualCount };
+		const _params =  Object.keys({ ...params, count: undefined, name: `many ${name}` }).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -444,11 +443,15 @@ describe("/autocomplete", function() {
 	});
 
 	it("throws 422 when trip report unit query string femaleIndividualCount is non numeric", function(done) {
-		const params = {count, name, maleIndividualCount, femaleIndividualCount: "many"};
-		const _params =  Object.keys({...params, femaleIndividualCount: undefined}).map(param => params[param])
+		const params = { count, name, maleIndividualCount, femaleIndividualCount: "many" };
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true
+			}))
 			.end(function(err, res) {
 				res.should.have.status(422);
 
@@ -456,13 +459,20 @@ describe("/autocomplete", function() {
 			});
 	});
 
+	// eslint-disable-next-line max-len
 	it("returns the query taxon name as taxon if trip report unit includeNonMatching is true and exact match wasn't found", function(done) {
 		let name = "paarus maajor";
-		const params = {count, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true,
+				includeNonMatching: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -470,24 +480,35 @@ describe("/autocomplete", function() {
 				res.body.length.should.be.above(1);
 				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 
-				res.body[res.body.length - 1].should.have.property("value").eql(`${count} ${name} ${maleIndividualCount} ${femaleIndividualCount}`);
-				res.body[res.body.length - 1].should.have.property("key").eql(name);
-				res.body[res.body.length - 1].payload.should.have.property("isNonMatching").eql(true);
+				const last = res.body[res.body.length - 1];
 
-				res.body[res.body.length - 1].payload.unit.unitFact.should.not.have.property("autocompleteSelectedTaxonID");
-				res.body[res.body.length - 1].payload.unit.identifications[0].should.have.property("taxon").eql(name);
+				last.should.have.property("value").eql(
+					`${count} ${name} ${maleIndividualCount} ${femaleIndividualCount}`
+				);
+				last.should.have.property("key").eql(name);
+				last.payload.should.have.property("isNonMatching").eql(true);
+
+				last.payload.unit.unitFact.should.not.have.property("autocompleteSelectedTaxonID");
+				last.payload.unit.identifications[0].should.have.property("taxon").eql(name);
 
 				done();
 			});
 	});
 
+	// eslint-disable-next-line max-len
 	it("doesn't return the query taxon name as taxon if includeNonMatching is true and exact match was found", function(done) {
 		let name = "Parus major";
-		const params = {count, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true,
+				includeNonMatching: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -506,10 +527,16 @@ describe("/autocomplete", function() {
 
 	it("returns unit payload for trip report unit autocomplete", function(done) {
 		let name = "Parus major";
-		const params = {count, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true,
+				includeNonMatching: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -530,10 +557,17 @@ describe("/autocomplete", function() {
 
 	it("observationMode works for unit autocomplete", function(done) {
 		let name = "Parus";
-		const params = {count, name, maleIndividualCount, femaleIndividualCount};
+		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
 		request(this.server)
-			.get(`${query}&q=${Object.keys(params).map(p => params[p]).join(" ")}&includePayload=true&includeNonMatching=true&observationMode=true`)
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				q: Object.keys(params).map(p => params[p]).join(" "),
+				includePayload: true,
+				includeNonMatching: true,
+				observationMode: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -588,11 +622,16 @@ describe("/autocomplete", function() {
 			}
 		];
 
-		var query = basePath + "/unit" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 
 		request(this.server)
-			.get(query + "&formID=JX.519&q=susi,kettu,wookie&includePayload=true&list=true")
+			.get(url(`${basePath}/unit`, {
+				access_token,
+				personToken,
+				formID: "JX.519",
+				q: "susi,kettu,wookie",
+				includePayload: true,
+				list: true
+			}))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -600,9 +639,13 @@ describe("/autocomplete", function() {
 				res.body.payload.should.have.property("count").eql(3);
 				res.body.payload.should.have.property("nonMatchingCount").eql(1);
 				res.body.payload.units.forEach((unit, i) => {
-					unit.identifications[0].should.have.property("taxon").eql(correctAnswer[i].identifications[0]["taxon"]);
+					unit.identifications[0].should.have.property("taxon").eql(
+						correctAnswer[i].identifications[0]["taxon"]
+					);
 					if (i !== 2) {
-						unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql(correctAnswer[i].unitFact["autocompleteSelectedTaxonID"]);
+						unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql(
+							correctAnswer[i].unitFact["autocompleteSelectedTaxonID"]
+						);
 					}
 					unit.should.have.property("informalTaxonGroups").eql(correctAnswer[i]["informalTaxonGroups"]);
 				});
@@ -611,10 +654,8 @@ describe("/autocomplete", function() {
 	});
 
 	it("return correct pair count for ANAACU", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.26382&q=3k2n, kn, 3")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26382", q: "3k2n, kn, 3" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -624,11 +665,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("return correct pair count for ANSANS", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.26291&q=3k2n,kn,3,1")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26291", q: "3k2n,kn,3,1" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -638,11 +678,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("return correct pair count for GALGAL", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.27666&q=3k2n,kn,n,3,1")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.27666", q: "3k2n,kn,n,3,1" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -652,25 +691,24 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("return correct pair count for CORNIX", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.73566&q=k2n,k2n, 5")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q: "k2n,k2n, 5" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(2);
+				res.body.value.should.eql(5);
 				res.body.key.should.eql("k2n, k2n, 5");
 				done();
 			});
 	});
+
 	it("return correct pair count for CYGOLO", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
+		const q = "2k, n, 2n, 2, 3, 2kn";
 		request(this.server)
-			.get(query + "&taxonID=MX.26277&q=2k, n, 2n, 2, 3, 2kn")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -680,11 +718,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("doesn't return pair count for unknown taxon", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.20000&q=k2n,k2n, 5")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.20000", q: "k2n,k2n, 5" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -694,11 +731,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("doesn't return pair count for empty query", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.20000&q=")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.20000", q: "" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -708,39 +744,37 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("return correct pair count when count is big", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.73566&q=20k2n,101k2n, 5")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q: "20k2n,101k2n, 5" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(121);
+				res.body.value.should.eql(124);
 				res.body.key.should.eql("20k2n, 101k2n, 5");
 				done();
 			});
 	});
+
 	it("formats waterbird count right", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
+		const q = "20n1k4, 5, kk2,3n";
 		request(this.server)
-			.get(query + "&taxonID=MX.73566&q=20n1k4, 5, kk2,3n")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(2);
+				res.body.value.should.eql(10);
 				res.body.key.should.eql("k20n, 4, 5, k, 2, 3n");
 				done();
 			});
 	});
+
 	it("formats empty waterbird count right", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.73566&q=0,0")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q: "0,0" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -749,11 +783,11 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("accepts upper case in waterbird count", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
+		const q = "2K, n, 2N, 2, 3, 2Kn";
 		request(this.server)
-			.get(query + "&taxonID=MX.26277&q=2K, n, 2N, 2, 3, 2Kn")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -763,11 +797,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("accepts dots and converts them to commas in waterbird count", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.26277&q=2k.n. 3")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q: "2k.n. 3" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -777,11 +810,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("returns correct pair count for singing", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.26277&q=3Ä")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q: "3Ä" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -791,11 +823,10 @@ describe("/autocomplete", function() {
 				done();
 			});
 	});
+
 	it("returns correct pair count for uttering", function(done) {
-		var query = basePath + "/pairCount" +
-			"?personToken=" + config["user"]["token"] + "&access_token=" + config["access_token"];
 		request(this.server)
-			.get(query + "&taxonID=MX.26277&q=3ä")
+			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q: "3ä" }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
@@ -807,20 +838,15 @@ describe("/autocomplete", function() {
 	});
 
 	it("returns organizations", function(done) {
-		if (!config.user.model.organisation) {
-			this.skip();
-		}
-		var query = basePath + "/organization" +
-			"?personToken=" + config.user.token + "&access_token=" + config.access_token;
 		request(this.server)
-			.get(query)
+			.get(url(`${basePath}/organization`, { access_token, personToken }))
 			.end(function(err, res) {
 				if (err) return done(err);
 				res.should.have.status(200);
 				res.body.filter((res) => {
 					res.should.have.keys("key", "value");
 					res.value.should.not.contain("undefined");
-					return res["key"] === config.user.model.organisation[0];
+					return res["key"] === "MOS.1016";
 				}).should.have.lengthOf(1);
 				done();
 			});
