@@ -10,7 +10,7 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
-import { ResultsArray } from "src/interceptors/results-array.interceptor";
+import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 
 @ApiTags("Form")
 @LajiApiController("forms")
@@ -71,9 +71,9 @@ export class FormsController {
 
 	/** Get a page of forms */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "form" })
+	@SwaggerRemoteRef({ source: "store", ref: "form", customizeResponseSchema: swaggerResponseAsResultsArray })
 	@UseInterceptors(ResultsArray)
-	getPage(@Query() { lang }: QueryWithLangDto) {
+	getListing(@Query() { lang }: QueryWithLangDto) {
 		return this.formsService.getListing(lang);
 	}
 

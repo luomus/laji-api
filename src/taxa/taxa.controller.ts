@@ -7,17 +7,11 @@ import { TaxaService, getFiltersSchema } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { ResultsArray } from "src/interceptors/results-array.interceptor";
-import { SchemaItem } from "src/swagger/swagger.service";
+import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
 import { LANGS } from "src/common.dto";
-
-const wrapIntoResults = (schema: SchemaItem) => ({
-	type: "object",
-	properties: { results: { type: "array", items: schema } , "@context": { type: "string" } }
-});
 
 const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
 	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
@@ -77,7 +71,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "TaxonSearchResponse",
-		customizeResponseSchema: wrapIntoResults,
+		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-search"
 	})
 	@UseInterceptors(ResultsArray, Translator)
@@ -196,7 +190,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		customizeResponseSchema: wrapIntoResults,
+		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
@@ -210,7 +204,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		customizeResponseSchema: wrapIntoResults,
+		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
@@ -259,7 +253,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Content",
-		customizeResponseSchema: wrapIntoResults,
+		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-description"
 	})
 	@UseInterceptors(ResultsArray, Translator)
@@ -273,7 +267,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Image",
-		customizeResponseSchema: wrapIntoResults,
+		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-media"
 	})
 	@UseInterceptors(ResultsArray, Translator)

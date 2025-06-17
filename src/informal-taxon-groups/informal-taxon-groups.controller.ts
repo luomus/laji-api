@@ -4,27 +4,15 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { InformalTaxonGroupsService } from "./informal-taxon-groups.service";
 import { Lang, QueryWithLangDto, QueryWithPagingAndLangAndIdIn } from "src/common.dto";
 import { SwaggerRemoteRef, SwaggerRemoteRefEntry } from "src/swagger/swagger-remote.decorator";
-import { SchemaItem } from "src/swagger/swagger.service";
-import { ResultsArray } from "src/interceptors/results-array.interceptor";
+import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 
-const wrapSchemaToJsonLdContextResults = (schema: SchemaItem) => ({
-	type: "object",
-	properties: {
-		"@context": { type: "string" },
-		results: {
-			type: "array",
-			items: schema
-		}
-	}
-});
-
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteRefEntry = {
 	source: "store",
 	ref: "informalTaxonGroup",
-	customizeResponseSchema: wrapSchemaToJsonLdContextResults
+	customizeResponseSchema: swaggerResponseAsResultsArray
 };
 
 @ApiTags("InformalTaxonGroup")
