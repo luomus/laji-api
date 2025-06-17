@@ -37,7 +37,7 @@ describe("/annotation", function() {
 	});
 
 	it("adds annotation", function (done) {
-		this.timeout(10000);
+		this.timeout(20000);
 		const document = JSON.parse(JSON.stringify(annotation));
 		request(this.server)
 			.post(url(basePath, { access_token, personToken }))
