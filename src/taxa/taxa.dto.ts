@@ -1,5 +1,5 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { ApiHideProperty, IntersectionType, OmitType } from "@nestjs/swagger";
+import { ApiHideProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
 import { IsInt } from "class-validator";
 import { MultiLang, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
@@ -118,7 +118,12 @@ export class GetTaxaAggregateDto extends IntersectionType(
 
 export class GetTaxaAggregateWithFiltersDto extends OmitType(GetTaxaAggregateDto, SimpleFiltersKeys) {}
 
-export class GetTaxonDto extends IntersectionType(QueryWithLangDto, HasSelectedFields, Inclusions) {}
+export class GetTaxonDto extends IntersectionType(
+	QueryWithLangDto,
+	HasSelectedFields,
+	Inclusions,
+	PickType(TaxaBaseQuery, ["checklistVersion"])
+) {}
 
 export class GetTaxaResultsDto extends OmitType(GetTaxaPageDto, ["page", "pageSize"]) {}
 
