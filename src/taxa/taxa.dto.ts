@@ -1,7 +1,7 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
 import { ApiHideProperty, IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
-import { IsInt, IsOptional } from "class-validator";
+import { IsInt } from "class-validator";
 import { MultiLang, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { WithNonNullableKeys } from "src/typing.utils";
