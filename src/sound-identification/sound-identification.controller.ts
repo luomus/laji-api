@@ -19,6 +19,7 @@ export class SoundIdentificationController {
 		pathRewrite: {
 			"^/sound-identification": "/classify"
 		},
+		secure: false,
 		logger: {
 			info: this.logger.verbose,
 			warn: this.logger.warn,
