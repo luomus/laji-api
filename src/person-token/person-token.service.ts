@@ -29,7 +29,6 @@ export class PersonTokenService {
 	}
 
 	async delete(personToken: string) {
-		await this.getInfo(personToken);
 		return this.lajiAuthClient.delete(`token/${personToken}`);
 	}
 }
