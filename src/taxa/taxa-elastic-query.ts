@@ -181,7 +181,7 @@ const applyFiltersToElasticQuery = (filters: TaxaFilters = {}, filtersSchema: JS
 			if (typeof arg === "string") {
 				arg = [arg];
 			}
-			if (Array.isArray(arg) && typeof arg[0] === "string") {
+			if (Array.isArray(arg) && arg.every(a => typeof a === "string")) {
 				const inclusions: string[] = [];
 				const exclusions: string[] = [];
 				arg.forEach(subArg => (subArg[0] === "!" ? exclusions : inclusions).push(subArg.replace(/^!/, "")));
