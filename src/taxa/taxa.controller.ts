@@ -166,6 +166,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
+	@HttpCode(200)
 	getSpeciesAggregateWithFilters(@Query() query: GetTaxaAggregateDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getSpeciesAggregate(query, filters);
 	}
@@ -255,6 +256,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
+	@HttpCode(200)
 	getTaxonSpeciesAggregateWithFilters(
 		@Param("id") id: string,
 		@Query() query: GetTaxaAggregateDto,
