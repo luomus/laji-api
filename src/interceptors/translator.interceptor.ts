@@ -38,7 +38,7 @@ export class Translator implements NestInterceptor {
 
 	private applyLangToJsonLdContext(result: any, lang?: Lang) {
 		if (result["@context"]) {
-			return { ...result, "@context": getJsonLdContextForLang(result["@context"], lang) };
+			return applyLangToJsonLdContext(result, lang);
 		}
 		return typeof this.getJsonLdContextFromSample(this.takeSample(result)) === "string"
 			? applyToResult(item => applyLangToJsonLdContext(item as HasJsonLdContext, lang))(result)

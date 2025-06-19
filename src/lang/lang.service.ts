@@ -43,7 +43,7 @@ export class LangService {
 		}
 
 		return (item: T): T | MultiLangAsString<T> => {
-			// It might be some item that is stored in local memory, so we need to make a copy so it won't be a mutant.
+			// It might be some item that is stored in local memory, so we need to make a copy so it won't become a mutant.
 			item = instanceToInstance(item);
 			multiLangJSONPaths.forEach(path => {
 				JSONPath({
