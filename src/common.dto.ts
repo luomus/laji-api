@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsInt, IsString, isObject } from "class-validator";
-import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
+import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
 import { IntersectionType, PartialType } from "@nestjs/swagger";
 
 export enum Lang {
@@ -25,11 +25,7 @@ export const isQueryWithPagingDto = (maybePagedQuery: any): maybePagedQuery is Q
 
 export class QueryWithLangDto {
 	lang?: Lang = Lang.en;
-	@IsOptionalBoolean() langFallback?: boolean = true;
 }
-
-export const isQueryWithLangDto = (maybeLangQuery: any): maybeLangQuery is QueryWithLangDto =>
-	isObject(maybeLangQuery) && ["lang", "langFallback"] .every(k => k in maybeLangQuery);
 
 export class QueryWithPersonTokenDto {
 	/** Person's authentication token */

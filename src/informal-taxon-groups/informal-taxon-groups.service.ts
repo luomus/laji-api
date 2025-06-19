@@ -79,9 +79,9 @@ export class InformalTaxonGroupsService {
 		return (await this.getExpandedTreeAndParentLookup())[0];
 	}
 
-	async getTranslatedTree(lang: Lang, langFallback?: boolean) {
+	async getTranslatedTree(lang: Lang) {
 		const removeJsonLDContext = omitForKeys<InformalTaxonGroupExpanded, "@context">("@context");
-		const translate = (item: InformalTaxonGroupExpanded) => this.langService.translate(item, lang, langFallback);
+		const translate = (item: InformalTaxonGroupExpanded) => this.langService.translate(item, lang);
 		return walkTreeWith(promisePipe(translate, removeJsonLDContext))(await this.getTree());
 	}
 

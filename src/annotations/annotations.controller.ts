@@ -24,11 +24,9 @@ export class AnnotationsController {
 		ref: "tag",
 		customizeResponseSchema: schema => ({ type: "array", items: schema })
 	})
-	async getTags(
-		@Query() { lang, langFallback }: QueryWithLangDto,
-	) {
+	async getTags(@Query() { lang }: QueryWithLangDto) {
 		const tags = await this.annotationsService.getTags();
-		return tags.map(tag => this.langService.translate(tag, lang, langFallback));
+		return tags.map(tag => this.langService.translate(tag, lang));
 	}
 
 	/** Get a page of annotations */

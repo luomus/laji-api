@@ -32,9 +32,9 @@ export class InformalTaxonGroupsController {
 	/** Get the informal taxon group tree */
 	@Get("tree")
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
-	async getTree(@Query() { lang = Lang.en, langFallback }: QueryWithLangDto) {
+	async getTree(@Query() { lang = Lang.en }: QueryWithLangDto) {
 		return applyLangToJsonLdContext({
-			results: await this.informalTaxonGroupsService.getTranslatedTree(lang, langFallback),
+			results: await this.informalTaxonGroupsService.getTranslatedTree(lang),
 			"@context": await this.informalTaxonGroupsService.getJsonLdContext()
 		}, lang);
 	}

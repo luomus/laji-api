@@ -5,7 +5,7 @@ import { applyToResult, isPageLikeResult } from "src/pagination.utils";
 import { Request } from "src/request";
 import { plainToClass } from "class-transformer";
 import { LangService } from "src/lang/lang.service";
-import { applyLangToJsonLdContext, getJsonLdContextForLang } from "src/json-ld/json-ld.utils";
+import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 
 @Injectable()
 export class Translator implements NestInterceptor {
@@ -21,7 +21,7 @@ export class Translator implements NestInterceptor {
 
 	async translate(rawQuery: QueryWithLangDto, result: any) {
 		const query = plainToClass(QueryWithLangDto, rawQuery);
-		const { lang, langFallback } = query;
+		const { lang } = query;
 		const selectedFields: string[] | undefined = (query as any).selectedFields?.split(",");
 		const jsonLdContext = this.getJsonLdContext(result);
 
@@ -30,7 +30,7 @@ export class Translator implements NestInterceptor {
 		}
 
 		const translated = await applyToResult(
-			await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback, selectedFields),
+			await this.langService.contextualTranslateWith(jsonLdContext, lang, selectedFields),
 		)(result);
 
 		return this.applyLangToJsonLdContext(translated, lang);

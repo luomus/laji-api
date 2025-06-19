@@ -20,21 +20,17 @@ export class LangService {
 	constructor(private jsonLdService: JsonLdService) {}
 
 	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean, selectedFields?: string[]
+		jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, selectedFields?: string[]
 	) : Promise<(item: T) => MultiLangAsString<T>>
 	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang: Lang.multi, langFallback?: boolean, selectedFields?: string[]
+		jsonLdContext: string, lang: Lang.multi, selectedFields?: string[]
 	) : Promise<(item: T) => T>
 	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang?: Lang, langFallback?: boolean, selectedFields?: string[]
+		jsonLdContext: string, lang?: Lang, selectedFields?: string[]
 	) : Promise<(item: T) => (T | MultiLangAsString<T>)>
 	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang: Lang = Lang.en, langFallback = true, selectedFields?: string[]
+		jsonLdContext: string, lang: Lang = Lang.en, selectedFields?: string[]
 	) {
-		if (lang === Lang.multi) {
-			return (item: T) => item;
-		}
-
 		let multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
 
 		if (selectedFields) {
@@ -54,7 +50,7 @@ export class LangService {
 						updateWithJSONPointer(
 							parent,
 							`/${lastFromNonEmptyArr(pointer.split("/"))}`,
-							getLangValue(value, lang, langFallback)
+							getLangValue(value, lang)
 						);
 					}
 				});
@@ -63,17 +59,12 @@ export class LangService {
 		};
 	}
 
-	async translate<T extends HasJsonLdContext>(item: T, lang: Exclude<Lang, Lang.multi>, langFallback?: boolean)
-		: Promise<MultiLangAsString<T>>
-	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang.multi, langFallback?: boolean)
-		: Promise<T>
-	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang, langFallback?: boolean)
-		: Promise<T | MultiLangAsString<T>>
-	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang, langFallback?: boolean)
-		: Promise<T | MultiLangAsString<T>>
-	{
+	async translate<T extends HasJsonLdContext>(item: T, lang: Exclude<Lang, Lang.multi>): Promise<MultiLangAsString<T>>
+	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang.multi): Promise<T>
+	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang): Promise<T | MultiLangAsString<T>>
+	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang) : Promise<T | MultiLangAsString<T>> {
 		return (
-			await this.contextualTranslateWith<T>(item["@context"], lang, langFallback)
+			await this.contextualTranslateWith<T>(item["@context"], lang)
 		)(item);
 	}
 
@@ -84,21 +75,22 @@ export class LangService {
 	}
 }
 
-const getLangValueWithFallback = (multiLangValue?: MultiLang, fallbackLang = true): string | undefined => {
-	if (fallbackLang && multiLangValue) {
-		const langIdx = LANG_FALLBACKS.findIndex(lang => multiLangValue[lang]);
-		if (langIdx >= 0) {
-			const fallbackLang = LANG_FALLBACKS[langIdx]!;
-			return multiLangValue[fallbackLang] as string;
-		}
+const getLangValueWithFallback = (multiLangValue?: MultiLang): string | undefined => {
+	if (!multiLangValue) {
+		return undefined;
+	}
+	const langIdx = LANG_FALLBACKS.findIndex(lang => multiLangValue[lang]);
+	if (langIdx >= 0) {
+		const fallbackLang = LANG_FALLBACKS[langIdx]!;
+		return multiLangValue[fallbackLang];
 	}
 };
 
-const getMultiLangValue = (multiLangValue?: MultiLang, langFallback = true): CompleteMultiLang | undefined => {
+const getMultiLangValue = (multiLangValue?: MultiLang): CompleteMultiLang | undefined => {
 	const completeMultiLang = LANGS.reduce((multiLangValueFilled: CompleteMultiLang, lang) => {
 		const value = multiLangValue?.[lang];
 		multiLangValueFilled[lang] = value === undefined
-			? getLangValueWithFallback(multiLangValue, langFallback) ?? ""
+			? getLangValueWithFallback(multiLangValue) ?? ""
 			: value;
 		return multiLangValueFilled;
 	}, {} as CompleteMultiLang);
@@ -107,16 +99,13 @@ const getMultiLangValue = (multiLangValue?: MultiLang, langFallback = true): Com
 		: completeMultiLang;
 };
 
-function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi, langFallback?: boolean)
-	: CompleteMultiLang;
-function getLangValue(multiLangValue?: MultiLang, lang?: Exclude<Lang, Lang.multi>, langFallback?: boolean)
-	: string | undefined;
-function getLangValue(multiLangValue?: MultiLang, lang?: Lang, langFallback?: boolean)
-	: CompleteMultiLang | string | undefined;
-function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en, langFallback = true)
+function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi): CompleteMultiLang;
+function getLangValue(multiLangValue?: MultiLang, lang?: Exclude<Lang, Lang.multi>): string | undefined;
+function getLangValue(multiLangValue?: MultiLang, lang?: Lang): CompleteMultiLang | string | undefined;
+function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en)
 	: CompleteMultiLang | string | undefined {
 	if (lang === Lang.multi) {
-		return getMultiLangValue(multiLangValue, langFallback);
+		return getMultiLangValue(multiLangValue);
 	}
 	if (!multiLangValue) {
 		return undefined;
