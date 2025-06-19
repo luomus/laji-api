@@ -1,11 +1,11 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Observable, switchMap } from "rxjs";
-import { HasJsonLdContext, QueryWithLangDto } from "src/common.dto";
+import { HasJsonLdContext, Lang, QueryWithLangDto } from "src/common.dto";
 import { applyToResult, isPageLikeResult } from "src/pagination.utils";
 import { Request } from "src/request";
 import { plainToClass } from "class-transformer";
 import { LangService } from "src/lang/lang.service";
-import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
+import { applyLangToJsonLdContext, getJsonLdContextForLang } from "src/json-ld/json-ld.utils";
 
 @Injectable()
 export class Translator implements NestInterceptor {
@@ -23,13 +23,7 @@ export class Translator implements NestInterceptor {
 		const query = plainToClass(QueryWithLangDto, rawQuery);
 		const { lang, langFallback } = query;
 		const selectedFields: string[] | undefined = (query as any).selectedFields?.split(",");
-		const sample = this.takeSample(result);
-
-		if (!sample) {
-			return result;
-		}
-
-		const jsonLdContext = this.getJsonLdContext(sample);
+		const jsonLdContext = this.getJsonLdContext(result);
 
 		if (!jsonLdContext) {
 			throw new Error("Translator failed to get the @context for item");
@@ -38,10 +32,32 @@ export class Translator implements NestInterceptor {
 		const translated = await applyToResult(
 			await this.langService.contextualTranslateWith(jsonLdContext, lang, langFallback, selectedFields),
 		)(result);
-		return typeof jsonLdContext === "string"
-			? applyToResult(item => applyLangToJsonLdContext(item as HasJsonLdContext, lang))(translated)
-			: translated;
+
+		return this.applyLangToJsonLdContext(translated, lang);
 	};
+
+	private applyLangToJsonLdContext(result: any, lang?: Lang) {
+		if (result["@context"]) {
+			return { ...result, "@context": getJsonLdContextForLang(result["@context"], lang) };
+		}
+		return typeof this.getJsonLdContextFromSample(this.takeSample(result)) === "string"
+			? applyToResult(item => applyLangToJsonLdContext(item as HasJsonLdContext, lang))(result)
+			: result;
+	}
+
+	private getJsonLdContext(result: any): string | undefined {
+		if (result["@context"]) {
+			return result["@context"];
+		}
+		const sample = this.takeSample(result);
+
+		if (!sample) {
+			return result;
+		}
+
+		return this.getJsonLdContextFromSample(sample);
+	}
+
 
 	private takeSample(result: any) {
 		if (isPageLikeResult(result)) {
@@ -52,7 +68,7 @@ export class Translator implements NestInterceptor {
 		return result;
 	}
 
-	private getJsonLdContext(sample: Record<string, unknown>) {
+	private getJsonLdContextFromSample(sample: Record<string, unknown>) {
 		if (!sample) {
 			return undefined;
 		}

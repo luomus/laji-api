@@ -40,20 +40,27 @@ const addFiltersSchema = (document: OpenAPIObject, remoteDoc: OpenAPIObject) =>
 /* eslint-disable max-len */
 const BODY_DESCRIPTION = `
 The request body is a JSON object where each property represents a filter.
+
 Properties are dot-separated (e.g., 'field.subfield') and correspond to the fields of taxon results. For array fields, the filter is done against each array item, so the dot-separated pointer shouldn't include array item path (if 'subfield' is an array that has property 'subsubfield', the pointer would be 'field.subfield.subsubfield').
+
 For array fields, the dot notation allows filtering by nested properties.
 
 Each filter value can be one of the following types:
-- **boolean**: To filter by true/false values.
-- **string**: To filter by exact string matches.
-- **array of strings**: To filter by multiple possible string values. In this case, the filter acts as an "OR" operator.
 
-Example:
+- **boolean**: To filter by true/false values.
+- **string**: To filter by exact string matches. Adding an excalamation mark (!) in the beginning makes the filter work as a "must not" operator,
+- **array of strings**: To filter by multiple string values as an "OR" operator. Supports also exclamation mark syntax
+
+Example for syntax:
+
 \`\`\`
 {
-  "species": true,                 // Matches taxa that have "species": true
-  "informalTaxonGroups": "MVL.1",  // Matches taxa with informalTaxonGoup MVL.1
-  "multimedia.author": "somebody"  // Maches taxa with any multimedia item having author "somebody"
+  "species": true,                               // Matches taxa that have "species": true
+  "informalTaxonGroups": "MVL.1",                // Matches taxa with informalTaxonGoup MVL.1
+  "multimedia.author": "somebody",               // Matches taxa with any multimedia item having author "somebody"
+  "taxonRank": ["MX.genus", "MX.subGenus"]       // Matches taxa that are of rank genus or sub-genus
+  "scientificName": "!MX.genus", "MX.subGenus"]  // Matches taxa that are of rank genus or sub-genus
+  "secureLevel": "!MX.secureLevelNoShow"         // Matches everything but taxa with MX.secureLevelNoShow
 }
 \`\`\`
 `;
@@ -74,7 +81,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-search"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(Translator, ResultsArray)
 	search(@Query() query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
@@ -166,6 +173,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
+	@HttpCode(200)
 	getSpeciesAggregateWithFilters(@Query() query: GetTaxaAggregateDto, @Body() filters?: TaxaFilters) {
 		return this.taxaService.getSpeciesAggregate(query, filters);
 	}
@@ -193,7 +201,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-elastic"
 	})
-	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
+	@UseInterceptors(Translator, Serializer(TaxonElastic), ResultsArray)
 	getTaxonChildren(@Param("id") id: string, @Query() query: GetTaxaResultsDto) {
 		return this.taxaService.getChildren(id, query);
 	}
@@ -247,6 +255,23 @@ export class TaxaController {
 		return this.taxaService.getTaxonSpeciesAggregate(id, query);
 	}
 
+	/** Get an aggregate of species and subspecies of a taxon */
+	@Post(":id/species/aggregate")
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "Taxon",
+		jsonLdContext: "taxon-elastic",
+		customizeRequestBodySchema: addFiltersSchema
+	})
+	@HttpCode(200)
+	getTaxonSpeciesAggregateWithFilters(
+		@Param("id") id: string,
+		@Query() query: GetTaxaAggregateDto,
+		@Body() filters?: TaxaFilters
+	) {
+		return this.taxaService.getTaxonSpeciesAggregate(id, query, filters);
+	}
+
 	/** Get description texts of a taxon */
 	@Version("1")
 	@Get(":id/descriptions")
@@ -256,7 +281,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-description"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(Translator, ResultsArray)
 	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonDescriptions(id, query);
 	}
@@ -270,7 +295,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-media"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(Translator, ResultsArray)
 	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonMedia(id, query);
 	}
