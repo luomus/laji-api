@@ -81,7 +81,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-search"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(Translator, ResultsArray)
 	search(@Query() query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
@@ -201,7 +201,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-elastic"
 	})
-	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
+	@UseInterceptors(Translator, Serializer(TaxonElastic), ResultsArray)
 	getTaxonChildren(@Param("id") id: string, @Query() query: GetTaxaResultsDto) {
 		return this.taxaService.getChildren(id, query);
 	}
@@ -281,7 +281,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-description"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(Translator, ResultsArray)
 	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonDescriptions(id, query);
 	}
@@ -295,7 +295,7 @@ export class TaxaController {
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		jsonLdContext: "taxon-media"
 	})
-	@UseInterceptors(ResultsArray, Translator)
+	@UseInterceptors(Translator, ResultsArray)
 	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
 		return this.taxaService.getTaxonMedia(id, query);
 	}

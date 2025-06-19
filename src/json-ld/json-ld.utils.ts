@@ -20,7 +20,7 @@ export const applyLangToJsonLdContext = <T extends HasJsonLdContext>(item: T, la
 	});
 };
 
-const getJsonLdContextForLang = (jsonLdContext: string, lang?: Lang) => {
+export const getJsonLdContextForLang = (jsonLdContext: string, lang?: Lang) => {
 	if (lang && lang !== Lang.multi && jsonLdContext.startsWith("http://schema.laji.fi")) {
 		return jsonLdContext.replace(/\.jsonld$/, `-${lang}.jsonld`);
 	}

@@ -19,7 +19,7 @@ export class CollectionsController {
 
 	/** Get all collections */
 	@Get()
-	@UseInterceptors(Paginator, CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
+	@UseInterceptors(CollectionMultiLangHackInterceptor, Translator, Serializer(Collection), Paginator)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async getPage(@Query() { idIn }: QueryWithPagingAndLangAndIdIn) {
 		return this.collectionsService.findCollections(idIn);
@@ -27,7 +27,7 @@ export class CollectionsController {
 
 	/** Get all root collections */
 	@Get("roots")
-	@UseInterceptors(Paginator, CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
+	@UseInterceptors(CollectionMultiLangHackInterceptor, Translator, Serializer(Collection), Paginator)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findRoots(@Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findRoots();
@@ -43,7 +43,7 @@ export class CollectionsController {
 
 	/** Get child collections */
 	@Get(":id/children")
-	@UseInterceptors(Paginator, CollectionMultiLangHackInterceptor, Translator, Serializer(Collection))
+	@UseInterceptors(CollectionMultiLangHackInterceptor, Translator, Serializer(Collection), Paginator)
 	@SwaggerRemoteRef({ source: "store", ref: "collection" })
 	async findChildren(@Param("id") id: string, @Query() {}: FindCollectionsDto) {
 		return this.collectionsService.findChildren(id);
