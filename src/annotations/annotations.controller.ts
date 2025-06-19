@@ -8,8 +8,9 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Annotation } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
-import { QueryWithLangDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
+import { RequestLang } from "src/decorators/request-lang.decorator";
 
 @ApiTags("Annotations")
 @LajiApiController("annotations")
@@ -24,7 +25,7 @@ export class AnnotationsController {
 		ref: "tag",
 		customizeResponseSchema: schema => ({ type: "array", items: schema })
 	})
-	async getTags(@Query() { lang }: QueryWithLangDto) {
+	async getTags(@RequestLang() lang: Lang) {
 		const tags = await this.annotationsService.getTags();
 		return tags.map(tag => this.langService.translate(tag, lang));
 	}

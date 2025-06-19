@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CompleteMultiLang, HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
+import { HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { isJSONObjectSerializable, isObject, JSONObjectSerializable, KeyOf, omit } from "src/typing.utils";
 import { JSONPath } from "jsonpath-plus";
@@ -31,6 +31,10 @@ export class LangService {
 	async contextualTranslateWith<T>(
 		jsonLdContext: string, lang: Lang = Lang.en, selectedFields?: string[]
 	) {
+		if (lang === Lang.multi) {
+			return (item: T) => item;
+		}
+
 		let multiLangJSONPaths = await this.getMultiLangJSONPaths(jsonLdContext);
 
 		if (selectedFields) {
@@ -86,26 +90,11 @@ const getLangValueWithFallback = (multiLangValue?: MultiLang): string | undefine
 	}
 };
 
-const getMultiLangValue = (multiLangValue?: MultiLang): CompleteMultiLang | undefined => {
-	const completeMultiLang = LANGS.reduce((multiLangValueFilled: CompleteMultiLang, lang) => {
-		const value = multiLangValue?.[lang];
-		multiLangValueFilled[lang] = value === undefined
-			? getLangValueWithFallback(multiLangValue) ?? ""
-			: value;
-		return multiLangValueFilled;
-	}, {} as CompleteMultiLang);
-	return (Object.keys(completeMultiLang) as (keyof CompleteMultiLang)[]).every(k => completeMultiLang[k] === "")
-		? undefined
-		: completeMultiLang;
-};
-
-function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi): CompleteMultiLang;
+function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi): MultiLang;
 function getLangValue(multiLangValue?: MultiLang, lang?: Exclude<Lang, Lang.multi>): string | undefined;
-function getLangValue(multiLangValue?: MultiLang, lang?: Lang): CompleteMultiLang | string | undefined;
-function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en)
-	: CompleteMultiLang | string | undefined {
+function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en) : MultiLang | string | undefined {
 	if (lang === Lang.multi) {
-		return getMultiLangValue(multiLangValue);
+		return multiLangValue;
 	}
 	if (!multiLangValue) {
 		return undefined;

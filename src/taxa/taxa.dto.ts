@@ -2,7 +2,7 @@ import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/c
 import { ApiHideProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
 import { IsInt } from "class-validator";
-import { MultiLang, QueryWithLangDto, QueryWithPagingDto } from "src/common.dto";
+import { HasSelectedFields, MultiLang, QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { WithNonNullableKeys } from "src/typing.utils";
 
@@ -22,11 +22,6 @@ export class TaxaBaseQuery {
 
 	/** Checklist version to be used. Defaults to the latest version. */
 	checklistVersion?: ChecklistVersion = ChecklistVersion.current;
-}
-
-class HasSelectedFields {
-	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
-	@CommaSeparatedStrings() selectedFields?: string[];
 }
 
 class HasParentTaxonId {
@@ -79,7 +74,6 @@ class HasIncludeHidden {
 
 class PageLikeTaxaQuery extends IntersectionType(
 	QueryWithPagingDto,
-	QueryWithLangDto,
 	SimpleFilters,
 	HasSelectedFields,
 	Inclusions,
@@ -119,15 +113,12 @@ export class GetTaxaAggregateDto extends IntersectionType(
 export class GetTaxaAggregateWithFiltersDto extends OmitType(GetTaxaAggregateDto, SimpleFiltersKeys) {}
 
 export class GetTaxonDto extends IntersectionType(
-	QueryWithLangDto,
 	HasSelectedFields,
 	Inclusions,
 	PickType(TaxaBaseQuery, ["checklistVersion"])
 ) {}
 
 export class GetTaxaResultsDto extends OmitType(GetTaxaPageDto, ["page", "pageSize"]) {}
-
-export class GetTaxaDescriptionsDto extends IntersectionType(TaxaBaseQuery, QueryWithLangDto) {}
 
 export type AllQueryParams  = TaxaBaseQuery & PageLikeTaxaQuery & GetTaxaAggregateDto & {
 	depth?: boolean;
@@ -167,7 +158,7 @@ enum SearchMatchType {
 	likely = "likely"
 }
 
-export class TaxaSearchDto extends QueryWithLangDto {
+export class TaxaSearchDto {
 	query: string;
 
 	// Used only internally

@@ -3,7 +3,6 @@ import { AreaService } from "./area.service";
 import { AreaTypeDto, GetAreaPageDto } from "./area.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
-import { QueryWithLangDto } from "src/common.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
@@ -18,7 +17,7 @@ export class AreaController {
 	@Get(":id")
 	@UseInterceptors(Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "area" })
-	get(@Param("id") id: string, @Query() _: QueryWithLangDto) {
+	get(@Param("id") id: string) {
 		return this.areaService.get(id);
 	}
 

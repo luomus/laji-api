@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsInt, IsString, isObject } from "class-validator";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
-import { IntersectionType, PartialType } from "@nestjs/swagger";
+import { PartialType } from "@nestjs/swagger";
 
 export enum Lang {
 	fi = "fi",
@@ -23,10 +23,6 @@ export class QueryWithPagingDto {
 export const isQueryWithPagingDto = (maybePagedQuery: any): maybePagedQuery is QueryWithPagingDto =>
 	isObject(maybePagedQuery) && ["page", "pageSize"] .every(k => k in maybePagedQuery);
 
-export class QueryWithLangDto {
-	lang?: Lang = Lang.en;
-}
-
 export class QueryWithPersonTokenDto {
 	/** Person's authentication token */
 	@IsString() personToken: string;
@@ -34,13 +30,7 @@ export class QueryWithPersonTokenDto {
 
 export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {}
 
-export class QueryWithLangAndMaybePersonTokenDto extends IntersectionType(
-	QueryWithLangDto,
-	QueryWithMaybePersonTokenDto) {};
-
-export class QueryWithPagingAndLang extends IntersectionType(QueryWithPagingDto, QueryWithLangDto) {}
-
-export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingAndLang {
+export class QueryWithPagingAndIdIn {
 	/**
 	 * Comma separated ids
 	 */
@@ -48,6 +38,7 @@ export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingAndLang {
 }
 
 export const LANGS: Exclude<Lang, Lang.multi>[] = [Lang.fi, Lang.sv, Lang.en];
+export const LANGS_WITH_MULTI: Lang[] = [Lang.fi, Lang.sv, Lang.en, Lang.multi];
 
 export type CompleteMultiLang = Record<Exclude<Lang, Lang.multi>, string>;
 export type MultiLang = Partial<CompleteMultiLang>;
@@ -73,3 +64,9 @@ export type MultiLangAsString<T> = {
 	? MultiLangAsString<T[K]>
 	: T[K];
 };
+
+export class HasSelectedFields {
+	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
+	@CommaSeparatedStrings() selectedFields?: string[];
+}
+

@@ -1,8 +1,10 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { Body, Get, HttpCode, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
-import { GetTaxaAggregateDto, GetTaxaAggregateWithFiltersDto, GetTaxaDescriptionsDto, GetTaxaPageDto,
-	GetTaxaPageWithFiltersDto, GetTaxaResultsDto, GetTaxonDto, TaxaSearchDto, TaxonElastic } from "./taxa.dto";
+import {
+	GetTaxaAggregateDto, GetTaxaAggregateWithFiltersDto, GetTaxaPageDto, GetTaxaPageWithFiltersDto, GetTaxaResultsDto,
+	GetTaxonDto, TaxaBaseQuery, TaxaSearchDto, TaxonElastic
+} from "./taxa.dto";
 import { TaxaService, getFiltersSchema } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
@@ -282,7 +284,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-description"
 	})
 	@UseInterceptors(Translator, ResultsArray)
-	getTaxonDescriptions(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
+	getTaxonDescriptions(@Param("id") id: string, @Query() query: TaxaBaseQuery) {
 		return this.taxaService.getTaxonDescriptions(id, query);
 	}
 
@@ -296,7 +298,7 @@ export class TaxaController {
 		jsonLdContext: "taxon-media"
 	})
 	@UseInterceptors(Translator, ResultsArray)
-	getTaxonMedia(@Param("id") id: string, @Query() query: GetTaxaDescriptionsDto) {
+	getTaxonMedia(@Param("id") id: string, @Query() query: TaxaBaseQuery) {
 		return this.taxaService.getTaxonMedia(id, query);
 	}
 }
