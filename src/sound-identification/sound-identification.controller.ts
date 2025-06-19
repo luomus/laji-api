@@ -1,11 +1,14 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { Controller, HttpException, Logger, Next, Post, Req, Res } from "@nestjs/common";
+import { HttpException, Logger, Next, Post, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
+import { ApiTags } from "@nestjs/swagger";
 
-@Controller("sound-identification")
+@ApiTags("Sound identification")
+@LajiApiController("sound-identification")
 export class SoundIdentificationController {
 	private logger = new Logger(SoundIdentificationController.name);
 	constructor(
