@@ -253,11 +253,7 @@ export class FormPermissionsService {
 		lang: Exclude<Lang, Lang.multi>
 	): Promise<string> {
 		if (form?.options.shortTitleFromCollectionName && collectionID) {
-			const collection = await this.langService.translate(
-				await this.collectionsService.get(collectionID),
-				lang,
-				true
-			);
+			const collection = await this.langService.translate(await this.collectionsService.get(collectionID), lang);
 			if (collection.collectionName) {
 				return collection.collectionName;
 			}

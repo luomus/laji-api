@@ -1,8 +1,8 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import {
-	AllQueryParams, ChecklistVersion, GetTaxaAggregateDto, GetTaxaDescriptionsDto, GetTaxaPageDto, GetTaxaResultsDto,
-	GetTaxonDto, TaxaBaseQuery, TaxaSearchDto, Taxon, TaxonElastic
+	AllQueryParams, ChecklistVersion, GetTaxaAggregateDto, GetTaxaPageDto, GetTaxaResultsDto, GetTaxonDto,
+	TaxaBaseQuery, TaxaSearchDto, Taxon, TaxonElastic
 } from "./taxa.dto";
 import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
 import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
@@ -155,11 +155,11 @@ export class TaxaService {
 		return this.getAggregate(query, filters);
 	}
 
-	async getTaxonDescriptions(id: string, query: GetTaxaDescriptionsDto) {
+	async getTaxonDescriptions(id: string, query: TaxaBaseQuery) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["descriptions"] })).descriptions || [];
 	}
 
-	async getTaxonMedia(id: string, query: GetTaxaDescriptionsDto) {
+	async getTaxonMedia(id: string, query: TaxaBaseQuery) {
 		return (await this.getBySubject(id, { ...query, selectedFields: ["multimedia"] })).multimedia || [];
 	}
 

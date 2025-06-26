@@ -4,13 +4,14 @@ import { AcceptAccessDto, Form, Format, GetDto, RevokeAccessDto, TransformDto }
 	from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
-import { Lang, QueryWithLangDto, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Person } from "src/persons/person.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
+import { RequestLang } from "src/decorators/request-lang.decorator";
 
 @ApiTags("Form")
 @LajiApiController("forms")
@@ -73,7 +74,7 @@ export class FormsController {
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "form", customizeResponseSchema: swaggerResponseAsResultsArray })
 	@UseInterceptors(ResultsArray)
-	getListing(@Query() { lang }: QueryWithLangDto) {
+	getListing(@RequestLang() lang: Lang) {
 		return this.formsService.getListing(lang);
 	}
 

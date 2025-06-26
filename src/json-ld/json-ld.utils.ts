@@ -1,23 +1,20 @@
 import { HasJsonLdContext, Lang } from "src/common.dto";
-import { JSONObjectSerializable, Newable } from "src/typing.utils";
+import { JSONObjectSerializable } from "src/typing.utils";
 import { JSONSchema, TypedJSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef }
 	from "src/json-schema.utils";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { HttpException } from "@nestjs/common";
-import { plainToInstance } from "class-transformer";
+import { instanceToInstance } from "class-transformer";
 
 export const applyLangToJsonLdContext = <T extends HasJsonLdContext>(item: T, lang?: Lang) => {
-	if (item.constructor === Object) {
-		return {
-			...item,
-			"@context": getJsonLdContextForLang(item["@context"], lang)
-		};
+	if (item.constructor === Object) { // Slight optimization to prevent deeply copying if it's just a simple object.
+		item = { ...item };
+	} else {
+		item = instanceToInstance(item);
 	}
-	return plainToInstance(item.constructor as Newable<T>, {
-		...item,
-		"@context": getJsonLdContextForLang(item["@context"], lang)
-	});
+	item["@context"] = getJsonLdContextForLang(item["@context"], lang);
+	return item;
 };
 
 export const getJsonLdContextForLang = (jsonLdContext: string, lang?: Lang) => {

@@ -1,6 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Observable, map } from "rxjs";
-import { QueryWithPagingAndLangAndIdIn, QueryWithPagingDto } from "src/common.dto";
+import { QueryWithPagingDto } from "src/common.dto";
 import { paginateArray } from "src/pagination.utils";
 import { Request } from "express";
 import { plainToClass } from "class-transformer";
@@ -13,7 +13,7 @@ export class Paginator implements NestInterceptor {
 	}
 }
 
-const paginate = (rawQuery: QueryWithPagingAndLangAndIdIn, result: any[]) => {
+const paginate = (rawQuery: QueryWithPagingDto, result: any[]) => {
 	const query = plainToClass(QueryWithPagingDto, rawQuery);
 	const { page, pageSize } = query;
 	return paginateArray(result, page, pageSize);
