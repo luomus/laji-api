@@ -209,11 +209,7 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 				return;
 			}
 			if (!(schema as JSONSchemaObject).properties?.[key]) {
-				throw new HttpException(
-					"Unprocessable Entity",
-					422,
-					{ cause: `Property ${key} not in form ${form.id} schema!` }
-				);
+				throw new HttpException(`Property ${key} not in form ${form.id} schema!`, 422);
 			}
 			if (key === "geometry") { // Don't validate internals of the geometry, as the type is just an empty object.
 				return;
