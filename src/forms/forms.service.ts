@@ -68,6 +68,7 @@ export class FormsService {
 		if (!collectionID) {
 			return;
 		}
+
 		const isDisabled = await this.findFor(collectionID, (f => f.options.disabled)) || false;
 
 		if (!isDisabled) {
@@ -79,7 +80,7 @@ export class FormsService {
 		}
 	}
 
-	/** Use Array.*find* *for the collection* and it's parents with the *predicate* */
+	/** Array.*find()* for the collection and its parents recursively with the given *predicate* */
 	async findFor(collectionID: string, predicate: (f: FormListing) => unknown) : Promise<FormListing | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
 		const matches = forms.find(predicate);

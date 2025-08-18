@@ -28,7 +28,7 @@ export class FormsController {
 		return this.formPermissionsService.getByPerson(person);
 	}
 
-	/** Get form permissions for a person, and the form information about whether is has MHL.restrictAccess and MHL.hasAdmins */
+	/** Get form permissions for a person, and the form information about whether it has MHL.restrictAccess or MHL.hasAdmins */
 	@Get("permissions/:collectionID")
 	getPermissionsByCollectionID(
 		@Param("collectionID") collectionID: string,
