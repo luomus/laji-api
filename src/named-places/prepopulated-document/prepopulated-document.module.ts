@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { AreaModule } from "src/area/area.module";
 import { LangModule } from "src/lang/lang.module";
 import { TaxaModule } from "src/taxa/taxa.module";
@@ -7,7 +7,7 @@ import { FormsModule } from "src/forms/forms.module";
 
 @Module({
 	providers: [PrepopulatedDocumentService],
-	imports: [TaxaModule, AreaModule, LangModule, FormsModule],
+	imports: [TaxaModule, AreaModule, LangModule, forwardRef(() => FormsModule)],
 	exports: [PrepopulatedDocumentService]
 })
 export class PrepopulatedDocumentModule {}

@@ -39,8 +39,10 @@ const StoreResourceService: FactoryProvider<StoreService<NamedPlace>> = {
 
 @Module({
 	providers: [NamedPlacesService, StoreResourceService],
-	imports: [StoreClientModule, PersonsModule, FormsModule, FormPermissionsModule, PrepopulatedDocumentModule,
-		forwardRef(() => DocumentsModule), CollectionsModule, MailModule],
+	imports: [
+		StoreClientModule, PersonsModule, forwardRef(() => FormsModule), FormPermissionsModule,
+		PrepopulatedDocumentModule, forwardRef(() => DocumentsModule), CollectionsModule, MailModule
+	],
 	controllers: [NamedPlacesController],
 	exports: [NamedPlacesService]
 })

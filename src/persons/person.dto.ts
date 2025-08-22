@@ -25,6 +25,8 @@ export class Person extends HasJsonLdContext implements Omit<_Person, "role" | "
 	organisationAdmin?: string[];
 	securePortalUserRoleExpires?: string;
 	roleAnnotation: RoleAnnotation;
+	address?: string;
+	lintuvaaraLoginName?: string[];
 
 	isImporter() {
 		return this.role.includes(Role.Import);
