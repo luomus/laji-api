@@ -12,26 +12,26 @@ describe("/form/:id/participants", function() {
 	const pathForForm = (formID) => `${config["urls"]["form"]}/${formID}/participants`;
 	const basePath = pathForForm(formID);
 
-	it("returns 403 but doesn't crash with form without admin feature and collectionID", function(done) {
+	it("returns 422 but doesn't crash with form without admin feature and collectionID", function(done) {
 		const query = pathForForm("JX.519")
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + nonAdminToken;
 		request(this.server)
 			.get(query)
 			.end(function(err, res) {
-				res.should.have.status(403);
+				res.should.have.status(422);
 				done();
 			});
 	});
 
-	it("returns 403 if form doesn't have admin feature", function(done) {
+	it("returns 422 if form doesn't have admin feature", function(done) {
 		const query = pathForForm("JX.652")
 			+ "?access_token=" + config["access_token"]
 			+ "&personToken=" + nonAdminToken;
 		request(this.server)
 			.get(query)
 			.end(function(err, res) {
-				res.should.have.status(403);
+				res.should.have.status(422);
 				done();
 			});
 	});

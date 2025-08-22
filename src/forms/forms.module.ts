@@ -11,6 +11,7 @@ import { CollectionsModule } from "src/collections/collections.module";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { FORM_CLIENT } from "src/provider-tokens";
+import { FormParticipantsModule } from "./form-participants/form-participants.module";
 
 const FormClient: FactoryProvider<RestClientService<Form>> = {
 	provide: FORM_CLIENT,
@@ -25,7 +26,12 @@ const FormClient: FactoryProvider<RestClientService<Form>> = {
 };
 
 @Module({
-	imports: [PersonsModule, forwardRef(() => FormPermissionsModule), CollectionsModule],
+	imports: [
+		PersonsModule,
+		CollectionsModule,
+		forwardRef(() => FormPermissionsModule),
+		forwardRef(() => FormParticipantsModule)
+	],
 	controllers: [FormsController],
 	providers: [FormsService, FormClient],
 	exports: [FormsService]

@@ -43,8 +43,9 @@ const StoreResourceService: FactoryProvider<StoreService<DocumentQuery>> = {
 @Module({
 	providers: [DocumentsService, StoreResourceService, SecondaryDocumentsService, DocumentsBatchService],
 	imports: [
-		StoreClientModule, PersonsModule, FormPermissionsModule, FormsModule, CollectionsModule, WarehouseModule,
-		forwardRef(() => NamedPlacesModule), PrepopulatedDocumentModule, forwardRef(() => DocumentValidatorModule)
+		StoreClientModule, PersonsModule, FormPermissionsModule, forwardRef(() => FormsModule), CollectionsModule,
+		WarehouseModule, forwardRef(() => NamedPlacesModule), PrepopulatedDocumentModule,
+		forwardRef(() => DocumentValidatorModule)
 	],
 	exports: [DocumentsService],
 	controllers: [DocumentsController]

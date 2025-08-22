@@ -12,6 +12,7 @@ import { Person } from "src/persons/person.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { RequestLang } from "src/decorators/request-lang.decorator";
+import { FormParticipantsService } from "./form-participants/form-participants.service";
 
 @ApiTags("Form")
 @LajiApiController("forms")
@@ -19,7 +20,8 @@ export class FormsController {
 
 	constructor(
 		private readonly formsService: FormsService,
-		private readonly formPermissionsService: FormPermissionsService
+		private readonly formPermissionsService: FormPermissionsService,
+		private readonly formParticipantsService: FormParticipantsService
 	) {}
 
 	/** Get form permissions for a person */
@@ -28,7 +30,7 @@ export class FormsController {
 		return this.formPermissionsService.getByPerson(person);
 	}
 
-	/** Get form permissions for a person, and the form information about whether is has MHL.restrictAccess and MHL.hasAdmins */
+	/** Get form permissions for a person, and the form information about whether it has MHL.restrictAccess or MHL.hasAdmins */
 	@Get("permissions/:collectionID")
 	getPermissionsByCollectionID(
 		@Param("collectionID") collectionID: string,
@@ -69,6 +71,13 @@ export class FormsController {
 	) {
 		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
 	}
+
+	/** Get participants of a form. Only for form admins. */
+	@Get(":formID/participants")
+	getParticipants(@Param("formID") formID: string, @PersonToken() person: Person) {
+		return this.formParticipantsService.getParticipants(formID, person);
+	}
+
 
 	/** Get a page of forms */
 	@Get()

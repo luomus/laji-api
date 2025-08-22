@@ -20,11 +20,15 @@ export class Translator implements NestInterceptor {
 		return next.handle().pipe(switchMap(result => this.translate(request, result)));
 	}
 
-	// async translate(rawQuery: ParsedQs, headers: IncomingHttpHeaders, result: any) {
 	async translate(request: Request, result: any) {
 		const lang = getLang(request);
 		const { selectedFields } = plainToClass(HasSelectedFields, request.query);
 		const jsonLdContext = this.getJsonLdContext(result);
+
+		if (!result || (result instanceof Array && !result.length)) {
+			return result;
+		}
+
 
 		if (!jsonLdContext) {
 			throw new Error("Translator failed to get the @context for item");
@@ -53,8 +57,8 @@ export class Translator implements NestInterceptor {
 		}
 		const sample = takeSample(result);
 
-		if (!sample) {
-			return result;
+		if (sample === undefined) {
+			return undefined;
 		}
 
 		return getJsonLdContextFromSample(sample);

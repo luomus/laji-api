@@ -25,7 +25,7 @@ import { CollectionsModule } from "src/collections/collections.module";
 		UniqueNamedPlaceAlternativeIDsValidatorService
 	],
 	imports: [
-		FormsModule,
+		forwardRef(() => FormsModule),
 		TaxaModule,
 		forwardRef(() => DocumentsModule),
 		forwardRef(() => NamedPlacesModule),

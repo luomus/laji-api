@@ -2,7 +2,7 @@ import { DocumentsService } from "src/documents/documents.service";
 import { Document } from "@luomus/laji-schema";
 import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
 import { isValidDate } from "src/utils";
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { DocumentValidator, ValidationException, joinJSONPointers } from "../document-validator.utils";
 import { FormsService } from "src/forms/forms.service";
 
@@ -10,7 +10,7 @@ import { FormsService } from "src/forms/forms.service";
 export class NoExistingGatheringsInNamedPlaceValidatorService implements DocumentValidator {
 
 	constructor(
-		private documentsService: DocumentsService,
+		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
 		private formsService: FormsService
 	) {}
 

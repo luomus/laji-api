@@ -170,7 +170,7 @@ describe("/image", function() {
 			var query = basePath + "/" + imageId +
 				"?access_token=" + config.access_token + "&personToken=" + config.user.token;
 			var meta = {
-				intellectualRights: config.id.media_non_default_rights,
+				intellectualRights: "MZ.intellectualRightsCC-BY-4.0",
 				intellectualOwner: "Viltsu",
 				uploadedBy: "MA.97"
 			};
