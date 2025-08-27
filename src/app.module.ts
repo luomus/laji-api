@@ -52,6 +52,7 @@ import { GlobalRestClientModule } from "./rest-client/global-rest-client.module"
 import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.interceptor";
 import { JsonLdModule } from "./json-ld/json-ld.module";
 import { SoundIdentificationModule } from "./sound-identification/sound-identifiation.module";
+import { AutocompleteModule } from './autocomplete/autocomplete.module';
 
 @Module({
 	imports: [
@@ -108,7 +109,8 @@ import { SoundIdentificationModule } from "./sound-identification/sound-identifi
 		InformalTaxonGroupsModule,
 		GlobalRestClientModule,
 		JsonLdModule,
-		SoundIdentificationModule
+		SoundIdentificationModule,
+		AutocompleteModule
 	],
 	controllers: [AppController],
 	providers: [

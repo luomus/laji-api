@@ -238,7 +238,7 @@ export class SwaggerService {
 				whitelistKeys((jsonSchema.properties as any), entry.serializeOptions.whitelist);
 			}
 			if (entry.schemaDefinitionName) {
-				schema![entry.schemaDefinitionName] = jsonSchema;
+				schema[entry.schemaDefinitionName] = jsonSchema;
 			}
 		}
 	}

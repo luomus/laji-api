@@ -8,7 +8,7 @@ import { jsonLdContextToRemoteSwaggerRefEntry } from "src/json-ld/json-ld.servic
 
 export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
-	source: "store" | "laji-backend",
+	source?: "store" | "laji-backend",
 	/** The name of the schema object in the remote OpenAPI document's schemas */
 	ref?: string,
 	/**
