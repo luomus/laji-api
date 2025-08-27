@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsInt, IsString, isObject } from "class-validator";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
-import { PartialType } from "@nestjs/swagger";
+import { IntersectionType, PartialType } from "@nestjs/swagger";
 
 export enum Lang {
 	fi = "fi",
@@ -30,7 +30,7 @@ export class QueryWithPersonTokenDto {
 
 export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {}
 
-export class QueryWithPagingAndIdIn {
+export class QueryWithPagingAndIdIn extends IntersectionType(QueryWithPagingDto) {
 	/**
 	 * Comma separated ids
 	 */
