@@ -10,7 +10,7 @@ export class CommonAutocompleteDto extends IntersectionType(PaginatedDto) {
 
 export class GetFriendsDto extends IntersectionType(CommonAutocompleteDto) {}
 
-export class GetFriendsResponseDto {
+export class GetPersonsResponseDto {
 	key: string;
 	value?: string;
 	name?: string;

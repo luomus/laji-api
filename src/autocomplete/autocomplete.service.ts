@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { ProfileService } from "src/profile/profile.service";
-import { GetFriendsResponseDto } from "./autocomplete.dto";
+import { GetPersonsResponseDto } from "./autocomplete.dto";
 import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
 
@@ -16,14 +16,14 @@ export class AutocompleteService {
 	) {}
 
 	async getFriends(person: Person, query?: string) {
-		query = query?.toLowerCase();
-		const friends = (await this.personsService.findByIds([
+		return filterPersons(query, (await this.personsService.findByIds([
 			person.id,
 			...(await this.profileService.getByPersonIdOrCreate(person.id)).friends
-		])).map(prepareFriendAutocomplete);
-		return typeof query === "string"
-			? friends.filter(f => f.value?.toLowerCase().includes(query!))
-			: friends;
+		])).map(preparePersonAutocomplete));
+	}
+
+	async getPersons(query?: string) {
+		return filterPersons(query, (await this.personsService.getAll()).map(preparePersonAutocomplete));
 	}
 
 	async getTaxa(query: TaxaSearchDto) {
@@ -31,7 +31,14 @@ export class AutocompleteService {
 	}
 }
 
-const prepareFriendAutocomplete = (person: Person): GetFriendsResponseDto => ({
+const filterPersons = (query: string | undefined, persons: GetPersonsResponseDto[]) => {
+	query = query?.toLowerCase();
+	return typeof query === undefined
+		? persons
+		: persons.filter(p => p.value?.toLowerCase()?.includes(query!));
+};
+
+const preparePersonAutocomplete = (person: Person): GetPersonsResponseDto => ({
 	key: person.id,
 	value: person.group ? `${person.fullName} (${person.group})` : person.fullName,
 	name: person.fullName,
