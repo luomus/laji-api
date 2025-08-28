@@ -152,23 +152,23 @@ export class TaxonElastic {
 	[key: string]: unknown;
 }
 
-enum SearchMatchType {
+export enum SearchMatchType {
 	exact = "exact",
 	partial = "partial",
 	likely = "likely"
 }
 
-export class TaxaSearchDto {
+export class TaxaSearchDto extends IntersectionType(QueryWithPagingDto) {
 	query: string;
 
 	// Used only internally
 	@ApiHideProperty() q?: string;
 
 	// Used only internally
-	@ApiHideProperty() id?: string;
+	@ApiHideProperty() limit?: number;
 
-	/** Limit the page size of results */
-	limit?: number = 10;
+	// Used only internally
+	@ApiHideProperty() id?: string;
 
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
 	checklist?: string;

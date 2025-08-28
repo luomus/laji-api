@@ -1,29 +1,13 @@
-import { CallHandler, ExecutionContext, Get, Injectable, NestInterceptor, Query, UseInterceptors, Version }
-	from "@nestjs/common";
+import { Get, Query, UseInterceptors, Version } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { AutocompleteService } from "./autocomplete.service";
-import { GetFriendsDto, GetFriendsResponseDto, IncludePayloadDto } from "./autocomplete.dto";
+import { GetFriendsDto, GetFriendsResponseDto } from "./autocomplete.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
-import { Observable, map } from "rxjs";
-import { plainToClass } from "class-transformer";
-import { Request } from "src/request";
-import { omit } from "src/typing.utils";
-import { applyToResult } from "src/pagination.utils";
-import { ResultsArray } from "src/interceptors/results-array.interceptor";
-
-@Injectable()
-export class IncludePayloadInterceptor implements NestInterceptor {
-	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		const request = context.switchToHttp().getRequest<Request>();
-		const { includePayload } = plainToClass(IncludePayloadDto, request.query);
-		return next.handle().pipe(map(applyToResult(mapIncludePayload(includePayload))));
-	}
-}
-
-const mapIncludePayload = (includePayload = false) => (result: any) =>
-	includePayload ? result : omit(result, "payload");
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
+import { TaxaSearchDto } from "src/taxa/taxa.dto";
+import { Paginator } from "src/interceptors/paginator.interceptor";
 
 @ApiTags("Autocomplete")
 @LajiApiController("autocomplete")
@@ -32,7 +16,7 @@ export class AutocompleteController {
 	constructor(private autocompleteService: AutocompleteService) {}
 
 	@Get("/friends")
-	@UseInterceptors(IncludePayloadInterceptor, ResultsArray)
+	@UseInterceptors(SelectedFields, Paginator)
 	@Version("1")
 	@ApiOkResponse({
 		schema: {
@@ -46,7 +30,15 @@ export class AutocompleteController {
 		}
 	})
 	@ApiExtraModels(GetFriendsResponseDto)
-	getFriends(@PersonToken() person: Person, @Query() _: GetFriendsDto) {
-		return this.autocompleteService.getFriends(person);
+	getFriends(@PersonToken() person: Person, @Query() { query }: GetFriendsDto) {
+		return this.autocompleteService.getFriends(person, query);
+	}
+
+	// TODO pagination not working yet
+	@Get("/taxon")
+	@UseInterceptors(SelectedFields, Paginator)
+	@Version("1")
+	getTaxa(@Query() query: TaxaSearchDto) {
+		return this.autocompleteService.getTaxa(query);
 	}
 }

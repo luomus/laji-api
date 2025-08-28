@@ -139,3 +139,14 @@ Old API filtered out non QNames from queries. For example, when querying named p
 ## Informal taxon groups
 
 * `/informal-taxon-groups/tree` isn't paged anymore.
+
+## Taxa
+
+* /taxa/search `limit` renamed as `pageSize` (paging is enabled) 
+* TODO document query param renaming & filter body
+
+## Autocomplete
+
+* `limit` renamed as `pageSize` (paging is enabled)
+* `payload` is flattened into the response
+* `includePayload` is removed, fields can be filtered with `selectedFields` instead
