@@ -2,9 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { ProfileService } from "src/profile/profile.service";
-import { GetPersonsResponseDto } from "./autocomplete.dto";
+import { GetPersonsResponseDto, GetUnitDto } from "./autocomplete.dto";
 import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
+import { TripReportUnitListAutocompleteService } from "./trip-report-unit-list.autocomplete.service";
 
 @Injectable()
 export class AutocompleteService {
@@ -12,7 +13,8 @@ export class AutocompleteService {
 	constructor(
 		private personsService: PersonsService,
 		private profileService: ProfileService,
-		private taxaService: TaxaService
+		private taxaService: TaxaService,
+		private tripReportUnitListAutocompleteService: TripReportUnitListAutocompleteService
 	) {}
 
 	async getFriends(person: Person, query?: string) {
@@ -29,7 +31,13 @@ export class AutocompleteService {
 	async getTaxa(query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
+
+	async getTripReportUnitListAutocompleteService(query?: string) {
+		return this.tripReportUnitListAutocompleteService.autocomplete(query);
+	}
 }
+
+
 
 const filterPersons = (query: string | undefined, persons: GetPersonsResponseDto[]) => {
 	query = query?.toLowerCase();

@@ -1,3 +1,4 @@
+import { Unit } from "@luomus/laji-schema/classes";
 import { IntersectionType } from "@nestjs/swagger";
 import { PaginatedDto } from "src/pagination.utils";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
@@ -10,6 +11,13 @@ export class CommonAutocompleteDto extends IntersectionType(PaginatedDto) {
 
 export class GetFriendsDto extends IntersectionType(CommonAutocompleteDto) {}
 
+export class GetUnitDto extends IntersectionType(CommonAutocompleteDto) {
+	/** Different forms have different short hands */
+	formID?: string = "JX.519";
+	/** Interpret the query as comma separated list instead of taxon name */
+	@IsOptionalBoolean() list?: boolean = false;
+}
+
 export class GetPersonsResponseDto {
 	key: string;
 	value?: string;
@@ -17,6 +25,13 @@ export class GetPersonsResponseDto {
 	group?: string;
 };
 
+export class GetTripReportUnitListDto { }
+
+export class TripReportUnitListResultDto {
+	results: Unit[];
+	count: number;
+	nonMatchingCount: number;
+}
 // export class GetTaxaAutocompleteDto extends IntersectionType(CommonAutocompleteDto) {
 // 	/** Limit results to specified checklist (default is FinBIF master checklist) */
 // 	checklist?: string;

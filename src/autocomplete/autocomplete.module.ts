@@ -4,10 +4,11 @@ import { AutocompleteService } from "./autocomplete.service";
 import { PersonsModule } from "src/persons/persons.module";
 import { ProfileModule } from "src/profile/profile.module";
 import { TaxaModule } from "src/taxa/taxa.module";
+import { TripReportUnitListAutocompleteService } from "./trip-report-unit-list.autocomplete.service";
 
 @Module({
 	imports: [PersonsModule, ProfileModule, TaxaModule],
 	controllers: [AutocompleteController],
-	providers: [AutocompleteService]
+	providers: [AutocompleteService, TripReportUnitListAutocompleteService]
 })
 export class AutocompleteModule {}

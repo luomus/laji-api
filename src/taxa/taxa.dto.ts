@@ -129,8 +129,10 @@ class InformalTaxonGroup extends _InformalTaxonGroup {
 }
 
 export type Taxon = {
-		vernacularName?: string;
-		informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
+	vernacularName?: string;
+	informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
+	matchingName: string;
+	id: string;
 }
 
 class RedListEvaluation {
