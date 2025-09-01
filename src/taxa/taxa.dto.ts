@@ -130,6 +130,7 @@ class InformalTaxonGroup extends _InformalTaxonGroup {
 
 export type Taxon = {
 	vernacularName?: string;
+	scientificName?: string;
 	informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
 	matchingName: string;
 	id: string;

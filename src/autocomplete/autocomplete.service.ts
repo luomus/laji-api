@@ -7,6 +7,7 @@ import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
 import { TripReportUnitListAutocompleteService } from "./trip-report-unit-list.autocomplete.service";
 import { TripReportUnitShorthandAutocompleteService } from "./trip-report-unit-shorthand.autocomplete.service";
+import { LineTransectUnitShorthandAutocompleteService } from "./line-transect-unit-shorthand.autocomplete.service";
 
 @Injectable()
 export class AutocompleteService {
@@ -16,7 +17,8 @@ export class AutocompleteService {
 		private profileService: ProfileService,
 		private taxaService: TaxaService,
 		private tripReportUnitListAutocompleteService: TripReportUnitListAutocompleteService,
-		private tripReportUnitShorthandAutocompleteService: TripReportUnitShorthandAutocompleteService
+		private tripReportUnitShorthandAutocompleteService: TripReportUnitShorthandAutocompleteService,
+		private lineTransectUnitShorthandAutocompleteService: LineTransectUnitShorthandAutocompleteService
 	) {}
 
 	async getFriends(person: Person, query?: string) {
@@ -40,6 +42,10 @@ export class AutocompleteService {
 
 	async getTripReportUnitShorthand({ query, ...params }: TaxaSearchDto) {
 		return this.tripReportUnitShorthandAutocompleteService.autocomplete(query, params);
+	}
+
+	async getLineTransectUnitShorthand(query: string) {
+		return this.lineTransectUnitShorthandAutocompleteService.autocomplete(query);
 	}
 }
 

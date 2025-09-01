@@ -6,10 +6,16 @@ import { ProfileModule } from "src/profile/profile.module";
 import { TaxaModule } from "src/taxa/taxa.module";
 import { TripReportUnitListAutocompleteService } from "./trip-report-unit-list.autocomplete.service";
 import { TripReportUnitShorthandAutocompleteService } from "./trip-report-unit-shorthand.autocomplete.service";
+import { LineTransectUnitShorthandAutocompleteService } from "./line-transect-unit-shorthand.autocomplete.service";
 
 @Module({
 	imports: [PersonsModule, ProfileModule, TaxaModule],
 	controllers: [AutocompleteController],
-	providers: [AutocompleteService, TripReportUnitListAutocompleteService, TripReportUnitShorthandAutocompleteService]
+	providers: [
+		AutocompleteService,
+		TripReportUnitListAutocompleteService,
+		TripReportUnitShorthandAutocompleteService,
+		LineTransectUnitShorthandAutocompleteService
+	]
 })
 export class AutocompleteModule {}

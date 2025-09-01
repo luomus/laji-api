@@ -1,5 +1,5 @@
-import { Unit } from "@luomus/laji-schema/classes";
-import { IntersectionType } from "@nestjs/swagger";
+import { Unit } from "@luomus/laji-schema/classes/Unit";
+import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { PaginatedDto } from "src/pagination.utils";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
@@ -29,7 +29,7 @@ export class GetTripReportUnitListDto { }
 export class GetTripReportUnitShorthandDto extends IntersectionType(CommonAutocompleteDto) {}
 
 export class TripReportUnitListResultDto {
-	results: Unit[];
+	results: Unit[]; // TODO not working
 	count: number;
 	nonMatchingCount: number;
 }
@@ -46,3 +46,7 @@ export class TripReportUnitShorthandResponseDto {
 		femaleIndividualCount: string;
 	};
 };
+
+export class LineTransectUnitShorthandResponseDto extends
+	OmitType(TripReportUnitShorthandResponseDto, ["isNonMatching"]) { }
+
