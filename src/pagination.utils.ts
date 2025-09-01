@@ -24,7 +24,6 @@ export const paginateArray = <T extends Partial<HasJsonLdContext> | Record<strin
 		page = 1;
 	}
 
-	console.log(data);
 	const total = data.length;
 	const  result = {
 		total,

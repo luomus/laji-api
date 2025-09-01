@@ -133,6 +133,7 @@ export type Taxon = {
 	informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
 	matchingName: string;
 	id: string;
+	type?: "exactMatches";
 }
 
 class RedListEvaluation {
