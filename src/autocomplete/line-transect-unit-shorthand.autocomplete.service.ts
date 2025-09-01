@@ -57,8 +57,7 @@ const lineMapping: Record<string, string> = {
 
 
 @Injectable()
-export class LineTransectUnitShorthandAutocompleteService
-implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
+export class LineTransectUnitShorthandAutocompleteService implements AbstractAutocompleteService<undefined> {
 	constructor(private taxaService: TaxaService) {}
 
 	async autocomplete(query: string) {

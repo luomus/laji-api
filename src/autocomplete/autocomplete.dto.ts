@@ -50,3 +50,6 @@ export class TripReportUnitShorthandResponseDto {
 export class LineTransectUnitShorthandResponseDto extends
 	OmitType(TripReportUnitShorthandResponseDto, ["isNonMatching"]) { }
 
+export class GetWaterBirdPairCountUnitShorthandDto extends IntersectionType(CommonAutocompleteDto) {
+	taxonID: string;
+}

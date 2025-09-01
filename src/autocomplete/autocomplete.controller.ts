@@ -3,6 +3,7 @@ import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/s
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { AutocompleteService } from "./autocomplete.service";
 import { CommonAutocompleteDto, GetFriendsDto, GetPersonsResponseDto, GetTripReportUnitShorthandDto,
+	GetWaterBirdPairCountUnitShorthandDto,
 	LineTransectUnitShorthandResponseDto } from "./autocomplete.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
@@ -56,7 +57,7 @@ export class AutocompleteController {
 	@Get("/unit/list")
 	@Version("1")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
-	getTripReportUnitListAutocompleteService(@Query() { query }: CommonAutocompleteDto) {
+	getTripReportUnitListAutocomplete(@Query() { query }: CommonAutocompleteDto) {
 		return this.autocompleteService.getTripReportUnitList(query);
 	}
 
@@ -72,7 +73,7 @@ export class AutocompleteController {
 		jsonLdContext: "taxon-search"
 	})
 	@UseInterceptors(Translator, ResultsArray)
-	getTripReportUnitShorthandAutocompleteService(@Query() query: GetTripReportUnitShorthandDto) {
+	getTripReportUnitShorthandAutocomplete(@Query() query: GetTripReportUnitShorthandDto) {
 		return this.autocompleteService.getTripReportUnitShorthand(query);
 	}
 
@@ -80,8 +81,16 @@ export class AutocompleteController {
 	@Version("1")
 	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
 	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
-	getLineTransectUnitShorthandAutocompleteService(@Query() { query }: CommonAutocompleteDto) {
+	getLineTransectUnitShorthandAutocomplete(@Query() { query }: CommonAutocompleteDto) {
 		return this.autocompleteService.getLineTransectUnitShorthand(query);
+	}
+
+	@Get("/unit/shorthand/water-bird-pair-count")
+	@Version("1")
+	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
+	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
+	getWaterbirdPairCountUnitShorthandAutocomplete(@Query() query: GetWaterBirdPairCountUnitShorthandDto) {
+		return this.autocompleteService.getWaterBirdPairCountUnitShorthand(query);
 	}
 
 	// TODO pagination not working yet

@@ -2,12 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { ProfileService } from "src/profile/profile.service";
-import { GetPersonsResponseDto, GetUnitDto } from "./autocomplete.dto";
+import { GetPersonsResponseDto, GetWaterBirdPairCountUnitShorthandDto } from "./autocomplete.dto";
 import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
 import { TripReportUnitListAutocompleteService } from "./trip-report-unit-list.autocomplete.service";
 import { TripReportUnitShorthandAutocompleteService } from "./trip-report-unit-shorthand.autocomplete.service";
 import { LineTransectUnitShorthandAutocompleteService } from "./line-transect-unit-shorthand.autocomplete.service";
+import { WaterBirdPairCountUnitShorthandAutocompleteService }
+	from "./water-bird-pair-count-unit-shorthand.autocomplete.service";
 
 @Injectable()
 export class AutocompleteService {
@@ -18,7 +20,8 @@ export class AutocompleteService {
 		private taxaService: TaxaService,
 		private tripReportUnitListAutocompleteService: TripReportUnitListAutocompleteService,
 		private tripReportUnitShorthandAutocompleteService: TripReportUnitShorthandAutocompleteService,
-		private lineTransectUnitShorthandAutocompleteService: LineTransectUnitShorthandAutocompleteService
+		private lineTransectUnitShorthandAutocompleteService: LineTransectUnitShorthandAutocompleteService,
+		private waterBirdPairCountUnitShorthandAutocompleteService: WaterBirdPairCountUnitShorthandAutocompleteService
 	) {}
 
 	async getFriends(person: Person, query?: string) {
@@ -46,6 +49,10 @@ export class AutocompleteService {
 
 	async getLineTransectUnitShorthand(query: string) {
 		return this.lineTransectUnitShorthandAutocompleteService.autocomplete(query);
+	}
+
+	async getWaterBirdPairCountUnitShorthand({ query, ...options }: GetWaterBirdPairCountUnitShorthandDto) {
+		return this.waterBirdPairCountUnitShorthandAutocompleteService.autocomplete(query, options);
 	}
 }
 
