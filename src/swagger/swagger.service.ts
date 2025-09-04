@@ -343,8 +343,8 @@ const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, doc
 
 const replaceWithRefToCustomSchemaDefinitionName = (entry: { schemaDefinitionName: string }, schema: SchemaItem) => (
 	entry.schemaDefinitionName
-	? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
-	: schema
+		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
+		: schema
 );
 
 export const isPagedOperation = (operation: OperationObject) =>

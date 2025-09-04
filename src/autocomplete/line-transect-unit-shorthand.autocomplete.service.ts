@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { AbstractAutocompleteService } from "./abstract-autocomplete.service";
 import { TaxaService } from "src/taxa/taxa.service";
-import { SearchMatchType, TaxaSearchDto } from "src/taxa/taxa.dto";
+import { SearchMatchType } from "src/taxa/taxa.dto";
 
 /** Map from 2 letter codes to EURING/Birdlife code */
 const nameToBirdCode: Record<string, string> = {
@@ -81,8 +81,6 @@ export class LineTransectUnitShorthandAutocompleteService implements AbstractAut
 
 		const [_, taxonStr, isPairStr, countStr, typeStr, lineStr] = matches;
 
-
-		// pick the values
 		const taxonBirdCode  = taxonStr && nameToBirdCode[taxonStr] || taxonStr || "";
 		const isPair = isPairStr === "A";
 		const count  = parseInt(countStr || "1", 10);
