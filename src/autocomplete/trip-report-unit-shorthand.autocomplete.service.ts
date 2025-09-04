@@ -4,6 +4,13 @@ import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto, Taxon } from "src/taxa/taxa.dto";
 import { TripReportUnitShorthandResponseDto } from "./autocomplete.dto";
 
+type Interpretation = {
+	taxonName: string;
+	count: string;
+	maleIndividualCount: string;
+	femaleIndividualCount: string;
+}
+
 @Injectable()
 export class TripReportUnitShorthandAutocompleteService
 implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
@@ -18,23 +25,27 @@ implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
 			throw new HttpException("Invalid \"query\" query param for trip report short hand value", 422);
 		}
 		const [_, count, taxonName, maleIndividualCount, femaleIndividualCount] = matches
-			.map(s => typeof s === "string" ? s.trim() : undefined);
+			.map(s =>
+				typeof s === "string"
+					? s.trim() !== ""
+						? s.trim()
+						: undefined
+					: undefined
+			);
 		const interpretation = { taxonName, count, maleIndividualCount, femaleIndividualCount } as Interpretation;
-
-		if (!taxonName) {
-			throw new HttpException("Couldn't interpret taxon name from \"query\" query param", 422);
-		}
 
 		let exactMatchFound = false;
 
-		const results = (await this.taxaService.search({ ...params, query: taxonName })).map(taxon => {
-			if (taxon.type === "exactMatches") {
-				exactMatchFound = true;
-			}
-			return mapTaxonToAutocompleteResult(taxon, interpretation);
-		});
+		const results = taxonName
+			? (await this.taxaService.search({ ...params, query: taxonName })).map(taxon => {
+				if (taxon.type === "exactMatches") {
+					exactMatchFound = true;
+				}
+				return mapTaxonToAutocompleteResult(taxon, interpretation);
+			})
+			: [];
 
-		if (exactMatchFound) {
+		if (!exactMatchFound) {
 			results.push({
 				...mapTaxonToAutocompleteResult(undefined, interpretation)
 			});
@@ -44,18 +55,11 @@ implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
 	}
 }
 
-type Interpretation = {
-	taxonName: string;
-	count: string;
-	maleIndividualCount: string;
-	femaleIndividualCount: string;
-}
-
 const mapTaxonToAutocompleteResult = (
 	taxon: Taxon | undefined,
 	{ taxonName, count, maleIndividualCount, femaleIndividualCount }: Interpretation
 ): TripReportUnitShorthandResponseDto => ({
-	key: taxon ? taxon.id : taxonName,
+	key: taxon ? taxon.id : taxonName ?? "",
 	value: [
 		count,
 		taxon ? taxon.matchingName : taxonName,
@@ -65,7 +69,14 @@ const mapTaxonToAutocompleteResult = (
 		.filter(s => typeof s === "string" && s.length).join(" "),
 	unit: {
 		identifications: [ { taxon: taxon ? taxon.matchingName : taxonName } ],
-		unitFact: {}
+		unitFact: taxon ? { autocompleteSelectedTaxonID: taxon.id } : {},
+		count,
+		maleIndividualCount: maleIndividualCount !== "" && !isNaN(+maleIndividualCount)
+			? +maleIndividualCount
+			: undefined,
+		femaleIndividualCount: femaleIndividualCount !== "" && !isNaN(+femaleIndividualCount)
+			? +femaleIndividualCount
+			: undefined
 	},
 	...taxon,
 	interpretedFrom: {
@@ -74,5 +85,6 @@ const mapTaxonToAutocompleteResult = (
 		maleIndividualCount,
 		femaleIndividualCount
 	},
-	isNonMatching: !taxon
+	isNonMatching: !taxon,
+	matchType: taxon?.type
 });

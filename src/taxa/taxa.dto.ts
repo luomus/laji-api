@@ -162,14 +162,14 @@ export enum SearchMatchType {
 	likely = "likely"
 }
 
-export class TaxaSearchDto extends IntersectionType(QueryWithPagingDto) {
+export class TaxaSearchDto {
 	query: string;
 
 	// Used only internally
 	@ApiHideProperty() q?: string;
 
-	// Used only internally
-	@ApiHideProperty() limit?: number;
+	/** Limit the size of results */
+	limit?: number = 10;
 
 	// Used only internally
 	@ApiHideProperty() id?: string;
@@ -202,16 +202,16 @@ export class TaxaSearchDto extends IntersectionType(QueryWithPagingDto) {
 	excludeNameTypes?: string;
 
 	/** Filter to include only species (and subspecies) */
-	onlySpecies?: boolean = false;
+	@IsOptionalBoolean() onlySpecies?: boolean = false;
 
 	/** Filter to include only Finnish taxa */
-	onlyFinnish?: boolean = false;
+	@IsOptionalBoolean() onlyFinnish?: boolean = false;
 
 	/** Filter to include only invasive species */
-	onlyInvasive?: boolean = false;
+	@IsOptionalBoolean() onlyInvasive?: boolean = false;
 
 	/** If observationMode is set, "sp." is catenated to higher tax scientific names */
-	observationMode?: boolean = false;
+	@IsOptionalBoolean() observationMode?: boolean = false;
 
 	/** Multiple values are separated by a comma (,) */
 	selectedFields?: string;

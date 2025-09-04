@@ -15,9 +15,8 @@ export class TripReportUnitListAutocompleteService implements AbstractAutocomple
 		for (const searchName of searchNames) {
 			const [taxon] = await this.taxaService.search({ query: searchName });
 			const unit = mapTaxon(taxon, searchName);
-			if (taxon) {
-				result.count++;
-			} else {
+			result.count++;
+			if (!taxon) {
 				result.nonMatchingCount++;
 			}
 			result.results.push(unit);

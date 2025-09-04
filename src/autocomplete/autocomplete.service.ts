@@ -2,9 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { Person } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { ProfileService } from "src/profile/profile.service";
-import { GetPersonsResponseDto, GetWaterBirdPairCountUnitShorthandDto } from "./autocomplete.dto";
+import { GetPersonsResponseDto, GetWaterBirdPairCountUnitShorthandDto, TaxonAutocompleteResponseDto }
+	from "./autocomplete.dto";
 import { TaxaService } from "src/taxa/taxa.service";
-import { TaxaSearchDto } from "src/taxa/taxa.dto";
+import { TaxaSearchDto, Taxon } from "src/taxa/taxa.dto";
 import { TripReportUnitListAutocompleteService } from "./trip-report-unit-list.autocomplete.service";
 import { TripReportUnitShorthandAutocompleteService } from "./trip-report-unit-shorthand.autocomplete.service";
 import { LineTransectUnitShorthandAutocompleteService } from "./line-transect-unit-shorthand.autocomplete.service";
@@ -35,8 +36,8 @@ export class AutocompleteService {
 		return filterPersons(query, (await this.personsService.getAll()).map(preparePersonAutocomplete));
 	}
 
-	async getTaxa(query: TaxaSearchDto) {
-		return this.taxaService.search(query);
+	async getTaxa(query: TaxaSearchDto): Promise<TaxonAutocompleteResponseDto[]> {
+		return (await this.taxaService.search(query)).map(prepareTaxon);
 	}
 
 	async getTripReportUnitList(query?: string) {
@@ -70,4 +71,10 @@ const preparePersonAutocomplete = (person: Person): GetPersonsResponseDto => ({
 	value: person.group ? `${person.fullName} (${person.group})` : person.fullName,
 	name: person.fullName,
 	group: person.group
+});
+
+const prepareTaxon = (taxon: Taxon) => ({
+	...taxon,
+	key: taxon.id,
+	value: taxon.matchingName
 });

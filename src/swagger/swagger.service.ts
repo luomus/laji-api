@@ -7,7 +7,7 @@ import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
-import { entryHasWhiteList, isSerializeEntry } from "src/serialization/serialize.decorator";
+import { SerializeEntry, entryHasWhiteList, isSerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object-factory";
 import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-properties-accessor";
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
@@ -210,8 +210,8 @@ export class SwaggerService {
 	private entrySideEffectForSchema(schema: Record<string, SchemaItem>, entry: SwaggerCustomizationEntry) {
 		if (isSwaggerRemoteRefEntry(entry)) {
 			this.remoteRefEntrySideEffectForSchema(schema, entry);
-		} else if (hasSchemaDefinitionName(entry)) {
-			this.customSchemaDefinitionNameEntrySideEffectsForSchema(schema, entry);
+		} else if (isSerializeEntry(entry)) {
+			this.serializeEntrySideEffectForSchema(schema, entry);
 		}
 	}
 
@@ -225,17 +225,18 @@ export class SwaggerService {
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
 		}
-		schema[entry.ref] = remoteSchema;
+		schema[entry.schemaDefinitionName || entry.ref] = remoteSchema;
 		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchema);
 	}
 
-	private customSchemaDefinitionNameEntrySideEffectsForSchema(
-		schema: SwaggerSchema, entry: SwaggerCustomizationEntry
+	private serializeEntrySideEffectForSchema(
+		schema: SwaggerSchema, entry: SerializeEntry
 	) {
-		if (isSerializeEntry(entry)) {
-			const jsonSchema = getJsonSchema(entry.serializeInto);
-			if (entryHasWhiteList(entry)) {
-				whitelistKeys((jsonSchema.properties as any), entry.serializeOptions.whitelist);
+		const jsonSchema = getJsonSchema(entry.serializeInto);
+		if (entryHasWhiteList(entry)) {
+			whitelistKeys((jsonSchema.properties as any), entry.serializeOptions.whitelist);
+			if (!entry.schemaDefinitionName) {
+				throw new Error("An entry with 'whitelist' should also have a 'schemaDefinitionName'");
 			}
 			if (entry.schemaDefinitionName) {
 				schema[entry.schemaDefinitionName] = jsonSchema;
@@ -342,8 +343,8 @@ const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, doc
 
 const replaceWithRefToCustomSchemaDefinitionName = (entry: { schemaDefinitionName: string }, schema: SchemaItem) => (
 	entry.schemaDefinitionName
-		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
-		: schema
+	? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
+	: schema
 );
 
 export const isPagedOperation = (operation: OperationObject) =>
@@ -365,8 +366,8 @@ const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 
 export const isSchemaObject = (schema: SchemaItem): schema is SchemaObject =>
 	!!(schema as any).type
-	|| !!(schema as any).anyOf
-	|| !!(schema as any).oneOf;
+		|| !!(schema as any).anyOf
+		|| !!(schema as any).oneOf;
 
 export const isPagedSchema = (schema: SchemaItem) =>
 	isSchemaObject(schema) && schema.type === "object" && schema.properties?.page;

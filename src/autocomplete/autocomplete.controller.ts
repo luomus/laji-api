@@ -1,10 +1,9 @@
 import { Get, Query, UseInterceptors, Version } from "@nestjs/common";
-import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
+import { ApiExtraModels, ApiOkResponse, ApiTags, OpenAPIObject, getSchemaPath } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { AutocompleteService } from "./autocomplete.service";
-import { CommonAutocompleteDto, GetFriendsDto, GetPersonsResponseDto, GetTripReportUnitShorthandDto,
-	GetWaterBirdPairCountUnitShorthandDto,
-	LineTransectUnitShorthandResponseDto } from "./autocomplete.dto";
+import { CommonAutocompleteDto, GetFriendsDto, GetPersonsDto, GetPersonsResponseDto, GetTripReportUnitShorthandDto,
+	GetWaterBirdPairCountUnitShorthandDto, LineTransectUnitShorthandResponseDto } from "./autocomplete.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
@@ -13,6 +12,9 @@ import { Paginator } from "src/interceptors/paginator.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
+import { SchemaItem } from "src/swagger/swagger.service";
+import { JSONSchemaArray, JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
+import { parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 
 const paginateSchema = (resultSchemaDto: any) => ({
 	schema: {
@@ -31,11 +33,29 @@ const paginateSchema = (resultSchemaDto: any) => ({
 	}
 });
 
+const asTuple = (schema: SchemaItem, document: OpenAPIObject) => 
+	[schema, document] as [JSONSchemaRef, OpenAPIObject];
+
+const swaggerResponseWithKeyAndValue = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
+	const schema: JSONSchemaArray = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
+	(schema.items as JSONSchemaObject).properties!.key = { type: "string" };
+	(schema.items as JSONSchemaObject).properties!.value = { type: "string" };
+	return refSchema;
+};
+
 @ApiTags("Autocomplete")
 @LajiApiController("autocomplete")
 export class AutocompleteController {
 
 	constructor(private autocompleteService: AutocompleteService) {}
+
+	@Get("/persons")
+	@UseInterceptors(SelectedFields, Paginator)
+	@Version("1")
+	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
+	getPersons(@Query() { query }: GetPersonsDto) {
+		return this.autocompleteService.getPersons(query);
+	}
 
 	@Get("/friends")
 	@UseInterceptors(SelectedFields, Paginator)
@@ -44,14 +64,6 @@ export class AutocompleteController {
 	@ApiExtraModels(GetPersonsResponseDto)
 	getFriends(@PersonToken() person: Person, @Query() { query }: GetFriendsDto) {
 		return this.autocompleteService.getFriends(person, query);
-	}
-
-	@Get("/person")
-	@UseInterceptors(SelectedFields, Paginator)
-	@Version("1")
-	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
-	getPersons(@Query() { query }: GetFriendsDto) {
-		return this.autocompleteService.getPersons(query);
 	}
 
 	@Get("/unit/list")
@@ -93,9 +105,18 @@ export class AutocompleteController {
 		return this.autocompleteService.getWaterBirdPairCountUnitShorthand(query);
 	}
 
-	// TODO pagination not working yet
-	@Get("/taxon")
-	@UseInterceptors(SelectedFields, Paginator)
+	@Get("/taxa")
+	@UseInterceptors(SelectedFields, ResultsArray)
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "TaxonSearchResponse",
+		customizeResponseSchema: (schema, document) => pipe(
+			swaggerResponseWithKeyAndValue,
+			swaggerResponseAsResultsArray
+		)(asTuple(schema, document)),
+		jsonLdContext: "taxon-search",
+		schemaDefinitionName: "TaxonAutocompleteResponse"
+	})
 	@Version("1")
 	getTaxa(@Query() query: TaxaSearchDto) {
 		return this.autocompleteService.getTaxa(query);

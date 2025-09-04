@@ -170,19 +170,15 @@ implements AbstractAutocompleteService<Omit<GetWaterBirdPairCountUnitShorthandDt
 
 		const { parsedQuery, parsedCounts } = parseQuery(query);
 
-		const taxonIds  = Object.keys(WaterbirdTaxon) as WaterbirdTaxon[];
-		if ((taxonIds as any).indexOf(taxonID) === -1 || parsedQuery.length === 0) {
-			return { key: parsedQuery, value: undefined };
+		const taxonIds = Object.values(WaterbirdTaxon) as WaterbirdTaxon[];
+		if (!(taxonIds as any).includes(taxonID) || !parsedQuery.length) {
+			return { key: parsedQuery };
 		}
 
 		const pairCount = getPairCount(parsedCounts, taxonID as WaterbirdTaxon);
 
 		return { key: parsedQuery, value: pairCount };
 	}
-
-
-
-
 }
 
 const parseQuery = (query: string): {parsedQuery: string, parsedCounts: ParsedCounts[]} => {
@@ -264,40 +260,40 @@ const countToText = (count: number, type: string) => {
 const getPairCount = (counts: ParsedCounts[], taxonId: WaterbirdTaxon): number => {
 	let result = getSingingAndUtteringPairCount(counts, taxonId);
 
-	if (waterbirdGroup1.indexOf(taxonId) !== -1) {
+	if (waterbirdGroup1.includes(taxonId)) {
 		result += getSum(counts.map(count => getWaterBirdGroup1PairCount(count, taxonId)));
-	} else if (waterbirdGroup2.indexOf(taxonId) !== -1) {
+	} else if (waterbirdGroup2.includes(taxonId)) {
 		counts = counts.filter(count => !(count.male > 4 || count.female > 4));
 		const femaleSum = getSum(counts.map(count => count.female));
 		const maleSum = getSum(counts.map(count => count.male));
 		result += Math.max(femaleSum, maleSum);
-	} else if (waterbirdGroup3.indexOf(taxonId) !== -1) {
+	} else if (waterbirdGroup3.includes(taxonId)) {
 		counts = counts.filter(count => !(count.male > 4));
 		result += getSum(counts.map(count => count.male));
-	} else if (waterbirdGroup4.indexOf(taxonId) !== -1) {
+	} else if (waterbirdGroup4.includes(taxonId)) {
 		result += getSum(counts.map(count => count.female));
-	} else if (waderGroup1.indexOf(taxonId) !== -1) {
+	} else if (waderGroup1.includes(taxonId)) {
 		result += getSum(counts.map(count => Math.ceil((count.totalMaleFemaleUnknown) / 2)));
-	} else if (waderGroup2.indexOf(taxonId) !== -1) {
+	} else if (waderGroup2.includes(taxonId)) {
 		result += getSum(counts.map(count => count.male
 			? count.male
 			: (count.unknown ? Math.ceil(count.unknown / 2) : 0))
 		);
-	} else if (waderGroup3.indexOf(taxonId) !== -1) {
+	} else if (waderGroup3.includes(taxonId)) {
 		counts = counts.filter(count => !(count.totalMaleFemaleUnknown > 2));
 		result += counts.length;
-	} else if (waderGroup4.indexOf(taxonId) !== -1) {
+	} else if (waderGroup4.includes(taxonId)) {
 		counts = counts.filter(count => !(count.totalMaleFemaleUnknown > 4));
 		result += getSum(counts.map(count => count.male ? count.male : (
 			count.female ? count.female : Math.ceil(count.unknown / 2)
 		)));
-	} else if (waderGroup5.indexOf(taxonId) !== -1) {
+	} else if (waderGroup5.includes(taxonId)) {
 		const femaleSum = getSum(counts.map(count => count.female));
 		const maleSum = getSum(counts.map(count => count.male));
 		result += Math.max(femaleSum, maleSum);
-	} else if (gullGroup.indexOf(taxonId) !== -1) {
+	} else if (gullGroup.includes(taxonId)) {
 		result += getSum(counts.map(count => Math.ceil(count.totalMaleFemaleUnknown / 2)));
-	} else if (passerineGroup.indexOf(taxonId) !== -1) {
+	} else if (passerineGroup.includes(taxonId)) {
 		result += getSum(counts.map(count => count.male
 			? count.male
 			: Math.ceil(count.totalMaleFemaleUnknown / 2))
@@ -322,7 +318,7 @@ const getWaterBirdGroup1PairCount = (count: ParsedCounts, taxonId: WaterbirdTaxo
 
 const getSingingAndUtteringPairCount = (counts: ParsedCounts[], taxonId: WaterbirdTaxon) => {
 	let singingPairCount: number;
-	if (passerineGroup.indexOf(taxonId) !== -1) {
+	if (passerineGroup.includes(taxonId)) {
 		singingPairCount = getSum(counts.map(count => count.male > 0 && count.singing === 1
 			? 0
 			: count.singing

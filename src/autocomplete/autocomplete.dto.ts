@@ -1,14 +1,16 @@
 import { Unit } from "@luomus/laji-schema/classes/Unit";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
-import { PaginatedDto } from "src/pagination.utils";
+import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
-export class CommonAutocompleteDto extends IntersectionType(PaginatedDto) {
+export class CommonAutocompleteDto {
 	/** Search term */
 	query: string = "";
 }
 
-export class GetFriendsDto extends IntersectionType(CommonAutocompleteDto) {}
+export class GetPersonsDto extends IntersectionType(CommonAutocompleteDto, QueryWithPagingDto) {}
+
+export class GetFriendsDto extends IntersectionType(GetPersonsDto, QueryWithPersonTokenDto) {}
 
 export class GetUnitDto extends IntersectionType(CommonAutocompleteDto) {
 	/** Different forms have different short hands */
@@ -24,9 +26,15 @@ export class GetPersonsResponseDto {
 	group?: string;
 };
 
-export class GetTripReportUnitListDto { }
+export class TaxonAutocompleteResponseDto {
+	key: string;
+	value: string;
+};
 
-export class GetTripReportUnitShorthandDto extends IntersectionType(CommonAutocompleteDto) {}
+export class GetTripReportUnitShorthandDto extends IntersectionType(CommonAutocompleteDto) {
+	/** Limit the size of results */
+	limit?: number = 10;
+}
 
 export class TripReportUnitListResultDto {
 	results: Unit[]; // TODO not working
@@ -38,6 +46,7 @@ export class TripReportUnitShorthandResponseDto {
 	key: string;
 	value: string;
 	isNonMatching?: boolean;
+	matchType?: string;
 	unit: Unit;
 	interpretedFrom: {
 		taxon: string;
