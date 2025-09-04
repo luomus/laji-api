@@ -67,6 +67,7 @@ export class AutocompleteController {
 	}
 
 	@Get("/unit/list")
+	@UseInterceptors(SelectedFields)
 	@Version("1")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
 	getTripReportUnitListAutocomplete(@Query() { query }: CommonAutocompleteDto) {
@@ -74,6 +75,7 @@ export class AutocompleteController {
 	}
 
 	@Get("/unit/shorthand/trip-report")
+	@UseInterceptors(SelectedFields)
 	@Version("1")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
 	// The json-ld typing is actually more than just taxon response, but this is sufficient to get the taxon search
@@ -90,6 +92,7 @@ export class AutocompleteController {
 	}
 
 	@Get("/unit/shorthand/line-transect")
+	@UseInterceptors(SelectedFields)
 	@Version("1")
 	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
 	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
@@ -98,6 +101,7 @@ export class AutocompleteController {
 	}
 
 	@Get("/unit/shorthand/water-bird-pair-count")
+	@UseInterceptors(SelectedFields)
 	@Version("1")
 	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
 	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })

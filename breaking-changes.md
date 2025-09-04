@@ -142,11 +142,18 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 ## Taxa
 
-* /taxa/search `limit` renamed as `pageSize` (paging is enabled) 
 * TODO document query param renaming & filter body
 
 ## Autocomplete
 
-* `limit` renamed as `pageSize` (paging is enabled)
+* `/autocomplete/person` -> `/autocomplete/persons`
+* `/autocomplete/taxon` -> `/autocomplete/taxa`
+* `/autocomplete/unit` is splitted into more fine-grained endpoints instead of choosing the strategy from `formID` query parameter (which is deprecated):
+	* `/autocomplete/unit/list`
+	* `/autocomplete/unit/shorthand/trip-report`
+	* `/autocomplete/unit/shorthand/line-transect`
+	* `/autocomplete/unit/shorthand/water-bird-pair-count`
+
+* `limit` renamed as `pageSize` for endpoints which support pagination (friends, persons)
 * `payload` is flattened into the response
-* `includePayload` is removed, fields can be filtered with `selectedFields` instead
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
