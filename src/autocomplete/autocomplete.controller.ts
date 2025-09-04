@@ -49,34 +49,34 @@ export class AutocompleteController {
 
 	constructor(private autocompleteService: AutocompleteService) {}
 
-	@Get("/persons")
-	@UseInterceptors(SelectedFields, Paginator)
 	@Version("1")
+	@Get("/persons")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
+	@UseInterceptors(SelectedFields, Paginator)
 	getPersons(@Query() { query }: GetPersonsDto) {
 		return this.autocompleteService.getPersons(query);
 	}
 
-	@Get("/friends")
-	@UseInterceptors(SelectedFields, Paginator)
 	@Version("1")
+	@Get("/friends")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
 	@ApiExtraModels(GetPersonsResponseDto)
+	@UseInterceptors(SelectedFields, Paginator)
 	getFriends(@PersonToken() person: Person, @Query() { query }: GetFriendsDto) {
 		return this.autocompleteService.getFriends(person, query);
 	}
 
-	@Get("/unit/list")
-	@UseInterceptors(SelectedFields)
 	@Version("1")
+	@Get("/unit/list")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
+	@UseInterceptors(SelectedFields)
 	getTripReportUnitListAutocomplete(@Query() { query }: CommonAutocompleteDto) {
 		return this.autocompleteService.getTripReportUnitList(query);
 	}
 
+	@Version("1")
 	@Get("/unit/shorthand/trip-report")
 	@UseInterceptors(SelectedFields)
-	@Version("1")
 	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
 	// The json-ld typing is actually more than just taxon response, but this is sufficient to get the taxon search
 	// results translated.
@@ -84,33 +84,33 @@ export class AutocompleteController {
 		source: "laji-backend",
 		ref: "TaxonSearchResponse",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
-		jsonLdContext: "taxon-search"
+		localJsonLdContext: "taxon-search"
 	})
 	@UseInterceptors(Translator, ResultsArray)
 	getTripReportUnitShorthandAutocomplete(@Query() query: GetTripReportUnitShorthandDto) {
 		return this.autocompleteService.getTripReportUnitShorthand(query);
 	}
 
-	@Get("/unit/shorthand/line-transect")
-	@UseInterceptors(SelectedFields)
 	@Version("1")
+	@Get("/unit/shorthand/line-transect")
 	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
 	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
+	@UseInterceptors(SelectedFields)
 	getLineTransectUnitShorthandAutocomplete(@Query() { query }: CommonAutocompleteDto) {
 		return this.autocompleteService.getLineTransectUnitShorthand(query);
 	}
 
-	@Get("/unit/shorthand/water-bird-pair-count")
-	@UseInterceptors(SelectedFields)
 	@Version("1")
+	@Get("/unit/shorthand/water-bird-pair-count")
 	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
 	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
+	@UseInterceptors(SelectedFields)
 	getWaterbirdPairCountUnitShorthandAutocomplete(@Query() query: GetWaterBirdPairCountUnitShorthandDto) {
 		return this.autocompleteService.getWaterBirdPairCountUnitShorthand(query);
 	}
 
+	@Version("1")
 	@Get("/taxa")
-	@UseInterceptors(SelectedFields, ResultsArray)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "TaxonSearchResponse",
@@ -118,10 +118,10 @@ export class AutocompleteController {
 			swaggerResponseWithKeyAndValue,
 			swaggerResponseAsResultsArray
 		)(asTuple(schema, document)),
-		jsonLdContext: "taxon-search",
+		localJsonLdContext: "taxon-search",
 		schemaDefinitionName: "TaxonAutocompleteResponse"
 	})
-	@Version("1")
+	@UseInterceptors(Translator, ResultsArray, SelectedFields)
 	getTaxa(@Query() query: TaxaSearchDto) {
 		return this.autocompleteService.getTaxa(query);
 	}

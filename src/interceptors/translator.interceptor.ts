@@ -29,7 +29,6 @@ export class Translator implements NestInterceptor {
 			return result;
 		}
 
-
 		if (!jsonLdContext) {
 			throw new Error("Translator failed to get the @context for item");
 		}

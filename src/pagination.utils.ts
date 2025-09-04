@@ -63,7 +63,7 @@ export const addLastPrevAndNextPage = <
 };
 
 export const addContextToPageLikeResult = <T extends Partial<HasJsonLdContext>, R extends { results: T[] }>
-	(hasResults: R) : Omit<R, "results"> & { results: Omit<T, "@context">[] } & HasJsonLdContext => {
+	(hasResults: R): Omit<R, "results"> & { results: Omit<T, "@context">[] } & HasJsonLdContext => {
 	const jsonLdContext = hasResults.results[0]?.["@context"];
 	const results = jsonLdContext
 		? hasResults.results.map(omitForKeys("@context"))
