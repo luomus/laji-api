@@ -126,7 +126,7 @@ export class DocumentValidatorService {
 	}
 
 	private async validatePersonLinkings(document: Populated<Document>, person: Person) {
-		const { collectionID, creator, id } = document;
+		const { collectionID, creator } = document;
 		if (person.isImporter() || collectionID && await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
@@ -139,22 +139,34 @@ export class DocumentValidatorService {
 		];
 
 		const { friends } = await this.profileService.getByPersonIdOrCreate(creator);
-
-		const existingDoc = id ? await this.documentsService.store.get(id) : undefined;
-
-		const existingNames = existingDoc ? [
-			...(existingDoc.gatheringEvent?.leg || []),
-			...(existingDoc.editors || [])
-		] : [];
+		const existingNames = await this.getExistingPersonNames(document);
+		const allowedMACodes = new Set([creator, ...friends, ...existingNames]);
 
 		for (const { personString, path } of personValidations) {
 			if (
 				personString.toUpperCase().startsWith("MA.")
-				&& !new Set([creator, ...friends, ...existingNames]).has(personString)
+				&& !allowedMACodes.has(personString)
 			) {
 				throw new ValidationException({ [path]: ["MA codes must be the creator or the creator's friend!"] });
 			}
 		}
+	}
+
+	private async getExistingPersonNames(document: Populated<Document>) {
+		const { id } = document;
+		if (!id) {
+			return [];
+		}
+		const form = await this.formsService.get(document.formID);
+		if (form.options?.secondaryCopy) {
+			return [];
+		}
+		const existingDoc = await this.documentsService.store.get(id);
+
+		return [
+			...(existingDoc.gatheringEvent?.leg || []),
+			...(existingDoc.editors || [])
+		];
 	}
 
 	private async validateNamedPlaceLinking(document: Populated<Document>) {
