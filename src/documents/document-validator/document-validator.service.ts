@@ -107,7 +107,7 @@ export class DocumentValidatorService {
 
 	private async validatePersonLinkings(document: Populated<Document>, person: Person) {
 		const { collectionID, creator } = document;
-		if (collectionID && await this.formPermissionsService.isAdminOf(collectionID, person)) {
+		if (person.isImporter() || collectionID && await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
 

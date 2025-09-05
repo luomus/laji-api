@@ -7,14 +7,14 @@ import { JSONObjectSerializable } from "src/typing.utils";
 import { LANGS, Lang } from "src/common.dto";
 import { ConfigService } from "@nestjs/config";
 
-export const jsonLdContextToRemoteSwaggerRefEntry: Record<string, SwaggerRemoteRefEntry> = {};
+export const localJsonLdContextToRemoteSwaggerRefEntry: Record<string, SwaggerRemoteRefEntry> = {};
 
 @Injectable()
 export class JsonLdService {
 	constructor(private swaggerService: SwaggerService, private config: ConfigService) {}
 
 	private async getEmbeddedContextForLocalName(name: string, lang?: Lang) {
-		const entry = jsonLdContextToRemoteSwaggerRefEntry[name];
+		const entry = localJsonLdContextToRemoteSwaggerRefEntry[name];
 		if (!entry) {
 			throw new HttpException(`JSON-LD context not found for name '${name}'`, 404);
 		}

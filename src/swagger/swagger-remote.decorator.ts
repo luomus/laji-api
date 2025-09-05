@@ -4,7 +4,7 @@ import { CallHandler, ExecutionContext, HttpException, Injectable, NestIntercept
 	mixin } from "@nestjs/common";
 import { Observable, switchMap } from "rxjs";
 import { applyToResult } from "src/pagination.utils";
-import { jsonLdContextToRemoteSwaggerRefEntry } from "src/json-ld/json-ld.service";
+import { localJsonLdContextToRemoteSwaggerRefEntry } from "src/json-ld/json-ld.service";
 
 export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
@@ -17,7 +17,7 @@ export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	 */
 	replacePointer?: string;
 	/** The local json-ld context name that is given to the result */
-	jsonLdContext?: string;
+	localJsonLdContext?: string;
 };
 
 export const isSwaggerRemoteRefEntry = (entry: unknown): entry is SwaggerRemoteRefEntry =>
@@ -43,8 +43,8 @@ export function SwaggerRemoteRef(entry: SwaggerRemoteRefEntry) {
 function bindSwaggerRemoteRefMetadata(entry: SwaggerRemoteRefEntry) {
 	return function (target: any, propertyKey: any) {
 		Reflect.defineMetadata(SWAGGER_REMOTE_METADATA + propertyKey, entry, target);
-		if (entry.jsonLdContext) {
-			jsonLdContextToRemoteSwaggerRefEntry[entry.jsonLdContext] = entry;
+		if (entry.localJsonLdContext) {
+			localJsonLdContextToRemoteSwaggerRefEntry[entry.localJsonLdContext] = entry;
 		}
 	};
 }
@@ -76,16 +76,16 @@ class AddLocalJsonLdContext implements NestInterceptor {
 
 	addLocalJsonLdContext(result: any) {
 		const entry: SwaggerRemoteRefEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
-		if (!entry || !entry.jsonLdContext) {
+		if (!entry || !entry.localJsonLdContext) {
 			return result;
 		}
 
-		const { jsonLdContext } = entry;
+		const { localJsonLdContext } = entry;
 		const { SELF_HOST } = process.env;
 		if (typeof SELF_HOST !== "string") {
 			throw new HttpException("`SELF_HOST` env variable not found", 500);
 		}
-		result["@context"] = `${SELF_HOST}/context/${jsonLdContext}`;
+		result["@context"] = `${SELF_HOST}/context/${localJsonLdContext}`;
 		return result;
 	}
 }

@@ -49,7 +49,8 @@ module.exports = {
 			"error",
 			{
 				"ignoreRestSiblings": true,
-				"argsIgnorePattern": "^_"
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_"
 			}
 		],
 		"@typescript-eslint/space-infix-ops": 2,

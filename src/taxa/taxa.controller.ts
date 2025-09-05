@@ -81,7 +81,7 @@ export class TaxaController {
 		source: "laji-backend",
 		ref: "TaxonSearchResponse",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
-		jsonLdContext: "taxon-search"
+		localJsonLdContext: "taxon-search"
 	})
 	@UseInterceptors(Translator, ResultsArray)
 	search(@Query() query: TaxaSearchDto) {
@@ -94,7 +94,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		jsonLdContext: "taxon-elastic"
+		localJsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getPage(@Query() query: GetTaxaPageDto, @Body() filters?: TaxaFilters) {
@@ -109,7 +109,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		jsonLdContext: "taxon-elastic",
+		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
@@ -138,7 +138,7 @@ export class TaxaController {
 	/** Get a page of species */
 	@Version("1")
 	@Get("species")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", localJsonLdContext: "taxon-elastic" })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getSpeciesPage(@Query() query: GetTaxaPageDto) {
 		return this.taxaService.getSpeciesPage(query);
@@ -152,7 +152,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		jsonLdContext: "taxon-elastic",
+		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
@@ -172,7 +172,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		jsonLdContext: "taxon-elastic",
+		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@HttpCode(200)
@@ -187,7 +187,7 @@ export class TaxaController {
 		source: "laji-backend",
 		ref: "Taxon",
 		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we need to do it just once here.
-		jsonLdContext: "taxon-elastic"
+		localJsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	get(@Param("id") id: string, @Query() query: GetTaxonDto) {
@@ -201,7 +201,7 @@ export class TaxaController {
 		source: "laji-backend",
 		ref: "Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
-		jsonLdContext: "taxon-elastic"
+		localJsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic), ResultsArray)
 	getTaxonChildren(@Param("id") id: string, @Query() query: GetTaxaResultsDto) {
@@ -215,7 +215,7 @@ export class TaxaController {
 		source: "laji-backend",
 		ref: "Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
-		jsonLdContext: "taxon-elastic"
+		localJsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(ResultsArray, Translator, Serializer(TaxonElastic))
 	getTaxonParents(@Param("id") id: string, @Query() query: GetTaxaResultsDto) {
@@ -225,7 +225,7 @@ export class TaxaController {
 	/** Get species and subspecies of a taxon */
 	@Version("1")
 	@Get(":id/species")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", jsonLdContext: "taxon-elastic" })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", localJsonLdContext: "taxon-elastic" })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
@@ -239,7 +239,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		jsonLdContext: "taxon-elastic",
+		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
@@ -262,7 +262,7 @@ export class TaxaController {
 	@SwaggerRemoteRef({
 		source: "laji-backend",
 		ref: "Taxon",
-		jsonLdContext: "taxon-elastic",
+		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
 	@HttpCode(200)
@@ -281,7 +281,7 @@ export class TaxaController {
 		source: "laji-backend",
 		ref: "Content",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
-		jsonLdContext: "taxon-description"
+		localJsonLdContext: "taxon-description"
 	})
 	@UseInterceptors(Translator, ResultsArray)
 	getTaxonDescriptions(@Param("id") id: string, @Query() query: TaxaBaseQuery) {
@@ -295,7 +295,7 @@ export class TaxaController {
 		source: "laji-backend",
 		ref: "Image",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
-		jsonLdContext: "taxon-media"
+		localJsonLdContext: "taxon-media"
 	})
 	@UseInterceptors(Translator, ResultsArray)
 	getTaxonMedia(@Param("id") id: string, @Query() query: TaxaBaseQuery) {

@@ -158,11 +158,10 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 		return result;
 	}
 
-	async create(item: Partial<Resource>) {
-		type Existing = Resource & { id: string };
-		let result: Existing;
+	async create(item: Partial<Resource>): Promise<Resource & { id: string }> {
+		let result: Resource & { id: string };
 		try {
-			result = await this.client.post<Existing, Partial<Resource>>(
+			result = await this.client.post<Resource & { id: string }, Partial<Resource>>(
 				this.config.resource,
 				item,
 				undefined,

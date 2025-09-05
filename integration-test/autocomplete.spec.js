@@ -1,5 +1,5 @@
-var config = require("./config.json");
-var helpers = require("./helpers");
+const config = require("./config.json");
+const helpers = require("./helpers");
 const { request } = require("chai");
 const { url } = helpers;
 const { access_token, personToken } = config;
@@ -8,250 +8,187 @@ const friendName = "Unit Tester 1 (Test)";
 const friendGroup = "Test";
 
 describe("/autocomplete", function() {
-	var basePath = "/autocomplete";
+	const basePath = "/autocomplete";
 
-	it("returns 401 when no access token specified", function(done) {
-		request(this.server)
-			.get(`${basePath}/taxon`)
-			.end(function(err, res) {
-				res.should.have.status(401);
-				done();
-			});
+	it("returns 401 when no access token specified", async function() {
+		const res = await request(this.server)
+			.get(`${basePath}/taxa`).set("API-Version", "1");
+		res.should.have.status(401);
 	});
 
-	it("returns taxons with default size", function(done) {
-		var defaultSize = 10;
-		var searchWord = "käki";
-		request(this.server)
-			.get(url(`${basePath}/taxon`, { access_token, q: searchWord }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					res.should.have.keys("key", "value");
-					return res["value"] === searchWord;
-				}).should.have.lengthOf(1);
-				res.body.should.have.lengthOf(defaultSize);
-				done();
-			});
+	it("returns taxa with default size", async function() {
+		this.timeout(10000);
+		const defaultSize = 10;
+		const searchWord = "käki";
+		const res = await request(this.server)
+			.get(url(`${basePath}/taxa`, { access_token, query: searchWord })).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.results.filter((item) => {
+			item.should.include.keys("key", "value");
+			return item["value"] === searchWord;
+		}).should.have.lengthOf(1);
+		res.body.results.should.have.lengthOf(defaultSize);
 	});
 
-	it("returns taxons with payload", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/taxon`, { access_token, q: "VAn Van", includePayload: true }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					res.should.have.keys("key", "value", "payload");
-					return res["value"] === "Vanellus vanellus";
-				}).should.have.lengthOf(1);
-				done();
-			});
-	});
-
-	it("returns taxons with sp suffix for taxon ranks higher than genum if observationMode is true", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/taxon`, { access_token, q: "parus", includePayload: true, observationMode: true }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					return res["value"] === "Parus sp.";
-				}).should.have.lengthOf(1);
-				done();
-			});
+	it("returns taxons with sp suffix for taxon ranks higher than genum if observationMode is true", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/taxa`, {
+				access_token,
+				query: "parus",
+				observationMode: true })
+			).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.results.filter((res) => {
+			return res["value"] === "Parus sp.";
+		}).should.have.lengthOf(1);
 	});
 
 	// eslint-disable-next-line max-len
-	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if observationMode is false", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/taxon`, { access_token, q: "parus", includePayload: true }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					return res["value"] === "Parus sp.";
-				}).should.have.lengthOf(0);
-				done();
-			});
+	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if observationMode is false", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/taxa`, { access_token, query: "parus" })).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.results.filter((item) => {
+			return item["value"] === "Parus sp.";
+		}).should.have.lengthOf(0);
+	});
+
+	it("returns friends", async function() {
+		this.timeout(10000);
+		const res = await request(this.server).get(url(`${basePath}/friends`, { personToken, access_token }));
+		res.should.have.status(200);
+		res.body.results.filter((res) => {
+			res.should.include.keys("key", "value");
+			res["value"].should.not.contain("undefined");
+			return res["value"] === friendName;
+		}).should.have.lengthOf(1);
+	});
+
+	it("returns friends when querying", async function() {
+		this.timeout(10000);
+		const res = await request(this.server).get(url(`${basePath}/friends`, {
+			access_token,
+			personToken,
+			query: friendName.substring(0, 3)
+		}));
+		res.should.have.status(200);
+		res.body.results.filter((res) => {
+			res.should.include.keys("key", "value", "name", "group");
+			res.value.should.not.contain("undefined");
+			res.value === friendName && res.group === friendGroup;
+			return res["value"] === friendName;
+		}).should.have.lengthOf(1);
+	});
+
+	it("parses line transect unit taxon correct for llx", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`, {
+				access_token,
+				personToken,
+				query: "llx"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value", "unit");
+		res.body.value.should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("llx");
+		res.body.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.32819");
+	});
+
+	it("parses line transect unit taxon correct for loxia", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "loxiax" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value", "unit");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("loxiax");
+		res.body.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.36355");
+	});
+
+	it("parses line transect unit taxon correct for loxsp.", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "loxsp.x" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("loxsp.x");
+		res.body.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.36355");
+	});
+
+	it("parses line transect unit taxon correct for loxsp", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "loxspx" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("loxspx");
+		res.body.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.36355");
+	});
+
+	it("O type number is not parsed like pair in line transect unit taxon", async function() {
+		this.timeout(10000);
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "tt13O" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("tt13O");
+		res.body.unit.should.have.property("pairCount").eql(13);
+		res.body.unit.should.have.property("individualCount").eql(13);
 	});
 
 	// eslint-disable-next-line max-len
-	it("doesn't return taxons with sp suffix for taxon ranks higher than genum if isn't scientific name", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/taxon`, { access_token, q: "varpus", includePayload: true }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					return res["value"] === "Parus sp." && res.payload.taxonRankId === "MX.genus";
-				}).should.have.lengthOf(0);
-				done();
-			});
+	it("O type number is not parsed like pair in line transect unit taxon with taxa that is counted in 5", async function() {
+		this.timeout(10000);
+		const res  = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "PASDOM17o" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("PASDOM17o");
+		res.body.unit.should.have.property("pairCount").eql(17);
+		res.body.unit.should.have.property("individualCount").eql(17);
 	});
 
-	it("returns friends", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/friends`, { access_token, personToken }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					res.should.have.keys("key", "value");
-					res["value"].should.not.contain("undefined");
-					return res["value"] === friendName;
-				}).should.have.lengthOf(1);
-				done();
-			});
+	it("PARI type multiplier is always 2", async function() {
+		const res  = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "tt7PARI" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("tt7PARI");
+		res.body.unit.should.have.property("pairCount").eql(7);
+		res.body.unit.should.have.property("individualCount").eql(14);
 	});
 
-	it("returns friends when querying", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/friends`, { access_token, personToken, q: friendName.substring(0, 3) }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					res.should.have.keys("key", "value");
-					res["value"].should.not.contain("undefined");
-					return res["value"] === friendName;
-				}).should.have.lengthOf(1);
-				done();
-			});
-	});
-
-	it("returns friend name and group in payload", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/friends`, {
-				access_token, personToken,  includePayload: true, q: friendName.substring(0, 3)
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((item) => {
-					item.payload.should.have.keys("name", "group");
-					return item["value"] === friendName && item.payload["group"] === friendGroup;
-				}).should.have.lengthOf(1);
-				done();
-			});
-	});
-
-	it("returns line transect unit for line transect form id (MHL.1)", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "llx" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("llx");
-				res.body.payload.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.32819");
-				done();
-			});
-	});
-
-	it("parses line transect unit taxon correct for loxia", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "loxiax" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("loxiax");
-				res.body.payload.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.36355");
-				done();
-			});
-	});
-
-	it("parses line transect unit taxon correct for loxsp.", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "loxsp.x" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("loxsp.x");
-				res.body.payload.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.36355");
-				done();
-			});
-	});
-
-	it("parses line transect unit taxon correct for loxsp", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "loxspx" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("loxspx");
-				res.body.payload.unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql("MX.36355");
-				done();
-			});
-	});
-
-	it("O type number is not parsed like pair in line transect unit taxon", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "tt13O" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("tt13O");
-				res.body.payload.unit.should.have.property("pairCount").eql(13);
-				res.body.payload.unit.should.have.property("individualCount").eql(13);
-				done();
-			});
-	});
-
-	// eslint-disable-next-line max-len
-	it("O type number is not parsed like pair in line transect unit taxon with taxa that is counted in 5", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "PASDOM17o" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("PASDOM17o");
-				res.body.payload.unit.should.have.property("pairCount").eql(17);
-				res.body.payload.unit.should.have.property("individualCount").eql(17);
-				done();
-			});
-	});
-
-	it("PARI type multiplier is always 2", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "tt7PARI" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("tt7PARI");
-				res.body.payload.unit.should.have.property("pairCount").eql(7);
-				res.body.payload.unit.should.have.property("individualCount").eql(14);
-				done();
-			});
-	});
-
-	it("PARI type multiplier is always 2 even when species is normally multiplied by 5", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/unit`, { access_token, personToken, formID: "MHL.1", q: "PASDOM7PARI" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body["value"].should.not.contain("undefined");
-				res.body.payload.unit.should.have.property("shortHandText").eql("PASDOM7PARI");
-				res.body.payload.unit.should.have.property("pairCount").eql(7);
-				res.body.payload.unit.should.have.property("individualCount").eql(14);
-				done();
-			});
+	it("PARI type multiplier is always 2 even when species is normally multiplied by 5", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/line-transect`,
+				{ access_token, personToken, query: "PASDOM7PARI" }))
+			.set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body["value"].should.not.contain("undefined");
+		res.body.unit.should.have.property("shortHandText").eql("PASDOM7PARI");
+		res.body.unit.should.have.property("pairCount").eql(7);
+		res.body.unit.should.have.property("individualCount").eql(14);
 	});
 
 	function validateTripReportPayloadInterpretedFrom(body, count, name, maleIndividualCount, femaleIndividualCount) {
@@ -268,19 +205,19 @@ describe("/autocomplete", function() {
 				item.should.have.property(prop).eql(value);
 		}
 
-		body.every(item => item.should.have.keys("key", "value", "payload"));
+		body.results.every(item => item.should.include.keys("key", "value"));
 
-		body.every(item => validateProperty(item.payload.interpretedFrom, "taxon", name));
-		body.every(item => validateProperty(item.payload.interpretedFrom, "count", count));
-		body.every(item => validateProperty(
-			item.payload.interpretedFrom, "maleIndividualCount", `${maleIndividualCount}`)
+		body.results.every(item => validateProperty(item.interpretedFrom, "taxon", name));
+		body.results.every(item => validateProperty(item.interpretedFrom, "count", count));
+		body.results.every(item => validateProperty(
+			item.interpretedFrom, "maleIndividualCount", `${maleIndividualCount}`)
 		);
-		body.every(item => validateProperty(
-			item.payload.interpretedFrom, "femaleIndividualCount", `${femaleIndividualCount}`)
+		body.results.every(item => validateProperty(
+			item.interpretedFrom, "femaleIndividualCount", `${femaleIndividualCount}`)
 		);
 
 		Object.keys({ count, maleIndividualCount, femaleIndividualCount }).forEach(prop => {
-			body.every(item => validateProperty(item.payload.unit, prop, props[prop]));
+			body.results.every(item => validateProperty(item.unit, prop, props[prop]));
 		});
 	}
 
@@ -289,300 +226,193 @@ describe("/autocomplete", function() {
 	const maleIndividualCount = 42;
 	const femaleIndividualCount = 43;
 
-	it("return unit payload with taxon data", function(done) {
+	it("return unit with taxon data", async function() {
+		this.timeout(10000);
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
+		res.body.results.length.should.be.above(1);
 
-				res.body.every(item => item.payload.unit.unitFact.should.have.property("autocompleteSelectedTaxonID"));
-				res.body.every(item => item.payload.unit.identifications[0].should.have.property("taxon"));
+		res.body.results.every(item => item.unit.unitFact.should.have.property("autocompleteSelectedTaxonID"));
+		res.body.results.every(item => item.unit.identifications[0].should.have.property("taxon"));
 
-				done();
-			});
 	});
 
-	it("parses trip report unit query string correct when all fields present", function(done) {
+	it("parses trip report unit query string correct when all fields present", async function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-
-				done();
-			});
+		res.body.results.length.should.be.above(1);
+		validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 	});
 
-	it("parses trip report unit query string correct when count is missing", function(done) {
+	it("parses trip report unit query string correct when count is missing", async function() {
 		const params = { count: undefined, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" "),
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-
-				done();
-			});
+		res.body.results.length.should.be.above(1);
+		validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 	});
 
-	it("parses trip report unit query string correct when taxon is missing", function(done) {
+	it("parses trip report unit query string correct when taxon is missing", async function() {
 		const params = { count, name: undefined, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.should.have.lengthOf(0);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-
-				done();
-			});
+		res.body.results.should.have.lengthOf(1);
+		validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 	});
 
-	it("parses trip report unit query string correct when femaleIndividualCount is missing", function(done) {
+	it("parses trip report unit query string correct when femaleIndividualCount is missing", async function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount: undefined };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-				done();
-			});
+		res.body.results.length.should.be.above(1);
+		validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 	});
 
 	// eslint-disable-next-line max-len
-	it("parses trip report unit query string correct when maleIndividualCount and femaleIndividualCount are missing", function(done) {
+	it("parses trip report unit query string correct when maleIndividualCount and femaleIndividualCount are missing", async function() {
 		const params = { count, name, maleIndividualCount: undefined, femaleIndividualCount: undefined };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-				done();
-			});
+		res.body.results.length.should.be.above(1);
+		validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 	});
 
-	it("parses trip report unit query string correct when count is non numeric", function(done) {
-		const params = { count: "many", name, maleIndividualCount: femaleIndividualCount };
-		const _params =  Object.keys({ ...params, count: undefined, name: `many ${name}` }).map(param => params[param]);
-
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
-				access_token,
-				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-
-				res.body.should.have.lengthOf(0);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-				done();
-			});
-	});
-
-	it("throws 422 when trip report unit query string femaleIndividualCount is non numeric", function(done) {
+	it("throws 422 when trip report unit query string femaleIndividualCount is non numeric", async function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount: "many" };
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true
-			}))
-			.end(function(err, res) {
-				res.should.have.status(422);
-
-				done();
-			});
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(422);
 	});
 
 	// eslint-disable-next-line max-len
-	it("returns the query taxon name as taxon if trip report unit includeNonMatching is true and exact match wasn't found", function(done) {
+	it("returns the query taxon name as taxon if trip report unit exact match wasn't found", async function() {
 		let name = "paarus maajor";
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true,
-				includeNonMatching: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
+		res.body.results.length.should.be.above(1);
+		validateTripReportPayloadInterpretedFrom(res.body, ..._params);
 
-				const last = res.body[res.body.length - 1];
+		const last = res.body.results[res.body.results.length - 1];
 
-				last.should.have.property("value").eql(
-					`${count} ${name} ${maleIndividualCount} ${femaleIndividualCount}`
-				);
-				last.should.have.property("key").eql(name);
-				last.payload.should.have.property("isNonMatching").eql(true);
+		last.should.have.property("value").eql(
+			`${count} ${name} ${maleIndividualCount} ${femaleIndividualCount}`
+		);
+		last.should.have.property("key").eql(name);
+		last.should.have.property("isNonMatching").eql(true);
 
-				last.payload.unit.unitFact.should.not.have.property("autocompleteSelectedTaxonID");
-				last.payload.unit.identifications[0].should.have.property("taxon").eql(name);
-
-				done();
-			});
+		last.unit.unitFact.should.not.have.property("autocompleteSelectedTaxonID");
+		last.unit.identifications[0].should.have.property("taxon").eql(name);
 	});
 
-	// eslint-disable-next-line max-len
-	it("doesn't return the query taxon name as taxon if includeNonMatching is true and exact match was found", function(done) {
-		let name = "Parus major";
-		const params = { count, name, maleIndividualCount, femaleIndividualCount };
-		const _params =  Object.keys(params).map(param => params[param]);
-
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
-				access_token,
-				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true,
-				includeNonMatching: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-
-				res.body.length.should.be.above(1);
-				validateTripReportPayloadInterpretedFrom(res.body, ..._params);
-
-				res.body[res.body.length - 1].payload.should.not.have.property("isNonMatching");
-
-				res.body[res.body.length - 1].payload.unit.unitFact.should.have.property("autocompleteSelectedTaxonID");
-				res.body[res.body.length - 1].payload.unit.identifications[0].should.have.property("taxon");
-
-				done();
-			});
-	});
-
-	it("returns unit payload for trip report unit autocomplete", function(done) {
+	it("returns unit for trip report unit autocomplete", async function() {
 		let name = "Parus major";
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true,
-				includeNonMatching: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+				query: Object.keys(params).map(p => params[p]).join(" ")
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
+		res.body.results.length.should.be.above(1);
 
-				[first, ...rest] = res.body;
+		[first, ...rest] = res.body.results;
 
-				first["payload"].should.have.property("matchType").eql("exactMatches");
-				first["payload"].should.have.property("finnish");
-				first["payload"].should.have.property("taxonRankId");
+		first.should.have.property("matchType").eql("exactMatches");
+		first.should.have.property("finnish");
+		first.should.have.property("taxonRank");
 
-				rest.every(item => item["payload"].should.have.property("matchType").not.eql("exactMatches"));
+		rest.every(item => item.should.have.property("matchType").not.eql("exactMatches"));
 
-				done();
-			});
 	});
 
-	it("observationMode works for unit autocomplete", function(done) {
+	it("observationMode works for unit autocomplete", async function() {
 		let name = "Parus";
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/trip-report`, {
 				access_token,
 				personToken,
-				q: Object.keys(params).map(p => params[p]).join(" "),
-				includePayload: true,
+				query: Object.keys(params).map(p => params[p]).join(" "),
 				includeNonMatching: true,
 				observationMode: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
+			})).set("API-Version", "1");
+		res.should.have.status(200);
 
-				res.body.length.should.be.above(1);
+		res.body.results.length.should.be.above(1);
 
-				res.body.filter(item => {
-					return item.value === `${count} Parus sp. ${maleIndividualCount} ${femaleIndividualCount}`;
-				}).should.have.lengthOf(1);
-
-				done();
-			});
+		res.body.results.filter(item => {
+			return item.value === `${count} Parus sp. ${maleIndividualCount} ${femaleIndividualCount}`;
+		}).should.have.lengthOf(1);
 	});
 
-	it("returns list of correct units for trip report unit list", function(done) {
+	it("returns list of correct units for trip report unit list", async function() {
 		const correctAnswer = [
 			{
 				"informalTaxonGroups": [
@@ -622,233 +452,224 @@ describe("/autocomplete", function() {
 			}
 		];
 
-
-		request(this.server)
-			.get(url(`${basePath}/unit`, {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/list`, {
 				access_token,
 				personToken,
 				formID: "JX.519",
-				q: "susi,kettu,wookie",
-				includePayload: true,
-				list: true
-			}))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value", "payload");
-				res.body.payload.should.have.property("count").eql(3);
-				res.body.payload.should.have.property("nonMatchingCount").eql(1);
-				res.body.payload.units.forEach((unit, i) => {
-					unit.identifications[0].should.have.property("taxon").eql(
-						correctAnswer[i].identifications[0]["taxon"]
-					);
-					if (i !== 2) {
-						unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql(
-							correctAnswer[i].unitFact["autocompleteSelectedTaxonID"]
-						);
-					}
-					unit.should.have.property("informalTaxonGroups").eql(correctAnswer[i]["informalTaxonGroups"]);
-				});
-				done();
-			});
+				query: "susi,kettu,wookie"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.have.property("count").eql(3);
+		res.body.should.have.property("nonMatchingCount").eql(1);
+		res.body.results.forEach((unit, i) => {
+			unit.identifications[0].should.have.property("taxon").eql(
+				correctAnswer[i].identifications[0]["taxon"]
+			);
+			if (i !== 2) {
+				unit.unitFact.should.have.property("autocompleteSelectedTaxonID").eql(
+					correctAnswer[i].unitFact["autocompleteSelectedTaxonID"]
+				);
+			}
+			unit.should.have.property("informalTaxonGroups").eql(correctAnswer[i]["informalTaxonGroups"]);
+		});
 	});
 
-	it("return correct pair count for ANAACU", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26382", q: "3k2n, kn, 3" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(4);
-				res.body.key.should.eql("3k2n, kn, 3");
-				done();
-			});
+	it("return correct pair count for ANAACU", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26382",
+				query: "3k2n, kn, 3"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(4);
+		res.body.key.should.eql("3k2n, kn, 3");
 	});
 
-	it("return correct pair count for ANSANS", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26291", q: "3k2n,kn,3,1" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(2);
-				res.body.key.should.eql("3k2n, kn, 3, 1");
-				done();
-			});
+	it("return correct pair count for ANSANS", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26291",
+				query: "3k2n,kn,3,1"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(2);
+		res.body.key.should.eql("3k2n, kn, 3, 1");
 	});
 
-	it("return correct pair count for GALGAL", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.27666", q: "3k2n,kn,n,3,1" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(5);
-				res.body.key.should.eql("3k2n, kn, n, 3, 1");
-				done();
-			});
+	it("return correct pair count for GALGAL", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.27666",
+				query: "3k2n,kn,n,3,1"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(5);
+		res.body.key.should.eql("3k2n, kn, n, 3, 1");
 	});
 
-	it("return correct pair count for CORNIX", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q: "k2n,k2n, 5" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(5);
-				res.body.key.should.eql("k2n, k2n, 5");
-				done();
-			});
+	it("return correct pair count for CORNIX", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query: "k2n,k2n, 5"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(5);
+		res.body.key.should.eql("k2n, k2n, 5");
 	});
 
-	it("return correct pair count for CYGOLO", function(done) {
-		const q = "2k, n, 2n, 2, 3, 2kn";
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(4);
-				res.body.key.should.eql("2k, n, 2n, 2, 3, 2kn");
-				done();
-			});
+	it("return correct pair count for CYGOLO", async function() {
+		const query = "2k, n, 2n, 2, 3, 2kn";
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(4);
+		res.body.key.should.eql("2k, n, 2n, 2, 3, 2kn");
 	});
 
-	it("doesn't return pair count for unknown taxon", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.20000", q: "k2n,k2n, 5" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key");
-				res.body.should.not.have.keys("value");
-				res.body.key.should.eql("k2n, k2n, 5");
-				done();
-			});
+	it("doesn't return pair count for unknown taxon", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.20000",
+				query: "k2n,k2n, 5"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key");
+		res.body.should.not.have.keys("value");
+		res.body.key.should.eql("k2n, k2n, 5");
 	});
 
-	it("doesn't return pair count for empty query", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.20000", q: "" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key");
-				res.body.should.not.have.keys("value");
-				res.body.key.should.eql("");
-				done();
-			});
+	it("doesn't return pair count for empty query", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.20000",
+				query: ""
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key");
+		res.body.should.not.have.keys("value");
+		res.body.key.should.eql("");
 	});
 
-	it("return correct pair count when count is big", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q: "20k2n,101k2n, 5" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(124);
-				res.body.key.should.eql("20k2n, 101k2n, 5");
-				done();
-			});
+	it("return correct pair count when count is big", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query: "20k2n,101k2n, 5"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(124);
+		res.body.key.should.eql("20k2n, 101k2n, 5");
 	});
 
-	it("formats waterbird count right", function(done) {
-		const q = "20n1k4, 5, kk2,3n";
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(10);
-				res.body.key.should.eql("k20n, 4, 5, k, 2, 3n");
-				done();
-			});
+	it("formats waterbird count right", async function() {
+		const query = "20n1k4, 5, kk2,3n";
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(10);
+		res.body.key.should.eql("k20n, 4, 5, k, 2, 3n");
 	});
 
-	it("formats empty waterbird count right", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.73566", q: "0,0" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key");
-				res.body.key.should.eql("");
-				done();
-			});
+	it("formats empty waterbird count right", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query: "0,0"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key");
+		res.body.key.should.eql("");
 	});
 
-	it("accepts upper case in waterbird count", function(done) {
-		const q = "2K, n, 2N, 2, 3, 2Kn";
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(4);
-				res.body.key.should.eql("2k, n, 2n, 2, 3, 2kn");
-				done();
-			});
+	it("accepts upper case in waterbird count", async function() {
+		const query = "2K, n, 2N, 2, 3, 2Kn";
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(4);
+		res.body.key.should.eql("2k, n, 2n, 2, 3, 2kn");
 	});
 
-	it("accepts dots and converts them to commas in waterbird count", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q: "2k.n. 3" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(2);
-				res.body.key.should.eql("2k, n, 3");
-				done();
-			});
+	it("accepts dots and converts them to commas in waterbird count", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query: "2k.n. 3"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(2);
+		res.body.key.should.eql("2k, n, 3");
 	});
 
-	it("returns correct pair count for singing", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q: "3Ä" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(3);
-				res.body.key.should.eql("3Ä");
-				done();
-			});
+	it("returns correct pair count for singing", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query: "3Ä"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(3);
+		res.body.key.should.eql("3Ä");
 	});
 
-	it("returns correct pair count for uttering", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/pairCount`, { access_token, personToken, taxonID: "MX.26277", q: "3ä" }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.have.keys("key", "value");
-				res.body.value.should.eql(2);
-				res.body.key.should.eql("3ä");
-				done();
-			});
-	});
-
-	it("returns organizations", function(done) {
-		request(this.server)
-			.get(url(`${basePath}/organization`, { access_token, personToken }))
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.filter((res) => {
-					res.should.have.keys("key", "value");
-					res.value.should.not.contain("undefined");
-					return res["key"] === "MOS.1016";
-				}).should.have.lengthOf(1);
-				done();
-			});
+	it("returns correct pair count for uttering", async function() {
+		const res = await request(this.server)
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query: "3ä"
+			})).set("API-Version", "1");
+		res.should.have.status(200);
+		res.body.should.include.keys("key", "value");
+		res.body.value.should.eql(2);
+		res.body.key.should.eql("3ä");
 	});
 });

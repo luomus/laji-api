@@ -49,6 +49,20 @@ export class PersonsService {
 		const person = await this.getByToken(personToken);
 		return person.role?.includes(Role.Admin) || false;
 	}
+
+	findByIds(ids: string[]) {
+		return this.triplestoreService.find<Person>(
+			{ type: "MA.person", subject: ids.join(",") },
+			{ cache: CACHE_5_MIN }
+		);
+	}
+
+	getAll() {
+		return this.triplestoreService.find<Person>(
+			{ type: "MA.person" },
+			{ cache: CACHE_5_MIN }
+		);
+	}
 }
 
 const ImporterPerson: Person = serializeInto(Person)({

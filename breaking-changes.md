@@ -139,3 +139,41 @@ Old API filtered out non QNames from queries. For example, when querying named p
 ## Informal taxon groups
 
 * `/informal-taxon-groups/tree` isn't paged anymore.
+
+## Taxa
+
+* TODO document query param renaming & filter body
+
+## Autocomplete
+
+### `/autocomplete/person`
+
+* renamed as `/autocomplete/persons`
+* results are wrapped in `results`
+* query param `q` renamed as `query`
+* query param `limit` renamed as `pageSize` (supports pagination now)
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+
+### `/autocomplete/friends`
+
+* results are wrapped in `results`
+* query param `q` renamed as `query`
+* query param `limit` renamed as `pageSize` (supports pagination now)
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+
+### `/autocomplete/taxon`
+
+* renamed as `/autocomplete/taxa`
+* results are wrapped in `results`
+* query param `q` renamed as `query`
+* in the result, the `taxonRankId` renamed as `taxonRank`
+* in the result, the `informalTaxonGroups` renamed as `informalGroups`
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+
+### `/autocomplete/unit`
+
+* Broken down to the following endpoints:
+	* `/autocomplete/unit/list`
+	* `/autocomplete/unit/shorthand/trip-report`
+	* `/autocomplete/unit/shorthand/line-transect`
+	* `/autocomplete/unit/shorthand/water-bird-pair-count`

@@ -3,6 +3,7 @@ import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./taxon-belongs-to-informal-taxon-group.validator.service";
 import { TaxaService } from "src/taxa/taxa.service";
 import { ValidationException } from "../document-validator.utils";
+import { Taxon } from "src/taxa/taxa.dto";
 
 describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 	let service: TaxonBelongsToInformalTaxonGroupValidatorService;
@@ -45,7 +46,7 @@ describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 
 			const informalTaxonGroups = ["group1"];
 
-			taxaServiceMock.get.mockResolvedValue({ informalGroups: [{ id: "group2", name: { fi: "foo" } }] });
+			taxaServiceMock.get.mockResolvedValue({ informalGroups: [{ id: "group2", name: { fi: "foo" } }] } as Taxon);
 
 			await expect(service.validate(document as any, "", { informalTaxonGroup: informalTaxonGroups }))
 				.rejects.toThrow(ValidationException);
@@ -80,7 +81,7 @@ describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 
 			const informalTaxonGroups = ["group1"];
 
-			taxaServiceMock.get.mockResolvedValue({ informalGroups: [{ id: "group1", name: { fi: "foo" } }] });
+			taxaServiceMock.get.mockResolvedValue({ informalGroups: [{ id: "group1", name: { fi: "foo" } }] } as Taxon);
 
 			await expect(service.validate(document as any, "", { informalTaxonGroup: informalTaxonGroups }))
 				.resolves.not.toThrow(ValidationException);

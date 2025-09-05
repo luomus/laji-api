@@ -129,8 +129,12 @@ class InformalTaxonGroup extends _InformalTaxonGroup {
 }
 
 export type Taxon = {
-		vernacularName?: string;
-		informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
+	vernacularName?: string;
+	scientificName?: string;
+	informalGroups?: WithNonNullableKeys<InformalTaxonGroup, "id">[];
+	matchingName: string;
+	id: string;
+	type?: "exactMatches";
 }
 
 class RedListEvaluation {
@@ -152,7 +156,7 @@ export class TaxonElastic {
 	[key: string]: unknown;
 }
 
-enum SearchMatchType {
+export enum SearchMatchType {
 	exact = "exact",
 	partial = "partial",
 	likely = "likely"
@@ -164,11 +168,11 @@ export class TaxaSearchDto {
 	// Used only internally
 	@ApiHideProperty() q?: string;
 
+	/** Limit the size of results */
+	limit?: number = 10;
+
 	// Used only internally
 	@ApiHideProperty() id?: string;
-
-	/** Limit the page size of results */
-	limit?: number = 10;
 
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
 	checklist?: string;
@@ -198,16 +202,16 @@ export class TaxaSearchDto {
 	excludeNameTypes?: string;
 
 	/** Filter to include only species (and subspecies) */
-	onlySpecies?: boolean = false;
+	@IsOptionalBoolean() onlySpecies?: boolean = false;
 
 	/** Filter to include only Finnish taxa */
-	onlyFinnish?: boolean = false;
+	@IsOptionalBoolean() onlyFinnish?: boolean = false;
 
 	/** Filter to include only invasive species */
-	onlyInvasive?: boolean = false;
+	@IsOptionalBoolean() onlyInvasive?: boolean = false;
 
 	/** If observationMode is set, "sp." is catenated to higher tax scientific names */
-	observationMode?: boolean = false;
+	@IsOptionalBoolean() observationMode?: boolean = false;
 
 	/** Multiple values are separated by a comma (,) */
 	selectedFields?: string;
