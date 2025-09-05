@@ -477,9 +477,13 @@ describe("/autocomplete", function() {
 
 	it("return correct pair count for ANAACU", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26382", query: "3k2n, kn, 3" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26382",
+				query: "3k2n, kn, 3"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
-		console.log(res.body);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(4);
 		res.body.key.should.eql("3k2n, kn, 3");
@@ -487,7 +491,12 @@ describe("/autocomplete", function() {
 
 	it("return correct pair count for ANSANS", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26291", query: "3k2n,kn,3,1" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26291",
+				query: "3k2n,kn,3,1"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(2);
@@ -496,7 +505,12 @@ describe("/autocomplete", function() {
 
 	it("return correct pair count for GALGAL", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.27666", query: "3k2n,kn,n,3,1" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.27666",
+				query: "3k2n,kn,n,3,1"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(5);
@@ -505,7 +519,12 @@ describe("/autocomplete", function() {
 
 	it("return correct pair count for CORNIX", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.73566", query: "k2n,k2n, 5" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query: "k2n,k2n, 5"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(5);
@@ -515,7 +534,12 @@ describe("/autocomplete", function() {
 	it("return correct pair count for CYGOLO", async function() {
 		const query = "2k, n, 2n, 2, 3, 2kn";
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26277", query })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(4);
@@ -524,7 +548,12 @@ describe("/autocomplete", function() {
 
 	it("doesn't return pair count for unknown taxon", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.20000", query: "k2n,k2n, 5" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.20000",
+				query: "k2n,k2n, 5"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key");
 		res.body.should.not.have.keys("value");
@@ -533,7 +562,12 @@ describe("/autocomplete", function() {
 
 	it("doesn't return pair count for empty query", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.20000", query: "" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.20000",
+				query: ""
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key");
 		res.body.should.not.have.keys("value");
@@ -542,7 +576,12 @@ describe("/autocomplete", function() {
 
 	it("return correct pair count when count is big", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.73566", query: "20k2n,101k2n, 5" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query: "20k2n,101k2n, 5"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(124);
@@ -552,7 +591,12 @@ describe("/autocomplete", function() {
 	it("formats waterbird count right", async function() {
 		const query = "20n1k4, 5, kk2,3n";
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.73566", query })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(10);
@@ -561,7 +605,12 @@ describe("/autocomplete", function() {
 
 	it("formats empty waterbird count right", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.73566", query: "0,0" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.73566",
+				query: "0,0"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key");
 		res.body.key.should.eql("");
@@ -570,7 +619,12 @@ describe("/autocomplete", function() {
 	it("accepts upper case in waterbird count", async function() {
 		const query = "2K, n, 2N, 2, 3, 2Kn";
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26277", query })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(4);
@@ -579,7 +633,12 @@ describe("/autocomplete", function() {
 
 	it("accepts dots and converts them to commas in waterbird count", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26277", query: "2k.n. 3" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query: "2k.n. 3"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(2);
@@ -588,7 +647,12 @@ describe("/autocomplete", function() {
 
 	it("returns correct pair count for singing", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26277", query: "3Ä" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query: "3Ä"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(3);
@@ -597,7 +661,12 @@ describe("/autocomplete", function() {
 
 	it("returns correct pair count for uttering", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, { access_token, personToken, taxonID: "MX.26277", query: "3ä" })).set("API-Version", "1");
+			.get(url(`${basePath}/unit/shorthand/water-bird-pair-count`, {
+				access_token,
+				personToken,
+				taxonID: "MX.26277",
+				query: "3ä"
+			})).set("API-Version", "1");
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(2);
