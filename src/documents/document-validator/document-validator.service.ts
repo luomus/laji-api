@@ -23,11 +23,13 @@ import { Person } from "src/persons/person.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { CollectionsService } from "src/collections/collections.service";
+import { DocumentsService } from "../documents.service";
 
 @Injectable()
 export class DocumentValidatorService {
 
 	constructor(
+		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
 		private formsService: FormsService,
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		private profileService: ProfileService,
@@ -106,7 +108,7 @@ export class DocumentValidatorService {
 	}
 
 	private async validatePersonLinkings(document: Populated<Document>, person: Person) {
-		const { collectionID, creator } = document;
+		const { collectionID, creator, id } = document;
 		if (person.isImporter() || collectionID && await this.formPermissionsService.isAdminOf(collectionID, person)) {
 			return;
 		}
@@ -120,8 +122,18 @@ export class DocumentValidatorService {
 
 		const { friends } = await this.profileService.getByPersonIdOrCreate(creator);
 
+		const existingDoc = id ? await this.documentsService.store.get(id) : undefined;
+
+		const existingNames = existingDoc ? [
+			...(existingDoc.gatheringEvent?.leg || []),
+			...(existingDoc.editors || [])
+		] : [];
+
 		for (const { personString, path } of personValidations) {
-			if (personString.toUpperCase().startsWith("MA.") && ![creator, ...friends].includes(personString)) {
+			if (
+				personString.toUpperCase().startsWith("MA.")
+				&& !new Set([creator, ...friends, ...existingNames]).has(personString)
+			) {
 				throw new ValidationException({ [path]: ["MA codes must be the creator or the creator's friend!"] });
 			}
 		}
