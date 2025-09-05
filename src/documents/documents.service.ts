@@ -160,6 +160,7 @@ export class DocumentsService {
 	}
 
 	async get(id: string, person: Person) {
+		console.log("GET",);
 		const document = await this.store.get(id);
 		await this.checkHasReadRightsTo(document, person);
 		return document;
@@ -170,6 +171,7 @@ export class DocumentsService {
 		apiUser: ApiUserEntity,
 		person?: Person,
 	) {
+		console.log("CREATESZ");
 		const document = await this.populateMutably(unpopulatedDocument, apiUser, person);
 		if (person) {
 			populateCreatorAndEditorMutably(document, person);
@@ -316,7 +318,6 @@ export class DocumentsService {
 		return document as Populated<T>;
 	}
 
-
 	async populateMutably<T extends Document>(
 		document: T,
 		apiUser: ApiUserEntity,
@@ -334,6 +335,24 @@ export class DocumentsService {
 		const { collectionID } = document;
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
+
+		if (person?.isImporter() && !document.creator) {
+			throw new ValidationException({ "/creator": ["Creator is mandatory when using importer token"] });
+		}
+
+		if (!person) {
+			console.log('PERSON', person);
+			const form = await this.formsService.get(document.formID);
+			if (!form.options?.openForm) {
+				throw new HttpException("Person token is required if form isn't open form (MHL.openForm)", 403);
+			}
+		} else {
+			await this.checkHasReadRightsTo(document, person);
+
+			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
+				throw new HttpException("Insufficient rights to use this form", 403);
+			}
+		}
 
 		await this.documentValidatorService.validate(document, person);
 	}
