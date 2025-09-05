@@ -146,14 +146,34 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 ## Autocomplete
 
-* `/autocomplete/person` -> `/autocomplete/persons`
-* `/autocomplete/taxon` -> `/autocomplete/taxa`
-* `/autocomplete/unit` is splitted into more fine-grained endpoints instead of choosing the strategy from `formID` query parameter (which is deprecated):
+### `/autocomplete/person`
+
+* renamed as `/autocomplete/persons`
+* results are wrapped in `results`
+* query param `q` renamed as `query`
+* query param `limit` renamed as `pageSize` (supports pagination now)
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+
+### `/autocomplete/friends`
+
+* results are wrapped in `results`
+* query param `q` renamed as `query`
+* query param `limit` renamed as `pageSize` (supports pagination now)
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+
+### `/autocomplete/taxon`
+
+* renamed as `/autocomplete/taxa`
+* results are wrapped in `results`
+* query param `q` renamed as `query`
+* in the result, the `taxonRankId` renamed as `taxonRank`
+* in the result, the `informalTaxonGroups` renamed as `informalGroups`
+* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+
+### `/autocomplete/unit`
+
+* Broken down to the following endpoints:
 	* `/autocomplete/unit/list`
 	* `/autocomplete/unit/shorthand/trip-report`
 	* `/autocomplete/unit/shorthand/line-transect`
 	* `/autocomplete/unit/shorthand/water-bird-pair-count`
-
-* `limit` renamed as `pageSize` for endpoints which support pagination (friends, persons)
-* `payload` is flattened into the response
-* query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
