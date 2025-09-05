@@ -49,6 +49,24 @@ export class DocumentValidatorService {
 		if (document.isTemplate) {
 			return;
 		}
+		const { collectionID } = document;
+
+		if (person?.isImporter() && !document.creator) {
+			throw new ValidationException({ "/creator": ["Creator is mandatory when using importer token"] });
+		}
+
+		if (!person) {
+			const form = await this.formsService.get(document.formID);
+			if (!form.options?.openForm) {
+				throw new HttpException("Person token is required if form isn't open form (MHL.openForm)", 403);
+			}
+		} else {
+			await this.documentsService.checkHasReadRightsTo(document, person);
+
+			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
+				throw new HttpException("Insufficient rights to use this form", 403);
+			}
+		}
 
 		await this.validateLinkings(document, person);
 
