@@ -369,7 +369,6 @@ describe("/documents", function() {
 			.post(query)
 			.send(document)
 			.end(function (err, res) {
-				console.log('res', res.body);
 				res.should.have.status(422);
 				done();
 			});

@@ -207,7 +207,6 @@ export class DocumentsController {
 		@ApiUser() apiUser: ApiUserEntity,
 		@PersonToken({ required: false }) person?: Person,
 	): Promise<Document> {
-		console.log("IN CONTROLLER");
 		if (isBatchJobDto(document)) {
 			if (!person) {
 				throw new HttpException("Can't do batch update without a person token", 422);
@@ -240,7 +239,6 @@ export class DocumentsController {
 			return this.secondaryDocumentsService.create(document as SecondaryDocument, person) as Promise<Document>;
 		}
 
-		console.log("CRETRS CONTROLLRE");
 		return this.documentsService.create(
 			document as Document,
 			apiUser,

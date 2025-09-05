@@ -160,7 +160,6 @@ export class DocumentsService {
 	}
 
 	async get(id: string, person: Person) {
-		console.log("GET",);
 		const document = await this.store.get(id);
 		await this.checkHasReadRightsTo(document, person);
 		return document;
@@ -171,7 +170,6 @@ export class DocumentsService {
 		apiUser: ApiUserEntity,
 		person?: Person,
 	) {
-		console.log("CREATESZ");
 		const document = await this.populateMutably(unpopulatedDocument, apiUser, person);
 		if (person) {
 			populateCreatorAndEditorMutably(document, person);
@@ -341,7 +339,6 @@ export class DocumentsService {
 		}
 
 		if (!person) {
-			console.log('PERSON', person);
 			const form = await this.formsService.get(document.formID);
 			if (!form.options?.openForm) {
 				throw new HttpException("Person token is required if form isn't open form (MHL.openForm)", 403);
