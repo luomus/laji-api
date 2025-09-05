@@ -23,11 +23,13 @@ import { Person } from "src/persons/person.dto";
 import { ProfileService } from "src/profile/profile.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { CollectionsService } from "src/collections/collections.service";
+import { DocumentsService } from "../documents.service";
 
 @Injectable()
 export class DocumentValidatorService {
 
 	constructor(
+		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
 		private formsService: FormsService,
 		@Inject(forwardRef(() => NamedPlacesService)) private namedPlacesService: NamedPlacesService,
 		private profileService: ProfileService,
@@ -46,6 +48,24 @@ export class DocumentValidatorService {
 	async validate(document: Populated<Document>, person?: Person, type?: ValidationType) {
 		if (document.isTemplate) {
 			return;
+		}
+		const { collectionID } = document;
+
+		if (person?.isImporter() && !document.creator) {
+			throw new ValidationException({ "/creator": ["Creator is mandatory when using importer token"] });
+		}
+
+		if (!person) {
+			const form = await this.formsService.get(document.formID);
+			if (!form.options?.openForm) {
+				throw new HttpException("Person token is required if form isn't open form (MHL.openForm)", 403);
+			}
+		} else {
+			await this.documentsService.checkHasReadRightsTo(document, person);
+
+			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
+				throw new HttpException("Insufficient rights to use this form", 403);
+			}
 		}
 
 		await this.validateLinkings(document, person);
@@ -119,12 +139,34 @@ export class DocumentValidatorService {
 		];
 
 		const { friends } = await this.profileService.getByPersonIdOrCreate(creator);
+		const existingNames = await this.getExistingPersonNames(document);
+		const allowedMACodes = new Set([creator, ...friends, ...existingNames]);
 
 		for (const { personString, path } of personValidations) {
-			if (personString.toUpperCase().startsWith("MA.") && ![creator, ...friends].includes(personString)) {
+			if (
+				personString.toUpperCase().startsWith("MA.")
+				&& !allowedMACodes.has(personString)
+			) {
 				throw new ValidationException({ [path]: ["MA codes must be the creator or the creator's friend!"] });
 			}
 		}
+	}
+
+	private async getExistingPersonNames(document: Populated<Document>) {
+		const { id } = document;
+		if (!id) {
+			return [];
+		}
+		const form = await this.formsService.get(document.formID);
+		if (form.options?.secondaryCopy) {
+			return [];
+		}
+		const existingDoc = await this.documentsService.store.get(id);
+
+		return [
+			...(existingDoc.gatheringEvent?.leg || []),
+			...(existingDoc.editors || [])
+		];
 	}
 
 	private async validateNamedPlaceLinking(document: Populated<Document>) {
