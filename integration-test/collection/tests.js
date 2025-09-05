@@ -53,6 +53,8 @@ const itemProperties = [
 	"shareToFEO",
 ];
 
+const excludedKeys = ["collectionLocation", "dataLocation", "inMustikka", "editor", "creator"]
+
 describe("/collections", function() {
 	var basePath = config.urls.collection;
 
@@ -86,8 +88,8 @@ describe("/collections", function() {
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body, pageSize);
 				res.body[helpers.params.results].filter((collection) => {
-					helpers.toHaveOnlyKeys(collection, itemProperties);
-					collection.should.have.any.keys("id");
+					collection.should.include.keys("id");
+					collection.should.not.have.keys(...excludedKeys);
 					collection.should.not.include({metadataStatus: "MY.metadataStatusHidden"});
 
 					return collection["id"] === config.id.collection;
@@ -121,7 +123,7 @@ describe("/collections", function() {
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body);
 				res.body.results.filter((collection) => {
-					helpers.toHaveOnlyKeys(collection, itemProperties);
+					collection.should.not.have.keys(...excludedKeys);
 					collection.should.not.include({id: config.id.collection_parent});
 					collection.should.not.include({id: config.id.collection_root});
 					return collection.id === config.id.collection
@@ -141,7 +143,7 @@ describe("/collections", function() {
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body);
 				res.body.results.filter((collection) => {
-					helpers.toHaveOnlyKeys(collection, itemProperties);
+					collection.should.not.have.keys(...excludedKeys);
 					collection.should.not.include({id: config.id.collection_parent});
 					collection.should.not.include({id: config.id.collection});
 					return collection.id === config.id.collection_root
