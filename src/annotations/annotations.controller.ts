@@ -22,7 +22,7 @@ export class AnnotationsController {
 	@Get("tags")
 	@SwaggerRemoteRef({
 		source: "store",
-		ref: "tag",
+		ref: "/tag",
 		customizeResponseSchema: schema => ({ type: "array", items: schema })
 	})
 	async getTags(@RequestLang() lang: Lang) {
@@ -32,7 +32,7 @@ export class AnnotationsController {
 
 	/** Get a page of annotations */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "annotation" })
+	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
 	getPage(
 		@Query() { rootID, page, pageSize }: GetAnnotationsDto,
 		@PersonToken() person: Person
@@ -47,7 +47,7 @@ export class AnnotationsController {
 
 	/** Create a new annotation */
 	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "annotation" })
+	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
 	async create(
 		@Body() annotation: Annotation,
 		@Query() _: CreateAnnotationDto,

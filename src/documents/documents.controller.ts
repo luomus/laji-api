@@ -44,7 +44,7 @@ export class DocumentsController {
 	@Post("batch")
 	@SwaggerRemoteRef({
 		source: "store",
-		ref: "document",
+		ref: "/document",
 		replacePointer: "/items",
 		applyToResponse: false,
 		customizeRequestBodySchema: schema => ({ type: "array", items: schema })
@@ -67,7 +67,7 @@ export class DocumentsController {
 	// Makes the BatchJobValidationStatusResponse use store documents' swagger def. Modifies the definition which is
 	// referenced by other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only
 	// once.
-	@SwaggerRemoteRef({ source: "store", ref: "document", replacePointer: "/properties/documents/items" })
+	@SwaggerRemoteRef({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
@@ -175,7 +175,7 @@ export class DocumentsController {
 
 	/** Get a page of documents */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "document" })
+	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	getPage(@Query() query: GetDocumentsDto, @PersonToken() person: Person): Promise<PaginatedDto<Document>> {
 		const { page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
@@ -190,7 +190,7 @@ export class DocumentsController {
 
 	/** Get a document */
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "document" })
+	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	get(@Param("id") id: string,
 		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
@@ -200,7 +200,7 @@ export class DocumentsController {
 
 	/** Create a new document */
 	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "document" })
+	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	async create(
 		@Body() document: Document,
 		@Query() { validationErrorFormat }: CreateDocumentDto,
@@ -248,7 +248,7 @@ export class DocumentsController {
 
 	/** Update an existing document */
 	@Put(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "document" })
+	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	async update(
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,

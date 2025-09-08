@@ -12,7 +12,7 @@ import { RequestLang } from "src/decorators/request-lang.decorator";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteRefEntry = {
 	source: "store",
-	ref: "informalTaxonGroup",
+	ref: "/informalTaxonGroup",
 	customizeResponseSchema: swaggerResponseAsResultsArray
 };
 
@@ -25,7 +25,7 @@ export class InformalTaxonGroupsController {
 	/** Get a page of informal taxon groups */
 	@Get()
 	@UseInterceptors(Translator, Paginator)
-	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
+	@SwaggerRemoteRef({ source: "store", ref: "/informalTaxonGroup" })
 	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
 		return this.informalTaxonGroupsService.find(idIn);
 	}
@@ -51,7 +51,7 @@ export class InformalTaxonGroupsController {
 	/** Get an informal taxon group by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
+	@SwaggerRemoteRef({ source: "store", ref: "/informalTaxonGroup" })
 	get(@Param("id") id: string) {
 		return this.informalTaxonGroupsService.get(id);
 	}
@@ -67,7 +67,7 @@ export class InformalTaxonGroupsController {
 	/** Get informal taxon group's parents */
 	@Get(":id/parent")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "informalTaxonGroup" })
+	@SwaggerRemoteRef({ source: "store", ref: "/informalTaxonGroup" })
 	getParent(@Param("id") id: string) {
 		return this.informalTaxonGroupsService.getParent(id);
 	}

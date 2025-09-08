@@ -16,7 +16,7 @@ export class AreaController {
 	/** Get a page of areas */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "area" })
+	@SwaggerRemoteRef({ source: "store", ref: "/area" })
 	get(@Param("id") id: string) {
 		return this.areaService.get(id);
 	}
@@ -24,7 +24,7 @@ export class AreaController {
 	/** Get an areas by id */
 	@Get()
 	@UseInterceptors(Paginator, Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "area" })
+	@SwaggerRemoteRef({ source: "store", ref: "/area" })
 	getPage(@Query() { type, areaType, idIn }: GetAreaPageDto) {
 		let typeQName: AreaTypeDto | undefined = areaType;
 		if (!typeQName && type) {

@@ -81,7 +81,7 @@ export class FormsController {
 
 	/** Get a page of forms */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "form", customizeResponseSchema: swaggerResponseAsResultsArray })
+	@SwaggerRemoteRef({ source: "store", ref: "/form", customizeResponseSchema: swaggerResponseAsResultsArray })
 	@UseInterceptors(ResultsArray)
 	getListing(@RequestLang() lang: Lang) {
 		return this.formsService.getListing(lang);
@@ -89,7 +89,7 @@ export class FormsController {
 
 	/** Get a form by id */
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "form" })
+	@SwaggerRemoteRef({ source: "store", ref: "/form" })
 	getOne(@Param("id") id: string, @Query() { format = Format.schema, lang = Lang.en, expand = true }: GetDto) {
 		return this.formsService.get(id, format, lang, expand);
 	}
@@ -97,7 +97,7 @@ export class FormsController {
 	/** Create a new form */
 	@Post()
 	@UseGuards(IctAdminGuard)
-	@SwaggerRemoteRef({ source: "store", ref: "form" })
+	@SwaggerRemoteRef({ source: "store", ref: "/form" })
 	create(@Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.create(form, personToken);
 	}
@@ -105,7 +105,7 @@ export class FormsController {
 	/** Update an existing form */
 	@Put(":id")
 	@UseGuards(IctAdminGuard)
-	@SwaggerRemoteRef({ source: "store", ref: "form" })
+	@SwaggerRemoteRef({ source: "store", ref: "/form" })
 	update(@Param("id") id: string, @Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
 		return this.formsService.update(id, form, personToken);
 	}
@@ -120,7 +120,7 @@ export class FormsController {
 	/** Get preview of form transformed from json format to schema format */
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
-	@SwaggerRemoteRef({ source: "store", ref: "form" })
+	@SwaggerRemoteRef({ source: "store", ref: "/form" })
 	transform(@Body() form: Form, @Query() { lang = Lang.en }: TransformDto) {
 		return this.formsService.transform(form, lang);
 	}

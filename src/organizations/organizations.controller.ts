@@ -15,7 +15,7 @@ export class OrganizationsController {
 	/** Find an organization by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "organization" })
+	@SwaggerRemoteRef({ source: "store", ref: "/organization" })
 	async get(@Param("id") id: string) {
 		return this.organizationsService.get(id);
 	}

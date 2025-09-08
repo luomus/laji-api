@@ -5,11 +5,12 @@ import { CallHandler, ExecutionContext, HttpException, Injectable, NestIntercept
 import { Observable, switchMap } from "rxjs";
 import { applyToResult } from "src/pagination.utils";
 import { localJsonLdContextToRemoteSwaggerRefEntry } from "src/json-ld/json-ld.service";
-
+//The name of the schema object in the remote OpenAPI document's schemas */
 export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
 	source: "store" | "laji-backend",
-	/** The name of the schema object in the remote OpenAPI document's schemas */
+	/** JSON pointer for the schema in the remote OpenAPI document that will be used as the response schema. The pointer
+	 * is relative to the remote document's component schemas (#/components/schemas) */
 	ref?: string,
 	/**
 	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
