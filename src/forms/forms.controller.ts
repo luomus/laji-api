@@ -121,7 +121,7 @@ export class FormsController {
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "form" })
-	transform(@Body() form: Form, @Query() { personToken, lang = Lang.en }: TransformDto) {
-		return this.formsService.transform(form, lang, personToken);
+	transform(@Body() form: Form, @Query() { lang = Lang.en }: TransformDto) {
+		return this.formsService.transform(form, lang);
 	}
 }

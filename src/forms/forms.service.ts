@@ -56,8 +56,8 @@ export class FormsService {
 		return this.formClient.delete(id, { params: { personToken } });
 	}
 
-	transform(form: Form, lang: Lang, personToken: string) {
-		return this.formClient.post("transform", form, { params: { lang: formatLangParam(lang), personToken } });
+	transform(form: Form, lang: Lang) {
+		return this.formClient.post("transform", form, { params: { lang: formatLangParam(lang) } });
 	}
 
 	async findListedByCollectionID(collectionID: string): Promise<FormListing[]> {
