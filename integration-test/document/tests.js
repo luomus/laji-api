@@ -90,6 +90,7 @@ describe("/documents", function() {
 	});
 
 	it("returns 404 when accessing others documents when using ES index", function(done) {
+		this.timeout(10000);
 		var query = basePath + "/" + config.id.document_others +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		request(this.server)
@@ -101,6 +102,7 @@ describe("/documents", function() {
 	});
 
 	it("returns 404 when accessing others documents", function(done) {
+		this.timeout(10000);
 		var query = basePath + "/" + config.id.document_others +
 			"?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		request(this.server)

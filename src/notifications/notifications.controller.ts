@@ -16,7 +16,7 @@ export class NotificationsController {
 
 	/* Get notifications */
 	@Get(":personToken")
-	@SwaggerRemoteRef({ source: "store", ref: "notification" })
+	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
 	getAll(
 		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
 		@Param("personToken") personToken: string,
@@ -27,7 +27,7 @@ export class NotificationsController {
 
 	/* Update notification */
 	@Put(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "notification" })
+	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
 	update(
 		@Param("id") id: string,
 		@Body() notification: Notification & { id: string },

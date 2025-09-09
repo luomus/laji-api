@@ -33,13 +33,13 @@ const paginateSchema = (resultSchemaDto: any) => ({
 	}
 });
 
-const asTuple = (schema: SchemaItem, document: OpenAPIObject) => 
+const asTuple = (schema: SchemaItem, document: OpenAPIObject) =>
 	[schema, document] as [JSONSchemaRef, OpenAPIObject];
 
 const swaggerResponseWithKeyAndValue = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
-	const schema: JSONSchemaArray = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
-	(schema.items as JSONSchemaObject).properties!.key = { type: "string" };
-	(schema.items as JSONSchemaObject).properties!.value = { type: "string" };
+	const schema: JSONSchemaObject = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
+	schema.properties!.key = { type: "string" };
+	schema.properties!.value = { type: "string" };
 	return refSchema;
 };
 
@@ -82,7 +82,7 @@ export class AutocompleteController {
 	// results translated.
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "TaxonSearchResponse",
+		ref: "/TaxonSearchResponse",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		localJsonLdContext: "taxon-search"
 	})
@@ -113,7 +113,7 @@ export class AutocompleteController {
 	@Get("/taxa")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "TaxonSearchResponse",
+		ref: "/TaxonSearchResponse/items",
 		customizeResponseSchema: (schema, document) => pipe(
 			swaggerResponseWithKeyAndValue,
 			swaggerResponseAsResultsArray

@@ -79,7 +79,7 @@ export class TaxaController {
 	@Get("search")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "TaxonSearchResponse",
+		ref: "/TaxonSearchResponse",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		localJsonLdContext: "taxon-search"
 	})
@@ -93,7 +93,7 @@ export class TaxaController {
 	@Get()
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
@@ -108,7 +108,7 @@ export class TaxaController {
 	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
@@ -138,7 +138,7 @@ export class TaxaController {
 	/** Get a page of species */
 	@Version("1")
 	@Get("species")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", localJsonLdContext: "taxon-elastic" })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "/Taxon", localJsonLdContext: "taxon-elastic" })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getSpeciesPage(@Query() query: GetTaxaPageDto) {
 		return this.taxaService.getSpeciesPage(query);
@@ -151,7 +151,7 @@ export class TaxaController {
 	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
@@ -171,7 +171,7 @@ export class TaxaController {
 	@Post("species/aggregate")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
@@ -185,7 +185,7 @@ export class TaxaController {
 	@Get(":id")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we need to do it just once here.
 		localJsonLdContext: "taxon-elastic"
 	})
@@ -199,7 +199,7 @@ export class TaxaController {
 	@Get(":id/children")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		localJsonLdContext: "taxon-elastic"
 	})
@@ -213,7 +213,7 @@ export class TaxaController {
 	@Get(":id/parents")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		localJsonLdContext: "taxon-elastic"
 	})
@@ -225,7 +225,7 @@ export class TaxaController {
 	/** Get species and subspecies of a taxon */
 	@Version("1")
 	@Get(":id/species")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "Taxon", localJsonLdContext: "taxon-elastic" })
+	@SwaggerRemoteRef({ source: "laji-backend", ref: "/Taxon", localJsonLdContext: "taxon-elastic" })
 	@UseInterceptors(Translator, Serializer(TaxonElastic))
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
@@ -238,7 +238,7 @@ export class TaxaController {
 	@HttpCode(200)
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
@@ -261,7 +261,7 @@ export class TaxaController {
 	@Post(":id/species/aggregate")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Taxon",
+		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
 		customizeRequestBodySchema: addFiltersSchema
 	})
@@ -279,7 +279,7 @@ export class TaxaController {
 	@Get(":id/descriptions")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Content",
+		ref: "/Content",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		localJsonLdContext: "taxon-description"
 	})
@@ -293,7 +293,7 @@ export class TaxaController {
 	@Get(":id/media")
 	@SwaggerRemoteRef({
 		source: "laji-backend",
-		ref: "Image",
+		ref: "/Image",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
 		localJsonLdContext: "taxon-media"
 	})

@@ -175,7 +175,7 @@ export class SwaggerService {
 
 							if (["post", "put"].includes(httpMethod)) {
 								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
-									? { "$ref": `#/components/schemas/${entry.ref}` }
+									? { "$ref": `#/components/schemas${entry.ref}` }
 									: (operation.requestBody as any)!.content["application/json"].schema;
 								if (entry.customizeRequestBodySchema) {
 									schema = entry.customizeRequestBodySchema(
@@ -221,12 +221,12 @@ export class SwaggerService {
 		if (!entry.ref) {
 			return;
 		}
-		const remoteSchema = remoteSchemas[entry.ref];
+		const remoteSchema = parseJSONPointer(remoteSchemas, entry.ref);
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
 		}
-		schema[entry.schemaDefinitionName || entry.ref] = remoteSchema;
-		this.mergeReferencedRefsFromRemote(schema, entry, remoteSchema);
+		schema[entry.schemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"))] = remoteSchema;
+		this.mergeRefsFromRemote(schema, entry, remoteSchema);
 	}
 
 	private serializeEntrySideEffectForSchema(
@@ -245,10 +245,10 @@ export class SwaggerService {
 	}
 
 	/**
-	 * A remote ref might have references to the remote document's schema. This method finds those and merges them to our
+	 * A remote entry might have references to the remote document's schema. This method finds those and merges them to our
 	 * patched document.
 	 * */
-	private mergeReferencedRefsFromRemote(
+	private mergeRefsFromRemote(
 		schema: SwaggerSchema,
 		entry: SwaggerRemoteRefEntry,
 		referencedRemoteSchema: SchemaObject
@@ -289,7 +289,7 @@ export class SwaggerService {
 		const remoteSwagger = await this.getRemoteSwaggerDoc(entry);
 		return parseJSONPointer<JSONSchema>(
 			remoteSwagger,
-			`/components/schemas/${entry.ref}`
+			`/components/schemas${entry.ref}`
 		);
 	}
 }
@@ -331,7 +331,7 @@ const applyEntryToResponse = (entry: SwaggerCustomizationEntry, document: OpenAP
 	};
 
 const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, document: OpenAPIObject) => {
-	const replacement = { "$ref": `#/components/schemas/${entry.ref}` };
+	const replacement = { "$ref": `#/components/schemas${entry.ref}` };
 	if (entry.replacePointer) {
 		const schemaDef = getSchemaDefinition(document, schema);
 		updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);

@@ -115,8 +115,6 @@ export type Populated<T extends Document> = WithNonNullableKeys<T,
 	| "formID"
 	| "collectionID"
 	| "publicityRestrictions"
-	| "creator"
-	| "editor"
 	| "dateCreated"
 	| "dateEdited"
 >;
