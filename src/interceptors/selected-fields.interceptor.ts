@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
-import { Observable, map } from "rxjs";
+import { Observable, map, switchMap } from "rxjs";
 import { HasSelectedFields } from "src/common.dto";
 import { applyToResult } from "src/pagination.utils";
 import { Request } from "express";
@@ -15,6 +15,6 @@ export class SelectedFields implements NestInterceptor {
 		if (!selectedFields?.length) {
 			return next.handle();
 		}
-		return next.handle().pipe(map(applyToResult(pickForKeys(...selectedFields))));
+		return next.handle().pipe(switchMap(applyToResult(pickForKeys(...selectedFields))));
 	}
 }
