@@ -160,6 +160,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * query param `q` renamed as `query`
 * query param `limit` renamed as `pageSize` (supports pagination now)
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
+* query param `includeSelf` is removed, self is always included
 
 ### `/autocomplete/taxon`
 
@@ -168,6 +169,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * query param `q` renamed as `query`
 * in the result, the `taxonRankId` renamed as `taxonRank`
 * in the result, the `informalTaxonGroups` renamed as `informalGroups`
+* in the result, the `matchType` renamed as `type`
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
 
 ### `/autocomplete/unit`
