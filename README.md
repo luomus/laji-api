@@ -55,6 +55,8 @@ Install the following:
 $ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
 ```
 
+The UI will be available at http://localhost:3004
+
 ### Test
 
 Hint: The npm command works also with the aforementioned Docker container. These examples run `npm` directly for simplicity.
