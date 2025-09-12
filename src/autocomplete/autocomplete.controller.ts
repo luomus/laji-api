@@ -13,7 +13,7 @@ import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/re
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SchemaItem } from "src/swagger/swagger.service";
-import { JSONSchemaArray, JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
+import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
 import { parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 
 const paginateSchema = (resultSchemaDto: any) => ({

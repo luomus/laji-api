@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
-import { Observable, map, switchMap } from "rxjs";
+import { Observable, switchMap } from "rxjs";
 import { HasSelectedFields } from "src/common.dto";
 import { applyToResult } from "src/pagination.utils";
 import { Request } from "express";
