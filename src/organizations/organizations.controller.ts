@@ -7,7 +7,6 @@ import { Translator } from "src/interceptors/translator.interceptor";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { GetAllOrganizationsDto } from "./organizations.dto";
-import { HasSelectedFields } from "src/common.dto";
 
 @ApiTags("Organization")
 @LajiApiController("organizations")
@@ -22,14 +21,6 @@ export class OrganizationsController {
 	@SwaggerRemoteRef({ source: "store", ref: "/organization" })
 	async getAll(@Query() _: GetAllOrganizationsDto) {
 		return this.organizationsService.getAll();
-	}
-
-	/** Get organizations dictionary */
-	@Get("/dictionary")
-	@UseInterceptors(SelectedFields, Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/organization" })
-	async getDictionary(@Query() _: HasSelectedFields) {
-		return this.organizationsService.getAllDict();
 	}
 
 	/** Find an organization by id */
