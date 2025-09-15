@@ -150,7 +150,7 @@ export class TaxaService {
 	}
 
 	async getTaxonSpeciesAggregate(id: string, query: GetTaxaAggregateDto, filters: TaxaFilters = {}) {
-		filters = { ...filters, species: true, id };
+		filters = { ...filters, species: true };
 		filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
 		return this.getAggregate(query, filters);
 	}
