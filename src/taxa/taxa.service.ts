@@ -52,7 +52,6 @@ export class TaxaService {
 		if (query.matchType) {
 			(query as any).matchType = query.matchType.toUpperCase();
 		}
-		query.q = query.query;
 		const { matches } = (await this.taxaClient.get<{ matches: Taxon[]; }>("", { params: query }));
 		return matches || [];
 	}
