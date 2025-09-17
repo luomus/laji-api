@@ -6,7 +6,8 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
-import { GetAllOrganizationsDto } from "./organizations.dto";
+import { GetAllOrganizationsDto, OrganizationDto } from "./organizations.dto";
+import { Serialize } from "src/serialization/serialize.decorator";
 
 @ApiTags("Organization")
 @LajiApiController("organizations")
@@ -18,6 +19,16 @@ export class OrganizationsController {
 	/** Get all organizations */
 	@Get()
 	@UseInterceptors(SelectedFields, Translator, Paginator)
+	@Serialize(OrganizationDto, { whitelist: [
+		"id",
+		"@context",
+		"organizationLevel1",
+		"organizationLevel2",
+		"organizationLevel3",
+		"organizationLevel4",
+		"abbreviation",
+		"fullName",
+	], }, "SensitiveOrganization")
 	@SwaggerRemoteRef({ source: "store", ref: "/organization" })
 	async getAll(@Query() _: GetAllOrganizationsDto) {
 		return this.organizationsService.getAll();
@@ -26,6 +37,16 @@ export class OrganizationsController {
 	/** Find an organization by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
+	@Serialize(OrganizationDto, { whitelist: [
+		"id",
+		"@context",
+		"organizationLevel1",
+		"organizationLevel2",
+		"organizationLevel3",
+		"organizationLevel4",
+		"abbreviation",
+		"fullName",
+	], }, "SensitiveOrganization")
 	@SwaggerRemoteRef({ source: "store", ref: "/organization" })
 	async get(@Param("id") id: string) {
 		return this.organizationsService.get(id);
