@@ -8,7 +8,6 @@ import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
-import { Paginator } from "src/interceptors/paginator.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
@@ -35,7 +34,7 @@ export class AutocompleteController {
 
 	@Version("1")
 	@Get("/persons")
-	@ApiOkResponse(swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }))
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }) })
 	@UseInterceptors(SelectedFields, ResultsArray, Limit)
 	getPersons(@Query() { query }: GetPersonsDto) {
 		return this.autocompleteService.getPersons(query);
@@ -43,7 +42,7 @@ export class AutocompleteController {
 
 	@Version("1")
 	@Get("/friends")
-	@ApiOkResponse(swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }))
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }) })
 	@ApiExtraModels(GetPersonsResponseDto)
 	@UseInterceptors(SelectedFields, ResultsArray, Limit)
 	getFriends(@PersonToken() person: Person, @Query() { query }: GetFriendsDto) {
