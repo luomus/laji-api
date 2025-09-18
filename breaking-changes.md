@@ -151,14 +151,12 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * renamed as `/autocomplete/persons`
 * results are wrapped in `results`
 * query param `q` renamed as `query`
-* query param `limit` renamed as `pageSize` (supports pagination now)
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
 
 ### `/autocomplete/friends`
 
 * results are wrapped in `results`
 * query param `q` renamed as `query`
-* query param `limit` renamed as `pageSize` (supports pagination now)
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
 * query param `includeSelf` is removed, self is always included
 
