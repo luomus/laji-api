@@ -1,6 +1,6 @@
 import { Unit } from "@luomus/laji-schema/classes/Unit";
 import { IntersectionType, OmitType } from "@nestjs/swagger";
-import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { QueryWithPersonTokenDto } from "src/common.dto";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
 export class CommonAutocompleteDto {
@@ -8,7 +8,13 @@ export class CommonAutocompleteDto {
 	query: string = "";
 }
 
-export class GetPersonsDto extends IntersectionType(CommonAutocompleteDto, QueryWithPagingDto) {}
+export class HasLimitDto {
+	/** Limit the size of results */
+	limit?: number = 10;
+}
+
+export class GetPersonsDto extends IntersectionType(CommonAutocompleteDto, HasLimitDto) {
+}
 
 export class GetFriendsDto extends IntersectionType(GetPersonsDto, QueryWithPersonTokenDto) {}
 
@@ -31,9 +37,7 @@ export class TaxonAutocompleteResponseDto {
 	value: string;
 };
 
-export class GetTripReportUnitShorthandDto extends IntersectionType(CommonAutocompleteDto) {
-	/** Limit the size of results */
-	limit?: number = 10;
+export class GetTripReportUnitShorthandDto extends IntersectionType(CommonAutocompleteDto, HasLimitDto) {
 }
 
 export class TripReportUnitListResultDto {

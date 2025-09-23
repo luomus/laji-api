@@ -18,8 +18,8 @@ export class FormParticipantsService {
 		private collectionsService: CollectionsService
 	) {}
 
-	async getParticipants(formID: string, person: Person) {
-		const form = await this.formsService.get(formID);
+	async getParticipants(id: string, person: Person) {
+		const form = await this.formsService.get(id);
 		const { collectionID } = form;
 
 		if (!collectionID) {
@@ -77,7 +77,7 @@ export class FormParticipantsService {
 			if (existingParticipant) {
 				existingParticipant.docCount = (existingParticipant.docCount || 0) + (participant.docCount || 0);
 				if (
-					participant.lastDoc && existingParticipant.lastDoc 
+					participant.lastDoc && existingParticipant.lastDoc
 					&& new Date(participant.lastDoc) >= new Date(existingParticipant.lastDoc)
 				) {
 					existingParticipant.lastDoc = participant.lastDoc;

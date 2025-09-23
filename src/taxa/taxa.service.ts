@@ -52,7 +52,6 @@ export class TaxaService {
 		if (query.matchType) {
 			(query as any).matchType = query.matchType.toUpperCase();
 		}
-		query.q = query.query;
 		const { matches } = (await this.taxaClient.get<{ matches: Taxon[]; }>("", { params: query }));
 		return matches || [];
 	}
@@ -150,7 +149,7 @@ export class TaxaService {
 	}
 
 	async getTaxonSpeciesAggregate(id: string, query: GetTaxaAggregateDto, filters: TaxaFilters = {}) {
-		filters = { ...filters, species: true, id };
+		filters = { ...filters, species: true };
 		filters[query.includeHidden ? "parentsIncludeSelf" : "nonHiddenParentsIncludeSelf"] = id;
 		return this.getAggregate(query, filters);
 	}

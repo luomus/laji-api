@@ -105,6 +105,34 @@ export async function bootstrap() {
 		}
 	});
 
+	// Serve swagger from explorer-3 so it's accessible even with the redirection to old API.
+	configService.get("EXPLORER_PROXY_TO_OLD_API") === "true" && SwaggerModule.setup("explorer-v1", app, document, {
+		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
+		customCssUrl: "/swagger.css",
+		swaggerOptions: {
+			persistAuthorization: true,
+			docExpansion: "none",
+			tagsSorter: "alpha",
+			operationsSorter: "alpha",
+			requestInterceptor: (req: any) => {
+				req.headers["API-Version"] = "1"; // Add your custom header here
+				return req;
+			},
+		},
+		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
+		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()
+		// failing. The patching can fail if the document is requested before the service has patched the document so it can
+		// return the document synchronously, or if some of the remote swagger documents can't be fetched.
+		patchDocumentOnRequest: (req, res, swaggerDoc) => {
+			try {
+				return app.get(SwaggerService).patch(swaggerDoc);
+			} catch (e) {
+				new Logger().error(e, e.stack);
+				return undefined as any;
+			}
+		}
+	});
+
 	await app.listen(port, "0.0.0.0");
 	return app;
 }

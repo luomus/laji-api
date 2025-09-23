@@ -178,7 +178,7 @@ export class TaxaSearchDto {
 	checklist?: string;
 
 	/** Filter based on taxon set(s). Multiple values are separated by a comma (,) */
-	taxonSets?: string;
+	taxonSet?: string;
 
 	/** Search taxa from specified informal taxon group(s). Multiple values are separated by a comma (,) */
 	informalTaxonGroup?: string;
@@ -209,9 +209,6 @@ export class TaxaSearchDto {
 
 	/** Filter to include only invasive species */
 	@IsOptionalBoolean() onlyInvasive?: boolean = false;
-
-	/** If observationMode is set, "sp." is catenated to higher tax scientific names */
-	@IsOptionalBoolean() observationMode?: boolean = false;
 
 	/** Multiple values are separated by a comma (,) */
 	selectedFields?: string;

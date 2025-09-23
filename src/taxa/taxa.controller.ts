@@ -231,7 +231,7 @@ export class TaxaController {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
 	}
 
-	/** Get species and subspecies of a taxon */
+	/** Get species and subspecies of a taxon with filters */
 	@Version("1")
 	@Post(":id/species")
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
@@ -257,7 +257,7 @@ export class TaxaController {
 		return this.taxaService.getTaxonSpeciesAggregate(id, query);
 	}
 
-	/** Get an aggregate of species and subspecies of a taxon */
+	/** Get an aggregate of species and subspecies of a taxon with filters */
 	@Post(":id/species/aggregate")
 	@SwaggerRemoteRef({
 		source: "laji-backend",

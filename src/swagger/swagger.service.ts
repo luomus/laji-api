@@ -388,7 +388,10 @@ const multiLangAsString = <T extends SchemaObject | ReferenceObject>(schema: T):
 			});
 			return schema;
 		}
-	} else if (!isSchemaObject(schema) && schema.$ref === "#/components/schemas/multiLang") {
+	} else if (!isSchemaObject(schema) && (
+		schema.$ref === "#/components/schemas/multiLang"
+		|| schema.$ref === "#/components/schemas/MultiLangDto"
+	)) {
 		return { type: "string" };
 	}
 	return schema;

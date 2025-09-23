@@ -73,9 +73,9 @@ export class FormsController {
 	}
 
 	/** Get participants of a form. Only for form admins. */
-	@Get(":formID/participants")
-	getParticipants(@Param("formID") formID: string, @PersonToken() person: Person) {
-		return this.formParticipantsService.getParticipants(formID, person);
+	@Get(":id/participants")
+	getParticipants(@Param("id") id: string, @PersonToken() person: Person) {
+		return this.formParticipantsService.getParticipants(id, person);
 	}
 
 

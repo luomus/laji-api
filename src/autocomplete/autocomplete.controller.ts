@@ -8,30 +8,13 @@ import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
-import { Paginator } from "src/interceptors/paginator.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SchemaItem } from "src/swagger/swagger.service";
-import { JSONSchemaArray, JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
+import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
 import { parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
-
-const paginateSchema = (resultSchemaDto: any) => ({
-	schema: {
-		type: "object",
-		properties: {
-			results: {
-				type: "array",
-				items:  { $ref: getSchemaPath(resultSchemaDto) }
-			},
-			total: { type: "number" },
-			pageSize: { type: "number" },
-			currentPage: { type: "number" },
-			lastPage: { type: "number" },
-			"@context": { type: "string" },
-		}
-	}
-});
+import { Limit } from "src/interceptors/limit.interceptor";
 
 const asTuple = (schema: SchemaItem, document: OpenAPIObject) =>
 	[schema, document] as [JSONSchemaRef, OpenAPIObject];
@@ -51,24 +34,40 @@ export class AutocompleteController {
 
 	@Version("1")
 	@Get("/persons")
-	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
-	@UseInterceptors(SelectedFields, Paginator)
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }) })
+	@UseInterceptors(SelectedFields, ResultsArray, Limit)
 	getPersons(@Query() { query }: GetPersonsDto) {
 		return this.autocompleteService.getPersons(query);
 	}
 
 	@Version("1")
 	@Get("/friends")
-	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }) })
 	@ApiExtraModels(GetPersonsResponseDto)
-	@UseInterceptors(SelectedFields, Paginator)
+	@UseInterceptors(SelectedFields, ResultsArray, Limit)
 	getFriends(@PersonToken() person: Person, @Query() { query }: GetFriendsDto) {
 		return this.autocompleteService.getFriends(person, query);
 	}
 
 	@Version("1")
+	@Get("/taxa")
+	@SwaggerRemoteRef({
+		source: "laji-backend",
+		ref: "/TaxonSearchResponse/items",
+		customizeResponseSchema: (schema, document) => pipe(
+			swaggerResponseWithKeyAndValue,
+			swaggerResponseAsResultsArray
+		)(asTuple(schema, document)),
+		localJsonLdContext: "taxon-search",
+		schemaDefinitionName: "TaxonAutocompleteResponse"
+	})
+	@UseInterceptors(Translator, ResultsArray, SelectedFields)
+	getTaxa(@Query() query: TaxaSearchDto) {
+		return this.autocompleteService.getTaxa(query);
+	}
+
+	@Version("1")
 	@Get("/unit/list")
-	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
 	@UseInterceptors(SelectedFields)
 	getTripReportUnitListAutocomplete(@Query() { query }: CommonAutocompleteDto) {
 		return this.autocompleteService.getTripReportUnitList(query);
@@ -77,7 +76,6 @@ export class AutocompleteController {
 	@Version("1")
 	@Get("/unit/shorthand/trip-report")
 	@UseInterceptors(SelectedFields)
-	@ApiOkResponse(paginateSchema(GetPersonsResponseDto))
 	// The json-ld typing is actually more than just taxon response, but this is sufficient to get the taxon search
 	// results translated.
 	@SwaggerRemoteRef({
@@ -107,22 +105,5 @@ export class AutocompleteController {
 	@UseInterceptors(SelectedFields)
 	getWaterbirdPairCountUnitShorthandAutocomplete(@Query() query: GetWaterBirdPairCountUnitShorthandDto) {
 		return this.autocompleteService.getWaterBirdPairCountUnitShorthand(query);
-	}
-
-	@Version("1")
-	@Get("/taxa")
-	@SwaggerRemoteRef({
-		source: "laji-backend",
-		ref: "/TaxonSearchResponse/items",
-		customizeResponseSchema: (schema, document) => pipe(
-			swaggerResponseWithKeyAndValue,
-			swaggerResponseAsResultsArray
-		)(asTuple(schema, document)),
-		localJsonLdContext: "taxon-search",
-		schemaDefinitionName: "TaxonAutocompleteResponse"
-	})
-	@UseInterceptors(Translator, ResultsArray, SelectedFields)
-	getTaxa(@Query() query: TaxaSearchDto) {
-		return this.autocompleteService.getTaxa(query);
 	}
 }

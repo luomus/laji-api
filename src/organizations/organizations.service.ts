@@ -27,7 +27,7 @@ export class OrganizationsService {
 	}
 
 	@IntelligentMemoize()
-	private async getAll() {
+	getAll() {
 		return this.triplestoreService.find<Organization>({ type: "MOS.organization" });
 	}
 
