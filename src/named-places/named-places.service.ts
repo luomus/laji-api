@@ -82,7 +82,7 @@ export class NamedPlacesService {
 	) {
 		const [storeQuery, cacheConfig] = await this.getQuery(query, person, includePublic);
 
-		return await this.store.getPage(storeQuery, page, pageSize, selectedFields, undefined, cacheConfig);
+		return this.store.getPage(storeQuery, page, pageSize, selectedFields, undefined, cacheConfig);
 	}
 
 	async getAll(
@@ -92,8 +92,7 @@ export class NamedPlacesService {
 		selectedFields?: (keyof NamedPlace)[]
 	) {
 		const [storeQuery, cacheConfig] = await this.getQuery(query, person, includePublic);
-
-		return await this.store.getAll(storeQuery, selectedFields, undefined, cacheConfig);
+		return this.store.getAll(storeQuery, selectedFields, undefined, cacheConfig);
 	}
 
 	private async getCollectionIDs(collectionID: string) {
