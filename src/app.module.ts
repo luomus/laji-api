@@ -53,6 +53,7 @@ import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.int
 import { JsonLdModule } from "./json-ld/json-ld.module";
 import { SoundIdentificationModule } from "./sound-identification/sound-identifiation.module";
 import { AutocompleteModule } from "./autocomplete/autocomplete.module";
+import { ShorthandModule } from "./shorthand/shorthand.module";
 
 @Module({
 	imports: [
@@ -110,7 +111,8 @@ import { AutocompleteModule } from "./autocomplete/autocomplete.module";
 		GlobalRestClientModule,
 		JsonLdModule,
 		SoundIdentificationModule,
-		AutocompleteModule
+		AutocompleteModule,
+		ShorthandModule
 	],
 	controllers: [AppController],
 	providers: [

@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import { AbstractAutocompleteService } from "./abstract-autocomplete.service";
-import { GetWaterBirdPairCountUnitShorthandDto } from "./autocomplete.dto";
+import { AbstractShorthandService } from "./abstract-shorthand.service";
+import { GetWaterBirdPairCountUnitShorthandDto } from "./shorthand.dto";
 
 enum WaterbirdTaxon {
   CYGOLO = "MX.26277",
@@ -153,10 +153,10 @@ const passerineGroup = [
 ];
 
 @Injectable()
-export class WaterBirdPairCountUnitShorthandAutocompleteService
-implements AbstractAutocompleteService<Omit<GetWaterBirdPairCountUnitShorthandDto, "query">> {
+export class WaterBirdPairCountUnitShorthandService
+implements AbstractShorthandService<Omit<GetWaterBirdPairCountUnitShorthandDto, "query">> {
 
-	autocomplete(query: string, { taxonID }: Omit<GetWaterBirdPairCountUnitShorthandDto, "query">) {
+	shorthand(query: string, { taxonID }: Omit<GetWaterBirdPairCountUnitShorthandDto, "query">) {
 		query = query.replace(/\s+/g, ""); // remove spaces
 
 		if (!taxonID) {

@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import { AbstractAutocompleteService } from "./abstract-autocomplete.service";
+import { AbstractShorthandService } from "./abstract-shorthand.service";
 import { TaxaService } from "src/taxa/taxa.service";
 import { SearchMatchType } from "src/taxa/taxa.dto";
 
@@ -57,10 +57,10 @@ const lineMapping: Record<string, string> = {
 
 
 @Injectable()
-export class LineTransectUnitShorthandAutocompleteService implements AbstractAutocompleteService<undefined> {
+export class LineTransectUnitShorthandService implements AbstractShorthandService<undefined> {
 	constructor(private taxaService: TaxaService) {}
 
-	async autocomplete(query: string) {
+	async shorthand(query: string) {
 		query = query.trim();
 		// 1. (LOXSP\.?|LOXIA|[A-Z]{2}|[A-Z]{6}?) Capture taxon that has length of 2, 6 and some special cases with optional "." character at the end
 		// Note that there will be trouble with taxon len 6 that ends with an A-character!
