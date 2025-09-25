@@ -1,5 +1,4 @@
-import { Unit } from "@luomus/laji-schema/classes/Unit";
-import { IntersectionType, OmitType } from "@nestjs/swagger";
+import { IntersectionType } from "@nestjs/swagger";
 import { QueryWithPersonTokenDto } from "src/common.dto";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
@@ -36,33 +35,3 @@ export class TaxonAutocompleteResponseDto {
 	key: string;
 	value: string;
 };
-
-export class GetTripReportUnitShorthandDto extends IntersectionType(CommonAutocompleteDto, HasLimitDto) {
-}
-
-export class TripReportUnitListResultDto {
-	results: Unit[]; // TODO not working
-	count: number;
-	nonMatchingCount: number;
-}
-
-export class TripReportUnitShorthandResponseDto {
-	key: string;
-	value: string;
-	isNonMatching?: boolean;
-	matchType?: string;
-	unit: Unit;
-	interpretedFrom: {
-		taxon: string;
-		count: string;
-		maleIndividualCount: string;
-		femaleIndividualCount: string;
-	};
-};
-
-export class LineTransectUnitShorthandResponseDto extends
-	OmitType(TripReportUnitShorthandResponseDto, ["isNonMatching"]) { }
-
-export class GetWaterBirdPairCountUnitShorthandDto extends IntersectionType(CommonAutocompleteDto) {
-	taxonID: string;
-}

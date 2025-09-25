@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
-import { AbstractAutocompleteService } from "./abstract-autocomplete.service";
+import { AbstractShorthandService } from "./abstract-shorthand.service";
 import { TaxaService } from "src/taxa/taxa.service";
 import { Taxon } from "src/taxa/taxa.dto";
 import { Unit } from "@luomus/laji-schema/classes";
-import { TripReportUnitListResultDto } from "./autocomplete.dto";
+import { TripReportUnitListResultDto } from "./shorthand.dto";
 
 @Injectable()
-export class TripReportUnitListAutocompleteService implements AbstractAutocompleteService<undefined> {
+export class TripReportUnitListShorthandService implements AbstractShorthandService<undefined> {
 	constructor(private taxaService: TaxaService) {}
 
-	async autocomplete(query?: string) {
+	async shorthand(query?: string) {
 		const result: TripReportUnitListResultDto = { count: 0, nonMatchingCount: 0, results: [] };
 		const searchNames = (query || "").split(",").map(s => s.trim()).filter(s => s.length !== 0);
 		for (const searchName of searchNames) {

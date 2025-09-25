@@ -169,12 +169,13 @@ export class DocumentsService {
 		unpopulatedDocument: Document,
 		apiUser: ApiUserEntity,
 		person?: Person,
+		skipValidations?: boolean
 	) {
 		const document = await this.populateMutably(unpopulatedDocument, apiUser, person);
 		if (person) {
 			populateCreatorAndEditorMutably(document, person);
 		}
-		await this.validate(document, person);
+		await this.validate(document, person, skipValidations);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, person);
 		return created;
@@ -184,7 +185,8 @@ export class DocumentsService {
 		id: string,
 		unpopulatedDocument: Document,
 		person: Person,
-		apiUser: ApiUserEntity
+		apiUser: ApiUserEntity,
+		skipValidations?: boolean
 	) {
 		const existing = await this.store.get(id);
 
@@ -213,7 +215,7 @@ export class DocumentsService {
 			document.dateCreated = existing.dateCreated;
 		}
 
-		await this.validate(document, person);
+		await this.validate(document, person, skipValidations);
 		const updated = await this.store.update(document as Document & { id: string });
 		await this.namedPlaceSideEffects(updated, person);
 		return updated;
@@ -328,8 +330,17 @@ export class DocumentsService {
 
 	async validate(
 		document: Populated<Document>,
-		person?: Person
+		person?: Person,
+		skipValidations = false
 	) {
+		if (skipValidations) {
+			if (person?.isImporter()) {
+				return;
+			} else {
+				throw new HttpException("Validations can be skipped only when using the importer token", 422);
+			}
+		}
+
 		const { collectionID } = document;
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);

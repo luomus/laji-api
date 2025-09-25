@@ -1,8 +1,8 @@
 import { HttpException, Injectable } from "@nestjs/common";
-import { AbstractAutocompleteService } from "./abstract-autocomplete.service";
+import { AbstractShorthandService } from "./abstract-shorthand.service";
 import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto, Taxon } from "src/taxa/taxa.dto";
-import { TripReportUnitShorthandResponseDto } from "./autocomplete.dto";
+import { TripReportUnitShorthandResponseDto } from "./shorthand.dto";
 
 type Interpretation = {
 	taxonName: string;
@@ -12,11 +12,11 @@ type Interpretation = {
 }
 
 @Injectable()
-export class TripReportUnitShorthandAutocompleteService
-implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
+export class TripReportUnitShorthandService
+implements AbstractShorthandService<Omit<TaxaSearchDto, "query">> {
 	constructor(private taxaService: TaxaService) {}
 
-	async autocomplete(query: string, params: Omit<TaxaSearchDto, "query">) {
+	async shorthand(query: string, params: Omit<TaxaSearchDto, "query">) {
 		query = query.trim();
 
 		const matches = /^(\d+ )?((?:\D| )+ ?)(\d+ ?)?(\d+)?$/.exec(query);
@@ -41,13 +41,13 @@ implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
 				if (taxon.type === "exactMatches") {
 					exactMatchFound = true;
 				}
-				return mapTaxonToAutocompleteResult(taxon, interpretation);
+				return mapTaxonToShorthandResult(taxon, interpretation);
 			})
 			: [];
 
 		if (!exactMatchFound) {
 			results.push({
-				...mapTaxonToAutocompleteResult(undefined, interpretation)
+				...mapTaxonToShorthandResult(undefined, interpretation)
 			});
 		}
 
@@ -55,7 +55,7 @@ implements AbstractAutocompleteService<Omit<TaxaSearchDto, "query">> {
 	}
 }
 
-const mapTaxonToAutocompleteResult = (
+const mapTaxonToShorthandResult = (
 	taxon: Taxon | undefined,
 	{ taxonName, count, maleIndividualCount, femaleIndividualCount }: Interpretation
 ): TripReportUnitShorthandResponseDto => ({

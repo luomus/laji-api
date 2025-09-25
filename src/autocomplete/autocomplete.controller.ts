@@ -2,8 +2,7 @@ import { Get, Query, UseInterceptors, Version } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, ApiTags, OpenAPIObject, getSchemaPath } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { AutocompleteService } from "./autocomplete.service";
-import { CommonAutocompleteDto, GetFriendsDto, GetPersonsDto, GetPersonsResponseDto, GetTripReportUnitShorthandDto,
-	GetWaterBirdPairCountUnitShorthandDto, LineTransectUnitShorthandResponseDto } from "./autocomplete.dto";
+import { CommonAutocompleteDto, GetFriendsDto, GetPersonsDto, GetPersonsResponseDto } from "./autocomplete.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
@@ -64,46 +63,5 @@ export class AutocompleteController {
 	@UseInterceptors(Translator, ResultsArray, SelectedFields)
 	getTaxa(@Query() query: TaxaSearchDto) {
 		return this.autocompleteService.getTaxa(query);
-	}
-
-	@Version("1")
-	@Get("/unit/list")
-	@UseInterceptors(SelectedFields)
-	getTripReportUnitListAutocomplete(@Query() { query }: CommonAutocompleteDto) {
-		return this.autocompleteService.getTripReportUnitList(query);
-	}
-
-	@Version("1")
-	@Get("/unit/shorthand/trip-report")
-	@UseInterceptors(SelectedFields)
-	// The json-ld typing is actually more than just taxon response, but this is sufficient to get the taxon search
-	// results translated.
-	@SwaggerRemoteRef({
-		source: "laji-backend",
-		ref: "/TaxonSearchResponse",
-		customizeResponseSchema: swaggerResponseAsResultsArray,
-		localJsonLdContext: "taxon-search"
-	})
-	@UseInterceptors(Translator, ResultsArray)
-	getTripReportUnitShorthandAutocomplete(@Query() query: GetTripReportUnitShorthandDto) {
-		return this.autocompleteService.getTripReportUnitShorthand(query);
-	}
-
-	@Version("1")
-	@Get("/unit/shorthand/line-transect")
-	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
-	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
-	@UseInterceptors(SelectedFields)
-	getLineTransectUnitShorthandAutocomplete(@Query() { query }: CommonAutocompleteDto) {
-		return this.autocompleteService.getLineTransectUnitShorthand(query);
-	}
-
-	@Version("1")
-	@Get("/unit/shorthand/water-bird-pair-count")
-	@ApiExtraModels(LineTransectUnitShorthandResponseDto)
-	@ApiOkResponse({ schema: { $ref: getSchemaPath(LineTransectUnitShorthandResponseDto) } })
-	@UseInterceptors(SelectedFields)
-	getWaterbirdPairCountUnitShorthandAutocomplete(@Query() query: GetWaterBirdPairCountUnitShorthandDto) {
-		return this.autocompleteService.getWaterBirdPairCountUnitShorthand(query);
 	}
 }

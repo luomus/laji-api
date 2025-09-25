@@ -138,7 +138,7 @@ describe("/named-place", function() {
 			});
 	});
 
-	it("it does not finds by collections ID when personToken is wrong", function(done) {
+	it("it does not find by collections ID when personToken is wrong", function(done) {
 		this.skip(); // need to add named place private with alternative ids;
 		this.timeout(6000);
 		const query = basePath +
