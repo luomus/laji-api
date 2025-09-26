@@ -60,12 +60,12 @@ const bindSwaggerRemoteRefMetadataToItem = (entry: SwaggerRemoteRefEntry) => (it
 
 function BindSwaggerRemoteRefMetadata(entry: SwaggerRemoteRefEntry) {
 	@Injectable()
-	class Test implements NestInterceptor {
+	class BindSwaggerRemoteRefMetadataInterceptor implements NestInterceptor {
 		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 			return next.handle().pipe(switchMap(applyToResult(bindSwaggerRemoteRefMetadataToItem(entry))));
 		}
 	}
-	return mixin(Test);
+	return mixin(BindSwaggerRemoteRefMetadataInterceptor);
 }
 
 @Injectable()
