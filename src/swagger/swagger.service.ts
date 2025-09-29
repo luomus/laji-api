@@ -173,7 +173,7 @@ export class SwaggerService {
 								};
 							}
 
-							if (["post", "put"].includes(httpMethod)) {
+							if (["post", "put"].includes(httpMethod) && entry.applyToRequest !== false) {
 								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
 									? { "$ref": `#/components/schemas${entry.ref}` }
 									: (operation.requestBody as any)!.content["application/json"].schema;

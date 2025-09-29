@@ -81,7 +81,7 @@ export class FormsService {
 	}
 
 	/** Array.*find()* for the collection and its parents recursively with the given *predicate* */
-	async findFor(collectionID: string, predicate: (f: FormListing) => unknown) : Promise<FormListing | undefined> {
+	async findFor(collectionID: string, predicate: (f: FormListing) => unknown): Promise<FormListing | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
 		const matches = forms.find(predicate);
 		if (matches) {

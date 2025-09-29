@@ -166,7 +166,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * results are wrapped in `results`
 * query param `q` renamed as `query`
 * in the result, the `taxonRankId` renamed as `taxonRank`
-* in the result, the `informalTaxonGroups` renamed as `informalGroups`
+* in the result, the `informalTaxonGroups` renamed as `informalGroups`. It used to be an empty array also if it was empty, but it's just undefined now.
 * in the result, the `matchType` renamed as `type`
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
 

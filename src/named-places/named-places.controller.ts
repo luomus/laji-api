@@ -18,7 +18,7 @@ export class NamedPlacesController {
 
 	/** Reserve an existing named place */
 	@Post(":id/reservation")
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
+	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace", applyToRequest: false })
 	reserve(
 		@Param("id") id: string,
 		@Query() { personID, until }: ReservationDto,
