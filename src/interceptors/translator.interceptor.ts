@@ -25,7 +25,10 @@ export class Translator implements NestInterceptor {
 		const { selectedFields } = plainToClass(HasSelectedFields, request.query);
 		const jsonLdContext = this.getJsonLdContext(result);
 
-		if (!result || (result instanceof Array && !result.length)) {
+		if (!result
+			|| (result instanceof Array && !result.length)
+			|| isPageLikeResult(result) && !result.results.length
+		) {
 			return result;
 		}
 
