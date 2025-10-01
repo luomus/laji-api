@@ -102,7 +102,7 @@ export class TaxaService {
 		const taxon = await this.getBySubject(id, { selectedFields: ["id", "nameAccordingTo", "depth"] });
 		const childrenQuery: Partial<AllQueryParams> = {
 			...query,
-			checklist: taxon.nameAccordingTo || "MR.1",
+			checklist: [taxon.nameAccordingTo || "MR.1"],
 			pageSize: 10000, // This has worked so far to get all taxa...
 			depth: true
 		};

@@ -18,7 +18,7 @@ export enum ChecklistVersion {
 
 export class TaxaBaseQuery {
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
-	checklist?: string = "MR.1";
+	@CommaSeparatedStrings() checklist?: string[] = ["MR.1"];
 
 	/** Checklist version to be used. Defaults to the latest version. */
 	checklistVersion?: ChecklistVersion = ChecklistVersion.current;
@@ -174,7 +174,7 @@ export class TaxaSearchDto {
 	@ApiHideProperty() id?: string;
 
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
-	checklist?: string;
+	@CommaSeparatedStrings() checklist?: string[];
 
 	/** Filter based on taxon set(s). Multiple values are separated by a comma (,) */
 	taxonSet?: string;
