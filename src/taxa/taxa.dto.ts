@@ -174,7 +174,7 @@ export class TaxaSearchDto {
 	@ApiHideProperty() id?: string;
 
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
-	@CommaSeparatedStrings() checklist?: string[];
+	checklist?: string;
 
 	/** Filter based on taxon set(s). Multiple values are separated by a comma (,) */
 	taxonSet?: string;
