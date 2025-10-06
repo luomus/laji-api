@@ -1,5 +1,4 @@
 import { IntersectionType } from "@nestjs/swagger";
-import { QueryWithPersonTokenDto } from "src/common.dto";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
 export class CommonAutocompleteDto {
@@ -15,7 +14,7 @@ export class HasLimitDto {
 export class GetPersonsDto extends IntersectionType(CommonAutocompleteDto, HasLimitDto) {
 }
 
-export class GetFriendsDto extends IntersectionType(GetPersonsDto, QueryWithPersonTokenDto) {}
+export class GetFriendsDto extends IntersectionType(GetPersonsDto) {}
 
 export class GetUnitDto extends IntersectionType(CommonAutocompleteDto) {
 	/** Different forms have different short hands */

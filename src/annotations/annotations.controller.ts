@@ -1,6 +1,6 @@
 import { Body, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { AnnotationsService } from "./annotations.service";
-import { CreateAnnotationDto, GetAnnotationsDto } from "./annotations.dto";
+import { GetAnnotationsDto } from "./annotations.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { PaginatedDto } from "src/pagination.utils";
@@ -8,7 +8,7 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Annotation } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
-import { Lang, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 
@@ -50,7 +50,6 @@ export class AnnotationsController {
 	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
 	async create(
 		@Body() annotation: Annotation,
-		@Query() _: CreateAnnotationDto,
 		@PersonToken() person: Person
 	): Promise<Annotation> {
 		return this.annotationsService.create(annotation, person);
@@ -60,7 +59,6 @@ export class AnnotationsController {
 	@Delete(":id")
 	async delete(
 		@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	): Promise<Annotation> {
 		return this.annotationsService.delete(id, person);

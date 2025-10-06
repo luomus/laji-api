@@ -2,14 +2,13 @@ import { Document } from "@luomus/laji-schema";
 import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PartialType, getSchemaPath } from "@nestjs/swagger";
 import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
-import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { PickNonNullableKeys, WithNonNullableKeys } from "src/typing.utils";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 
 export class GetDocumentsDto extends IntersectionType(
-	QueryWithPagingDto,
-	QueryWithPersonTokenDto
+	QueryWithPagingDto
 ) {
 	/** Limit the list of documents to a certain observation year */
 	@IsInt()
@@ -61,16 +60,14 @@ class SkipValidationForImporterToken {
 }
 
 export class CreateDocumentDto extends IntersectionType(
-	PartialType(QueryWithPersonTokenDto),
 	HasValidationErrorFormat,
 	SkipValidationForImporterToken
 ) { }
 
 export class UpdateDocumentDto extends IntersectionType(
-	QueryWithPersonTokenDto,
 	HasValidationErrorFormat,
 	SkipValidationForImporterToken
-) { }
+) {}
 
 export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is NewPrimaryDocument =>
@@ -154,9 +151,7 @@ export enum ValidationType {
 	warning = "warning"
 }
 
-export class ValidateQueryDto extends IntersectionType(
-	PartialType(QueryWithPersonTokenDto),
-) {
+export class ValidateQueryDto {
 	/** Json path of the field being validated (defaults to the whole document). */
 	field?: string;
 
@@ -173,7 +168,7 @@ export class ValidateQueryDto extends IntersectionType(
 	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
 }
 
-export class BatchJobQueryDto extends IntersectionType(QueryWithPersonTokenDto) {
+export class BatchJobQueryDto {
 	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
 	publicityRestrictions?: PublicityRestrictions;
 	dataOrigin?: DataOrigin;
@@ -255,10 +250,7 @@ export class QueryWithNamedPlaceDto {
 	@IsString() namedPlace: string;
 }
 
-export class GetCountDto extends IntersectionType(
-	PartialType(QueryWithNamedPlaceDto),
-	QueryWithPersonTokenDto
-) {
+export class GetCountDto extends IntersectionType(PartialType(QueryWithNamedPlaceDto)) {
 	/** Limit the list of documents to a certain collection */
 	collectionID?: string;
 

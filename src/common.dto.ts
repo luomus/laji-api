@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
-import { IsInt, IsString, isObject } from "class-validator";
+import { IsInt, isObject } from "class-validator";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
-import { IntersectionType, PartialType } from "@nestjs/swagger";
+import { IntersectionType } from "@nestjs/swagger";
 
 export enum Lang {
 	fi = "fi",
@@ -22,13 +22,6 @@ export class QueryWithPagingDto {
 
 export const isQueryWithPagingDto = (maybePagedQuery: any): maybePagedQuery is QueryWithPagingDto =>
 	isObject(maybePagedQuery) && ["page", "pageSize"] .every(k => k in maybePagedQuery);
-
-export class QueryWithPersonTokenDto {
-	/** Person's authentication token */
-	@IsString() personToken: string;
-}
-
-export class QueryWithMaybePersonTokenDto extends PartialType(QueryWithPersonTokenDto) {}
 
 export class QueryWithPagingAndIdIn extends IntersectionType(QueryWithPagingDto) {
 	/**

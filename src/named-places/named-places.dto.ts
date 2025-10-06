@@ -1,9 +1,9 @@
 import { NamedPlace as NamedPlaceClass } from "@luomus/laji-schema/classes";
 import { Document } from "@luomus/laji-schema";
 import { Unit } from "@luomus/laji-schema/interfaces";
-import { IntersectionType, OmitType, PartialType } from "@nestjs/swagger";
+import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
-import { QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import type { Geometry } from "geojson";
 
@@ -41,7 +41,6 @@ export class GetNamedPlaceDto {
 }
 
 export class GetNamedPlacePageDto extends IntersectionType(
-	PartialType(QueryWithPersonTokenDto),
 	QueryWithPagingDto
 ) {
 	/** Collection id. Child collections are also fetched. */
@@ -74,7 +73,7 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	@IsOptionalBoolean() includeUnits?: boolean = false;
 }
 
-export class ReservationDto extends QueryWithPersonTokenDto {
+export class ReservationDto {
 	/** Id for the person (your own id will be used if you are not admin) */
 	personID?: string;
 	/** The date when the reservation expires */

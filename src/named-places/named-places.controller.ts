@@ -7,7 +7,6 @@ import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serialization/serialization.utils";
 import { PaginatedDto } from "src/pagination.utils";
-import { QueryWithPersonTokenDto } from "src/common.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 
@@ -32,7 +31,6 @@ export class NamedPlacesController {
 	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
 	cancelReservation(
 		@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	) {
 		return this.namedPlacesService.cancelReservation(id, person);
@@ -76,7 +74,6 @@ export class NamedPlacesController {
 	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
 	create(
 		@Body() place: NamedPlace,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	): Promise<NamedPlace>  {
 		return this.namedPlacesService.create(place, person);
@@ -88,7 +85,6 @@ export class NamedPlacesController {
 	update(
 		@Param("id") id: string,
 		@Body() place: NamedPlace,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	): Promise<NamedPlace>  {
 		return this.namedPlacesService.update(id, place, person);
@@ -97,7 +93,6 @@ export class NamedPlacesController {
 	/** Delete a named place */
 	@Delete(":id")
 	delete(@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	) {
 		return this.namedPlacesService.delete(id, person);

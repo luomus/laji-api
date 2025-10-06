@@ -1,4 +1,4 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
+import { CallHandler, ExecutionContext, HttpException, Injectable, NestInterceptor } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { PersonsService } from "src/persons/persons.service";
 import { Request } from "express";
@@ -16,7 +16,12 @@ export class PersonTokenInterceptor implements NestInterceptor {
 		if (bypass) {
 			return next.handle();
 		}
-		const personToken = request.params.personToken || request.query.personToken;
+
+		if (request.headers["api-version"] === "1" && request.query.personToken) {
+			// eslint-disable-next-line max-len
+			throw new HttpException("Person token in query parameters is deprecated for API v1. Please use 'person-token' header instead.", 422);
+		}
+		const personToken = request.params.personToken || request.query.personToken || request.headers["person-token"];
 		if (personToken && typeof personToken === "string") {
 			(request as any).person = await this.personsService.getByToken(personToken);
 		}
