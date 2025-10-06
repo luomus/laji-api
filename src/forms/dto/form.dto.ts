@@ -100,11 +100,6 @@ enum AcceptAccess {
 
 export class AcceptAccessDto {
 	/**
-	 * 	Person token who is authorised to accept requests
-	 */
-	@IsString() personToken: string;
-
-	/**
 	 * Access type
 	 */
 	type?: AcceptAccess = AcceptAccess.editor;

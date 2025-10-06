@@ -3,6 +3,8 @@ import { createParamDecorator, ExecutionContext, HttpException } from "@nestjs/c
 export type PersonTokenDecoratorConfig = {
 	/** Defaults to true */
 	required?: boolean;
+	/** Will be displayed in the swagger UI for the person token parameter */
+	description?: string;
 }
 
 export const personTokenMethods: {

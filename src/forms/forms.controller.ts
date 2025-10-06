@@ -54,7 +54,7 @@ export class FormsController {
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
 		@Query() { type }: AcceptAccessDto,
-		@PersonToken() person: Person
+		@PersonToken({ description: "Person's authentication token who is authorizing the acception" }) person: Person
 	) {
 		return this.formPermissionsService.acceptAccess(collectionID, personID, type!, person);
 	}
@@ -65,7 +65,7 @@ export class FormsController {
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
 		@Query() _: RevokeAccessDto,
-		@PersonToken() person: Person
+		@PersonToken({ description: "Person's authentication token who is authorizing the removal" }) person: Person
 	) {
 		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
 	}

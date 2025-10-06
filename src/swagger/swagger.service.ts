@@ -242,11 +242,11 @@ export class SwaggerService {
 					if (!(document as any).paths[path][method].parameters) {
 						(document as any).paths[path][method].parameters = {};
 					}
-					const description = "Person's authentication token." + (
+					const description = personTokenConfig.description || ("Person's authentication token." + (
 						personTokenConfig.required == false
 							?  " It is required."
 							: ""
-					);
+					));
 					(document as any).paths[path][method].parameters.push({
 						name: "Person-Token",
 						required: false,
