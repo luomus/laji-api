@@ -1,8 +1,6 @@
 import { Lang, QueryWithPagingDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
-import { OmitType } from "@nestjs/swagger";
 import { JSONObjectSerializable } from "src/typing.utils";
-import { IsString } from "class-validator";
 import { JSONSchemaObject } from "src/json-schema.utils";
 
 export enum Format {
