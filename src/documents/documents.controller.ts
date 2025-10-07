@@ -10,7 +10,6 @@ import { PaginatedDto } from "src/pagination.utils";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";
-import { QueryWithPersonTokenDto } from "src/common.dto";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
@@ -52,7 +51,6 @@ export class DocumentsController {
 	@HttpCode(200)
 	async startBatchJob(
 		@Body() documents: Document[],
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person,
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<BatchJobValidationStatusResponse> {
@@ -192,7 +190,6 @@ export class DocumentsController {
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	get(@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	): Promise<Document> {
 		return this.documentsService.get(id, person);
@@ -278,7 +275,6 @@ export class DocumentsController {
 	@Delete(":id")
 	async delete(
 		@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	): Promise<StoreDeleteResponse> {
 		return this.documentsService.delete(id, person);

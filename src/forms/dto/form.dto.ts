@@ -1,4 +1,4 @@
-import { Lang, QueryWithPagingDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang, QueryWithPagingDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { OmitType } from "@nestjs/swagger";
 import { JSONObjectSerializable } from "src/typing.utils";
@@ -86,7 +86,7 @@ export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingDto {
 	pageSize?: number = 1000;
 }
 
-export class TransformDto extends QueryWithPersonTokenDto {
+export class TransformDto {
 	/**
 	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will contain language objects. Defaults to 'en'
 	 */
@@ -100,16 +100,9 @@ enum AcceptAccess {
 
 export class AcceptAccessDto {
 	/**
-	 * 	Person token who is authorised to accept requests
-	 */
-	@IsString() personToken: string;
-
-	/**
 	 * Access type
 	 */
 	type?: AcceptAccess = AcceptAccess.editor;
 }
-
-export class RevokeAccessDto extends OmitType(AcceptAccessDto, ["type"]) {}
 
 export type Hashed<T> = T & { "$id": string }

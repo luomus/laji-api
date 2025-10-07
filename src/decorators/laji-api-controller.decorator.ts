@@ -1,5 +1,5 @@
 import { Controller, applyDecorators } from "@nestjs/common";
-import { ApiSecurity } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiSecurity } from "@nestjs/swagger";
 import { SerializeScanner } from "src/serialization/serialize.decorator";
 import { SwaggerRemoteScanner } from "src/swagger/swagger-remote.decorator";
 
@@ -11,7 +11,9 @@ import { SwaggerRemoteScanner } from "src/swagger/swagger-remote.decorator";
  */
 export function LajiApiController(prefix: string | string[]) {
 	return applyDecorators(
-		ApiSecurity("access_token"),
+		ApiBearerAuth("Access token"),
+		ApiSecurity("Lang"),
+		ApiSecurity("Person token"),
 		Controller(prefix),
 		SwaggerRemoteScanner(), // @SwaggerRemoteRef() doesn't work without this controller level decorator
 		SerializeScanner(), // @Serialize() swagger changes doesn't work without this controller level decorator

@@ -98,11 +98,11 @@ export class TaxaService {
 		return mapTaxon(taxon._source, query);
 	}
 
-	async getChildren(id: string, query: GetTaxaResultsDto) {
+	async getChildren(id: string, query: GetTaxaResultsDto, filters: TaxaFilters = {}) {
 		const taxon = await this.getBySubject(id, { selectedFields: ["id", "nameAccordingTo", "depth"] });
 		const childrenQuery: Partial<AllQueryParams> = {
+			checklist: [taxon.nameAccordingTo || "MR.1"],
 			...query,
-			checklist: taxon.nameAccordingTo || "MR.1",
 			pageSize: 10000, // This has worked so far to get all taxa...
 			depth: true
 		};
@@ -116,7 +116,6 @@ export class TaxaService {
 				"nameAccordingTo"
 			];
 		}
-		const filters: TaxaFilters = {};
 		if (childrenQuery.includeHidden) {
 			filters.parents = id;
 		} else {
@@ -126,7 +125,7 @@ export class TaxaService {
 		return arrayAdapter(await this.elasticSearch(childrenQuery, filters, taxon), query);
 	}
 
-	async getTaxonParents(id: string, query: GetTaxaResultsDto) {
+	async getTaxonParents(id: string, query: GetTaxaResultsDto, filters: TaxaFilters = {}) {
 		const taxon = await this.getBySubject(id, { selectedFields: ["nonHiddenParents"] });
 		const parentIds = taxon.nonHiddenParents;
 		if (!parentIds) {
@@ -138,7 +137,7 @@ export class TaxaService {
 			sortOrder: "taxonomic",
 			pageSize: 10000,
 			...query
-		});
+		}, filters);
 		return arrayAdapter(parents, query);
 	}
 
@@ -220,7 +219,7 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 		total: hits.total,
 		pageSize: query.pageSize!,
 		currentPage: query.page!
-	});
+	}, false);
 
 const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) =>
 	hits.hits.map(({ _source }) =>  mapTaxon(_source, query));

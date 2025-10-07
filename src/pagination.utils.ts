@@ -35,10 +35,13 @@ export const paginateArray = <T extends Partial<HasJsonLdContext> | Record<strin
 };
 
 export const paginateAlreadyPaginated = <T extends Partial<HasJsonLdContext> | Record<string, unknown>>(
-	pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nexPage">
+	pagedResult: Omit<PaginatedDto<T>, "@context" | "lastPage" | "prevPage" | "nexPage">,
+	addLocalJsonLdContext = true
 ): PaginatedDto<Omit<T, "@context">> => pipe(
 		addLastPrevAndNextPage,
-		addContextToPageLikeResult<T, PaginatedDto<T>>
+		addLocalJsonLdContext
+			? addContextToPageLikeResult<T, PaginatedDto<T>>
+			: (v: PaginatedDto<T>) => v
 	)(pagedResult);
 
 type HasLastAndMaybePrevNext = { lastPage: number;  prevPage?: number; nextPage?: number; }

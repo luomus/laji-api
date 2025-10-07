@@ -1,11 +1,10 @@
-import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Query, Req, Res, UseInterceptors }
+import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Req, Res, UseInterceptors }
 	from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { NextFunction, Request, Response } from "express";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
-import { QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
@@ -23,7 +22,6 @@ export class ImagesController {
 	@HttpCode(200)
 	@ApiOkResponse({ type: FileUploadResponse })
 	async upload(
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() __: Person, // Checks that the person token is valid.
 		@Req() req: Request,
 		@Res() res: Response,
@@ -37,7 +35,6 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	get(
 		@Param("id") id: string,
-		@Query() {}: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person?: Person
 	): Promise<Image> {
 		return this.abstractMediaService.get(id, person);
@@ -48,7 +45,6 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	updateMetadata(
 		@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person,
 		@Body() image: Image
 	): Promise<Image> {
@@ -58,7 +54,7 @@ export class ImagesController {
 	/** Delete image */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	delete(@Param("id") id: string, @Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
+	delete(@Param("id") id: string, @PersonToken() person: Person) {
 		return this.abstractMediaService.deleteMedia(id, person);
 	}
 
@@ -66,7 +62,6 @@ export class ImagesController {
 	@Get(":id/large.jpg")
 	findLarge(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -79,7 +74,6 @@ export class ImagesController {
 	@Get(":id/square.jpg")
 	findSquare(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -92,7 +86,6 @@ export class ImagesController {
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -106,7 +99,6 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person,
 		@Body() image: Image
 	): Promise<Image> {

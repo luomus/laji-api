@@ -2,7 +2,7 @@ import { Get, Query, UseInterceptors, Version } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, ApiTags, OpenAPIObject, getSchemaPath } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { AutocompleteService } from "./autocomplete.service";
-import { CommonAutocompleteDto, GetFriendsDto, GetPersonsDto, GetPersonsResponseDto } from "./autocomplete.dto";
+import { GetFriendsDto, GetPersonsDto, GetPersonsResponseDto } from "./autocomplete.dto";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";

@@ -74,7 +74,15 @@ export async function bootstrap() {
 		.setTitle("Laji API")
 		.setDescription(description)
 		.setVersion("1")
-		.addApiKey({ type: "apiKey", name: "access_token", in: "query" }, "access_token")
+		.addBearerAuth({ type: "http", description: "Access token" }, "Access token")
+		.addApiKey({
+			type: "apiKey",
+			name: "Accept-Language",
+			in: "header",
+			// eslint-disable-next-line max-len
+			description: "Sets the 'Accept-Language' header. One of 'fi', 'sv,' 'en'. Defaults to 'en'."
+		}, "Lang")
+		.addApiKey({ type: "apiKey", name: "Person-Token", in: "header" }, "Person token")
 		.build()
 	);
 

@@ -18,8 +18,8 @@ export class FormsService {
 		return (await this.formClient.get<{forms: FormListing[]}>(undefined, { params: { lang } }, )).forms;
 	}
 
-	create(form: Form, personToken: string) {
-		return this.formClient.post(undefined, form, { params: { personToken } });
+	create(form: Form) {
+		return this.formClient.post(undefined, form);
 	}
 
 	get(id: string): Promise<Form>
@@ -48,12 +48,12 @@ export class FormsService {
 		);
 	}
 
-	update(id: string, form: Form, personToken: string) {
-		return this.formClient.put(id, form, { params: { personToken } });
+	update(id: string, form: Form) {
+		return this.formClient.put(id, form);
 	}
 
-	delete(id: string, personToken: string) {
-		return this.formClient.delete(id, { params: { personToken } });
+	delete(id: string) {
+		return this.formClient.delete(id);
 	}
 
 	transform(form: Form, lang: Lang) {
@@ -81,7 +81,7 @@ export class FormsService {
 	}
 
 	/** Array.*find()* for the collection and its parents recursively with the given *predicate* */
-	async findFor(collectionID: string, predicate: (f: FormListing) => unknown) : Promise<FormListing | undefined> {
+	async findFor(collectionID: string, predicate: (f: FormListing) => unknown): Promise<FormListing | undefined> {
 		const forms = await this.findListedByCollectionID(collectionID);
 		const matches = forms.find(predicate);
 		if (matches) {

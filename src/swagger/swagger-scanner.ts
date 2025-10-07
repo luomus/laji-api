@@ -19,6 +19,8 @@ export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
 	customize?: (document: OpenAPIObject, remoteDocument: OpenAPIObject) => OpenAPIObject;
 	/** The remote ref is applied to response (201 or 200). Defaults to true. */
 	applyToResponse?: boolean;
+	/** The remote ref is applied to request body. Defaults to true. */
+	applyToRequest?: boolean;
 }
 
 export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & {

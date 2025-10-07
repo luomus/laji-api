@@ -1,6 +1,5 @@
 import { Body, Delete, Get, Param, Put, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
-import { QueryWithPersonTokenDto } from "src/common.dto";
+import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
 import { QueryWithPagingAndLangAndIdIn } from "./notification.dto";
 import { Notification } from "@luomus/laji-schema";
 import { NotificationsService } from "./notifications.service";
@@ -15,11 +14,22 @@ export class NotificationsController {
 	constructor(private notificationsService: NotificationsService) {}
 
 	/* Get notifications */
-	@Get(":personToken")
+	@ApiExcludeEndpoint()
 	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
+	@Get(":personToken")
 	getAll(
 		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
-		@Param("personToken") personToken: string,
+		@Param("personToken") _: string,
+		@PersonToken() person: Person
+	) {
+		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);
+	}
+
+	/* Get notifications */
+	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
+	@Get()
+	getAllV1(
+		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
 		@PersonToken() person: Person
 	) {
 		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);
@@ -31,7 +41,6 @@ export class NotificationsController {
 	update(
 		@Param("id") id: string,
 		@Body() notification: Notification & { id: string },
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	) {
 		return this.notificationsService.update(id, notification, person);
@@ -41,7 +50,6 @@ export class NotificationsController {
 	@Delete(":id")
 	delete(
 		@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	) {
 		return this.notificationsService.delete(id, person);

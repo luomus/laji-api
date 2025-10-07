@@ -18,7 +18,7 @@ export enum ChecklistVersion {
 
 export class TaxaBaseQuery {
 	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
-	checklist?: string = "MR.1";
+	@CommaSeparatedStrings() checklist?: string[] = ["MR.1"];
 
 	/** Checklist version to be used. Defaults to the latest version. */
 	checklistVersion?: ChecklistVersion = ChecklistVersion.current;
@@ -143,7 +143,6 @@ class RedListEvaluation {
 }
 
 export class TaxonElastic {
-	intellectualRights: string = "MZ.intellectualRightsCC-BY-4.0"; // TODO siirrä array vastauksen juureen
 	@Type(() => RedListEvaluation) latestRedListEvaluation: RedListEvaluation;
 	@Exclude() isPartOf: any;
 	@Exclude() isPartOfNonHidden: any;

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, Type } from "@nestjs/common";
+import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, pipe,
@@ -21,7 +21,9 @@ import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwag
 	from "src/decorators/remote-swagger-merge.decorator";
 import { ConfigService } from "@nestjs/config";
 import { JSONSchema } from "src/json-schema.utils";
-import { HTTP_CODE_METADATA } from "@nestjs/common/constants";
+import { HTTP_CODE_METADATA, METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
+import { PersonTokenDecoratorConfig, personTokenMethods } from "src/decorators/person-token.decorator";
+import { DECORATORS } from "@nestjs/swagger/dist/constants";
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
@@ -51,6 +53,7 @@ export class SwaggerService {
 		this.patchRemoteSwaggers = this.patchRemoteSwaggers.bind(this);
 		this.fetchRemoteSwagger = this.fetchRemoteSwagger.bind(this);
 		this.patchMultiLangs = this.patchMultiLangs.bind(this);
+		this.patchPersonToken = this.patchPersonToken.bind(this);
 	}
 
 	@Interval(CACHE_30_MIN)
@@ -110,7 +113,8 @@ export class SwaggerService {
 		return pipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs,
-			this.patchMultiLangs
+			this.patchMultiLangs,
+			this.patchPersonToken
 		)(document);
 	}
 
@@ -173,7 +177,7 @@ export class SwaggerService {
 								};
 							}
 
-							if (["post", "put"].includes(httpMethod)) {
+							if (["post", "put"].includes(httpMethod) && entry.applyToRequest !== false) {
 								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
 									? { "$ref": `#/components/schemas${entry.ref}` }
 									: (operation.requestBody as any)!.content["application/json"].schema;
@@ -206,6 +210,56 @@ export class SwaggerService {
 		});
 		return document;
 	}
+
+	private patchPersonToken(document: OpenAPIObject) {
+		const map = personTokenMethods.reduce((map, {
+			controllerClass,
+			controllerClassMethod,
+			personTokenConfig
+		}) => {
+			const isExcluded = Reflect.getMetadata(
+				DECORATORS.API_EXCLUDE_ENDPOINT,
+				controllerClassMethod,
+			);
+			if (isExcluded) {
+				return map;
+			}
+
+			const controllerPath = Reflect.getMetadata(PATH_METADATA, controllerClass) as string;
+			const methodPath = Reflect.getMetadata(PATH_METADATA, controllerClassMethod) as string;
+
+			const path = `/${controllerPath}/${methodPath.replace(/^\//, "").replace(/:([^/]+)/g, "{$1}")}`
+				.replace(/\/$/, "");
+			const httpMethod = Reflect.getMetadata(METHOD_METADATA, controllerClassMethod) as number;
+			map[path] = { ...map[path], [RequestMethod[httpMethod]!.toLowerCase()]: personTokenConfig };
+			return map;
+		}, {} as Record<string, Record<string, PersonTokenDecoratorConfig>>);
+
+		Object.keys(document.paths).forEach(path => {
+			Object.keys(document.paths[path]!).forEach(method => {
+				const personTokenConfig = map[path]?.[method];
+				if (personTokenConfig) {
+					if (!(document as any).paths[path][method].parameters) {
+						(document as any).paths[path][method].parameters = {};
+					}
+					const description = personTokenConfig.description || ("Person's authentication token." + (
+						personTokenConfig.required == false
+							?  " It is required."
+							: ""
+					));
+					(document as any).paths[path][method].parameters.push({
+						name: "Person-Token",
+						required: false,
+						description,
+						in: "headers",
+						schema: { type: "string" }
+					});
+				}
+			});
+		});
+		return document;
+	}
+
 
 	private entrySideEffectForSchema(schema: Record<string, SchemaItem>, entry: SwaggerCustomizationEntry) {
 		if (isSwaggerRemoteRefEntry(entry)) {

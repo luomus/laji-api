@@ -1,10 +1,9 @@
 import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { AcceptAccessDto, Form, Format, GetDto, RevokeAccessDto, TransformDto }
-	from "./dto/form.dto";
+import { AcceptAccessDto, Form, Format, GetDto, TransformDto } from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
-import { Lang, QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "src/common.dto";
+import { Lang } from "src/common.dto";
 import { FormPermissionsService } from "./form-permissions/form-permissions.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -26,7 +25,7 @@ export class FormsController {
 
 	/** Get form permissions for a person */
 	@Get("permissions")
-	getPermissions(@Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
+	getPermissions(@PersonToken() person: Person) {
 		return this.formPermissionsService.getByPerson(person);
 	}
 
@@ -34,8 +33,7 @@ export class FormsController {
 	@Get("permissions/:collectionID")
 	getPermissionsByCollectionID(
 		@Param("collectionID") collectionID: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
-		@PersonToken({ required : false }) person?: Person
+		@PersonToken({ required: false }) person?: Person
 	) {
 		return this.formPermissionsService.getByCollectionIDAndPerson(collectionID, person);
 	}
@@ -44,7 +42,6 @@ export class FormsController {
 	@Post("permissions/:collectionID")
 	requestAccess(
 		@Param("collectionID") collectionID: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person
 	) {
 		return this.formPermissionsService.requestAccess(collectionID, person);
@@ -56,7 +53,7 @@ export class FormsController {
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
 		@Query() { type }: AcceptAccessDto,
-		@PersonToken() person: Person
+		@PersonToken({ description: "Person's authentication token who is authorizing the acception" }) person: Person
 	) {
 		return this.formPermissionsService.acceptAccess(collectionID, personID, type!, person);
 	}
@@ -66,8 +63,7 @@ export class FormsController {
 	revokeAccess(
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
-		@Query() _: RevokeAccessDto,
-		@PersonToken() person: Person
+		@PersonToken({ description: "Person's authentication token who is authorizing the removal" }) person: Person
 	) {
 		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
 	}
@@ -98,23 +94,23 @@ export class FormsController {
 	@Post()
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	create(@Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.formsService.create(form, personToken);
+	create(@Body() form: Form) {
+		return this.formsService.create(form);
 	}
 
 	/** Update an existing form */
 	@Put(":id")
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	update(@Param("id") id: string, @Body() form: Form, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.formsService.update(id, form, personToken);
+	update(@Param("id") id: string, @Body() form: Form) {
+		return this.formsService.update(id, form);
 	}
 
 	/** Delete a form */
 	@Delete(":id")
 	@UseGuards(IctAdminGuard)
-	remove(@Param("id") id: string, @Query() { personToken }: QueryWithPersonTokenDto) {
-		return this.formsService.delete(id, personToken);
+	remove(@Param("id") id: string) {
+		return this.formsService.delete(id);
 	}
 
 	/** Get preview of form transformed from json format to schema format */

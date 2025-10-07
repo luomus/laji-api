@@ -1,11 +1,10 @@
-import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Query, Req, Res, UseInterceptors }
+import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Req, Res, UseInterceptors }
 	from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Audio } from "./audio.dto";
 import { NextFunction, Request, Response } from "express";
-import { QueryWithMaybePersonTokenDto, QueryWithPersonTokenDto } from "../common.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { PersonToken } from "src/decorators/person-token.decorator";
 import { Person } from "src/persons/person.dto";
@@ -26,8 +25,7 @@ export class AudioController {
 		type: FileUploadResponse
 	})
 	async upload(
-		@Query() _: QueryWithPersonTokenDto,
-		@PersonToken() __: Person, // Checks that the person token is valid.
+		@PersonToken() _: Person, // Checks that the person token is valid.
 		@Req() req: Request,
 		@Res() res: Response,
 		@Next() next: NextFunction
@@ -40,7 +38,6 @@ export class AudioController {
 	@UseInterceptors(Translator, Serializer(Audio))
 	get(
 		@Param("id") id: string,
-		@Query() {}: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person?: Person
 	): Promise<Audio> {
 		return this.abstractMediaService.get(id, person);
@@ -51,7 +48,6 @@ export class AudioController {
 	@UseInterceptors(Serializer(Audio))
 	updateMetadata(
 		@Param("id") id: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person,
 		@Body() audio: Audio
 	): Promise<Audio> {
@@ -61,7 +57,7 @@ export class AudioController {
 	/** Delete audio */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	delete(@Param("id") id: string, @Query() _: QueryWithPersonTokenDto, @PersonToken() person: Person) {
+	delete(@Param("id") id: string, @PersonToken() person: Person) {
 		return this.abstractMediaService.deleteMedia(id, person);
 	}
 
@@ -69,7 +65,6 @@ export class AudioController {
 	@Get(":id/mp3")
 	getMp3(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -82,7 +77,6 @@ export class AudioController {
 	@Get(":id/thumbnail.jpg")
 	getThumbnail(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -95,7 +89,6 @@ export class AudioController {
 	@Get(":id/wav")
 	getWav(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -108,7 +101,6 @@ export class AudioController {
 	@Get(":id/flac")
 	findFlac(
 		@Param("id") id: string,
-		@Query() _: QueryWithMaybePersonTokenDto,
 		@PersonToken({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
@@ -122,7 +114,6 @@ export class AudioController {
 	@UseInterceptors(Serializer(Audio))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
-		@Query() _: QueryWithPersonTokenDto,
 		@PersonToken() person: Person,
 		@Body() audio: Audio
 	): Promise<Audio> {

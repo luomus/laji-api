@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { AccessTokenEntity } from "./access-token.entity";
@@ -18,6 +18,17 @@ export class AccessTokenService {
 	}
 
 	findAccessTokenFromRequest(request: Request): string | undefined {
+		if (request.query.access_token) {
+			if (request.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw new HttpException("Access token in query parameters is deprecated for API v1. Please use 'authorization' header instead.", 422);
+			}
+			return request.query.access_token as string;
+		}
+		const { authorization } = request.headers;
+		if (authorization) {
+			return authorization.replace("Bearer ", "").replace("bearer ", "");
+		}
 		return (request.query.access_token as string) || request.headers.authorization;
 	}
 
