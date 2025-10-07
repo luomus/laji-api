@@ -177,3 +177,15 @@ Old API filtered out non QNames from queries. For example, when querying named p
 	* `/autocomplete/unit/shorthand/trip-report`
 	* `/autocomplete/unit/shorthand/line-transect`
 	* `/autocomplete/unit/shorthand/water-bird-pair-count`
+
+## Person
+
+* `GET /person/{personToken}` -> `GET /person`
+* `GET /person/by-id/{personId}` -> `GET /person/{id}`
+* `GET /person/by-id/{personId}/profile` -> `GET /person/{id}/profile`
+* `POST /person/{personToken}/friends/{friendPersonID}` -> `POST /person/friends/{id}`
+* `PUT /person/{personToken}/friends/{friendPersonID}` -> `PUT /person/friends/{id}`
+* `DELETE /person/{personToken}/friends/{friendPersonID}` -> `DELETE /person/friends/{id}`
+* `GET /person/{personToken}/profile` -> `GET /person/profile`
+* `POST /person/{personToken}/profile` -> `POST /person/profile`
+* `PUT /person/{personToken}/profile` -> `PUT /person/profile`

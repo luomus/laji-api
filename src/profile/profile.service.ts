@@ -5,6 +5,7 @@ import { Profile } from "./profile.dto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serialization/serialization.utils";
 import * as equals from "fast-deep-equal";
+import { Person } from "src/persons/person.dto";
 
 @Injectable()
 export class ProfileService {
@@ -23,8 +24,13 @@ export class ProfileService {
 		return profile || this.create(personId, {});
 	}
 
+	async getByPersonOrCreate(person: Person) {
+		const profile = await this.findByPersonId(person.id);
+		return profile || this.create(person.id, {});
+	}
+
 	async getByPersonTokenOrCreate(personToken: string) {
-		const personId =  await this.personTokenService.getPersonIdFromToken(personToken);
+		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
 		return this.getByPersonIdOrCreate(personId);
 	}
 
@@ -62,8 +68,12 @@ export class ProfileService {
 		return this.store.update(nextProfile);
 	}
 
-	async addFriendRequest(personToken: string, friendPersonID: string) {
+	async addFriendRequestWithPersonToken(personToken: string, friendPersonID: string) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
+		return this.addFriendRequest(personId, friendPersonID);
+	}
+
+	async addFriendRequest(personId: string, friendPersonID: string) {
 		const friendProfile = await this.getByPersonIdOrCreate(friendPersonID);
 		const { friendRequests, blocked, friends, userID: friendID } = friendProfile;
 
@@ -102,8 +112,12 @@ export class ProfileService {
 		}
 	}
 
-	async removeFriend(personToken: string, friendPersonId: string, block: boolean) {
+	async removeFriendWithPersonToken(personToken: string, friendPersonId: string, block: boolean) {
 		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
+		return this.removeFriend(personId, friendPersonId, block);
+	}
+
+	async removeFriend(personId: string, friendPersonId: string, block: boolean) {
 		const profile = await this.getByPersonIdOrCreate(personId);
 		const friendProfile = await this.getByPersonId(friendPersonId);
 
