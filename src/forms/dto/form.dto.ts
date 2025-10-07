@@ -105,6 +105,4 @@ export class AcceptAccessDto {
 	type?: AcceptAccess = AcceptAccess.editor;
 }
 
-export class RevokeAccessDto extends OmitType(AcceptAccessDto, ["type"]) {}
-
 export type Hashed<T> = T & { "$id": string }

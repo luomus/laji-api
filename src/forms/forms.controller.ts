@@ -1,7 +1,6 @@
 import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { AcceptAccessDto, Form, Format, GetDto, RevokeAccessDto, TransformDto }
-	from "./dto/form.dto";
+import { AcceptAccessDto, Form, Format, GetDto, TransformDto } from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang } from "src/common.dto";
@@ -64,7 +63,6 @@ export class FormsController {
 	revokeAccess(
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
-		@Query() _: RevokeAccessDto,
 		@PersonToken({ description: "Person's authentication token who is authorizing the removal" }) person: Person
 	) {
 		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
@@ -96,7 +94,7 @@ export class FormsController {
 	@Post()
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	create(@Body() form: Form, @PersonToken() _: string) {
+	create(@Body() form: Form) {
 		return this.formsService.create(form);
 	}
 
@@ -104,14 +102,14 @@ export class FormsController {
 	@Put(":id")
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	update(@Param("id") id: string, @Body() form: Form, @PersonToken() _: string) {
+	update(@Param("id") id: string, @Body() form: Form) {
 		return this.formsService.update(id, form);
 	}
 
 	/** Delete a form */
 	@Delete(":id")
 	@UseGuards(IctAdminGuard)
-	remove(@Param("id") id: string, @PersonToken() _: string) {
+	remove(@Param("id") id: string) {
 		return this.formsService.delete(id);
 	}
 
@@ -119,7 +117,7 @@ export class FormsController {
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	transform(@Body() form: Form, @Query() { lang = Lang.en }: TransformDto, @PersonToken() _: string) {
+	transform(@Body() form: Form, @Query() { lang = Lang.en }: TransformDto) {
 		return this.formsService.transform(form, lang);
 	}
 }
