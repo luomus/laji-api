@@ -16,15 +16,15 @@ export class PersonsController {
 		private readonly profileService: ProfileService
 	) {}
 
-	@Get(":personToken")
 	@ApiExcludeEndpoint()
+	@Get(":personToken")
 	findPersonByTokenBackwardCompatible(@Param("personToken") personToken: string) {
 		return this.personsService.getByToken(personToken);
 	}
 
 	/** Find person by person token */
-	@Get()
 	@Version("1")
+	@Get()
 	findPersonByToken(@PersonToken() person: Person) {
 		return person;
 	}
@@ -36,8 +36,8 @@ export class PersonsController {
 	}
 
 	/** Get profile */
-	@Get("profile")
 	@Version("1")
+	@Get("profile")
 	findProfileByPersonToken(@PersonToken() person: Person) {
 		return this.profileService.getByPersonOrCreate(person);
 	}
@@ -50,8 +50,8 @@ export class PersonsController {
 	}
 
 	/** Find person by user id (this will not include email) */
-	@Get(":id")
 	@Version("1")
+	@Get(":id")
 	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
 	async findPersonByPersonId(@Param("id") id: string) {
 		return this.personsService.getByPersonId(id);
@@ -65,8 +65,8 @@ export class PersonsController {
 	}
 
 	/** Find profile by person id (this will only return small subset of the full profile) */
-	@Get(":id/profile")
 	@Version("1")
+	@Get(":id/profile")
 	@Serialize(Profile, { whitelist: ["userID", "image", "profileDescription"] }, "SensitiveProfile")
 	async getProfileByPersonId(@Param("id") id: string) {
 		return this.profileService.getByPersonIdOrCreate(id);
@@ -80,8 +80,8 @@ export class PersonsController {
 	}
 
 	/** Create profile */
-	@Post("profile")
 	@Version("1")
+	@Post("profile")
 	async createProfile(@PersonToken() person: Person, @Body() profile: Profile) {
 		return this.profileService.createWithPersonId(person.id, profile);
 	}
@@ -94,8 +94,8 @@ export class PersonsController {
 	}
 
 	/** Update profile */
-	@Put("profile")
 	@Version("1")
+	@Put("profile")
 	async updateProfile(@PersonToken() person: Person, @Body() profile: Profile) {
 		return this.profileService.updateWithPersonId(person.id, profile);
 	}
@@ -109,8 +109,8 @@ export class PersonsController {
 	}
 
 	/** Request person to be your friend */
-	@Post("friends/:id")
 	@Version("1")
+	@Post("friends/:id")
 	addFriendRequest(@PersonToken() person: Person, @Param("id") friendPersonID: string) {
 		return this.profileService.addFriendRequest(person.id, friendPersonID);
 	}
@@ -124,8 +124,8 @@ export class PersonsController {
 	}
 
 	/** Accept friend request */
-	@Put("friends/:id")
 	@Version("1")
+	@Put("friends/:id")
 	acceptFriendRequest(@PersonToken() person: Person, @Param("id") friendPersonID: string) {
 		return this.profileService.acceptFriendRequest(person.id, friendPersonID);
 	}
@@ -141,8 +141,8 @@ export class PersonsController {
 	}
 
 	/** Remove a friend request or a friend */
-	@Delete("friends/:id")
 	@Version("1")
+	@Delete("friends/:id")
 	removeFriend(
 		@PersonToken() person: Person,
 		@Param("id") friendPersonID: string,

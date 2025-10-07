@@ -189,3 +189,8 @@ Old API filtered out non QNames from queries. For example, when querying named p
 * `GET /person/{personToken}/profile` -> `GET /person/profile`
 * `POST /person/{personToken}/profile` -> `POST /person/profile`
 * `PUT /person/{personToken}/profile` -> `PUT /person/profile`
+
+## Person token
+
+* `GET /person-token/{personToken}` -> `GET /person-token`
+* `DELETE /person-token/{personToken}` -> `DELETE /person-token`
