@@ -164,7 +164,7 @@ describe("/person", function() {
 				});
 		});
 
-		it("updates profile when asked to", function(done) {
+		it("updates profile", function(done) {
 			var query = basePath + "/" + config.user.token + "/profile"
 				+ "?access_token=" + config.access_token;
 			var profile = {

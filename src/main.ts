@@ -59,7 +59,6 @@ export async function bootstrap() {
 		target: `http://127.0.0.1:${port}/checklist-versions`
 	}));
 
-
 	// Backward compatibity to old API signature of organizations.
 	app.use("/organization/by-id", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}/organizations/`
