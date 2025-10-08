@@ -47,7 +47,7 @@ export class NotificationsService {
 		if (!existing) {
 			throw new HttpException("No notification found to update", 404);
 		}
-		if (!equals(omit(existing, "seen"), omit(notification, "seen"))) {
+		if (!equals(omit(existing, "seen", "@context"), omit(notification, "seen", "@context"))) {
 			throw new HttpException("You can only update the 'seen' property", 422);
 		}
 		return this.store.update(notification);

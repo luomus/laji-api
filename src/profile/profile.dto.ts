@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { JSONObjectSerializable } from "../typing.utils";
 
 export class Profile {
@@ -11,5 +12,9 @@ export class Profile {
 	friends: string[] = [];
 	blocked: string[] = [];
 	friendRequests: string[] = [];
+	@ApiProperty({
+		    type: "object",
+		    additionalProperties: true,
+	})
 	settings: JSONObjectSerializable = {};
 }
