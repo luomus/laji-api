@@ -70,12 +70,11 @@ export type FormListing = Pick<Form & {
 export class GetDto {
 	format?: Format = Format.schema;
 	/**
-	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will contain language objects. Defaults to 'en'
+	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will
+	 * contain language objects. Defaults to 'en'
 	 */
 	lang?: Lang = Lang.en;
-	/**
-	 * Expand response
-	 */
+	/** Expand response */
 	expand?: boolean = true;
 }
 
@@ -86,7 +85,8 @@ export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingDto {
 
 export class TransformDto {
 	/**
-	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will contain language objects. Defaults to 'en'
+	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will
+	 * contain language objects. Defaults to 'en'
 	 */
 	lang?: Lang = Lang.en;
 }
@@ -97,9 +97,7 @@ enum AcceptAccess {
 }
 
 export class AcceptAccessDto {
-	/**
-	 * Access type
-	 */
+	/** Access type */
 	type?: AcceptAccess = AcceptAccess.editor;
 }
 
