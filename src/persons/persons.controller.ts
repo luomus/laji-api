@@ -98,7 +98,7 @@ export class PersonsController {
 	/** Update profile */
 	@Version("1")
 	@Put("profile")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
 	async updateProfile(@PersonToken() person: Person, @Body() profile: Profile) {
 		return this.profileService.updateWithPersonId(person.id, profile);
 	}

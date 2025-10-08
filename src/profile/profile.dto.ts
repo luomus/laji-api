@@ -15,6 +15,7 @@ export class Profile {
 	@ApiProperty({
 		    type: "object",
 		    additionalProperties: true,
+		required: false
 	})
 	settings: JSONObjectSerializable = {};
 }
