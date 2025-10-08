@@ -5,7 +5,7 @@ import { AppModule } from "./app.module";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
-import { LogLevel, Logger, ValidationPipe, VersioningType } from "@nestjs/common";
+import { LogLevel, Logger, VersioningType } from "@nestjs/common";
 import { LoggerService } from "./logger/logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
