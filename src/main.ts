@@ -10,7 +10,6 @@ import { LoggerService } from "./logger/logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
-import type { ClientRequest } from "http";
 
 export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -198,12 +197,11 @@ function logOutgoingRequests(httpService: HttpService) {
 	});
 }
 
-function fixRequestBodyAndAuthHeader(proxyReq: ClientRequest, req: Request) {
+export function fixRequestBodyAndAuthHeader(proxyReq: any, req: any) {
 	fixRequestBody(proxyReq, req);
 
 	const auth = (req as any).headers["authorization"];
-	const apiVersion = (req as any).headers["api-version"];
-	if(apiVersion === "1" && auth && auth.toLowerCase().startsWith("bearer ")) {
+	if(auth && auth.toLowerCase().startsWith("bearer ")) {
 		// Remove "Bearer "  since old api doesn't like it.
 		proxyReq.setHeader("authorization", auth.substring(7));
 	}

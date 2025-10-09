@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
-import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { TimeStampedRequest, stringifyRequest } from "src/interceptors/logger.interceptor";
+import { fixRequestBodyAndAuthHeader } from "src/main";
 
 const OLD_API = "http://127.0.0.1:3003/v0";
-// const OLD_API = "https://api.laji.fi/v0";
 
 @Injectable()
 export class ProxyToOldApiService {
@@ -15,7 +15,7 @@ export class ProxyToOldApiService {
 		target: OLD_API,
 		changeOrigin: true,
 		on: {
-			proxyReq: fixRequestBody
+			proxyReq: fixRequestBodyAndAuthHeader
 		},
 		logger: {
 			info: this.logger.verbose.bind(this),
