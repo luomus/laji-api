@@ -9,4 +9,3 @@ export function fixRequestBodyAndAuthHeader(proxyReq: any, req: any) {
 		proxyReq.setHeader("authorization", auth.substring(7));
 	}
 }
-
