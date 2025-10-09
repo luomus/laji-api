@@ -5,7 +5,8 @@ import { Media, MediaType, MetaUploadData, MetaUploadResponse, PartialMeta } fro
 import { Person } from "../persons/person.dto";
 import { RestClientService } from "../rest-client/rest-client.service";
 import { MEDIA_CLIENT, MEDIA_CONFIG } from "src/provider-tokens";
-import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
+import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
 
 export type AbstractMediaServiceConfig = {
 	mediaClass: "IMAGE" | "AUDIO";
@@ -36,7 +37,7 @@ export class AbstractMediaService<T extends MediaType> {
 				const url = new URL(proxyReq.path, baseUrl);
 				url.searchParams.append("mediaClass", this.abstracted.mediaClass);
 				proxyReq.path = url.pathname + url.search;
-				return fixRequestBody(proxyReq, req);
+				return fixRequestBodyAndAuthHeader(proxyReq, req);
 			}
 		},
 		headers: {

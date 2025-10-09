@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
-import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
 import { LogLevel, Logger, VersioningType } from "@nestjs/common";
@@ -10,7 +10,7 @@ import { LoggerService } from "./logger/logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
-import type { ClientRequest } from "http";
+import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
 
 export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -197,18 +197,6 @@ function logOutgoingRequests(httpService: HttpService) {
 		return Promise.reject(error);
 	});
 }
-
-function fixRequestBodyAndAuthHeader(proxyReq: ClientRequest, req: Request) {
-	fixRequestBody(proxyReq, req);
-
-	const auth = (req as any).headers["authorization"];
-	const apiVersion = (req as any).headers["api-version"];
-	if(apiVersion === "1" && auth && auth.toLowerCase().startsWith("bearer ")) {
-		// Remove "Bearer "  since old api doesn't like it.
-		proxyReq.setHeader("authorization", auth.substring(7));
-	}
-}
-
 
 const description =
 `

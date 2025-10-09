@@ -1,4 +1,4 @@
-import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import { All, Logger, Next, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
@@ -7,6 +7,7 @@ import { RemoteSwaggerMerge, MergesRemoteSwagger, patchSwaggerWith }
 import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { OpenAPIObject } from "@nestjs/swagger";
+import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
 
 @RemoteSwaggerMerge("trait")
 export class TraitController implements MergesRemoteSwagger {
@@ -32,7 +33,7 @@ export class TraitController implements MergesRemoteSwagger {
 			"^/trait": "/"
 		},
 		on: {
-			proxyReq: fixRequestBody
+			proxyReq: fixRequestBodyAndAuthHeader
 		},
 		logger: {
 			info: this.logger.verbose,
