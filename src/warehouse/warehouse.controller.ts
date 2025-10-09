@@ -9,6 +9,7 @@ import {
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { JSONSerializable } from "src/typing.utils";
 import { WAREHOUSE_CLIENT } from "src/provider-tokens";
+import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
 
 @RemoteSwaggerMerge("warehouse")
 export class WarehouseController implements MergesRemoteSwagger {
@@ -25,6 +26,9 @@ export class WarehouseController implements MergesRemoteSwagger {
 		changeOrigin: true,
 		pathRewrite: {
 			"^/warehouse": "/"
+		},
+		on: {
+			proxyReq: fixRequestBodyAndAuthHeader
 		},
 		logger: {
 			info: this.logger.verbose,
