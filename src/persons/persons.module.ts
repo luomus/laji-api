@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { PersonTokenModule } from "src/person-token/person-token.module";
+import { PersonTokenModule } from "src/authentication-event/authentication-event.module";
 import { ProfileModule } from "src/profile/profile.module";
 import { TriplestoreModule } from "src/triplestore/triplestore.module";
 import { IctAdminGuard } from "./ict-admin/ict-admin.guard";

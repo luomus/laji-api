@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { LajiAuthPersonGet, PersonTokenInfo } from "./person-token.dto";
+import { LajiAuthPersonGet, PersonTokenInfo } from "./authentication-event.dto";
 import { CACHE_1_SEC } from "src/utils";
 import { LAJI_AUTH_CLIENT } from "src/provider-tokens";
 
