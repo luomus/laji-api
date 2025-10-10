@@ -42,7 +42,10 @@ export class NamedPlacesController {
 	@UseInterceptors(FilterUnitsInterceptor)
 	getPage(
 		@Query() query: GetNamedPlacePageDto,
-		@PersonToken({ required: false }) person?: Person
+		@PersonToken({
+			required: false,
+			description: "Person's authentication token. Necessary for fetching private places"
+		}) person?: Person
 	): Promise<PaginatedDto<NamedPlace>> {
 		const { page, pageSize, selectedFields, includePublic, ...q } = query;
 		(q as Record<string, unknown>).id = q.idIn;
@@ -64,7 +67,10 @@ export class NamedPlacesController {
 	get(
 		@Param("id") id: string,
 		@Query() _: GetNamedPlaceDto,
-		@PersonToken({ required: false }) person: Person
+		@PersonToken({
+			required: false,
+			description: "Person's authentication token. Necessary for fetching private places"
+		}) person: Person
 	): Promise<NamedPlace> {
 		return this.namedPlacesService.get(id, person);
 	}
