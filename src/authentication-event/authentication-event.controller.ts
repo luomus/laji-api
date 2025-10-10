@@ -18,7 +18,7 @@ export class PersonTokenController {
 	}
 
 	/*
-	 * Returns information about the token
+	 * Information about an authentication event of a person token
 	 */
 	@Version("1")
 	@Get()
@@ -35,7 +35,7 @@ export class PersonTokenController {
 	}
 
 	/*
-	 * Deletes the token
+	 * Delete authentication session of a person token
 	 */
 	@Version("1")
 	@Delete()
