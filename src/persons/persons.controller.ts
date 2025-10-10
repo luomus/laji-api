@@ -17,6 +17,14 @@ export class PersonsController {
 		private readonly profileService: ProfileService
 	) {}
 
+	/** Find person by user id (this will not include email) */
+	@Version("1")
+	@Get(":id")
+	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
+	async findPersonByPersonId(@Param("id") id: string) {
+		return this.personsService.getByPersonId(id);
+	}
+
 	@ApiExcludeEndpoint()
 	@Get(":personToken")
 	findPersonByTokenBackwardCompatible(@Param("personToken") personToken: string) {
@@ -49,14 +57,6 @@ export class PersonsController {
 	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
 	async findPersonByPersonIdBackwardCompatible(@Param("personId") personId: string) {
 		return this.personsService.getByPersonId(personId);
-	}
-
-	/** Find person by user id (this will not include email) */
-	@Version("1")
-	@Get(":id")
-	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
-	async findPersonByPersonId(@Param("id") id: string) {
-		return this.personsService.getByPersonId(id);
 	}
 
 	@ApiExcludeEndpoint()
