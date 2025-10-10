@@ -1,4 +1,4 @@
-import { Delete, Get, Param, Version, Headers } from "@nestjs/common";
+import { Delete, Get, Param, Version, Headers, HttpCode } from "@nestjs/common";
 import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
 import { PersonTokenService } from "./authentication-event.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -17,13 +17,11 @@ export class PersonTokenController {
 		return this.personTokenService.getInfo(personToken);
 	}
 
-	/*
-	 * Information about an authentication event of a person token
-	 */
+	/** Information about the authentication event of a person token */
 	@Version("1")
 	@Get()
 	@BypassPersonTokenInterceptor()
-	getInfo(@Headers("person-token") personToken: string) {
+	getInfo(@Headers("Person-Token") personToken: string) {
 		return this.personTokenService.getInfo(personToken);
 	}
 
@@ -34,13 +32,12 @@ export class PersonTokenController {
 		return this.personTokenService.delete(personToken);
 	}
 
-	/*
-	 * Delete authentication session of a person token
-	 */
+	/** Delete authentication session of a person token */
 	@Version("1")
 	@Delete()
 	@BypassPersonTokenInterceptor()
-	delete(@Headers("person-token") personToken: string) {
-		return this.personTokenService.delete(personToken);
+	@HttpCode(204)
+	async delete(@Headers("Person-Token") personToken: string) {
+		await this.personTokenService.delete(personToken);
 	}
 }
