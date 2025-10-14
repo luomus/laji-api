@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PersonTokenService } from "src/person-token/person-token.service";
+import { PersonTokenService } from "src/authentication-event/authentication-event.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "src/serialization/serialization.utils";

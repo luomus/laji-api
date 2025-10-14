@@ -249,7 +249,7 @@ export class DocumentsController {
 	async update(
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,
-		@Query() _: UpdateDocumentDto,
+		@Query() { skipValidations }: UpdateDocumentDto,
 		@PersonToken() person: Person,
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
@@ -267,7 +267,8 @@ export class DocumentsController {
 			id,
 			document as Document,
 			person,
-			apiUser
+			apiUser,
+			skipValidations
 		);
 	}
 

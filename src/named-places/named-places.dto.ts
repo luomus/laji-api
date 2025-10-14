@@ -33,8 +33,6 @@ export class NamedPlaceUnitsFiltered {
 }
 
 export class GetNamedPlaceDto {
-	/** Person's authentication token. Necessary for fetching non public places. */
-	personToken?: string;
 	/** Include units in prepopulated and accepted documents (only for forms with 'MHL.includeUnits' true). */
 	@IsOptionalBoolean()
 	includeUnits?: boolean = false;

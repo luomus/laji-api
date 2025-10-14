@@ -54,20 +54,17 @@ class HasValidationErrorFormat {
 	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.remote;
 }
 
-class SkipValidationForImporterToken {
-	/** Skip validations. Only available for the importer token */
-	@IsOptionalBoolean() skipValidations?: boolean = false;
-}
 
 export class CreateDocumentDto extends IntersectionType(
-	HasValidationErrorFormat,
-	SkipValidationForImporterToken
+	HasValidationErrorFormat
 ) { }
 
 export class UpdateDocumentDto extends IntersectionType(
-	HasValidationErrorFormat,
-	SkipValidationForImporterToken
-) {}
+	HasValidationErrorFormat
+) {
+	/** Skip validations. Only available for the importer token */
+	@IsOptionalBoolean() skipValidations?: boolean = false;
+}
 
 export const isNewPrimaryDocument = (unknown: Document | SecondaryDocumentOperation)
 	: unknown is NewPrimaryDocument =>

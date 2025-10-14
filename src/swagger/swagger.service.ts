@@ -236,11 +236,11 @@ export class SwaggerService {
 		}, {} as Record<string, Record<string, PersonTokenDecoratorConfig>>);
 
 		Object.keys(document.paths).forEach(path => {
-			Object.keys(document.paths[path]!).forEach(method => {
+			Object.keys(document.paths[path]!).forEach((method: "get" | "post" | "put" | "delete") => {
 				const personTokenConfig = map[path]?.[method];
-				if (personTokenConfig) {
-					if (!(document as any).paths[path][method].parameters) {
-						(document as any).paths[path][method].parameters = {};
+				if (personTokenConfig) { // Apply @PersonToken() decorator to our swagger.
+					if (!document.paths[path]![method]!.parameters) {
+						document.paths[path]![method]!.parameters = [];
 					}
 					const description = personTokenConfig.description || ("Person's authentication token" + (
 						personTokenConfig.required == false
@@ -251,8 +251,20 @@ export class SwaggerService {
 						name: "Person-Token",
 						required: false,
 						description,
-						in: "headers",
+						in: "header",
 						schema: { type: "string" }
+					});
+				} else { // Fix remote swaggers that have person token in query params.
+					const { parameters } = document.paths[path]![method]!;
+					if (!parameters) {
+						return;
+					}
+
+					parameters.forEach((param: ParameterObject) => {
+						if (param.name === "personToken" && param.in === "query") {
+							param.name = "Person-Token";
+							param.in = "header";
+						}
 					});
 				}
 			});

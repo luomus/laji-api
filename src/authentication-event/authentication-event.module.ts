@@ -1,10 +1,10 @@
 import { FactoryProvider, Module } from "@nestjs/common";
-import { PersonTokenService } from "./person-token.service";
+import { PersonTokenService } from "./authentication-event.service";
 import { ConfigService } from "@nestjs/config";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { Person } from "src/persons/person.dto";
 import { HttpService } from "@nestjs/axios";
-import { PersonTokenController } from "./person-token.controller";
+import { PersonTokenController } from "./authentication-event.controller";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { LAJI_AUTH_CLIENT } from "src/provider-tokens";
 

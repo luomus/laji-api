@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ProfileService } from "./profile.service";
-import { PersonTokenService } from "src/person-token/person-token.service";
+import { PersonTokenService } from "src/authentication-event/authentication-event.service";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import { HttpException } from "@nestjs/common";

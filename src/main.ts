@@ -63,9 +63,15 @@ export async function bootstrap() {
 	app.use("/organization/by-id", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}/organizations/`
 	}));
+
 	// Backward compatibity to old API signature of organizations.
 	app.use("/organization", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}/organizations`
+	}));
+
+	// Backward compatibity to old API signature of organizations.
+	app.use("/person-token", createProxyMiddleware({
+		target: `http://127.0.0.1:${port}/authentication-event`
 	}));
 
 	app.useStaticAssets("static");

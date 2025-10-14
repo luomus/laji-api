@@ -13,7 +13,7 @@ import { LajiAuthClientModule } from "./laji-auth-client/laji-auth-client.module
 import { LajiAuthClientService } from "./laji-auth-client/laji-auth-client.service";
 import { MetadataModule } from "./metadata/metadata.module";
 import { NotificationsModule } from "./notifications/notifications.module";
-import { PersonTokenModule } from "./person-token/person-token.module";
+import { PersonTokenModule } from "./authentication-event/authentication-event.module";
 import { PersonsModule } from "./persons/persons.module";
 import { ProfileModule } from "./profile/profile.module";
 import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter";
