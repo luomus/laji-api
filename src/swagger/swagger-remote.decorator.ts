@@ -78,7 +78,7 @@ export class AddLocalJsonLdContextFromEntry implements NestInterceptor {
 
 	addLocalJsonLdContext(result: any) {
 		const entry: SwaggerRemoteRefEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
-		return addLocalJsonLdContext(entry?.localJsonLdContext);
+		return addLocalJsonLdContext(entry?.localJsonLdContext)(result);
 	}
 }
 
