@@ -32,7 +32,7 @@ export class Translator implements NestInterceptor {
 			return result;
 		}
 
-		const jsonLdContext = this.getJsonLdContextFromSample(takeSample(result));
+		const jsonLdContext = result["@context"] || this.getJsonLdContextFromSample(takeSample(result));
 
 		if (!jsonLdContext) {
 			throw new Error("Translator failed to get the @context for item");
