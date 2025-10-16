@@ -84,6 +84,7 @@ export class PersonsController {
 	/** Create profile */
 	@Version("1")
 	@Post("profile")
+	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
 	async createProfile(@PersonToken() person: Person, @Body() profile: Profile) {
 		return this.profileService.createWithPersonId(person.id, profile);
 	}
