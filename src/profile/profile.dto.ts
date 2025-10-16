@@ -12,9 +12,10 @@ export class Profile {
 	friends: string[] = [];
 	blocked: string[] = [];
 	friendRequests: string[] = [];
+
 	@ApiProperty({
-		    type: "object",
-		    additionalProperties: true,
+		type: "object",
+		additionalProperties: true,
 		required: false
 	})
 	settings: JSONObjectSerializable = {};

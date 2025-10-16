@@ -36,4 +36,4 @@ const addMetadata = (localJsonLdContext?: string) => (item: any) => {
 	Reflect.defineMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, localJsonLdContext, item.constructor);
 	localJsonLdContextToClass[localJsonLdContext] = item.constructor;
 	return item;
-}
+};

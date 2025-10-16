@@ -1,4 +1,4 @@
-import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
+import { MaybeArray } from "src/typing.utils";
 import { AllQueryParams, GetTaxaAggregateDto, GetTaxaPageDto, SimpleFilters, TaxonElastic } from "./taxa.dto";
 import { firstFromNonEmptyArr, pipe } from "src/utils";
 import { HttpException } from "@nestjs/common";

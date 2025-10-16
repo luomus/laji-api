@@ -65,7 +65,6 @@ export class Translator implements NestInterceptor {
 		if (sample["@context"]) {
 			return sample["@context"] as string;
 		}
-		console.log("HAI!", sample.constructor, Reflect.getMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, sample.constructor));
 		const localJsonLdContextName = Reflect.getMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, sample.constructor);
 		if (localJsonLdContextName) {
 			return `${this.config.get<string>("SELF_HOST")}/context/${localJsonLdContextName}`;
