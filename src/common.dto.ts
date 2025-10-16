@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsInt, isObject } from "class-validator";
+import { IsInt, IsOptional, IsString, isObject } from "class-validator";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
 import { IntersectionType } from "@nestjs/swagger";
 
@@ -37,9 +37,9 @@ export type CompleteMultiLang = Record<Exclude<Lang, Lang.multi>, string>;
 export type MultiLang = Partial<CompleteMultiLang>;
 
 export class MultiLangDto {
-	fi?: string;
-	en?: string;
-	sv?: string;
+	@IsString() @IsOptional() fi?: string;
+	@IsString() @IsOptional() en?: string;
+	@IsString() @IsOptional() sv?: string;
 }
 
 export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, Lang.multi>): (string | undefined) => {

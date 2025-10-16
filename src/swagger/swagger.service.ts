@@ -32,6 +32,7 @@ type SwaggerSchema = Record<string, SchemaItem>;
 export class SwaggerService {
 
 	private logger = new Logger(SwaggerService.name);
+	private rawDocument: OpenAPIObject;
 
 	storeSwaggerDoc?: OpenAPIObject;
 	lajiBackendSwaggerDoc?: OpenAPIObject;
@@ -54,6 +55,7 @@ export class SwaggerService {
 		this.fetchRemoteSwagger = this.fetchRemoteSwagger.bind(this);
 		this.patchMultiLangs = this.patchMultiLangs.bind(this);
 		this.patchPersonToken = this.patchPersonToken.bind(this);
+		this.getStoreSwaggerDoc = this.getStoreSwaggerDoc.bind(this);
 	}
 
 	@Interval(CACHE_30_MIN)
@@ -98,6 +100,14 @@ export class SwaggerService {
 		} catch (e) {
 			this.logger.error("Failed to fetch remote swagger. Our swagger document is broken!", { entry });
 		}
+	}
+
+	async setDocument(document: OpenAPIObject) {
+		this.rawDocument = document;
+	}
+
+	async getRawDocument() {
+		return this.rawDocument;
 	}
 
 	patch(document: OpenAPIObject) {

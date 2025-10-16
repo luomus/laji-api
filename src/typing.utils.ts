@@ -3,7 +3,7 @@ export const isObject = (any: unknown): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;
 
 export type JSONSerializable = string | number | boolean | null | JSONObjectSerializable | JSONSerializable[];
-export type JSONObjectSerializable<T = any> = { [prop in keyof T & string]: JSONSerializable };
+export type JSONObjectSerializable<T = any> = { [prop in keyof T & string]?: JSONSerializable };
 
 export const isJSONObjectSerializable = (json?: JSONSerializable): json is JSONObjectSerializable => isObject(json);
 

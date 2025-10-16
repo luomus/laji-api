@@ -7,12 +7,16 @@ import { plainToClass } from "class-transformer";
 import { LangService } from "src/lang/lang.service";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 import { firstFromNonEmptyArr } from "src/utils";
+import { ConfigService } from "@nestjs/config";
+import { LOCAL_JSON_LD_CONTEXT_METADATA_KEY } from "src/serialization/serializer.interceptor";
 
+/** Translates the response according to a JSON-LD context */
 @Injectable()
 export class Translator implements NestInterceptor {
 
 	constructor(
-		private langService: LangService
+		private langService: LangService,
+		private config: ConfigService
 	) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -21,10 +25,6 @@ export class Translator implements NestInterceptor {
 	}
 
 	async translate(request: Request, result: any) {
-		const lang = getLang(request);
-		const { selectedFields } = plainToClass(HasSelectedFields, request.query);
-		const jsonLdContext = this.getJsonLdContext(result);
-
 		if (!result
 			|| (result instanceof Array && !result.length)
 			|| isPageLikeResult(result) && !result.results.length
@@ -32,9 +32,14 @@ export class Translator implements NestInterceptor {
 			return result;
 		}
 
+		const jsonLdContext = this.getJsonLdContextFromSample(takeSample(result));
+
 		if (!jsonLdContext) {
 			throw new Error("Translator failed to get the @context for item");
 		}
+
+		const lang = getLang(request);
+		const { selectedFields } = plainToClass(HasSelectedFields, request.query);
 
 		const translated = await applyToResult(
 			await this.langService.contextualTranslateWith(jsonLdContext, lang, selectedFields),
@@ -48,25 +53,27 @@ export class Translator implements NestInterceptor {
 		if (result["@context"]) {
 			return applyLangToJsonLdContext(result, lang);
 		}
-		return typeof getJsonLdContextFromSample(takeSample(result)) === "string"
+		return typeof this.getJsonLdContextFromSample(takeSample(result)) === "string"
 			? applyToResult(item => applyLangToJsonLdContext(item as HasJsonLdContext, lang))(result)
 			: result;
 	}
 
-	private getJsonLdContext(result: any): string | undefined {
-		if (result["@context"]) {
-			return result["@context"];
-		}
-		const sample = takeSample(result);
-
-		if (sample === undefined) {
+	private getJsonLdContextFromSample(sample: Record<string, unknown>) {
+		if (!sample) {
 			return undefined;
 		}
-
-		return getJsonLdContextFromSample(sample);
-	}
+		if (sample["@context"]) {
+			return sample["@context"] as string;
+		}
+		console.log("HAI!", sample.constructor, Reflect.getMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, sample.constructor));
+		const localJsonLdContextName = Reflect.getMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, sample.constructor);
+		if (localJsonLdContextName) {
+			return `${this.config.get<string>("SELF_HOST")}/context/${localJsonLdContextName}`;
+		}
+	};
 
 }
+
 const takeSample = (result: any) => {
 	if (isPageLikeResult(result)) {
 		return result.results[0];
@@ -74,15 +81,6 @@ const takeSample = (result: any) => {
 		return result[0];
 	}
 	return result;
-};
-
-const getJsonLdContextFromSample = (sample: Record<string, unknown>) => {
-	if (!sample) {
-		return undefined;
-	}
-	if (sample["@context"]) {
-		return sample["@context"] as string;
-	}
 };
 
 export const getLang = (request: Request): Lang => {

@@ -1,10 +1,11 @@
 import { isObject } from "src/typing.utils";
 import { SwaggerCustomizationCommon, createSwaggerScanner } from "./swagger-scanner";
-import { CallHandler, ExecutionContext, HttpException, Injectable, NestInterceptor, UseInterceptors, applyDecorators,
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor, UseInterceptors, applyDecorators,
 	mixin } from "@nestjs/common";
 import { Observable, switchMap } from "rxjs";
 import { applyToResult } from "src/pagination.utils";
 import { localJsonLdContextToRemoteSwaggerRefEntry } from "src/json-ld/json-ld.service";
+import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
 //The name of the schema object in the remote OpenAPI document's schemas */
 export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
@@ -37,7 +38,7 @@ const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
 export function SwaggerRemoteRef(entry: SwaggerRemoteRefEntry) {
 	return applyDecorators(
 		bindSwaggerRemoteRefMetadata(entry),
-		UseInterceptors(AddLocalJsonLdContext, BindSwaggerRemoteRefMetadata(entry))
+		UseInterceptors(AddLocalJsonLdContextFromEntry, BindSwaggerRemoteRefMetadata(entry))
 	);
 }
 
@@ -69,7 +70,7 @@ function BindSwaggerRemoteRefMetadata(entry: SwaggerRemoteRefEntry) {
 }
 
 @Injectable()
-class AddLocalJsonLdContext implements NestInterceptor {
+export class AddLocalJsonLdContextFromEntry implements NestInterceptor {
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		return next.handle().pipe(switchMap(applyToResult(this.addLocalJsonLdContext)));
@@ -77,17 +78,7 @@ class AddLocalJsonLdContext implements NestInterceptor {
 
 	addLocalJsonLdContext(result: any) {
 		const entry: SwaggerRemoteRefEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
-		if (!entry || !entry.localJsonLdContext) {
-			return result;
-		}
-
-		const { localJsonLdContext } = entry;
-		const { SELF_HOST } = process.env;
-		if (typeof SELF_HOST !== "string") {
-			throw new HttpException("`SELF_HOST` env variable not found", 500);
-		}
-		result["@context"] = `${SELF_HOST}/context/${localJsonLdContext}`;
-		return result;
+		return addLocalJsonLdContext(entry?.localJsonLdContext);
 	}
 }
 

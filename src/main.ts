@@ -69,7 +69,7 @@ export async function bootstrap() {
 		target: `http://127.0.0.1:${port}/organizations`
 	}));
 
-	// Backward compatibity to old API signature of organizations.
+	// Backward compatibity to old API signature of person-token.
 	app.use("/person-token", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}/authentication-event`
 	}));
@@ -148,6 +148,7 @@ export async function bootstrap() {
 	});
 
 	await app.listen(port, "0.0.0.0");
+	void app.get(SwaggerService).setDocument(document);
 	return app;
 }
 void bootstrap();

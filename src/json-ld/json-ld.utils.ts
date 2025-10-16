@@ -17,7 +17,7 @@ export const applyLangToJsonLdContext = <T extends HasJsonLdContext>(item: T, la
 	return item;
 };
 
-export const getJsonLdContextForLang = (jsonLdContext: string, lang?: Lang) => {
+const getJsonLdContextForLang = (jsonLdContext: string, lang?: Lang) => {
 	if (lang && lang !== Lang.multi && jsonLdContext.startsWith("http://schema.laji.fi")) {
 		return jsonLdContext.replace(/\.jsonld$/, `-${lang}.jsonld`);
 	}
@@ -36,16 +36,19 @@ const langObject = (lang: Lang = Lang.multi): JSONObjectSerializable =>
 		? { "@type": "string", "@container": "@language" }
 		: { "@type": "string", "@language": lang };
 
-export const jsonSchemaToEmbeddedJsonLDContext = (
+export const jsonSchemaToEmbeddedJsonLdContext = (
 	schema: JSONSchema,
-	jsonSchemaBase: OpenAPIObject,
+	jsonSchemaBase?: OpenAPIObject,
 	lang?: Lang
 ) : JSONObjectSerializable => {
 	if (isJSONSchemaRef(schema)) {
 		if (schema.$ref === "#/components/schemas/MultiLangDto") {
 			return langObject(lang);
 		}
-		return jsonSchemaToEmbeddedJsonLDContext(
+		if (!jsonSchemaBase) {
+			throw new Error("Can't parse refs if there's no OpenAPI document to parse from");
+		}
+		return jsonSchemaToEmbeddedJsonLdContext(
 			parseURIFragmentIdentifierRepresentation(jsonSchemaBase, schema.$ref),
 			jsonSchemaBase
 		);
@@ -55,7 +58,7 @@ export const jsonSchemaToEmbeddedJsonLDContext = (
 			return langObject(lang);
 		} else {
 			return Object.keys(properties).reduce((objectJsonLDContext, property) => {
-				objectJsonLDContext[property] = jsonSchemaToEmbeddedJsonLDContext(
+				objectJsonLDContext[property] = jsonSchemaToEmbeddedJsonLdContext(
 					properties[property]!,
 					jsonSchemaBase
 				);
@@ -64,7 +67,7 @@ export const jsonSchemaToEmbeddedJsonLDContext = (
 		}
 	}
 	if (isJSONSchemaArray(schema)) {
-		return { "@container": "@set", ...jsonSchemaToEmbeddedJsonLDContext(schema.items, jsonSchemaBase) };
+		return { "@container": "@set", ...jsonSchemaToEmbeddedJsonLdContext(schema.items, jsonSchemaBase) };
 	} else if ((schema as TypedJSONSchema).type === "string") {
 		return { "@type": "string" };
 	} else if ((schema as TypedJSONSchema).type === "number") {
@@ -76,3 +79,17 @@ export const jsonSchemaToEmbeddedJsonLDContext = (
 	}
 	throw new Error(`Unhandled json schema type ${schema}`);
 };
+
+
+export const addLocalJsonLdContext = (localJsonLdContext?: string) =>
+	(result: any) => {
+		if (!localJsonLdContext) {
+			return result;
+		}
+		const { SELF_HOST } = process.env;
+		if (typeof SELF_HOST !== "string") {
+			throw new HttpException("`SELF_HOST` env variable not found", 500);
+		}
+		result["@context"] = `${SELF_HOST}/context/${localJsonLdContext}`;
+		return result;
+	};
