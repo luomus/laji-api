@@ -1,7 +1,6 @@
 import * as memoize from "memoizee";
 
 /**
- *
  * Memoizes the method, while enabling `@IntelligentInMemoryCache()` to flush it when it likes.
  *
  * Uses the `memoizee` npm library. See it's docs for options.

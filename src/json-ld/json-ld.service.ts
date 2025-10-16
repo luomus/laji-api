@@ -20,12 +20,12 @@ export class JsonLdService {
 	constructor(private swaggerService: SwaggerService, private config: ConfigService) {}
 
 	private async getEmbeddedContextForLocalName(name: string, lang?: Lang) {
-		const embedddedContext = await this.getEmbeddedContextFromRemoteSwagger(name, lang)
+		const embeddedContext = await this.getEmbeddedContextFromRemoteSwagger(name, lang)
 			|| await this.getEmbeddedContextFromMetadata(name, lang);
-		if (!embedddedContext) {
+		if (!embeddedContext) {
 			throw new HttpException(`JSON-LD context not found for name '${name}'`, 404);
 		}
-		return embedddedContext;
+		return embeddedContext;
 	}
 
 	private async getEmbeddedContextFromRemoteSwagger(name: string, lang?: Lang) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseInterceptors } from "@nestjs/common";
+import { Body, HttpCode, Post, UseInterceptors } from "@nestjs/common";
 import { CoordinatesService } from "./coordinates.service";
 import { GeoJSON } from "geojson";
 import { RequestLang } from "src/decorators/request-lang.decorator";
@@ -8,8 +8,9 @@ import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { AddressComponent, LocationResponse } from "./coordinates.dto";
 import { ApiExtraModels } from "@nestjs/swagger";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
-@Controller("coordinates")
+@LajiApiController("coordinates")
 export class CoordinatesController {
 
 	constructor(private coordinatesService: CoordinatesService) {}
@@ -20,6 +21,7 @@ export class CoordinatesController {
 		Translator,
 		Serializer(LocationResponse, { localJsonLdContext: "coordinates-location" })
 	)
+	@HttpCode(200)
 	@ApiExtraModels(AddressComponent)
 	getLocationInformation(@Body() geoJSON: GeoJSON, @RequestLang() lang: Lang) {
 		return this.coordinatesService.getLocationInformation(geoJSON, lang);

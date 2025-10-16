@@ -13,8 +13,6 @@ export const isJSONObjectSerializableOrUndefined = (v?: JSONSerializable)
 
 export type Newable<T> = { new (...args: any[]): T; };
 
-export const isPlainObject = <T>(item: Newable<T> | T) => (item as any).constructor === Object;
-
 export type Flatten<T> = T extends any[] ? T[number] : T;
 export type MaybeArray<T> = T | Array<T>;
 export type MaybePromise<T> = T | Promise<T>;

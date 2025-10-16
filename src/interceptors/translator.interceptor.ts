@@ -70,7 +70,6 @@ export class Translator implements NestInterceptor {
 			return `${this.config.get<string>("SELF_HOST")}/context/${localJsonLdContextName}`;
 		}
 	};
-
 }
 
 const takeSample = (result: any) => {

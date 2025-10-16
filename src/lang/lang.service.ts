@@ -74,8 +74,7 @@ export class LangService {
 
 	@IntelligentMemoize()
 	async getMultiLangJSONPaths(jsonLdContext: string): Promise<string[]> {
-		const embeddedJsonLdContext = await this.jsonLdService.getEmbeddedContext(jsonLdContext);
-		return getMultiLangJSONPaths(embeddedJsonLdContext);
+		return getMultiLangJSONPaths(await this.jsonLdService.getEmbeddedContext(jsonLdContext));
 	}
 }
 
