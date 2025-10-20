@@ -7,9 +7,10 @@ import { AddContextToPageLikeResult } from "src/interceptors/add-context-to-page
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { AddressComponent, LocationResponse } from "./coordinates.dto";
-import { ApiExtraModels } from "@nestjs/swagger";
+import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
+@ApiTags("Coordinates")
 @LajiApiController("coordinates")
 export class CoordinatesController {
 

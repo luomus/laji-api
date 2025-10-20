@@ -55,6 +55,7 @@ import { SoundIdentificationModule } from "./sound-identification/sound-identifi
 import { AutocompleteModule } from "./autocomplete/autocomplete.module";
 import { ShorthandModule } from "./shorthand/shorthand.module";
 import { CoordinatesModule } from "./coordinates/coordinates.module";
+import { FeedbackModule } from "./feedback/feedback.module";
 
 @Module({
 	imports: [
@@ -114,7 +115,8 @@ import { CoordinatesModule } from "./coordinates/coordinates.module";
 		SoundIdentificationModule,
 		AutocompleteModule,
 		ShorthandModule,
-		CoordinatesModule
+		CoordinatesModule,
+		FeedbackModule
 	],
 	controllers: [AppController],
 	providers: [
