@@ -20,7 +20,6 @@ export class ApiUsersController {
 	/* Returns info about user based on the access token */
 	@Get()
 	@UseInterceptors(Serializer(ApiUserEntity, { filterNulls: true }))
-	@BypassAccessTokenAuth()
 	@ApiSecurity("access_token")
 	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
 		const token = accessToken || this.accessTokenService.findAccessTokenFromRequest(request);
