@@ -171,7 +171,8 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 			this.logger.fatal(e, e.stack, {
 				reason: "Store client failed to create resource",
 				type: this.config.resource,
-				resource: item
+				resource: item,
+				remoteError: e.response.data
 			});
 			throw e;
 		}
