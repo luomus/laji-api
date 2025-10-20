@@ -94,7 +94,6 @@ export class MailService {
 	}
 
 	sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
-		console.log("sending", feedback, system);
 		return this.send({
 			to: "helpdesk@laji.fi",
 			from: person?.emailAddress || "noreply",
