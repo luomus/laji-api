@@ -65,12 +65,16 @@ export class SwaggerService {
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
 	}
 
-	getStoreSwaggerDoc() {
-		return this.storeClient.get<OpenAPIObject>("documentation-json", undefined, { cache: true });
+	async getStoreSwaggerDoc() {
+		return this.storeClient.get<OpenAPIObject>("documentation-json", undefined, { cache: CACHE_30_MIN });
 	}
 
 	getLajiBackendSwaggerDoc() {
-		return this.globalClient.get<OpenAPIObject>(`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`);
+		return this.globalClient.get<OpenAPIObject>(
+			`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`,
+			undefined,
+			{ cache: CACHE_30_MIN }
+		);
 	}
 
 	/** Assumes that remote sources are already loaded. */
