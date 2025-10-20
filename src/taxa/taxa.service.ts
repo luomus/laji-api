@@ -4,16 +4,17 @@ import {
 	AllQueryParams, ChecklistVersion, GetTaxaAggregateDto, GetTaxaPageDto, GetTaxaResultsDto, GetTaxonDto,
 	TaxaBaseQuery, TaxaSearchDto, Taxon, TaxonElastic
 } from "./taxa.dto";
-import { TAXA_CLIENT, TAXA_ELASTIC_CLIENT } from "src/provider-tokens";
-import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
+import { TAXA_CLIENT } from "src/provider-tokens";
+import { MaybeArray } from "src/typing.utils";
 import { asArray, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 import { paginateAlreadyPaginated } from "src/pagination.utils";
-import { ElasticResponse, TaxaFilters, buildElasticQuery } from "./taxa-elastic-query";
+import { TaxaFilters, buildElasticQuery } from "./taxa-elastic-query";
 import { OpenAPIObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema, JSONSchemaObject, TypedJSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef }
 	from "src/json-schema.utils";
 import { SwaggerService } from "src/swagger/swagger.service";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
+import { ElasticResponse, ElasticService } from "src/elastic/elastic.service";
 
 const CHECKLIST_VERSION_MAP: Record<ChecklistVersion, string> = {
 	"current": "current",
@@ -30,7 +31,7 @@ export class TaxaService {
 
 	constructor(
 		@Inject(TAXA_CLIENT) private taxaClient: RestClientService<Taxon>,
-		@Inject(TAXA_ELASTIC_CLIENT) private taxaElasticClient: RestClientService<JSONObjectSerializable>,
+		private elasticService: ElasticService,
 		private swaggerService: SwaggerService
 	) {}
 
@@ -57,8 +58,7 @@ export class TaxaService {
 	}
 
 	private async elasticSearch(query: Partial<AllQueryParams>, filters?: TaxaFilters, taxon?: TaxonElastic) {
-		return this.taxaElasticClient.post<ElasticResponse>(
-			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa/_search`,
+		return this.elasticService.search<TaxonElastic>(`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa`, 
 			buildElasticQuery(query, filters, await this.getFiltersSchema(), taxon)
 		);
 	}
@@ -213,7 +213,7 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 	};
 };
 
-const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
+const pageAdapter = ({ hits }: ElasticResponse<TaxonElastic>, query: GetTaxaPageDto) =>
 	paginateAlreadyPaginated({
 		results: hits.hits.map(({ _source }) =>  mapTaxon(_source, query)),
 		total: hits.total,
@@ -221,7 +221,7 @@ const pageAdapter = ({ hits }: ElasticResponse, query: GetTaxaPageDto) =>
 		currentPage: query.page!
 	}, false);
 
-const arrayAdapter = ({ hits }: ElasticResponse, query: Partial<TaxaBaseQuery>) =>
+const arrayAdapter = ({ hits }: ElasticResponse<TaxonElastic>, query: Partial<TaxaBaseQuery>) =>
 	hits.hits.map(({ _source }) =>  mapTaxon(_source, query));
 
 const mapTaxonParents = (query: Partial<AllQueryParams>) => (taxon: TaxonElastic): TaxonElastic =>
@@ -246,7 +246,7 @@ const mapTaxon = (taxon: TaxonElastic, query: Partial<AllQueryParams>)
 	)(taxon);
 
 const mapResponseAggregations = (
-	aggsResult: ElasticResponse["aggregations"],
+	aggsResult: ElasticResponse<TaxonElastic>["aggregations"],
 	aggregateBy: GetTaxaAggregateDto["aggregateBy"]
 ) => {
 	if (!aggregateBy) {

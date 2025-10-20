@@ -1,39 +1,11 @@
-import { JSONObjectSerializable, MaybeArray } from "src/typing.utils";
+import { MaybeArray } from "src/typing.utils";
 import { AllQueryParams, GetTaxaAggregateDto, GetTaxaPageDto, SimpleFilters, TaxonElastic } from "./taxa.dto";
 import { firstFromNonEmptyArr, pipe } from "src/utils";
 import { HttpException } from "@nestjs/common";
 import { JSONSchemaObject } from "src/json-schema.utils";
-
+import { ElasticQuery, ElasticQueryBoolNode } from "src/elastic/elastic.service";
 
 export type TaxaFilters = Record<string, MaybeArray<string> | boolean>;
-
-export type ElasticResponse = {
-	hits: { total: number,  hits: { _source: TaxonElastic }[] };
-	aggregations: JSONObjectSerializable;
-};
-
-type ElasticQuery = {
-	from?: number;
-	pageSize?: number;
-	size?: number;
-	parents?: string;
-	sort?: Record<string, { order: "asc" | "desc" }>[];
-	aggs?: JSONObjectSerializable;
-	id?: string;
-	query: {
-		bool?: {
-			filter?: ElasticQueryBoolNode[];
-		},
-		ids?: { values: string[] }
-	};
-	_source: { excludes: string[] } | string[];
-};
-
-type ElasticQueryBoolNode =
-	{ terms: Record<string, MaybeArray<string | number | boolean>> }
-	| { term: Record<string, string | number | boolean> }
-	| { range: Record<string,  { gte: number, lte: number }> }
-	| { bool: { must_not?: ElasticQueryBoolNode } };
 
 type AggregateNode = Record<string, { terms: { field: string, size: number }, aggs?: AggregateNode }>;
 

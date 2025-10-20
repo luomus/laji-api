@@ -194,3 +194,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 * `GET /person-token/{personToken}` -> `GET /person-token`
 * `DELETE /person-token/{personToken}` -> `DELETE /person-token`
+
+## Coordinates
+
+* `/coordinates/location` doesn't have { "status": "OK" } in the response JSON. Use the actual HTTP status instead.

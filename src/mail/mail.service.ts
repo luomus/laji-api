@@ -4,6 +4,7 @@ import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 import { CompleteMultiLang } from "src/common.dto";
 import { NamedPlace } from "src/named-places/named-places.dto";
+import { FeedbackDto, InformationSystem } from "src/feedback/feedback.dto";
 type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
 type HasEmailAddress = { emailAddress: string };
@@ -31,7 +32,7 @@ export class MailService {
 		return this.mailerService.sendMail({ ...options, context, subject });
 	}
 
-	async sendFormPermissionRequested(user: HasEmailAddress, context: FormPermissionMailContext) {
+	sendFormPermissionRequested(user: HasEmailAddress, context: FormPermissionMailContext) {
 		return this.send({
 			to: user.emailAddress,
 			subject: `Pääsypyyntösi lomakkeelle "${context.formTitle.fi}" on vastaanotettu`,
@@ -40,7 +41,7 @@ export class MailService {
 		});
 	}
 
-	async sendFormPermissionAccepted(user: HasEmailAddress, context: FormPermissionMailContext) {
+	sendFormPermissionAccepted(user: HasEmailAddress, context: FormPermissionMailContext) {
 		return this.send({
 			to: user.emailAddress,
 			subject: `Pääsypyyntösi lomakkeelle "${context.formTitle.fi}" on hyväksytty`,
@@ -49,7 +50,7 @@ export class MailService {
 		});
 	}
 
-	async sendFormPermissionRequestReceived(
+	sendFormPermissionRequestReceived(
 		user: HasEmailAddress,
 		context: FormPermissionMailContext & { person: Person, formID: string }
 	) {
@@ -61,7 +62,7 @@ export class MailService {
 		});
 	}
 
-	async sendApiUserCreated(user: HasEmailAddress, token: string) {
+	sendApiUserCreated(user: HasEmailAddress, token: string) {
 		return this.send({
 			to: user.emailAddress,
 			subject: `Access token for ${this.configService.get("MAIL_API_BASE")}`,
@@ -70,7 +71,7 @@ export class MailService {
 		});
 	}
 
-	async sendNamedPlaceReserved(user: HasEmailAddress, context: { place: NamedPlace, until: string}) {
+	sendNamedPlaceReserved(user: HasEmailAddress, context: { place: NamedPlace, until: string}) {
 		return this.send({
 			to: user.emailAddress,
 			subject: "Vakiolinjan varauksen vahvistus",
@@ -79,7 +80,7 @@ export class MailService {
 		});
 	}
 
-	async sendFatalErrorLogEntry(message: any, stack?: string, context?: unknown) {
+	sendFatalErrorLogEntry(message: any, stack?: string, context?: unknown) {
 		return this.send({
 			to: ERROR_EMAIL,
 			subject: "laji-api error",
@@ -89,6 +90,16 @@ export class MailService {
 				stack: JSON.stringify(stack, undefined, 2),
 				context: JSON.stringify(context, undefined, 2)
 			}
+		});
+	}
+
+	sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
+		return this.send({
+			to: "helpdesk@laji.fi",
+			from: person?.emailAddress || "noreply",
+			subject: feedback.subject,
+			template: "./feedback",
+			context: { feedback, system, person }
 		});
 	}
 }

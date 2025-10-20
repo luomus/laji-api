@@ -3,7 +3,7 @@ export const isObject = (any: unknown): any is Record<string, unknown> =>
 	typeof any === "object" && !Array.isArray(any) && any !== null;
 
 export type JSONSerializable = string | number | boolean | null | JSONObjectSerializable | JSONSerializable[];
-export type JSONObjectSerializable<T = any> = { [prop in keyof T & string]: JSONSerializable };
+export type JSONObjectSerializable<T = any> = { [prop in keyof T & string]?: JSONSerializable };
 
 export const isJSONObjectSerializable = (json?: JSONSerializable): json is JSONObjectSerializable => isObject(json);
 
@@ -12,8 +12,6 @@ export const isJSONObjectSerializableOrUndefined = (v?: JSONSerializable)
 	v === undefined || isJSONObjectSerializable(v);
 
 export type Newable<T> = { new (...args: any[]): T; };
-
-export const isPlainObject = <T>(item: Newable<T> | T) => (item as any).constructor === Object;
 
 export type Flatten<T> = T extends any[] ? T[number] : T;
 export type MaybeArray<T> = T | Array<T>;

@@ -54,6 +54,8 @@ import { JsonLdModule } from "./json-ld/json-ld.module";
 import { SoundIdentificationModule } from "./sound-identification/sound-identifiation.module";
 import { AutocompleteModule } from "./autocomplete/autocomplete.module";
 import { ShorthandModule } from "./shorthand/shorthand.module";
+import { CoordinatesModule } from "./coordinates/coordinates.module";
+import { FeedbackModule } from "./feedback/feedback.module";
 
 @Module({
 	imports: [
@@ -112,7 +114,9 @@ import { ShorthandModule } from "./shorthand/shorthand.module";
 		JsonLdModule,
 		SoundIdentificationModule,
 		AutocompleteModule,
-		ShorthandModule
+		ShorthandModule,
+		CoordinatesModule,
+		FeedbackModule
 	],
 	controllers: [AppController],
 	providers: [

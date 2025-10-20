@@ -74,8 +74,7 @@ export class LangService {
 
 	@IntelligentMemoize()
 	async getMultiLangJSONPaths(jsonLdContext: string): Promise<string[]> {
-		const embeddedJsonLdContext = await this.jsonLdService.getEmbeddedContext(jsonLdContext);
-		return getMultiLangJSONPaths(embeddedJsonLdContext);
+		return getMultiLangJSONPaths(await this.jsonLdService.getEmbeddedContext(jsonLdContext));
 	}
 }
 
@@ -114,7 +113,7 @@ interface TranslateMaybeMultiLang {
 /**
  * If given value is a multilang object, it's lang value is returned. Otherwise, the value is returned as-is.
  *
- * This function is meant for data without LD-JSON context. Use the lang service for contextual data.
+ * This function is meant for data without JSON-LD context. Use the lang service for contextual data.
  */
 export const translateMaybeMultiLang: TranslateMaybeMultiLang  =
 	<T extends MultiLang | unknown>(value: T, lang: Lang): string | undefined | T => {
