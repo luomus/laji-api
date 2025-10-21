@@ -2,6 +2,8 @@
 var config = require("../config.json");
 var helpers = require("../helpers");
 const { request, expect } = require("chai");
+const { url } = helpers;
+const { access_token, personToken } = config;
 
 describe("/documents/batch", function() {
 	const basePath = config.urls.document;
@@ -36,21 +38,21 @@ describe("/documents/batch", function() {
 
 		it("returns 401 when no access token specified", async function() {
 			const res = await request(this.server)
-				.post(`${batchPath}?personToken=${config.user.token}`)
+				.post(url(batchPath, { personToken }))
 				.send(documents);
 			res.should.have.status(401);
 		});
 
 		it("returns 401 when no person token specified", async function() {
 			const res = await request(this.server)
-				.post(`${batchPath}?access_token=${config.access_token}`)
+				.post(url(batchPath, { access_token }))
 				.send(documents);
 			res.should.have.status(400);
 		});
 
 		it("starts job", async function() {
 			const res = await request(this.server)
-				.post(`${batchPath}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.post(url(batchPath, { access_token, personToken }))
 				.send(documents);
 
 			res.should.have.status(200);
@@ -72,7 +74,7 @@ describe("/documents/batch", function() {
 			let processed = 0;
 			while (processed < documents.length) {
 				const res = await request(this.server)
-					.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -97,7 +99,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
@@ -116,7 +118,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.post(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.post(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 
 			res.should.have.status(200);
@@ -137,7 +139,7 @@ describe("/documents/batch", function() {
 			let processed = 0;
 			while (processed < documents.length) {
 				const res = await request(this.server)
-					.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -164,7 +166,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("COMPLETED");
@@ -187,7 +189,7 @@ describe("/documents/batch", function() {
 			}
 
 			countAfterSend = (await request(this.server)
-				.get(`${basePath}/count/byYear?access_token=${config.access_token}&personToken=${config.user.token}`).send()
+				.get(url(`${batchPath}/count/byYear`, { access_token, personToken })).send()
 			).body.find(countResponse => countResponse.year === "2024").count;
 
 			expect(countAfterSend).to.equal(countBeforeSend + documents.length);
@@ -195,7 +197,7 @@ describe("/documents/batch", function() {
 			// Silently remove documents.
 			createdDocuments.forEach(d => {
 				void request(this.server)
-					.delete(`${basePath}/${d.id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.delete(url(`${batchPath}/${d.id}`, { access_token, personToken })).send()
 					.send();
 			});
 		});
@@ -223,7 +225,7 @@ describe("/documents/batch", function() {
 
 		it("starts job", async function() {
 			const res = await request(this.server)
-				.post(`${batchPath}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.post(url(batchPath, { access_token, personToken }))
 				.send(documents);
 
 			res.should.have.status(200);
@@ -245,7 +247,7 @@ describe("/documents/batch", function() {
 			let processed = 0;
 			while (processed < documents.length) {
 				const res = await request(this.server)
-					.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -270,7 +272,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
@@ -289,7 +291,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.post(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 
 			res.should.have.status(200);
@@ -310,7 +312,7 @@ describe("/documents/batch", function() {
 			let processed = 0;
 			while (processed < documents.length) {
 				const res = await request(this.server)
-					.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -334,7 +336,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("COMPLETED");
@@ -356,7 +358,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 			res.should.have.status(200);
 			res.body.documents.forEach(d => expect(d.dataOrigin).to.eql(["MY.dataOriginSpreadsheetFile"]));
@@ -368,7 +370,7 @@ describe("/documents/batch", function() {
 
 			// Start a job.
 			const res = await request(this.server)
-				.post(`${batchPath}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.post(url(batchPath, { access_token, personToken }))
 				.send(createdSecondaryDocuments.map(({ id }) => ({ id, delete: true, formID: "MHL.618" })));
 
 			res.should.have.status(200);
@@ -385,7 +387,7 @@ describe("/documents/batch", function() {
 			let processed = 0;
 			while (processed < documents.length) {
 				const res = await request(this.server)
-					.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -405,7 +407,7 @@ describe("/documents/batch", function() {
 
 			// Start job completion.
 			const completionRes = await request(this.server)
-				.post(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.post(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 
 			completionRes.should.have.status(200);
@@ -421,7 +423,7 @@ describe("/documents/batch", function() {
 			processed = 0;
 			while (processed < documents.length) {
 				const res = await request(this.server)
-					.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -441,7 +443,7 @@ describe("/documents/batch", function() {
 			expect(res.body.status.processed).to.equal(documents.length);
 
 			const completedRes = await request(this.server)
-				.get(`${batchPath}/${id}?access_token=${config.access_token}&personToken=${config.user.token}`)
+				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 			res.body.should.have.property("phase").to.eql("COMPLETED");
 			completedRes.should.have.status(200);
