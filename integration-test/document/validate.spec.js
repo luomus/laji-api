@@ -1,6 +1,8 @@
 const config = require("../config.json");
 const helpers = require("../helpers");
-const { request, expect } = require("chai");
+const { request } = require("chai");
+const { url } = helpers;
+const { access_token, personToken } = config;
 
 /* jshint ignore:start */
 /*
@@ -10,7 +12,7 @@ Test named place:
 /* jshint ignore:end */
 
 describe("/documents/validate", function() {
-	const basePath = config.urls.document + "/validate";
+	const basePath = "/documents/validate";
 	const testForm = "MHL.7";
 	const testNamedPlaceNotTooNearOtherPlacesForm = "MHL.73";
 	const testNP = "MNP.22073";
@@ -19,20 +21,14 @@ describe("/documents/validate", function() {
 	const dateHasDoc = "2017-11-02";
 	const dateHasNoDoc = "2017-10-21";
 
-	const waterbirdPairForm = "MHL.66";
-
-	it("returns 401 when no access token specified", function(done) {
-		request(this.server)
+	it("returns 401 when no access token specified", async function() {
+		const res = await request(this.server)
 			.get(basePath)
-			.end(function(err, res) {
-				res.should.have.status(401);
-				done();
-			});
+		res.should.have.status(401);
 	});
 
-	it("allows valid remote validators", function (done) {
+	it("allows valid remote validators", async function() {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = {
 			formID: testForm,
 			namedPlaceID: testNP,
@@ -48,18 +44,14 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		request(this.server)
-			.post(query)
-			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(200);
-				done();
-			});
+		const res = await request(this.server)
+			.post(url(basePath, { access_token, personToken }))
+			.send(document);
+		res.should.have.status(200);
 	});
 
-	it("doesn't allow document to existing named place if already count", function (done) {
+	it("doesn't allow document to existing named place if already count", async function() {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = {
 			formID: testForm,
 			namedPlaceID: testNP,
@@ -75,29 +67,25 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		request(this.server)
-			.post(query)
-			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(422);
-				res.body.error.should.be.deep.equal({
-					"details": {
-						"gatheringEvent": {
-							"dateBegin": [
-								"Observation already exists within the given gathering period."
-							]
-						}
-					},
-					"message": "Unprocessable Entity",
-					"statusCode": 422
-				});
-				done();
-			});
+		const res = await request(this.server)
+			.post(url(basePath, { access_token, personToken }))
+			.send(document);
+		res.should.have.status(422);
+		res.body.error.should.be.deep.equal({
+			"details": {
+				"gatheringEvent": {
+					"dateBegin": [
+						"Observation already exists within the given gathering period."
+					]
+				}
+			},
+			"message": "Unprocessable Entity",
+			"statusCode": 422
+		});
 	});
 
-	it("allows document to existing if editing document", function (done) {
+	it("allows document to existing if editing document", async function() {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"] + "&personToken=" + config.user.token;
 		const document = {
 			id: docID,
 			formID: testForm,
@@ -114,19 +102,14 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		request(this.server)
-			.post(query)
-			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(200);
-				done();
-			});
+		const res = await request(this.server)
+			.post(url(basePath, { access_token, personToken }))
+			.send(document);
+		res.should.have.status(200);
 	});
 
-	it("doesn't run validators when only warning validators are selected" , function (done) {
+	it("doesn't run validators when only warning validators are selected" , async function() {
 		this.timeout(10000);
-		const query = basePath + "?access_token=" + config["access_token"]
-			+ "&type=warning&personToken=" + config.user.token;
 		const document = {
 			formID: testForm,
 			namedPlaceID: testNP,
@@ -142,20 +125,15 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		request(this.server)
-			.post(query)
+		const res = await request(this.server)
+			.post(url(basePath, { access_token, personToken, type: "warning" }))
 			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(200);
-				done();
-			});
+		res.should.have.status(200);
 	});
 
 	describe("taxonBelongsToInformalTaxonGroup", function() {
-		it("allows valid case" , function (done) {
+		it("allows valid case" , async function() {
 			this.timeout(10000);
-			const query = basePath + "?access_token=" + config["access_token"] +
-				"&validator=taxonBelongsToInformalTaxonGroup&informalTaxonGroup=MVL.1";
 			const document = {
 				formID: testForm,
 				namedPlaceID: testNP,
@@ -178,19 +156,19 @@ describe("/documents/validate", function() {
 					}
 				]
 			};
-			request(this.server)
-				.post(query)
-				.send(document)
-				.end(function (err, res) {
-					res.should.have.status(200);
-					done();
-				});
+			const res = await request(this.server)
+				.post(url(basePath, {
+					access_token,
+					personToken,
+					validator: "taxonBelongsToInformalTaxonGroup",
+					informalTaxonGroup: "MVL.1"
+				}))
+				.send(document);
+			res.should.have.status(200);
 		});
 
-		it("doesn't allow invalid case" , function (done) {
+		it("doesn't allow invalid case" , async function() {
 			this.timeout(10000);
-			const query = basePath + "?access_token=" + config["access_token"] +
-				"&validator=taxonBelongsToInformalTaxonGroup&informalTaxonGroup=MVL.2";
 			const document = {
 				formID: testForm,
 				namedPlaceID: testNP,
@@ -213,38 +191,38 @@ describe("/documents/validate", function() {
 					}
 				]
 			};
-			request(this.server)
-				.post(query)
-				.send(document)
-				.end(function (err, res) {
-					res.should.have.status(422);
-					res.body.error.should.be.deep.equal({
-						"details": {
-							"gatherings": {
+			const res = await request(this.server)
+				.post(url(basePath, {
+					access_token,
+					personToken,
+					validator: "taxonBelongsToInformalTaxonGroup",
+					informalTaxonGroup: "MVL.2"
+				}))
+				.send(document);
+			res.should.have.status(422);
+			res.body.error.should.be.deep.equal({
+				"details": {
+					"gatherings": {
+						"0": {
+							"units": {
 								"0": {
-									"units": {
-										"0": {
-											"unitFact": {
-												"autocompleteSelectedTaxonID": [
-													"Taxon does not belong to given informal taxon groups."
-												]
-											}
-										}
+									"unitFact": {
+										"autocompleteSelectedTaxonID": [
+											"Taxon does not belong to given informal taxon groups."
+										]
 									}
 								}
 							}
-						},
-						"message": "Unprocessable Entity",
-						"statusCode": 422
-					});
-					done();
-				});
+						}
+					}
+				},
+				"message": "Unprocessable Entity",
+				"statusCode": 422
+			});
 		});
 
-		it("doesn't allow invalid case when multiple units" , function (done) {
+		it("doesn't allow invalid case when multiple units" , async function() {
 			this.timeout(10000);
-			const query = basePath + "?access_token=" + config["access_token"] +
-				"&validator=taxonBelongsToInformalTaxonGroup&informalTaxonGroup=MVL.2";
 			const document = {
 				formID: testForm,
 				namedPlaceID: testNP,
@@ -273,39 +251,41 @@ describe("/documents/validate", function() {
 					}
 				]
 			};
-			request(this.server)
+			const res = await request(this.server)
 				.post(query)
-				.send(document)
-				.end(function (err, res) {
-					res.should.have.status(422);
-					res.body.error.should.be.deep.equal({
-						"details": {
-							"gatherings": {
-								"0": {
-									"units": {
-										"1": {
-											"unitFact": {
-												"autocompleteSelectedTaxonID": [
-													"Taxon does not belong to given informal taxon groups."
-												]
-											}
-										}
+				.post(url(basePath, {
+					access_token,
+					personToken,
+					validator: "taxonBelongsToInformalTaxonGroup",
+					informalTaxonGroup: "MVL.2"
+				}))
+				.send(document);
+			res.should.have.status(422);
+			res.body.error.should.be.deep.equal({
+				"details": {
+					"gatherings": {
+						"0": {
+							"units": {
+								"1": {
+									"unitFact": {
+										"autocompleteSelectedTaxonID": [
+											"Taxon does not belong to given informal taxon groups."
+										]
 									}
 								}
 							}
-						},
-						"message": "Unprocessable Entity",
-						"statusCode": 422
-					});
-					done();
-				});
+						}
+					}
+				},
+				"message": "Unprocessable Entity",
+				"statusCode": 422
+			});
 		});
 	});
 
 	describe("namedPlaceNotTooNearOtherPlaces", function() {
-		it("allows valid case" , function (done) {
+		it("allows valid case" , async function() {
 			this.timeout(10000);
-			const query = basePath + "?access_token=" + config["access_token"] + "&validator=namedPlaceNotTooNearOtherPlaces";
 			const document = {
 				formID: testNamedPlaceNotTooNearOtherPlacesForm,
 				collectionID: testCollection,
@@ -314,18 +294,14 @@ describe("/documents/validate", function() {
 					coordinates: [34.365, 60.248]
 				}
 			};
-			request(this.server)
-				.post(query)
+			const res = await request(this.server)
+				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }));
 				.send(document)
-				.end(function (err, res) {
-					res.should.have.status(200);
-					done();
-				});
+			res.should.have.status(200);
 		});
 
-		it("does not allow invalid case" , function (done) {
+		it("does not allow invalid case" , async function() {
 			this.timeout(10000);
-			const query = basePath + "?access_token=" + config["access_token"] + "&validator=namedPlaceNotTooNearOtherPlaces";
 			const document = {
 				formID: testNamedPlaceNotTooNearOtherPlacesForm,
 				collectionID: testCollection,
@@ -334,23 +310,20 @@ describe("/documents/validate", function() {
 					coordinates: [34.001, 32.001]
 				}
 			};
-			request(this.server)
+			const res = await request(this.server)
 				.post(query)
+				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }))
 				.send(document)
-				.end(function (err, res) {
-					res.should.have.status(422);
-					res.body.error.should.be.deep.equal({
-						"details": {
-							"geometry": [
-								"There already exists a named place in that location"
-							]
-						},
-						"message": "Unprocessable Entity",
-						"statusCode": 422
-					});
-					done();
-				});
+			res.should.have.status(422);
+			res.body.error.should.be.deep.equal({
+				"details": {
+					"geometry": [
+						"There already exists a named place in that location"
+					]
+				},
+				"message": "Unprocessable Entity",
+				"statusCode": 422
+			});
 		});
-
 	});
 });
