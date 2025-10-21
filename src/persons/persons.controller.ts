@@ -22,7 +22,6 @@ export class PersonsController {
 	@Get("profile")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
 	findProfileByPersonToken(@PersonToken() person: Person) {
-		console.log(22);
 		return this.profileService.getByPersonOrCreate(person);
 	}
 
