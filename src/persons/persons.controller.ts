@@ -17,18 +17,21 @@ export class PersonsController {
 		private readonly profileService: ProfileService
 	) {}
 
+	/** Get profile */
+	@Version("1")
+	@Get("profile")
+	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	findProfileByPersonToken(@PersonToken() person: Person) {
+		console.log(22);
+		return this.profileService.getByPersonOrCreate(person);
+	}
+
 	/** Find person by user id (this will not include email) */
 	@Version("1")
 	@Get(":id")
 	@Serialize(Person, { whitelist: ["id", "fullName", "group", "@context"] }, "SensitivePerson")
 	async findPersonByPersonId(@Param("id") id: string) {
 		return this.personsService.getByPersonId(id);
-	}
-
-	@ApiExcludeEndpoint()
-	@Get(":personToken")
-	findPersonByTokenBackwardCompatible(@Param("personToken") personToken: string) {
-		return this.personsService.getByToken(personToken);
 	}
 
 	/** Find person by person token */
@@ -38,18 +41,52 @@ export class PersonsController {
 		return person;
 	}
 
+	/** Find profile by person id (this will only return small subset of the full profile) */
+	@Version("1")
+	@Get(":id/profile")
+	@Serialize(Profile, { whitelist: ["userID", "image", "profileDescription"] }, "SensitiveProfile")
+	async getProfileByPersonId(@Param("id") id: string) {
+		return this.profileService.getByPersonIdOrCreate(id);
+	}
+
+	/** Create profile */
+	@Version("1")
+	@Post("profile")
+	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
+	async createProfile(@PersonToken() person: Person, @Body() profile: Profile) {
+		return this.profileService.createWithPersonId(person.id, profile);
+	}
+
+	/** Accept friend request */
+	@Version("1")
+	@Put("friends/:id")
+	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	acceptFriendRequest(@PersonToken() person: Person, @Param("id") friendPersonID: string) {
+		return this.profileService.acceptFriendRequest(person.id, friendPersonID);
+	}
+
+	/** Remove a friend request or a friend */
+	@Version("1")
+	@Delete("friends/:id")
+	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	removeFriend(
+		@PersonToken() person: Person,
+		@Param("id") friendPersonID: string,
+		@Query() { block }: RemoveFriendDto
+	) {
+		return this.profileService.removeFriend(person.id, friendPersonID, block);
+	}
+
+	@ApiExcludeEndpoint()
+	@Get(":personToken")
+	findPersonByTokenBackwardCompatible(@Param("personToken") personToken: string) {
+		return this.personsService.getByToken(personToken);
+	}
+
 	@ApiExcludeEndpoint()
 	@Get(":personToken/profile")
 	findProfileByPersonTokenBackwardCompatible(@Param("personToken") personToken: string) {
 		return this.profileService.getByPersonTokenOrCreate(personToken);
-	}
-
-	/** Get profile */
-	@Version("1")
-	@Get("profile")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
-	findProfileByPersonToken(@PersonToken() person: Person) {
-		return this.profileService.getByPersonOrCreate(person);
 	}
 
 	@ApiExcludeEndpoint()
@@ -66,27 +103,11 @@ export class PersonsController {
 		return this.profileService.getByPersonIdOrCreate(personId);
 	}
 
-	/** Find profile by person id (this will only return small subset of the full profile) */
-	@Version("1")
-	@Get(":id/profile")
-	@Serialize(Profile, { whitelist: ["userID", "image", "profileDescription"] }, "SensitiveProfile")
-	async getProfileByPersonId(@Param("id") id: string) {
-		return this.profileService.getByPersonIdOrCreate(id);
-	}
-
 	@ApiExcludeEndpoint()
 	@Post(":personToken/profile")
 	async createProfileBackwardCompatible(@Param("personToken") personToken: string, @Body() profile: Profile) {
 		const { id } = await this.personsService.getByToken(personToken);
 		return this.profileService.createWithPersonId(id, profile);
-	}
-
-	/** Create profile */
-	@Version("1")
-	@Post("profile")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
-	async createProfile(@PersonToken() person: Person, @Body() profile: Profile) {
-		return this.profileService.createWithPersonId(person.id, profile);
 	}
 
 	@ApiExcludeEndpoint()
@@ -128,14 +149,6 @@ export class PersonsController {
 		return this.profileService.acceptFriendRequest(personToken, friendPersonID);
 	}
 
-	/** Accept friend request */
-	@Version("1")
-	@Put("friends/:id")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
-	acceptFriendRequest(@PersonToken() person: Person, @Param("id") friendPersonID: string) {
-		return this.profileService.acceptFriendRequest(person.id, friendPersonID);
-	}
-
 	@ApiExcludeEndpoint()
 	@Delete(":personToken/friends/:friendPersonID")
 	removeFriendBackwardCompatible(
@@ -145,19 +158,6 @@ export class PersonsController {
 	) {
 		return this.profileService.removeFriendWithPersonToken(personToken, friendPersonID, block);
 	}
-
-	/** Remove a friend request or a friend */
-	@Version("1")
-	@Delete("friends/:id")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
-	removeFriend(
-		@PersonToken() person: Person,
-		@Param("id") friendPersonID: string,
-		@Query() { block }: RemoveFriendDto
-	) {
-		return this.profileService.removeFriend(person.id, friendPersonID, block);
-	}
-
 
   /** Check if given email has an existing account */
   @Get("exists-by-email/:email")
