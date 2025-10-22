@@ -1,5 +1,5 @@
-var config = require("../config.json");
-var helpers = require("../helpers");
+var config = require("./config.json");
+var helpers = require("./helpers");
 const { request } = require("chai");
 const { url } = helpers;
 const { access_token } = config;
