@@ -2,7 +2,7 @@ const config = require("./config.json");
 const helpers = require("./helpers");
 const { request } = require("chai");
 const { url } = helpers;
-const { access_token, personToken ,person } = config;
+const { access_token, personToken, person, friend } = config;
 
 describe("/person", function() {
 
