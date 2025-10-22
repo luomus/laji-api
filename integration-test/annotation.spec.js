@@ -55,7 +55,7 @@ describe("/annotation", function() {
 				document["@type"] = res.body["@type"];
 				document["@context"] = res.body["@context"];
 				document["created"] = res.body["created"];
-				document["annotationByPerson"] = config.user.model.id;
+				document["annotationByPerson"] = config.person.id;
 				res.body.should.eql(document);
 				savedId = res.body.id;
 				done();
@@ -79,7 +79,7 @@ describe("/annotation", function() {
 
 	it("return 403 when trying to add expert tag with basic user", function (done) {
 		this.timeout(6000);
-		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
+		const document = JSON.parse(JSON.stringify(annotation));
 		document["addedTags"] = ["MMAN.33"];
 		request(this.server)
 			.post(url(basePath, { access_token, personToken }))
@@ -92,7 +92,7 @@ describe("/annotation", function() {
 
 	it("return 403 when trying to remove expert tag with basic user", function (done) {
 		this.timeout(6000);
-		const document = JSON.parse(JSON.stringify(config.objects["annotation"]));
+		const document = JSON.parse(JSON.stringify(annotation));
 		document["removedTags"] = ["MMAN.33"];
 		request(this.server)
 			.post(url(basePath, { access_token, personToken }))

@@ -6,15 +6,14 @@ const { url } = helpers;
 const { access_token, personToken } = config;
 
 describe("/documents/batch", function() {
-	const basePath = config.urls.document;
-	const batchPath = basePath + "/batch";
+	const batchPath = "/documents/batch";
 
 	describe("primary documents", () => {
 
 		const documents = new Array(12).fill(
 			{
 				"formID":"JX.519",
-				"gatheringEvent":{ "leg":[config.user.model.id], "dateBegin":"2024-05-28" },
+				"gatheringEvent":{ "leg":[config.person.id], "dateBegin":"2024-05-28" },
 				"gatherings":[ {
 					"geometry":{ "type":"Point","coordinates":[27.74034,63.965225],"coordinateVerbatim":"25 60" },
 					"units":[
@@ -30,7 +29,7 @@ describe("/documents/batch", function() {
 		before(async function () {
 			this.timeout(10000);
 			countBeforeSend = (await request(this.server)
-				.get(`${basePath}/count/byYear?access_token=${config.access_token}&personToken=${config.user.token}`).send()
+				.get(`documents/count/byYear?access_token=${config.access_token}&personToken=${personToken}`).send()
 			).body.find(countResponse => countResponse.year === "2024").count;
 		});
 
@@ -209,7 +208,7 @@ describe("/documents/batch", function() {
 			{
 				"id": "testID",
 				"formID":"MHL.618",
-				"gatheringEvent":{ "leg":[config.user.model.id], "dateBegin":"2024-05-28" },
+				"gatheringEvent":{ "leg":[config.person.id], "dateBegin":"2024-05-28" },
 				"gatherings":[ {
 					"geometry":{ "type":"Point","coordinates":[27.74034,63.965225],"coordinateVerbatim":"25 60" },
 					"units":[
