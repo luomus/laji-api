@@ -1,20 +1,29 @@
-var config = require("../config.json"); var helpers = require("../helpers");
+const config = require("./config.json");
+const helpers = require("./helpers");
 const { request } = require("chai");
+const { access_token, personToken, person } = config;
 
 describe("/notifications", function() {
-	var basePath = config["urls"]["notifications"];
-	const personBasePath = config["urls"]["person"];
-	const token = config["user"]["token"];
-	const accessToken = config["access_token"];
+	const basePath =  "/notifications";
+
+	const friendsNotification = {
+		"toPerson": "MA.897",
+		"friendRequestAccepted": "MA.314",
+		"seen": false,
+		"created": "2023-04-13T13:43:15.764Z",
+		"id": "MHN.10544",
+		"@type": "MHN.notification",
+		"@context": "https://store-dev.luomus.fi/json-ld-context/MHN.notification.json"
+	};
 
 	it("returns 401 when fetching with person token and no access token specified", async function() {
-		var query = basePath + "/" + token;
-		const res = await request(this.server).get(query);
+		const res = await request(this.server)
+			.get(`${basePath}/${personToken}`);
 		res.should.have.status(401);
 	});
 	it("returns 401 when fetching with token and no access token specified", async function() {
-		var query = basePath + "/" + token;
-		const res = await request(this.server).get(query);
+		const res = await request(this.server)
+			.get(`${basePath}/${personToken}`);
 		res.should.have.status(401);
 	});
 
@@ -22,8 +31,8 @@ describe("/notifications", function() {
 
 	it("returns notifications", async function() {
 		this.timeout(5000);
-		var query = basePath + "/" + token + "?access_token=" + accessToken;
-		const res = await request(this.server).get(query);
+		const res = await request(this.server)
+			.get(url(`${basePath}/${personToken}`, { access_token }));
 		res.should.have.status(200);
 		res.body.results.length.should.be.above(1);
 		res.body.results.every(item => {
@@ -40,23 +49,21 @@ describe("/notifications", function() {
 		// Create a notification first by adding friend request. This would be nice to do in after/before, but mocha/chai
 		// doesn't keep the order of test execution correct then. The last test removes the friend request, so the
 		// original state of the friends is restored.
-		var query = personBasePath + "/" + token + "/friends/" + config.user.model.id
-			+ "?access_token=" + accessToken;
-		await request(this.server).post(query);
+		await request(this.server)
+			.post(url(`/persons/${personToken}/friends/${person.id}`, { access_token }));
 
 		// Notification is created in background when friend request is made, so we wait for that.
 		await new Promise(resolve => setTimeout(resolve, 500));
 		while (!addedNotification) {
-			var query = basePath + "/" + token + "?access_token=" + accessToken + "&page=" + (lengthBeforeNew + 1) + "&pageSize=1";
-			const notificationsRes = await request(this.server).get(query);
+			const notificationsRes = await request(this.server)
+				.get(url(`${basePath}/${personToken}`, { access_token, page: lengthBeforeNew, pageSize: 1 }));
 			addedNotification = notificationsRes.body.results && notificationsRes.body.results[0];
 			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 
-		var query = basePath + "/" + addedNotification.id + "?access_token=" + accessToken + "&personToken=" + token;
 		const updateRes = await request(this.server)
-			.put(query)
-			.send({ ...addedNotification, friendRequest: ["foo"] })
+			.put(url(`${basePath}/${addedNotification.id}`, { access_token, personToken }))
+			.send({ ...addedNotification, friendRequest: ["foo"] });
 		updateRes.should.have.status(422);
 	});
 
@@ -64,10 +71,9 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		var query = basePath + "/" + addedNotification.id + "?access_token=" + accessToken + "&personToken=" + token;
 		const res = await request(this.server)
-			.put(query)
-			.send({ ...addedNotification, seen: true })
+			.put(url(`${basePath}/${addedNotification.id}`, { access_token, personToken }))
+			.send({ ...addedNotification, seen: true });
 		res.body.seen.should.be.equal(true);
 	});
 
@@ -75,9 +81,8 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		var query = basePath + "/" + addedNotification.id + "?access_token=" + accessToken + "&personToken=" + token;
 		const res = await request(this.server)
-			.delete(query);
+			.delete(url(`${basePath}/${addedNotification.id}`, { access_token, personToken }));
 		res.should.have.status(200);
 	});
 
@@ -85,10 +90,9 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		var query = basePath + "/" + config["objects"]["friend_notification"]["id"] + "?access_token=" + accessToken + "&personToken=" + token;
 		const res = await request(this.server)
-			.put(query)
-			.send(config["objects"]["friend_notification"]);
+			.put(url(`${basePath}/${friendsNotification.id}`, { access_token, personToken }))
+			.send(friendsNotification);
 		res.should.have.status(403);
 	});
 
@@ -96,13 +100,13 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		var query = basePath + "/" + config["objects"]["friend_notification"]["id"] + "?access_token=" + accessToken + "&personToken=" + token;
-		const res = await request(this.server).delete(query);
+		const res = await request(this.server)
+			.delete(url(`${basePath}/${friendsNotification.id}`, { access_token, personToken }));
 		res.should.have.status(403);
 	});
 
 	it("clear friends after", async function() {
-		var query = personBasePath + "/" + token + "/friends/" + config["user"]["model"]["id"] + "?access_token=" + accessToken + "&personToken=" + token;
-		await request(this.server).delete(query);
+		await request(this.server)
+			.delete(url(`/persons/${personToken}/friends/${person.id}`, { access_token, personToken }));
 	});
 });
