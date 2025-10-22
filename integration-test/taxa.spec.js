@@ -38,8 +38,7 @@ describe("/taxa", function() {
 		it("respects filters", async function() {
 			const res = await apiRequest(this.server, { accessToken })
 				.post(url("/taxa", { pageSize: 10 }))
-				.send({ sensitive: true })
-				.set("API-Version", "1");
+				.send({ sensitive: true });
 			res.should.have.status(200);
 			res.body.results.should.have.lengthOf(10);
 			res.body.results.forEach(taxon => taxon.should.have.property("sensitive").eql(true));
@@ -61,8 +60,7 @@ describe("/taxa", function() {
 
 	it("GET /species returns species and is translated and respects informalTaxonGroups", async function() {
 		const res = await apiRequest(this.server, { accessToken })
-			.get(url("/taxa/species", { informalTaxonGroups: "MVL.1" }))
-			.set("API-Version", "1");
+			.get(url("/taxa/species", { informalTaxonGroups: "MVL.1" }));
 		res.should.have.status(200);
 		res.body.results.should.have.length.greaterThan(1);
 		res.body.results.forEach(taxon => {
