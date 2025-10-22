@@ -1,6 +1,7 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
 const { request } = require("chai");
+const { url } = helpers;
 const { access_token, personToken, person } = config;
 
 describe("/notifications", function() {
