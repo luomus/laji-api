@@ -10,7 +10,7 @@ describe("/html-to-pdf", function() {
 	it("returns 404 when no access token specified", async function () {
 		const res = await request(this.server)
 			.get(basePath);
-		res.should.have.status(404);
+		res.should.have.status(401);
 	});
 
 	it("returns pdf when given html content", async function () {
