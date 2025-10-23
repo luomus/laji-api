@@ -1,20 +1,16 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
 const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken } = config;
+const { apiRequest, url } = helpers;
+const { accessToken, personToken } = config;
 
 describe("", function() {
 	const basePath = "/shorthand";
 
 	it("parses line transect unit taxon correct for llx", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`, {
-				access_token,
-				personToken,
-				query: "llx"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "llx" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value", "unit");
 		res.body.value.should.not.contain("undefined");
@@ -24,10 +20,8 @@ describe("", function() {
 
 	it("parses line transect unit taxon correct for loxia", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "loxiax" }))
-			.set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "loxiax" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value", "unit");
 		res.body["value"].should.not.contain("undefined");
@@ -37,10 +31,8 @@ describe("", function() {
 
 	it("parses line transect unit taxon correct for loxsp.", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "loxsp.x" }))
-			.set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "loxsp.x" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body["value"].should.not.contain("undefined");
@@ -50,10 +42,8 @@ describe("", function() {
 
 	it("parses line transect unit taxon correct for loxsp", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "loxspx" }))
-			.set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "loxspx" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body["value"].should.not.contain("undefined");
@@ -63,10 +53,8 @@ describe("", function() {
 
 	it("O type number is not parsed like pair in line transect unit taxon", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "tt13O" }))
-			.set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "tt13O" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body["value"].should.not.contain("undefined");
@@ -78,10 +66,8 @@ describe("", function() {
 	// eslint-disable-next-line max-len
 	it("O type number is not parsed like pair in line transect unit taxon with taxa that is counted in 5", async function() {
 		this.timeout(10000);
-		const res  = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "PASDOM17o" }))
-			.set("API-Version", "1");
+		const res  = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "PASDOM17o" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body["value"].should.not.contain("undefined");
@@ -91,10 +77,8 @@ describe("", function() {
 	});
 
 	it("PARI type multiplier is always 2", async function() {
-		const res  = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "tt7PARI" }))
-			.set("API-Version", "1");
+		const res  = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "tt7PARI" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body["value"].should.not.contain("undefined");
@@ -104,10 +88,8 @@ describe("", function() {
 	});
 
 	it("PARI type multiplier is always 2 even when species is normally multiplied by 5", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/line-transect`,
-				{ access_token, personToken, query: "PASDOM7PARI" }))
-			.set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/line-transect`, { query: "PASDOM7PARI" })) ;
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body["value"].should.not.contain("undefined");
@@ -155,12 +137,8 @@ describe("", function() {
 		this.timeout(10000);
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -174,12 +152,8 @@ describe("", function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -190,12 +164,8 @@ describe("", function() {
 		const params = { count: undefined, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" "),
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -206,12 +176,8 @@ describe("", function() {
 		const params = { count, name: undefined, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.should.have.lengthOf(1);
@@ -222,12 +188,8 @@ describe("", function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount: undefined };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -239,12 +201,8 @@ describe("", function() {
 		const params = { count, name, maleIndividualCount: undefined, femaleIndividualCount: undefined };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -254,12 +212,8 @@ describe("", function() {
 	it("throws 422 when trip report unit query string femaleIndividualCount is non numeric", async function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount: "many" };
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(422);
 	});
 
@@ -269,12 +223,8 @@ describe("", function() {
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 		const _params =  Object.keys(params).map(param => params[param]);
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -296,12 +246,8 @@ describe("", function() {
 		let name = "Parus major";
 		const params = { count, name, maleIndividualCount, femaleIndividualCount };
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/trip-report`, {
-				access_token,
-				personToken,
-				query: Object.keys(params).map(p => params[p]).join(" ")
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/trip-report`, { query: Object.keys(params).map(p => params[p]).join(" ") }));
 		res.should.have.status(200);
 
 		res.body.results.length.should.be.above(1);
@@ -356,13 +302,8 @@ describe("", function() {
 			}
 		];
 
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/list`, {
-				access_token,
-				personToken,
-				formID: "JX.519",
-				query: "susi,kettu,wookie"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/list`, { formID: "JX.519", query: "susi,kettu,wookie" }));
 		res.should.have.status(200);
 		res.body.should.have.property("count").eql(3);
 		res.body.should.have.property("nonMatchingCount").eql(1);
@@ -380,13 +321,8 @@ describe("", function() {
 	});
 
 	it("return correct pair count for ANAACU", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26382",
-				query: "3k2n, kn, 3"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26382", query: "3k2n, kn, 3" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(4);
@@ -394,13 +330,8 @@ describe("", function() {
 	});
 
 	it("return correct pair count for ANSANS", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26291",
-				query: "3k2n,kn,3,1"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26291", query: "3k2n,kn,3,1" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(2);
@@ -408,13 +339,8 @@ describe("", function() {
 	});
 
 	it("return correct pair count for GALGAL", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.27666",
-				query: "3k2n,kn,n,3,1"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.27666", query: "3k2n,kn,n,3,1" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(5);
@@ -422,13 +348,8 @@ describe("", function() {
 	});
 
 	it("return correct pair count for CORNIX", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.73566",
-				query: "k2n,k2n, 5"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.73566", query: "k2n,k2n, 5" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(5);
@@ -437,13 +358,8 @@ describe("", function() {
 
 	it("return correct pair count for CYGOLO", async function() {
 		const query = "2k, n, 2n, 2, 3, 2kn";
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26277",
-				query
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26277", query }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(4);
@@ -451,13 +367,8 @@ describe("", function() {
 	});
 
 	it("doesn't return pair count for unknown taxon", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.20000",
-				query: "k2n,k2n, 5"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.20000", query: "k2n,k2n, 5" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key");
 		res.body.should.not.have.keys("value");
@@ -465,13 +376,8 @@ describe("", function() {
 	});
 
 	it("doesn't return pair count for empty query", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.20000",
-				query: ""
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.20000", query: "" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key");
 		res.body.should.not.have.keys("value");
@@ -479,13 +385,8 @@ describe("", function() {
 	});
 
 	it("return correct pair count when count is big", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.73566",
-				query: "20k2n,101k2n, 5"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.73566", query: "20k2n,101k2n, 5" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(124);
@@ -494,13 +395,8 @@ describe("", function() {
 
 	it("formats waterbird count right", async function() {
 		const query = "20n1k4, 5, kk2,3n";
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.73566",
-				query
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.73566", query }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(10);
@@ -508,13 +404,8 @@ describe("", function() {
 	});
 
 	it("formats empty waterbird count right", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.73566",
-				query: "0,0"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.73566", query: "0,0" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key");
 		res.body.key.should.eql("");
@@ -522,13 +413,8 @@ describe("", function() {
 
 	it("accepts upper case in waterbird count", async function() {
 		const query = "2K, n, 2N, 2, 3, 2Kn";
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26277",
-				query
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26277", query }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(4);
@@ -536,13 +422,8 @@ describe("", function() {
 	});
 
 	it("accepts dots and converts them to commas in waterbird count", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26277",
-				query: "2k.n. 3"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26277", query: "2k.n. 3" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(2);
@@ -550,13 +431,8 @@ describe("", function() {
 	});
 
 	it("returns correct pair count for singing", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26277",
-				query: "3Ä"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26277", query: "3Ä" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(3);
@@ -564,13 +440,8 @@ describe("", function() {
 	});
 
 	it("returns correct pair count for uttering", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/unit/water-bird-pair-count`, {
-				access_token,
-				personToken,
-				taxonID: "MX.26277",
-				query: "3ä"
-			})).set("API-Version", "1");
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(`${basePath}/unit/water-bird-pair-count`, { taxonID: "MX.26277", query: "3ä" }));
 		res.should.have.status(200);
 		res.body.should.include.keys("key", "value");
 		res.body.value.should.eql(2);

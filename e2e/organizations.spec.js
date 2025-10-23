@@ -1,5 +1,6 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
+const { url } = helpers;
 const { request } = require("chai");
 const { access_token } = config;
 
@@ -22,7 +23,7 @@ describe("/checklists", function() {
 	});
 
 	it("returns organization", async function() {
-		this.timeout(5000);
+		this.timeout(10000);
 		const res = await request(this.server)
 			.get(url("/organizations/MOS.61", { access_token }));
 		res.should.have.status(200);

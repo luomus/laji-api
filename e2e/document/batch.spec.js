@@ -29,7 +29,7 @@ describe("/documents/batch", function() {
 		before(async function () {
 			this.timeout(10000);
 			countBeforeSend = (await request(this.server)
-				.get(`documents/count/byYear?access_token=${config.access_token}&personToken=${personToken}`).send()
+				.get(`/documents/count/byYear?access_token=${access_token}&personToken=${personToken}`).send()
 			).body.find(countResponse => countResponse.year === "2024").count;
 		});
 
@@ -188,7 +188,7 @@ describe("/documents/batch", function() {
 			}
 
 			countAfterSend = (await request(this.server)
-				.get(url(`${batchPath}/count/byYear`, { access_token, personToken })).send()
+				.get(url("/documents/count/byYear", { access_token, personToken })).send()
 			).body.find(countResponse => countResponse.year === "2024").count;
 
 			expect(countAfterSend).to.equal(countBeforeSend + documents.length);
@@ -290,7 +290,7 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 			const res = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				.post(url(`${batchPath}/${id}`, { access_token, personToken }))
 				.send();
 
 			res.should.have.status(200);

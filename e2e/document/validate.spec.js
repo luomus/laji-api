@@ -252,7 +252,6 @@ describe("/documents/validate", function() {
 				]
 			};
 			const res = await request(this.server)
-				.post(query)
 				.post(url(basePath, {
 					access_token,
 					personToken,
@@ -295,8 +294,8 @@ describe("/documents/validate", function() {
 				}
 			};
 			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }));
-				.send(document)
+				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }))
+				.send(document);
 			res.should.have.status(200);
 		});
 
@@ -311,9 +310,8 @@ describe("/documents/validate", function() {
 				}
 			};
 			const res = await request(this.server)
-				.post(query)
 				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }))
-				.send(document)
+				.send(document);
 			res.should.have.status(422);
 			res.body.error.should.be.deep.equal({
 				"details": {

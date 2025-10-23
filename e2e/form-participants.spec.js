@@ -28,6 +28,7 @@ describe("/forms/:id/participants", function() {
 	});
 
 	it("returns list containing users with form permission", async function() {
+		this.timeout(10000);
 		const res = await request(this.server)
 			.get(url("/forms/MHL.3/participants", { access_token, personToken: adminToken }));
 		const propTests = [

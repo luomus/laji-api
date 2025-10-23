@@ -3,7 +3,7 @@ var config = require("../config.json");
 var helpers = require("../helpers");
 const { request } = require("chai");
 const { url } = helpers;
-const { access_token } = config;
+const { access_token, personToken } = config;
 
 const errorOnlyOwn = "Can only update media uploaded by the user";
 const errorOnlyOwnDelete = "Can only delete media uploaded by the user";

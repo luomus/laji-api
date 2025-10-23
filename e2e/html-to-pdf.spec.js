@@ -21,6 +21,6 @@ describe("/html-to-pdf", function() {
 			.send(html)
 			.set("Content-Type", "text/plain");
 		res.should.have.status(200);
-		res.header["content-type"].should.be.equal("this.application/pdf");
+		res.header["content-type"].should.be.equal("application/pdf");
 	});
 });

@@ -3,7 +3,7 @@ var helpers = require("../helpers");
 const assert = require("assert");
 const { request } = require("chai");
 const { url } = helpers;
-const { access_token, personToken } = config;
+const { access_token, personToken, friend, friend2 } = config;
 
 describe("/documents", function() {
 	const basePath = "/documents";
@@ -11,7 +11,7 @@ describe("/documents", function() {
 	let documentId, templateId, lockedId, dateCreated;
 	const validDocument = {
 		formID: "MHL.119",
-		editors: [config.person.id, config.friend.id],
+		editors: [config.person.id, friend.id],
 		dateCreated: "2015-01-01T00:00:00+03:00",
 		creator: config.person.id,
 		editor: config.person.id,
@@ -56,7 +56,7 @@ describe("/documents", function() {
 	const nonStrictFormDocId = "JX.285560";
 	const documentOthersFeatureDocumentsViewableForAllId = "JX.159198";
 	const disabledFormId = "MHL.90";
-  const disabledFormDocId = "JX.334884";
+	const disabledFormDocId = "JX.334884";
 	const formWithSecondaryCopyFeatureId = "MHL.618";
 
 	it("returns 401 when no access token specified", async function() {
@@ -79,14 +79,14 @@ describe("/documents", function() {
 
 	it("returns 400 when no person token specified", async function() {
 		const res = await request(this.server)
-			.get(basePath, { access_token })
+			.get(url(basePath, { access_token }));
 		res.should.have.status(400);
 	});
 
 	it("returns 404 when accessing others documents", async function() {
 		this.timeout(10000);
 		const res = await request(this.server)
-			.get(url(`${basePath}/${documentOthersId}`, { access_token, personToken }))
+			.get(url(`${basePath}/${documentOthersId}`, { access_token, personToken }));
 		res.should.have.status(404);
 	});
 
@@ -108,14 +108,14 @@ describe("/documents", function() {
 			]
 		};
 		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken, validationErrorFormat: "object" })
+			.post(url(basePath, { access_token, personToken, validationErrorFormat: "object" }))
 			.send(document);
-			res.should.have.status(422);
-			res.body.should.be.a("object");
-			res.body.should.have.property("details");
-			res.body.details.should.be.a("object");
-			res.body.details.should.have.property("formID");
-			res.body.details.formID.should.be.a("array");
+		res.should.have.status(422);
+		res.body.should.be.a("object");
+		res.body.should.have.property("details");
+		res.body.details.should.be.a("object");
+		res.body.details.should.have.property("formID");
+		res.body.details.formID.should.be.a("array");
 	});
 
 	it("check that api returns detailed error message", async function () {
@@ -139,7 +139,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken, validationErrorFormat: "object" }))
-				.send(document);
+			.send(document);
 		res.should.have.status(422);
 		res.body.should.be.a("object");
 		res.body.should.have.property("details");
@@ -157,7 +157,7 @@ describe("/documents", function() {
 	it("adding template works", async function () {
 		const document = {
 			formID: "MHL.119",
-			editors: [config.person.id, config.friend.id],
+			editors: [config.person.id, friend.id],
 			dateCreated: "2015-01-01T00:00:00+03:00",
 			creator: "MA.0",
 			editor: "MA.1",
@@ -172,7 +172,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
 		res.body.id.should.be.a("string");
@@ -183,7 +183,7 @@ describe("/documents", function() {
 	it("adding locked document works", async function () {
 		const document = {
 			formID: "MHL.119",
-			editors: [config.person.id, config.friend.id],
+			editors: [config.person.id, friend.id],
 			dateCreated: "2015-01-01T00:00:00+03:00",
 			creator: "MA.0",
 			editor: "MA.1",
@@ -213,7 +213,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
 		res.body.id.should.be.a("string");
@@ -225,7 +225,7 @@ describe("/documents", function() {
 		const document = JSON.parse(JSON.stringify(validDocument));
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
 		res.body.should.have.any.keys("dateCreated");
@@ -237,13 +237,13 @@ describe("/documents", function() {
 		res.body.should.have.property("formID").eql(document.formID);
 		res.body.should.have.property("collectionID").eql("HR.1747");
 		res.body.should.have.property("publicityRestrictions").eql("MZ.publicityRestrictionsPublic");
-		res.body.should.not.include({dateCreated: document.dateCreated});
+		res.body.should.not.include({ dateCreated: document.dateCreated });
 		res.body.gatherings.should.have.lengthOf(1);
 		delete(document.gatherings[0].geometry);
 		delete(document.gatherings[0].units);
 		res.body.gatherings[0].should.include(document.gatherings[0]);
 		res.body.gatherings[0].should.have.any.keys("id");
-		res.body.should.include({editor: config.person.id, creator: config.person.id});
+		res.body.should.include({ editor: config.person.id, creator: config.person.id });
 		res.body.id.should.be.a("string");
 		res.body.id.should.match(/^JX\.[0-9]+$/);
 		documentId = res.body.id;
@@ -259,7 +259,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(201);
 	});
 
@@ -271,7 +271,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.property("collectionID");
 	});
@@ -284,7 +284,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(200);
 	});
 
@@ -296,7 +296,7 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(422);
 	});
 
@@ -307,11 +307,11 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(422);
 	});
 
-	it("is valid when validating secondary copy with id", function () {
+	it("is valid when validating secondary copy with id", async function () {
 		const document = {
 			...validDocument,
 			formID: formWithSecondaryCopyFeatureId,
@@ -338,7 +338,7 @@ describe("/documents", function() {
 		const document = { ...validDocument };
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(200);
 	});
 
@@ -346,34 +346,33 @@ describe("/documents", function() {
 		const doc = JSON.parse(JSON.stringify(documentWithPropertyNotInFormJSONStrictForm));
 		delete doc.id;
 		const res = await request(this.server)
-			.post(query)
 			.post(url(basePath, { access_token, personToken }))
-			.send(doc)
+			.send(doc);
 		res.should.have.status(422);
 	});
 
 	it("edit does not allow fields not in form JSON for strict form", async function() {
 		const res = await request(this.server)
 			.put(url(`${basePath}/${strictFormDocId}`, { access_token, personToken }))
-			.send(documentWithPropertyNotInFormJSONStrictForm)
+			.send(documentWithPropertyNotInFormJSONStrictForm);
 		res.should.have.status(422);
 	});
 
 	it("edit allows fields not in form JSON for non-strict form", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/${nonStrictFormDocId}`, { access_token, personToken }))
+			.get(url(`${basePath}/${nonStrictFormDocId}`, { access_token, personToken }));
 		res.should.have.status(200);
 		res.body.gatheringEvent.acknowledgeNoUnitsInCensus = true;
 		const res2 = await request(this.server)
 			.put(url(`${basePath}/${nonStrictFormDocId}`, { access_token, personToken }))
-			.send(res.body)
+			.send(res.body);
 		res2.should.have.status(200);
 	});
 
 	it("validator endpoint does not allow fields not in form JSON", async function() {
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
-			.send(documentWithPropertyNotInFormJSONStrictForm)
+			.send(documentWithPropertyNotInFormJSONStrictForm);
 		res.should.have.status(422);
 	});
 
@@ -384,16 +383,16 @@ describe("/documents", function() {
 		};
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(422);
 	});
 
 	it("document with MZ.publicityRestrictionsPrivate bypasses validators", async function() {
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(privateDocumentInvalidAgainstValidatorsButSchematicallyOK)
+			.send(privateDocumentInvalidAgainstValidatorsButSchematicallyOK);
 		res.should.have.status(201);
-		request(this.server).delete(query).send(); // Silent cleanup
+		void request(this.server).delete(url(basePath, { access_token, personToken })).send(); // Silent cleanup
 	});
 
 	describe("After adding document", function() {
@@ -404,7 +403,7 @@ describe("/documents", function() {
 			}
 			var document = {
 				id: documentId,
-				editors: [config.person.id, config.friend.id],
+				editors: [config.person.id, friend.id],
 				formID: "MHL.119",
 				creator: config.person.id,
 				editor: "MA.1",
@@ -466,14 +465,14 @@ describe("/documents", function() {
 
 			const res = await request(this.server)
 				.put(url(`${basePath}/${documentId}`, { access_token, personToken }))
-				.send(document)
+				.send(document);
 			res.should.have.status(200);
 			res.body.should.have.property("id").eql(documentId);
 			res.body.should.have.property("editor").eql(config.person.id);
 			res.body.should.have.property("creator").eql(config.person.id);
 			res.body.should.have.property("dateCreated").eql(dateCreated);
 			res.body.should.have.property("collectionID").eql("HR.1747");
-			res.body.should.have.property("editors").eql([config.person.id, config.friend.id]);
+			res.body.should.have.property("editors").eql([config.person.id, friend.id]);
 			res.body.should.have.property("gatherings");
 			res.body.should.have.property("gatheringEvent");
 			res.body.gatheringEvent.should.have.property("leg").eql(["foo", "joku"]);
@@ -495,7 +494,7 @@ describe("/documents", function() {
 			}
 			var document = {
 				id: documentId,
-				editors: [config.person.id, config.friend.id],
+				editors: [config.person.id, friend.id],
 				formID: "MHL.119",
 				creator: config.person.id,
 				editor: "MA.1",
@@ -555,15 +554,15 @@ describe("/documents", function() {
 				]
 			};
 			const res = await request(this.server)
-				.put(url(`${basePath}/${documentId}`, { access_token, personToken: config.friend.personToken }))
-				.send(document)
+				.put(url(`${basePath}/${documentId}`, { access_token, personToken: friend.personToken }))
+				.send(document);
 			res.should.have.status(200);
 			res.body.should.have.property("id").eql(documentId);
-			res.body.should.have.property("editor").eql(config.friend.id);
+			res.body.should.have.property("editor").eql(friend.id);
 			res.body.should.have.property("creator").eql(config.person.id);
 			res.body.should.have.property("dateCreated").eql(dateCreated);
 			res.body.should.have.property("collectionID").eql("HR.1747");
-			res.body.should.have.property("editors").eql([config.person.id, config.friend.id]);
+			res.body.should.have.property("editors").eql([config.person.id, friend.id]);
 			res.body.should.have.property("gatherings");
 			res.body.should.have.property("gatheringEvent");
 			res.body.gatheringEvent.should.have.property("leg").eql(["foo", "joku"]);
@@ -587,7 +586,7 @@ describe("/documents", function() {
 				id: lockedId,
 				formID: "MHL.119",
 				creator: config.person.id,
-				editors: [config.person.id, config.friend.id],
+				editors: [config.person.id, friend.id],
 				dateCreated: "2015-01-01T00:00:00+03:00",
 				editor: "MA.1",
 				gatherings: [
@@ -599,7 +598,7 @@ describe("/documents", function() {
 			};
 			const res = await request(this.server)
 				.put(url(`${basePath}/${lockedId}`, { access_token, personToken }))
-				.send(document)
+				.send(document);
 			res.body.should.be.a("object");
 			res.body.should.have.property("details");
 			res.body.details.should.be.a("object");
@@ -612,7 +611,7 @@ describe("/documents", function() {
 				return this.skip();
 			}
 			const res = await request(this.server)
-				.delete(url(`${basePath}/${lockedId}`, { access_token, personToken }))
+				.delete(url(`${basePath}/${lockedId}`, { access_token, personToken }));
 			res.should.have.status(422);
 		});
 
@@ -657,7 +656,7 @@ describe("/documents", function() {
 			};
 			const res = await request(this.server)
 				.put(url(`${basePath}/${documentId}`, { access_token, personToken }))
-				.send(document)
+				.send(document);
 			res.body.should.be.a("object");
 			res.body.should.have.property("details");
 			res.body.details.should.be.a("object");
@@ -683,8 +682,8 @@ describe("/documents", function() {
 				isTemplate: true
 			};
 			const res = await request(this.server)
-				.put(url(`${basePath}/${templateId}`, { access_token, personToken: config.friend.personToken }))
-				.send(document)
+				.put(url(`${basePath}/${templateId}`, { access_token, personToken: friend.personToken }))
+				.send(document);
 			res.should.have.status(403);
 		});
 
@@ -728,9 +727,8 @@ describe("/documents", function() {
 				]
 			};
 			const res = await request(this.server)
-				.put(query)
 				.put(url(`${basePath}/${documentId}`, { access_token, personToken }))
-				.send(document)
+				.send(document);
 			res.should.have.status(422);
 		});
 
@@ -739,7 +737,7 @@ describe("/documents", function() {
 				return this.skip();
 			}
 			const res = await request(this.server)
-				.get(url(`${basePath}/${documentId}`, { access_token }))
+				.get(url(`${basePath}/${documentId}`, { access_token }));
 			res.should.have.status(400);
 		});
 
@@ -748,7 +746,7 @@ describe("/documents", function() {
 				return this.skip();
 			}
 			const res = await request(this.server)
-				.get(url(`${basePath}/${templateId}`, { access_token, personToken: config.friend.personToken }));
+				.get(url(`${basePath}/${templateId}`, { access_token, personToken: friend.personToken }));
 			res.should.have.status(403);
 		});
 
@@ -760,7 +758,7 @@ describe("/documents", function() {
 			const res = await request(this.server)
 				.get(url(`${basePath}/${documentId}`, { access_token, personToken }));
 			res.should.have.status(200);
-			res.body.should.include({id: documentId});
+			res.body.should.include({ id: documentId });
 			res.body.should.have.any.keys("@context");
 		});
 
@@ -808,18 +806,17 @@ describe("/documents", function() {
 			const res = await request(this.server)
 				.get(url(`${basePath}/${documentId}`, { access_token, personToken }));
 			res.should.have.status(200);
-			res.body.should.include({id: documentId});
+			res.body.should.include({ id: documentId });
 			res.body.should.have.any.keys("@context");
 		});
 
-		it("cannot delete someone else document", async function() {
+		it("cannot delete someone elses document", async function() {
 			if (!documentId) {
 				return this.skip();
 			}
 
 			const res = await request(this.server)
-				.delete(query)
-				.delete(url(`${basePath}/${documentId}`, { access_token, personToken: config.friend.personToken }));
+				.delete(url(`${basePath}/${documentId}`, { access_token, personToken: friend.personToken }));
 			res.should.have.status(403);
 		});
 
@@ -833,13 +830,13 @@ describe("/documents", function() {
 			res.should.have.status(200);
 		});
 
-		it("cannot delete someone else template", async function() {
+		it("cannot delete someone elses template", async function() {
 			if (!templateId) {
 				return this.skip();
 			}
 
 			const res = await request(this.server)
-				.delete(url(`${basePath}/${documentId}`, { access_token, personToken: config.friend.personToken }));
+				.delete(url(`${basePath}/${templateId}`, { access_token, personToken: friend.personToken }));
 			res.should.have.status(403);
 		});
 
@@ -856,13 +853,13 @@ describe("/documents", function() {
 
 	it("doesn't return other user's single document for form with option MHL.documentsViewableForAll if doesn't have access to form", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }))
+			.get(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }));
 		res.should.have.status(403);
 	});
 
 	it("returns other user's single document for form with option MHL.documentsViewableForAll", async function() {
 		const res = await request(this.server)
-			.get(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken: config.friend2.personToken }))
+			.get(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken: friend2.personToken }));
 		res.should.have.status(200);
 	});
 
@@ -897,16 +894,16 @@ describe("/documents", function() {
 			"dateCreated": "2018-12-04T14:31:37+02:00",
 			"@type": "MY.document",
 			"@context": "http://schema.laji.fi/context/document.jsonld"
-		}
+		};
 		const res = await request(this.server)
 			.put(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }))
-			.send(document)
+			.send(document);
 		res.should.have.status(403);
 	});
 
 	it("does not allow deleting other users document even with form with MHL.documentsViewableForAll", async function() {
 		const res = await request(this.server)
-			.delete(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }))
+			.delete(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }));
 		res.should.have.status(403);
 	});
 
@@ -920,16 +917,16 @@ describe("/documents", function() {
 
 	it("returns other users' documents for form with MHL.documentsViewableForAll option", async function() {
 		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken: config.friend2.personToken, collectionID: "HR.2049", formID: "MHL.33" }));
+			.get(url(basePath, { access_token, personToken: friend2.personToken, collectionID: "HR.2049", formID: "MHL.33" }));
 		res.should.have.status(200);
-		res.body.should.have.length.above(2);
-		const constainsNotSelf = res.body.results.some(document => !(document.editors || []).includes(config.friend2.id));
+		res.body.results.should.have.length.above(2);
+		const constainsNotSelf = res.body.results.some(document => !(document.editors || []).includes(friend2.id));
 		assert.equal(constainsNotSelf, true);
 	});
 
 	it("doesn't allow access to other collections when using form with MHL.documentsViewableForAll option", async function() {
 		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken: config.friend2.personToken, collectionID: "HR.1747", formID: "MHL.33" }));
+			.get(url(basePath, { access_token, personToken: friend2.personToken, collectionID: "HR.1747", formID: "MHL.33" }));
 		res.should.have.status(200);
 		res.body.results.should.have.lengthOf(0);
 	});
@@ -937,7 +934,7 @@ describe("/documents", function() {
 	describe("disabled form", function() {
 		const document = {
 			formID: disabledFormId,
-			editors: [config.person.id, config.friend.id],
+			editors: [config.person.id, friend.id],
 			dateCreated: "2015-01-01T00:00:00+03:00",
 			creator: "MA.0",
 			editor: "MA.1",
@@ -968,7 +965,7 @@ describe("/documents", function() {
 		it("doesn't allow sending documents", async function() {
 			this.timeout(10000);
 			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken }))
+				.post(url(basePath, { access_token, personToken }));
 			res.should.have.status(422);
 		});
 
@@ -978,13 +975,13 @@ describe("/documents", function() {
 			delete document.formID;
 			const res = await request(this.server)
 				.put(url(`${basePath}/${disabledFormDocId}`, { access_token, personToken }))
-				.send(document)
+				.send(document);
 			res.should.have.status(422);
 		});
 
 		it("doesn't allow deleting documents", async function() {
 			const res = await request(this.server)
-				.delete(url(`${basePath}/${disabledFormDocId}`, { access_token, personToken }))
+				.delete(url(`${basePath}/${disabledFormDocId}`, { access_token, personToken }));
 			res.should.have.status(422);
 		});
 	});
