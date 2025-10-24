@@ -50,7 +50,7 @@ describe("ProfileService", () => {
 		jest.spyOn(storeService, "findOne").mockResolvedValueOnce(undefined);
 		jest.spyOn(storeService, "create").mockResolvedValueOnce(profile as Profile);
 
-		const result = await service.getByPersonIdOrCreate(personId);
+		const result = await service.getOrCreate(personId);
 
 		expect(storeService.findOne).toHaveBeenCalledWith({ userID: personId });
 		expect(storeService.create).toHaveBeenCalledWith(expect.objectContaining({ userID: personId }));
@@ -71,7 +71,7 @@ describe("ProfileService", () => {
 
 		jest.spyOn(storeService, "findOne").mockResolvedValueOnce(profile);
 
-		const result = await service.getByPersonIdOrCreate(personId);
+		const result = await service.getOrCreate(personId);
 
 		expect(storeService.findOne).toHaveBeenCalledWith({ userID: personId });
 		expect(storeService.create).not.toHaveBeenCalled();

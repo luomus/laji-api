@@ -210,7 +210,7 @@ export class NamedPlacesService {
 		}
 
 		const forPerson = personID
-			? await this.personsService.getByPersonId(personID)
+			? await this.personsService.get(personID)
 			: person;
 		place.reserve = { reserver: forPerson.id, until: dateToISODate(untilDate) };
 

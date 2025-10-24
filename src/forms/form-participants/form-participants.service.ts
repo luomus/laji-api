@@ -108,7 +108,7 @@ export class FormParticipantsService {
 		: Promise<Participant | undefined> {
 		try {
 			const { fullName, emailAddress, address, lintuvaaraLoginName } =
-				await this.personsService.getByPersonId(personId);
+				await this.personsService.get(personId);
 			return { id: personId, fullName, emailAddress, address, lintuvaaraLoginName, lastDoc, docCount };
 		} catch (e) {
 			// Swallow errors for non existing users.

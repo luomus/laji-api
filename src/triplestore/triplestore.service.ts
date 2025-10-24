@@ -46,9 +46,8 @@ export class TriplestoreService {
 		this.formatJsonLd = this.formatJsonLd.bind(this);
 	}
 
-	// TODO returned items @context is different than old lajiapi
 	/**
-	 * Find a resource from triplestore.
+	 * Get a resource from triplestore.
 	 * @param resource The resource identifier to get
 	 * @param options Cache options
 	 */

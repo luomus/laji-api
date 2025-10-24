@@ -24,6 +24,7 @@ import { ProfileService } from "src/profile/profile.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { DocumentsService } from "../documents.service";
+import { PersonsService } from "src/persons/persons.service";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -35,6 +36,7 @@ export class DocumentValidatorService {
 		private profileService: ProfileService,
 		private formPermissionsService: FormPermissionsService,
 		private collectionsService: CollectionsService,
+		private personsService: PersonsService,
 		// These following services are used even though TS doesn't know about it. They are called dynamically in
 		// `validateWithValidationStrategy()`.
 		private taxonBelongsToInformalTaxonGroupValidatorService: TaxonBelongsToInformalTaxonGroupValidatorService,
@@ -123,7 +125,7 @@ export class DocumentValidatorService {
 		];
 
 		const { friends } = person && creator
-			? await this.profileService.getByPersonIdOrCreate(creator)
+			? await this.profileService.findByPersonID(creator) || { friends: [] } as { friends: string[] }
 			: { friends: [] } as { friends: string[] };
 		const existingNames = await this.getExistingPersonNames(document);
 		const allowedMACodes = new Set([...friends, ...existingNames]);

@@ -124,7 +124,7 @@ export class FormPermissionsService {
 	}
 
 	async acceptAccess(collectionID: string, personID: string, type: "admin" | "editor", author: Person) {
-		const customer = await this.personsService.getByPersonId(personID);
+		const customer = await this.personsService.get(personID);
 
 		if (!customer) {
 			throw new HttpException(`User by id ${personID} not found`, 404);
@@ -176,7 +176,7 @@ export class FormPermissionsService {
 	}
 
 	async revokeAccess(collectionID: string, personID: string, author: Person) {
-		const customer = await this.personsService.getByPersonId(personID);
+		const customer = await this.personsService.get(personID);
 
 		if (!customer) {
 			throw new HttpException(`User by id ${personID} not found`, 404);
@@ -226,7 +226,7 @@ export class FormPermissionsService {
 
 		const { admins } = await this.findByCollectionID(collectionID);
 		for (const adminID of admins) {
-			const admin = await this.personsService.getByPersonId(adminID);
+			const admin = await this.personsService.get(adminID);
 			void this.mailService.sendFormPermissionRequestReceived(
 				admin, { formTitle, person, formID: form.id }
 			);

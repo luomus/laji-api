@@ -273,7 +273,7 @@ export class DocumentsBatchService {
 	}
 
 	async updateJobInCache(job: BatchJob) {
-		return this.cache.set(getCacheKey(job.id, await this.personsService.getByPersonId(job.personID)), job);
+		return this.cache.set(getCacheKey(job.id, await this.personsService.get(job.personID)), job);
 	}
 
 	async getJobFromCache(id: string, person: Person) {

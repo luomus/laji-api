@@ -19,7 +19,7 @@ export class AutocompleteService {
 	async getFriends(person: Person, query?: string) {
 		return filterPersons(query, (await this.personsService.findByIds([
 			person.id,
-			...(await this.profileService.getByPersonIdOrCreate(person.id)).friends
+			...(await this.profileService.getByPersonOrCreate(person)).friends
 		])).map(preparePersonAutocomplete));
 	}
 

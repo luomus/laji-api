@@ -1,6 +1,5 @@
 import { FactoryProvider, Module } from "@nestjs/common";
 import { NotificationsModule } from "src/notifications/notifications.module";
-import { PersonTokenModule } from "src/authentication-event/authentication-event.module";
 import { ProfileService } from "./profile.service";
 import { StoreClientModule } from "src/store/store-client/store-client.module";
 import { StoreService } from "src/store/store.service";
@@ -30,7 +29,7 @@ const StoreResourceService: FactoryProvider<StoreService<Profile>> = {
 
 @Module({
 	providers: [ProfileService, StoreResourceService],
-	imports: [StoreClientModule, PersonTokenModule, NotificationsModule],
+	imports: [StoreClientModule, NotificationsModule],
 	exports: [ProfileService]
 })
 export class ProfileModule {}
