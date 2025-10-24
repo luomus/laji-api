@@ -547,7 +547,7 @@ describe("/named-place", function() {
 
 		it("modifying works if admin", async function() {
 			const res = await request(this.server)
-				.put(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }))
+				.put(url(`${basePath}/${namedPlace.id}`, { access_token, personToken }))
 				.send({ ...namedPlace, acceptedDocument: { gatherings: [{ units: [{}] }] } });
 			res.should.have.status(200);
 			res.body.should.have.property("acceptedDocument");
