@@ -17,191 +17,147 @@ describe("/annotation", function() {
 	const basePath = "/annotations";
 	let savedId;
 
-	it("returns 401 when no access token specified", function(done) {
-		request(this.server)
-			.get(basePath)
-			.end(function(err, res) {
-				res.should.have.status(401);
-				done();
-			});
+	it("returns 401 when no access token specified", async function() {
+		const res = await request(this.server)
+			.get(basePath);
+		res.should.have.status(401);
 	});
 
-	it("returns 401 when trying to add without permissions", function(done) {
-		request(this.server)
+	it("returns 401 when trying to add without permissions", async function() {
+		const res = await request(this.server)
 			.post(url(basePath, { access_token }))
-			.send({})
-			.end(function (err, res) {
-				res.should.have.status(400);
-				done();
-			});
+			.send({});
+		res.should.have.status(400);
 	});
 
-	it("adds annotation", function (done) {
+	it("adds annotation", async function() {
 		this.timeout(20000);
 		const document = JSON.parse(JSON.stringify(annotation));
-		request(this.server)
+		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(annotation)
-			.end(function (err, res) {
-				if (err) return done(err);
-				res.should.have.status(201);
-				res.body.should.have.any.keys("id");
-				res.body.should.have.any.keys("@type");
-				res.body.should.have.any.keys("@context");
-				res.body.should.have.any.keys("created");
-				res.body.id.should.be.a("string");
-				res.body.id.should.match(/^MAN\.[0-9]+$/);
-				document["id"] = res.body.id;
-				document["@type"] = res.body["@type"];
-				document["@context"] = res.body["@context"];
-				document["created"] = res.body["created"];
-				document["annotationByPerson"] = config.person.id;
-				res.body.should.eql(document);
-				savedId = res.body.id;
-				done();
-			});
+			.send(annotation);
+		res.should.have.status(201);
+		res.body.should.have.any.keys("id");
+		res.body.should.have.any.keys("@type");
+		res.body.should.have.any.keys("@context");
+		res.body.should.have.any.keys("created");
+		res.body.id.should.be.a("string");
+		res.body.id.should.match(/^MAN\.[0-9]+$/);
+		document["id"] = res.body.id;
+		document["@type"] = res.body["@type"];
+		document["@context"] = res.body["@context"];
+		document["created"] = res.body["created"];
+		document["annotationByPerson"] = config.person.id;
+		res.body.should.eql(document);
+		savedId = res.body.id;
 	});
 
-	it("return 403 when trying to add formAdmin tag with basic user", function (done) {
+	it("return 403 when trying to add formAdmin tag with basic user", async function() {
 		this.timeout(6000);
 		const document = JSON.parse(JSON.stringify(annotation));
 		document["addedTags"].push("MMAN.51");
 		document["rootID"] = "JX.322170"; // line transect document
-		request(this.server)
+		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(403);
-				done();
-			});
+			.send(document);
+		res.should.have.status(403);
 	});
 
 
-	it("return 403 when trying to add expert tag with basic user", function (done) {
+	it("return 403 when trying to add expert tag with basic user", async function() {
 		this.timeout(6000);
 		const document = JSON.parse(JSON.stringify(annotation));
 		document["addedTags"] = ["MMAN.33"];
-		request(this.server)
+		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(403);
-				done();
-			});
+			.send(document);
+		res.should.have.status(403);
 	});
 
-	it("return 403 when trying to remove expert tag with basic user", function (done) {
+	it("return 403 when trying to remove expert tag with basic user", async function() {
 		this.timeout(6000);
 		const document = JSON.parse(JSON.stringify(annotation));
 		document["removedTags"] = ["MMAN.33"];
-		request(this.server)
+		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.send(document)
-			.end(function (err, res) {
-				res.should.have.status(403);
-				done();
-			});
+			.send(document);
+		res.should.have.status(403);
 	});
 
 	describe("After adding annotation", function() {
-		it("returns annotations when asking list", function(done) {
-			request(this.server)
-				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }))
-				.end(function(err, res) {
-					res.should.have.status(200);
-					done();
-				});
+		it("returns annotations when asking list", async function() {
+			const res = await request(this.server)
+				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }));
+			res.should.have.status(200);
 		});
 
-		it("returns annotation by rootID", function(done) {
+		it("returns annotation by rootID", async function() {
 			if (!savedId) {
 				this.skip();
 			}
-			request(this.server)
-				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }))
-				.end(function(err, res) {
-					res.should.have.status(200);
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }));
+			res.should.have.status(200);
 		});
 
-		it("requires persontoken", function(done) {
+		it("requires persontoken", async function() {
 			if (!savedId) {
 				this.skip();
 			}
-			request(this.server)
-				.get(url(basePath, { access_token, rootID: annotation.rootID }))
-				.end(function(err, res) {
-					res.should.have.status(400);
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(basePath, { access_token, rootID: annotation.rootID }));
+			res.should.have.status(400);
 		});
 
-		it("requires rootID", function(done) {
+		it("requires rootID", async function() {
 			if (!savedId) {
 				this.skip();
 			}
-			request(this.server)
-				.get(url(basePath, { access_token, personToken }))
-				.end(function(err, res) {
-					res.should.have.status(400);
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(basePath, { access_token, personToken }));
+			res.should.have.status(400);
 		});
 
-		it("Does not allow delete without personToken", function(done) {
+		it("Does not allow delete without personToken", async function() {
 			if (!savedId) {
 				this.skip();
 			}
-			request(this.server)
-				.delete(url(`${basePath}/${savedId}`, { access_token }))
-				.end(function(err, res) {
-					res.should.have.status(400);
-					done();
-				});
+			const res = await request(this.server)
+				.delete(url(`${basePath}/${savedId}`, { access_token }));
+			res.should.have.status(400);
 		});
 
-		it("Does not allow delete with different user", function(done) {
+		it("Does not allow delete with different user", async function() {
 			if (!savedId) {
 				this.skip();
 			}
-			request(this.server)
-				.delete(url(`${basePath}/${savedId}`, { access_token, personToken: config.friend.personToken }))
-				.end(function(err, res) {
-					res.should.have.status(403);
-					done();
-				});
+			const res = await request(this.server)
+				.delete(url(`${basePath}/${savedId}`, { access_token, personToken: config.friend.personToken }));
+			res.should.have.status(403);
 		});
 
-		it("deletes annotation", function(done) {
+		it("deletes annotation", async function() {
 			if (!savedId) {
 				this.skip();
 			}
-			request(this.server)
-				.delete(url(`${basePath}/${savedId}`, { access_token, personToken }))
-				.end(function(err, res) {
-					res.should.have.status(200);
-					res.body.should.have.property("deleted").eql(true);
-					done();
-				});
+			const res = await request(this.server)
+				.delete(url(`${basePath}/${savedId}`, { access_token, personToken }));
+			res.should.have.status(200);
+			res.body.should.have.property("deleted").eql(true);
 		});
 
 		describe("After deleting annotation", function() {
-			it("returns show that the annotation was deleted", function(done) {
+			it("returns show that the annotation was deleted", async function() {
 				if (!savedId) {
 					this.skip();
 				}
-				request(this.server)
-					.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }))
-					.end(function(err, res) {
-						if (err) return done(err);
-						res.should.have.status(200);
-						helpers.isPagedResult(res.body, 20, true);
-						res.body[helpers.params.results].filter((a) => {
-							return a["id"] === savedId && a["deleted"] !== true;
-						}).should.have.lengthOf(0);
-						done();
-					});
+				const res = await request(this.server)
+					.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }));
+				res.should.have.status(200);
+				helpers.isPagedResult(res.body, 20, true);
+				res.body[helpers.params.results].filter((a) => {
+					return a["id"] === savedId && a["deleted"] !== true;
+				}).should.have.lengthOf(0);
 			});
 		}); // After deleting annotation
 	}); // After adding annotation

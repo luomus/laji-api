@@ -42,127 +42,98 @@ describe("/audio", function() {
 	var flacAudioTmpId;
 	var flacAudioId;
 
-	it("returns 401 when no access token specified for id", function(done) {
-		request(this.server)
-			.get(`${basePath}/${audioOthers}`)
-			.end(function(err, res) {
-				res.should.have.status(401);
-				done();
-			});
+	it("returns 401 when no access token specified for id", async function() {
+		const res = await request(this.server)
+			.get(`${basePath}/${audioOthers}`);
+		res.should.have.status(401);
 	});
 
-	it("returns 400 when no person token specified for post request", function(done) {
-		request(this.server)
+	it("returns 400 when no person token specified for post request", async function() {
+		const res = await request(this.server)
 			.post(url(`${basePath}/${audioOthers}`, { access_token }))
-			.send({ intellectualRights: "MZ.intellectualRightsCC-BY-SA-4.0" })
-			.end(function(err, res) {
-				res.should.have.status(400);
-				done();
-			});
+			.send({ intellectualRights: "MZ.intellectualRightsCC-BY-SA-4.0" });
+		res.should.have.status(400);
 	});
 
-	it("returns 400 when no person token specified for put request", function(done) {
-		request(this.server)
+	it("returns 400 when no person token specified for put request", async function() {
+		const res = await request(this.server)
 			.put(url(`${basePath}/${audioOthers}`, { access_token }))
-			.send({})
-			.end(function(err, res) {
-				res.should.have.status(400);
-				done();
-			});
+			.send({});
+		res.should.have.status(400);
 	});
 
-	it("returns 400 when no person token specified for delete request", function(done) {
-		request(this.server)
-			.delete(url(`${basePath}/${audioOthers}`, { access_token }))
-			.end(function(err, res) {
-				res.should.have.status(400);
-				done();
-			});
+	it("returns 400 when no person token specified for delete request", async function() {
+		const res = await request(this.server)
+			.delete(url(`${basePath}/${audioOthers}`, { access_token }));
+		res.should.have.status(400);
 	});
 
-	it("returns 400 when trying to update others audio", function(done) {
+	it("returns 400 when trying to update others audio", async function() {
 		this.timeout(6000);
-		request(this.server)
+		const res = await request(this.server)
 			.put(url(`${basePath}/${audioOthers}`, { access_token, personToken }))
-			.send({})
-			.end(function(err, res) {
-				res.should.have.status(400);
-				res.body.should.include({message: errorOnlyOwn});
-				done();
-			});
+			.send({});
+		res.should.have.status(400);
+		res.body.should.include({ message: errorOnlyOwn });
 	});
 
-	it("returns 400 when trying to delete others audio", function(done) {
-		request(this.server)
-			.delete(url(`${basePath}/${audioOthers}`, { access_token, personToken }))
-			.end(function(err, res) {
-				res.should.have.status(400);
-				res.body.should.include({message: errorOnlyOwnDelete});
-				done();
-			});
+	it("returns 400 when trying to delete others audio", async function() {
+		const res = await request(this.server)
+			.delete(url(`${basePath}/${audioOthers}`, { access_token, personToken }));
+		res.should.have.status(400);
+		res.body.should.include({ message: errorOnlyOwnDelete });
 	});
 
-	it("returns a temp id when adding audio", function(done) {
+	it("returns a temp id when adding audio", async function() {
 		this.timeout(6000);
-		request(this.server)
+		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
-			.attach("audio", fs.readFileSync(__dirname + "/bird.wav"), "bird.wav")
-			.end(function(err, res) {
-				if (err) return done(err);
-				res.should.have.status(200);
-				res.body.should.be.a("array");
-				res.body.should.have.lengthOf(1);
-				res.body[0].should.have.keys("name", "filename", "id", "expires");
-				audioTmpId = res.body[0].id;
-				done();
-			});
+			.attach("audio", fs.readFileSync(__dirname + "/bird.wav"), "bird.wav");
+		res.should.have.status(200);
+		res.body.should.be.a("array");
+		res.body.should.have.lengthOf(1);
+		res.body[0].should.have.keys("name", "filename", "id", "expires");
+		audioTmpId = res.body[0].id;
 	});
 
 	describe("after receiving temporal id", function() {
 
-		it("Cannot update meta object with empty object", function(done) {
+		it("Cannot update meta object with empty object", async function() {
 			if (!audioTmpId) {
 				this.skip();
 			}
 			this.timeout(10000);
-			request(this.server)
+			const res = await request(this.server)
 				.post(url(`${basePath}/${audioTmpId}`, { access_token, personToken }))
-				.send({})
-				.end(function(err, res) {
-					res.should.have.status(422);
-					done();
-				});
+				.send({});
+			res.should.have.status(422);
 		});
 
 
-		it("returns a meta object", function(done) {
+		it("returns a meta object", async function() {
 			if (!audioTmpId) {
 				this.skip();
 			}
 			this.timeout(5000);
 			const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
 			const owner = "Viltsu testaaja";
-			request(this.server)
+			const res = await request(this.server)
 				.post(url(`${basePath}/${audioTmpId}`, { access_token, personToken }))
-				.send({ intellectualRights: rights, intellectualOwner: owner })
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(201);
-					res.body.should.be.a("object");
-					helpers.toHaveOnlyKeys(res.body, wavItemProperties);
-					res.body.should.include({
-						intellectualRights: rights,
-						intellectualOwner: owner,
-						uploadedBy: "MA.314"
-					});
-					audioId = res.body.id;
-					done();
-				});
+				.send({ intellectualRights: rights, intellectualOwner: owner });
+			res.should.have.status(201);
+			res.body.should.be.a("object");
+			helpers.toHaveOnlyKeys(res.body, wavItemProperties);
+			res.body.should.include({
+				intellectualRights: rights,
+				intellectualOwner: owner,
+				uploadedBy: "MA.314"
+			});
+			audioId = res.body.id;
 		});
 	});
 
 	describe("after receiving id", function() {
-		it("updates audio meta data", function(done) {
+		it("updates audio meta data", async function() {
 			if (!audioId) {
 				this.skip();
 			}
@@ -172,22 +143,18 @@ describe("/audio", function() {
 				intellectualOwner: "Viltsu",
 				uploadedBy: "MA.97"
 			};
-			request(this.server)
+			const res = await request(this.server)
 				.put(url(`${basePath}/${audioId}`, { access_token, personToken }))
-				.send(meta)
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.body.should.be.a("object");
-					helpers.toHaveOnlyKeys(res.body, wavItemProperties);
-					res.body.should.have.property("intellectualRights").eql(meta.intellectualRights);
-					res.body.should.have.property("intellectualOwner").eql(meta.intellectualOwner);
-					res.body.should.have.property("uploadedBy").eql("MA.314");
-					done();
-				});
+				.send(meta);
+			res.should.have.status(200);
+			res.body.should.be.a("object");
+			helpers.toHaveOnlyKeys(res.body, wavItemProperties);
+			res.body.should.have.property("intellectualRights").eql(meta.intellectualRights);
+			res.body.should.have.property("intellectualOwner").eql(meta.intellectualOwner);
+			res.body.should.have.property("uploadedBy").eql("MA.314");
 		});
 
-		it("doesn't accept garbage", function(done) {
+		it("doesn't accept garbage", async function() {
 			if (!audioId) {
 				this.skip();
 			}
@@ -195,126 +162,96 @@ describe("/audio", function() {
 			var meta = {
 				intellectualRights: "FooBar"
 			};
-			request(this.server)
+			const res = await request(this.server)
 				.put(url(`${basePath}/${audioId}`, { access_token, personToken }))
-				.send(meta)
-				.end(function(err, res) {
-					res.should.have.status(400);
-					done();
-				});
+				.send(meta);
+			res.should.have.status(400);
 		});
 
-		it("returns wav", function(done) {
+		it("returns wav", async function() {
 			if (!audioId) {
 				this.skip();
 			}
 			this.timeout(6000);
-			request(this.server)
-				.get(url(`${basePath}/${audioId}/wav`, { access_token }))
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.should.have.header("content-type", "audio/x-wav");
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(`${basePath}/${audioId}/wav`, { access_token }));
+			res.should.have.status(200);
+			res.should.have.header("content-type", "audio/x-wav");
 		});
 
 
-		it("returns mp3", function(done) {
+		it("returns mp3", async function() {
 			if (!audioId) {
 				this.skip();
 			}
-			request(this.server)
-				.get(url(`${basePath}/${audioId}/mp3`, { access_token }))
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.should.have.header("content-type", "audio/mpeg");
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(`${basePath}/${audioId}/mp3`, { access_token }));
+			res.should.have.status(200);
+			res.should.have.header("content-type", "audio/mpeg");
 		});
 
-		it("returns thumbnail jpg", function(done) {
+		it("returns thumbnail jpg", async function() {
 			if (!audioId) {
 				this.skip();
 			}
-			request(this.server)
-				.get(url(`${basePath}/${audioId}/thumbnail.jpg`, { access_token }))
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.should.have.header("content-type", "image/jpeg");
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(`${basePath}/${audioId}/thumbnail.jpg`, { access_token }));
+			res.should.have.status(200);
+			res.should.have.header("content-type", "image/jpeg");
 		});
 
-		it("deletes audio", function(done) {
+		it("deletes audio", async function() {
 			if (!audioId) {
 				this.skip();
 			}
 			this.timeout(5000);
-			request(this.server)
-				.delete(url(`${basePath}/${audioId}`, { access_token, personToken }))
-				.end(function(err, res) {
-					res.should.have.status(204);
-					done();
-				});
+			const res = await request(this.server)
+				.delete(url(`${basePath}/${audioId}`, { access_token, personToken }));
+			res.should.have.status(204);
 		});
 	});
 
 	describe("flac audio", function() {
-		it("returns a temp id when adding flac audio", function(done) {
-			request(this.server)
+		it("returns a temp id when adding flac audio", async function() {
+			const res = await request(this.server)
 				.post(url(basePath, { access_token, personToken }))
-				.attach("audio", fs.readFileSync(__dirname + "/bat.flac"), "bat.flac")
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.body.should.be.a("array");
-					res.body.should.have.lengthOf(1);
-					res.body[0].should.have.keys("name", "filename", "id", "expires");
-					flacAudioTmpId = res.body[0].id;
-					done();
-				});
+				.attach("audio", fs.readFileSync(__dirname + "/bat.flac"), "bat.flac");
+			res.should.have.status(200);
+			res.body.should.be.a("array");
+			res.body.should.have.lengthOf(1);
+			res.body[0].should.have.keys("name", "filename", "id", "expires");
+			flacAudioTmpId = res.body[0].id;
 		});
 
-		it("returns a meta object for flac audio", function(done) {
+		it("returns a meta object for flac audio", async function() {
 			if (!flacAudioTmpId) {
 				this.skip();
 			}
 			this.timeout(5000);
 			const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
 			const owner = "Viltsu testaaja";
-			request(this.server)
+			const res = await request(this.server)
 				.post(url(`${basePath}/${flacAudioTmpId}`, { access_token, personToken }))
-				.send({ intellectualRights: rights, intellectualOwner: owner })
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(201);
-					res.body.should.be.a("object");
-					helpers.toHaveOnlyKeys(res.body, flacItemProperties);
-					res.body.should.include({
-						intellectualRights: rights,
-						intellectualOwner: owner,
-						uploadedBy: "MA.314"
-					});
-					flacAudioId = res.body.id;
-					done();
-				});
+				.send({ intellectualRights: rights, intellectualOwner: owner });
+			res.should.have.status(201);
+			res.body.should.be.a("object");
+			helpers.toHaveOnlyKeys(res.body, flacItemProperties);
+			res.body.should.include({
+				intellectualRights: rights,
+				intellectualOwner: owner,
+				uploadedBy: "MA.314"
+			});
+			flacAudioId = res.body.id;
 		});
 
-		it("returns flac", function(done) {
+		it("returns flac", async function() {
 			if (!flacAudioId) {
 				this.skip();
 			}
-			request(this.server)
-				.get(url(`${basePath}/${flacAudioId}/flac`, { access_token }))
-				.end(function(err, res) {
-					if (err) return done(err);
-					res.should.have.status(200);
-					res.should.have.header("content-type", "audio/flac");
-					done();
-				});
+			const res = await request(this.server)
+				.get(url(`${basePath}/${flacAudioId}/flac`, { access_token }));
+			res.should.have.status(200);
+			res.should.have.header("content-type", "audio/flac");
 		});
 	});
 });
