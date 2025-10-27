@@ -6,7 +6,7 @@ import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.
 import { Audio } from "./audio.dto";
 import { NextFunction, Request, Response } from "express";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
@@ -25,7 +25,7 @@ export class AudioController {
 		type: FileUploadResponse
 	})
 	async upload(
-		@PersonToken() _: Person, // Checks that the person token is valid.
+		@RequestPerson() _: Person, // Checks that the person token is valid.
 		@Req() req: Request,
 		@Res() res: Response,
 		@Next() next: NextFunction
@@ -38,7 +38,7 @@ export class AudioController {
 	@UseInterceptors(Translator, Serializer(Audio))
 	get(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person?: Person
+		@RequestPerson({ required: false }) person?: Person
 	): Promise<Audio> {
 		return this.abstractMediaService.get(id, person);
 	}
@@ -48,7 +48,7 @@ export class AudioController {
 	@UseInterceptors(Serializer(Audio))
 	updateMetadata(
 		@Param("id") id: string,
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@Body() audio: Audio
 	): Promise<Audio> {
 		return this.abstractMediaService.updateMetadata(id, audio, person);
@@ -57,7 +57,7 @@ export class AudioController {
 	/** Delete audio */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	delete(@Param("id") id: string, @PersonToken() person: Person) {
+	delete(@Param("id") id: string, @RequestPerson() person: Person) {
 		return this.abstractMediaService.deleteMedia(id, person);
 	}
 
@@ -65,7 +65,7 @@ export class AudioController {
 	@Get(":id/mp3")
 	getMp3(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "mp3URL", person).then(url => {
@@ -77,7 +77,7 @@ export class AudioController {
 	@Get(":id/thumbnail.jpg")
 	getThumbnail(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "thumbnailURL", person).then(url => {
@@ -89,7 +89,7 @@ export class AudioController {
 	@Get(":id/wav")
 	getWav(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "wavURL", person).then(url => {
@@ -101,7 +101,7 @@ export class AudioController {
 	@Get(":id/flac")
 	findFlac(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "flacURL", person).then(url => {
@@ -114,7 +114,7 @@ export class AudioController {
 	@UseInterceptors(Serializer(Audio))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@Body() audio: Audio
 	): Promise<Audio> {
 		return this.abstractMediaService.uploadMetadata(tempId, audio, person);

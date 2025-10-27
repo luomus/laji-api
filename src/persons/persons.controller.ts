@@ -6,7 +6,7 @@ import { Person, RemoveFriendDto } from "./person.dto";
 import { PersonsService } from "./persons.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Serialize } from "src/serialization/serialize.decorator";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson } from "src/decorators/request-person.decorator";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
 @LajiApiController("person")
@@ -21,7 +21,7 @@ export class PersonsController {
 	@Version("1")
 	@Get("profile")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
-	findProfileByPersonToken(@PersonToken() person: Person) {
+	findProfileByPersonToken(@RequestPerson() person: Person) {
 		return this.profileService.getByPersonOrCreate(person);
 	}
 
@@ -36,7 +36,7 @@ export class PersonsController {
 	/** Find person by person token */
 	@Version("1")
 	@Get()
-	findPersonByToken(@PersonToken() person: Person) {
+	findPersonByToken(@RequestPerson() person: Person) {
 		return person;
 	}
 
@@ -52,7 +52,7 @@ export class PersonsController {
 	@Version("1")
 	@Post("profile")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
-	async createProfile(@PersonToken() person: Person, @Body() profile: Profile) {
+	async createProfile(@RequestPerson() person: Person, @Body() profile: Profile) {
 		return this.profileService.create(person, profile);
 	}
 
@@ -60,7 +60,7 @@ export class PersonsController {
 	@Version("1")
 	@Put("friends/:id")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
-	async acceptFriendRequest(@PersonToken() person: Person, @Param("id") friendPersonID: string) {
+	async acceptFriendRequest(@RequestPerson() person: Person, @Param("id") friendPersonID: string) {
 		return this.profileService.acceptFriendRequest(person, await this.personsService.get(friendPersonID));
 	}
 
@@ -69,7 +69,7 @@ export class PersonsController {
 	@Delete("friends/:id")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
 	async removeFriend(
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@Param("id") friendPersonID: string,
 		@Query() { block }: RemoveFriendDto
 	) {
@@ -119,7 +119,7 @@ export class PersonsController {
 	@Version("1")
 	@Put("profile")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
-	async updateProfile(@PersonToken() person: Person, @Body() profile: Profile) {
+	async updateProfile(@RequestPerson() person: Person, @Body() profile: Profile) {
 		return this.profileService.update(person, profile);
 	}
 
@@ -138,7 +138,7 @@ export class PersonsController {
 	@Version("1")
 	@Post("friends/:id")
 	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
-	async addFriendRequest(@PersonToken() person: Person, @Param("id") friendPersonID: string) {
+	async addFriendRequest(@RequestPerson() person: Person, @Param("id") friendPersonID: string) {
 		return this.profileService.addFriendRequest(person, await this.personsService.get(friendPersonID));
 	}
 

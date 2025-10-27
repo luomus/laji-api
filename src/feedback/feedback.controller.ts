@@ -4,7 +4,7 @@ import { FeedbackService } from "./feedback.service";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { FeedbackDto } from "./feedback.dto";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { ApiTags } from "@nestjs/swagger";
 
@@ -19,7 +19,7 @@ export class FeedbackController {
 	send(
 		@Body() feedback: FeedbackDto,
 		@ApiUser() apiUser: ApiUserEntity,
-		@PersonToken({ required: false }) person?: Person
+		@RequestPerson({ required: false }) person?: Person
 	) {
 		return this.feedbackService.send(feedback, apiUser, person);
 	}

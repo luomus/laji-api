@@ -5,7 +5,7 @@ import { Notification } from "@luomus/laji-schema";
 import { NotificationsService } from "./notifications.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 
 @LajiApiController("notifications")
@@ -20,7 +20,7 @@ export class NotificationsController {
 	getAll(
 		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
 		@Param("personToken") _: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);
 	}
@@ -30,7 +30,7 @@ export class NotificationsController {
 	@Get()
 	getAllV1(
 		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);
 	}
@@ -41,7 +41,7 @@ export class NotificationsController {
 	update(
 		@Param("id") id: string,
 		@Body() notification: Notification & { id: string },
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.notificationsService.update(id, notification, person);
 	}
@@ -50,7 +50,7 @@ export class NotificationsController {
 	@Delete(":id")
 	delete(
 		@Param("id") id: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.notificationsService.delete(id, person);
 	}

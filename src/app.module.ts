@@ -56,6 +56,8 @@ import { AutocompleteModule } from "./autocomplete/autocomplete.module";
 import { ShorthandModule } from "./shorthand/shorthand.module";
 import { CoordinatesModule } from "./coordinates/coordinates.module";
 import { FeedbackModule } from "./feedback/feedback.module";
+import { GeoConvertModule } from "./geo-convert/geo-convert.module";
+
 
 @Module({
 	imports: [
@@ -116,7 +118,8 @@ import { FeedbackModule } from "./feedback/feedback.module";
 		AutocompleteModule,
 		ShorthandModule,
 		CoordinatesModule,
-		FeedbackModule
+		FeedbackModule,
+		GeoConvertModule
 	],
 	controllers: [AppController],
 	providers: [

@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext, HttpException } from "@nestjs/common";
 
-export type PersonTokenDecoratorConfig = {
+export type RequestPersonDecoratorConfig = {
 	/** Defaults to true */
 	required?: boolean;
 	/** Will be displayed in the swagger UI for the person token parameter */
@@ -12,7 +12,7 @@ export const personTokenMethods: {
 	controllerClass: Function,
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	controllerClassMethod: Function,
-	personTokenConfig: PersonTokenDecoratorConfig
+	personTokenConfig: RequestPersonDecoratorConfig
 }[] = [];
 
 /**
@@ -21,7 +21,7 @@ export const personTokenMethods: {
  *
  * @param config ({ required = true })
  * */
-const PersonTokenRuntime = createParamDecorator((data: PersonTokenDecoratorConfig = {}, ctx: ExecutionContext) => {
+const RequestPersonRuntime = createParamDecorator((data: RequestPersonDecoratorConfig = {}, ctx: ExecutionContext) => {
 	const { required = true } = data;
 	const { person } = ctx.switchToHttp().getRequest();
 	if (!person && required) {
@@ -30,13 +30,13 @@ const PersonTokenRuntime = createParamDecorator((data: PersonTokenDecoratorConfi
 	return person;
 });
 
-export function PersonToken(data?: PersonTokenDecoratorConfig) {
+export function RequestPerson(data?: RequestPersonDecoratorConfig) {
 	return (target: any, propertyKey: string, parameterIndex: number) => {
 		personTokenMethods.push({
 			controllerClass: target.constructor,
 			controllerClassMethod: (target as any)[propertyKey],
 			personTokenConfig: data || {}
 		});
-		PersonTokenRuntime(data)(target, propertyKey, parameterIndex);
+		RequestPersonRuntime(data)(target, propertyKey, parameterIndex);
 	};
 }
