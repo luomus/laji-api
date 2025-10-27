@@ -1,58 +1,91 @@
-import { Body, Get, HttpCode, Param, Post, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { All, Body, Get, Header, HttpCode, Logger, Next, Param, Post, Query, Req, Res } from "@nestjs/common";
+import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { GeoConvertService } from "./geo-convert.service";
 import { GetGeoConvertDto } from "./geo-convert.dto";
 import { RequestPersonToken } from "src/decorators/request-person-token.decorator";
+import { ConfigService } from "@nestjs/config";
+import { createProxyMiddleware } from "http-proxy-middleware";
+import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
+import { NextFunction, Request, Response } from "express";
 
 @ApiTags("GeoConvert")
 @LajiApiController("geo-convert")
 export class GeoConvertController {
 
-	constructor(
-		private geoConvertService: GeoConvertService
-	) {}
+	private logger = new Logger(GeoConvertController.name);
+
+	constructor(private config: ConfigService) {}
+
+	warehouseProxy = createProxyMiddleware({
+		target: this.config.get<string>("GEOCONVERT_HOST"),
+		changeOrigin: true,
+		pathRewrite: function (path: string, req: Request) {
+			if (req.query.outputFormat) {
+				path = `${req.path}/${req.query.outputFormat}/${req.query.geometryType}/${req.query.crs}`;
+			}
+			return path.replace(/^\/geo-convert/, "");
+		},
+		on: {
+			proxyReq:  (proxyReq, req: any) => {
+				const url = new URL(proxyReq.path, "http://dummy"); // Base is required but ignored.
+				url.searchParams.set("timeout", "0");
+				proxyReq.path = url.pathname + url.search;
+				fixRequestBodyAndAuthHeader(proxyReq, req);
+			},
+		},
+		logger: {
+			info: this.logger.verbose,
+			warn: this.logger.warn,
+			error: this.logger.error
+		}
+	});
+
+	@All("*")
+	@ApiExcludeEndpoint()
+	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
+		void this.warehouseProxy(req, res, next);
+	}
+
+	// The method below are just for swagger. The proxy handles all requests really.
+
+	/* eslint-disable */
 
 	/** Convert a FinBIF occurrence data file into a geographic data format */
 	@Get(":fileId")
 	@HttpCode(200)
+	// @Header("Content-Type", "application/json")
 	get(
 		/** Input file's identifier */
 		@Param("fileId") fileId: string,
 		@Query() query: GetGeoConvertDto,
 		@RequestPersonToken({ required: false, description:	"For use with restricted data downloads" })
 			personToken?: string
-	) {
-		return this.geoConvertService.get(fileId, query, personToken);
-	}
+	) { }
 
 	/** Convert a FinBIF occurrence data file into a geographic data format */
 	@Post(":fileId")
 	@HttpCode(200)
+	@Header("Content-Type", "application/json")
 	post(
 		/** Input file's identifier */
 		@Param("fileId") fileId: string,
 		@Query() query: GetGeoConvertDto,
 		@Body() data: any
-	) {
-		return this.geoConvertService.post(fileId, query, data);
-	}
+	) { }
 
 	/** Get status of a conversion */
 	@Get("status/:conversionId")
 	@HttpCode(200)
+	@Header("Content-Type", "application/json")
 	status(
 		@Param("conversionId") conversionId: string
-	) {
-		return this.geoConvertService.status(conversionId);
-	}
+	) { }
 
 	/** Get the output file of a conversion */
 	@Get("output/:conversionId")
 	@HttpCode(200)
+	@Header("Content-Type", "application/json")
 	output(
 		@Param("conversionId") conversionId: string
-	) {
-		return this.geoConvertService.status(conversionId);
-	}
+	) { }
 }
