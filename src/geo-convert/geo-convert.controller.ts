@@ -16,21 +16,28 @@ export class GeoConvertController {
 
 	constructor(private config: ConfigService) {}
 
-	warehouseProxy = createProxyMiddleware({
+	geoConvertProxy = createProxyMiddleware({
 		target: this.config.get<string>("GEOCONVERT_HOST"),
 		changeOrigin: true,
 		pathRewrite: function (path: string, req: Request) {
+			// For some reason we offer a different API signature for GET/POST endpoints for data uploadsfor data uploads,
+			// so this hack detects those queries and translates the signature.
 			if (req.query.outputFormat) {
 				path = `${req.path}/${req.query.outputFormat}/${req.query.geometryType}/${req.query.crs}`;
 			}
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
-			proxyReq:  (proxyReq, req: any) => {
+			proxyReq:  (proxyReq, req) => {
 				const url = new URL(proxyReq.path, "http://dummy"); // Base is required but ignored.
 				url.searchParams.set("timeout", "0");
 				proxyReq.path = url.pathname + url.search;
 				fixRequestBodyAndAuthHeader(proxyReq, req);
+			},
+			proxyRes:  (proxyRes, req) => {
+				if (proxyRes.statusCode === 303) {
+					proxyRes.statusCode = 200;
+				}
 			},
 		},
 		logger: {
@@ -43,7 +50,7 @@ export class GeoConvertController {
 	@All("*")
 	@ApiExcludeEndpoint()
 	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
-		void this.warehouseProxy(req, res, next);
+		void this.geoConvertProxy(req, res, next);
 	}
 
 	// The method below are just for swagger. The proxy handles all requests really.
