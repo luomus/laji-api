@@ -11,6 +11,7 @@ import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
 import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
+import { json } from "body-parser";
 
 export async function bootstrap() {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -29,6 +30,12 @@ export async function bootstrap() {
 	});
 
 	app.useBodyParser("json", { limit: "10mb" });
+	// app.useBodyParser("text");
+	// app.use(function(req: any, res: any, next: any){
+	// 	console.log(req.get("content-type"), !req.get("content-type")?.includes("application/json"));
+	// 	if(!req.get("content-type")?.includes("application/json")) return next();
+	// 	return json({ limit: "10mb" })(req, res, next);
+	// });
 
 	const configService = app.get(ConfigService);
 
@@ -101,13 +108,13 @@ export async function bootstrap() {
 			tagsSorter: "alpha",
 			operationsSorter: "alpha",
 			requestInterceptor: (req: any) => {
-				req.headers["API-Version"] = "1"; // Add your custom header here
+				req.headers["API-Version"] = "1";
 				return req;
 			},
 		},
 		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
 		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()
-		// failing. The patching can fail if the document is requested before the service has patched the document so it can
+		// failing. The patching can fail if the document is requested before the service has patched the document so it could
 		// return the document synchronously, or if some of the remote swagger documents can't be fetched.
 		patchDocumentOnRequest: (req, res, swaggerDoc) => {
 			try {
@@ -129,7 +136,7 @@ export async function bootstrap() {
 			tagsSorter: "alpha",
 			operationsSorter: "alpha",
 			requestInterceptor: (req: any) => {
-				req.headers["API-Version"] = "1"; // Add your custom header here
+				req.headers["API-Version"] = "1";
 				return req;
 			},
 		},
@@ -223,35 +230,30 @@ Observations and collections
 * Source - Information sources (IT systems)
 * Annotation - Quality control
 
-
-Taxonomy
+## Taxonomy
 * Taxa - Taxonomy API
 * InformalTaxonGroup - Informal taxon groups are used in taxa and warehouse endpoints
 * Publication - Scientific publications
 * Checklist - Mainly you only work with one checklits: the FinBIF master checklist. There are others.
 
-
-Other master data
+## Other master data
 * Metadata - Variable descriptions
 * Area - Countries, municipalities and biogeographical provinces of Finland, etc.
 * Person - Information about people.
 
-
-Helpers
+## Helpers
 * APIUser - Register as an API user
 * Autocomplete - For making an autocomplete filed for taxa, collections or persons (friends)
 * Login - Login for standalone applications (contact helpdesk if you want to use this)
 * PersonToken - Information about an authorized person
 
-
-Vihko observation system
+## Vihko observation system
 * Audio - Audio of a document
 * Form - Form definition
 * Document - Document instance of a form
 * Image - Image of a document
 
-
-Laji.fi portal
+## Laji.fi portal
 * Feedback - Feedback form API
 * Information - CMS content of information pages
 * Logger - Error logging from user's browsers to FinBIF

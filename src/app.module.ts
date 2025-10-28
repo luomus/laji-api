@@ -57,6 +57,7 @@ import { ShorthandModule } from "./shorthand/shorthand.module";
 import { CoordinatesModule } from "./coordinates/coordinates.module";
 import { FeedbackModule } from "./feedback/feedback.module";
 import { GeoConvertModule } from "./geo-convert/geo-convert.module";
+import { HtmlToPdfModule } from "./html-to-pdf/html-to-pdf.module";
 
 
 @Module({
@@ -119,7 +120,8 @@ import { GeoConvertModule } from "./geo-convert/geo-convert.module";
 		ShorthandModule,
 		CoordinatesModule,
 		FeedbackModule,
-		GeoConvertModule
+		GeoConvertModule,
+		HtmlToPdfModule
 	],
 	controllers: [AppController],
 	providers: [
