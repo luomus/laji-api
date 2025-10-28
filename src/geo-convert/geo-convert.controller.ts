@@ -34,7 +34,7 @@ export class GeoConvertController {
 				proxyReq.path = url.pathname + url.search;
 				fixRequestBodyAndAuthHeader(proxyReq, req);
 			},
-			proxyRes:  (proxyRes, req) => {
+			proxyRes:  (proxyRes) => {
 				if (proxyRes.statusCode === 303) {
 					proxyRes.statusCode = 200;
 				}
