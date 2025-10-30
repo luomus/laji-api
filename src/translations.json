@@ -222,7 +222,7 @@
 	"NAMED_PLACE_NO_WRITE_ACCESS": {
 		"en": "You don't have access to this place",
 		"sv": "Du har inte access till denna plats",
-		"fi": "Sinulla ei ole access tähän paikkaan"
+		"fi": "Sinulla ei ole pääsyä tähän paikkaan"
 	},
 	"NAMED_PLACE_NO_FORM_PERMISSION_FOR_CREATING_PUBLIC": {
 		"en": "Insufficient permission to form to make public named places",
@@ -320,18 +320,28 @@
 		"fi": "Kyseisessä sijainnissa on jo olemassa nimetty paikka"
 	},
 	"DOCUMENT_VALIDATION_PROPERTY_UNKNOWN_TO_FORM": {
-		"en": "Property not in form schema!"
+		"en": "Property not in form schema!",
+		"sv": "Egenskapen finns inte i formulärets schema!",
+		"fi": "Kenttä ei ole lomakkeen skeemassa!"
 	},
 	"DOCUMENT_NO_EDIT_RIGHTS_TO_FORM": {
-		"en": "Insufficient rights to use this form"
+		"en": "Insufficient rights to use the form",
+		"sv": "Otillräckliga rättigheter för att använda detta formulär",
+		"fi": "Riittämättömät oikeudet lomakkeen käyttöön"
 	},
 	"DOCUMENT_READ_VIEWABLE_FOR_ALL_BUT_NO_PERMISSION_NOT_OWNER_NOT_EDITOR": {
-		"en": "You don't have permission to the form and you are not the owner or an editor of the document"
+		"en": "You don't have permission to the form and you are not the owner or an editor of the document",
+		"sv": "Du har inte behörighet till formuläret och du är inte ägare eller redigerare av dokumentet",
+		"fi": "Sinulla ei ole oikeuksia lomakkeeseen etkä ole dokumentin omistaja tai muokkaaja"
 	},
 	"DOCUMENT_READ_NOT_OWNER_NOT_EDITOR": {
-		"en": "Only document owner and editors can view the document"
+		"en": "Only document owner and editors can view the document",
+		"sv": "Endast dokumentets ägare och redigerare kan visa dokumentet",
+		"fi": "Vain dokumentin omistaja ja muokkaajat voivat tarkastella dokumenttia"
 	},
 	"DOCUMENT_INVALID_SYSTEM_ID": {
-		"en": "No valid systemID could be found for the api user"
+		"en": "No valid systemID could be found for the api user",
+		"sv": "Inget giltigt systemID kunde hittas för API-användaren",
+		"fi": "Kelvollista systemID:tä ei löytynyt API-käyttäjälle"
 	}
 }
