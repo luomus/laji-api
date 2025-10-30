@@ -6,7 +6,6 @@ import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serialization/serialization.utils";
-import { PaginatedDto } from "src/pagination.utils";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 
@@ -46,7 +45,7 @@ export class NamedPlacesController {
 			required: false,
 			description: "Person's authentication token. Necessary for fetching private places"
 		}) person?: Person
-	): Promise<PaginatedDto<NamedPlace>> {
+	) {
 		const { page, pageSize, selectedFields, includePublic, ...q } = query;
 		(q as Record<string, unknown>).id = q.idIn;
 		const safeQuery = pickAndSerialize(NamedPlace, q, ...AllowedPageQueryKeys);

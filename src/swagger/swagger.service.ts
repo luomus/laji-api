@@ -106,11 +106,11 @@ export class SwaggerService {
 		}
 	}
 
-	async setDocument(document: OpenAPIObject) {
+	setDocument(document: OpenAPIObject) {
 		this.rawDocument = document;
 	}
 
-	async getRawDocument() {
+	getRawDocument() {
 		return this.rawDocument;
 	}
 
