@@ -21,7 +21,7 @@ export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends 
 				message: exception.message,
 				details: (exception as any).details,
 				errorCode: (exception as any).errorCode,
-			}
+			};
 		} else if (exception instanceof HttpException) {
 			json = {
 				errorCode: "GENERIC",
