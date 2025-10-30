@@ -218,9 +218,9 @@ function logOutgoingRequests(httpService: HttpService) {
 
 const description =
 `
-Access token is needed to use this API. To get a token, send a POST request with your email address to
-/api-users endpoint and one will be send to your. Include the token to each request either as access_token
-parameter or Authentication header value
+Access token is needed to use this API. To get a token, send a POST request with your email address to /api-users
+endpoint and one will be sent to your email. Include the token to each request either as access_token parameter or
+Authentication header value
 
 You can find more documentation [here](https://laji.fi/about/806).
 
@@ -228,17 +228,17 @@ If you have any questions you can contact us at helpdesk@laji.fi.
 
 ## Endpoints
 
-Observations and collections
+## Observations and collections
 * Warehouse - Observation Data Warehouse API
 * Collection - Collection metadata
 * Source - Information sources (IT systems)
 * Annotation - Quality control
 
 ## Taxonomy
+* Checklist - Mainly you only work with one checklits: the FinBIF master checklist. There are others.
 * Taxa - Taxonomy API
 * InformalTaxonGroup - Informal taxon groups are used in taxa and warehouse endpoints
 * Publication - Scientific publications
-* Checklist - Mainly you only work with one checklits: the FinBIF master checklist. There are others.
 
 ## Other master data
 * Metadata - Variable descriptions
@@ -247,9 +247,10 @@ Observations and collections
 
 ## Helpers
 * APIUser - Register as an API user
+* AuthenticationEvent - Information about the authentication event of a person token
 * Autocomplete - For making an autocomplete filed for taxa, collections or persons (friends)
 * Login - Login for standalone applications (contact helpdesk if you want to use this)
-* PersonToken - Information about an authorized person
+* Shorthand - Vihko form shorthand service
 
 ## Vihko observation system
 * Audio - Audio of a document

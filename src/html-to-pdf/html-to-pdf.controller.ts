@@ -11,8 +11,8 @@ export class HtmlToPdfController {
 
 	/** Convert HTML to PDF */
 	@Post()
-	// @Header("Content-Type", "application/pdf")
-	// @ApiConsumes("text/plain")
+	@Header("Content-Type", "application/pdf")
+	@ApiConsumes("text/plain")
 	@HttpCode(200)
 	async htmlToPdf(
 		/** HTML string */
