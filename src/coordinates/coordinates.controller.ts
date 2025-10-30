@@ -6,7 +6,7 @@ import { Lang } from "src/common.dto";
 import { AddContextToPageLikeResult } from "src/interceptors/add-context-to-page-like-result.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
-import { AddressComponent, LocationResponse } from "./coordinates.dto";
+import { AddressComponent, Location, LocationResponse } from "./coordinates.dto";
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
@@ -20,11 +20,11 @@ export class CoordinatesController {
 	@UseInterceptors(
 		AddContextToPageLikeResult,
 		Translator,
-		Serializer(LocationResponse, { localJsonLdContext: "coordinates-location" })
+		Serializer(Location, { localJsonLdContext: "coordinates-location" })
 	)
 	@HttpCode(200)
 	@ApiExtraModels(AddressComponent)
-	getLocationInformation(@Body() geoJSON: GeoJSON, @RequestLang() lang: Lang) {
+	getLocationInformation(@Body() geoJSON: GeoJSON, @RequestLang() lang: Lang): Promise<LocationResponse> {
 		return this.coordinatesService.getLocationInformation(geoJSON, lang);
 	}
 }

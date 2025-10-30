@@ -1,7 +1,8 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { AbstractShorthandService } from "./abstract-shorthand.service";
 import { TaxaService } from "src/taxa/taxa.service";
 import { SearchMatchType } from "src/taxa/taxa.dto";
+import { LocalizedException } from "src/utils";
 
 /** Map from 2 letter codes to EURING/Birdlife code */
 const nameToBirdCode: Record<string, string> = {
@@ -76,7 +77,7 @@ export class LineTransectUnitShorthandService implements AbstractShorthandServic
 			.replace("PESÄ","PESA")
 		);
 		if (matches === null) {
-			throw new HttpException("Invalid line transect short hand value. Could not parse query", 422);
+			throw new LocalizedException("LINE_TRANSECT_SHORTHAND_INVALID_QUERY", 422);
 		}
 
 		const [_, taxonStr, isPairStr, countStr, typeStr, lineStr] = matches;
@@ -88,11 +89,11 @@ export class LineTransectUnitShorthandService implements AbstractShorthandServic
 		const line = lineStr || "A";
 
 		if (!type) {
-			throw new HttpException("Invalid line transect short hand value. Missing type.", 422);
+			throw new LocalizedException("LINE_TRANSECT_SHORTHAND_MISSING_TYPE", 422);
 		}
 		if (isPair && ["AO", "AY"].indexOf(type) === -1) {
-			throw new HttpException(
-				"Invalid line transect short hand value. Pair (A) marking can only be used when type is O or Y"
+			throw new LocalizedException(
+				"LINE_TRANSECT_SHORTHAND_BAD_A_WITH_TYPE_O_OR_Y"
 				, 422
 			);
 		}
@@ -104,7 +105,7 @@ export class LineTransectUnitShorthandService implements AbstractShorthandServic
 		});
 		const [ taxon ] = taxa;
 		if (!taxon) {
-			throw new HttpException( "Invalid line transect short hand value. No taxon found for the query" , 422);
+			throw new LocalizedException("LINE_TRANSECT_SHORTHAND_MISSING_TAXON" , 422);
 		}
 
 		return {

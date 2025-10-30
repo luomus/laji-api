@@ -1,10 +1,11 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serialization/serialization.utils";
 import * as equals from "fast-deep-equal";
 import { Person } from "src/persons/person.dto";
+import { LocalizedException } from "src/utils";
 
 @Injectable()
 export class ProfileService {
@@ -25,7 +26,7 @@ export class ProfileService {
 	/** Create a new profile, if person has no profile. */
 	async create(person: Person, profile: Partial<Profile>): Promise<Profile> {
 		if (await this.findByPerson(person)) {
-			throw new HttpException("User already has a profile", 422);
+			throw new LocalizedException("USER_ALREADY_HAS_A_PROFILE", 422);
 		}
 		return this.create(person, profile);
 	}
@@ -33,13 +34,13 @@ export class ProfileService {
 	async update(person: Person, profile: Partial<Profile>) {
 		const existingProfile = await this.findByPerson(person);
 		if (!existingProfile) {
-			throw new HttpException("Can't update profile that doesn't exist", 422);
+			throw new LocalizedException("CANT_UPDATE_NONEXISTENT_PROFILE", 422);
 		}
 		const nextProfile = serializeInto(Profile)({ ...existingProfile, ...profile });
 		const protectedKeys: (keyof Profile)[] = ["id", "userID", "friendRequests", "friends"];
 		protectedKeys.forEach((key: keyof Profile) => {
 			if (!equals(nextProfile[key], existingProfile[key])) {
-				throw new HttpException(`${key} cannot be updated by this method`, 422);
+				throw new LocalizedException("PROFILE_UPDATING_KEY_NOT_ALLOWED", 422, { key });
 			}
 		});
 
@@ -51,7 +52,7 @@ export class ProfileService {
 		const { friendRequests, blocked, friends, userID: friendID } = friendProfile;
 
 		if ([friendRequests, blocked, friends].some(l => l.includes(person.id))) {
-			throw new HttpException("Friend request already sent", 422);
+			throw new LocalizedException("ALREADY_FRIEND", 422);
 		}
 
 		const updated = await this.store.update({
@@ -67,7 +68,7 @@ export class ProfileService {
 		const profile = await this.getByPersonOrCreate(person);
 
 		if (!profile.friendRequests.includes(friend.id)) {
-			throw new HttpException("No friend request found", 422);
+			throw new LocalizedException("NO_FRIEND_REQUEST_FOUND", 422);
 		}
 
 		await this.store.update(addFriend(friendProfile, person));
@@ -107,7 +108,7 @@ export class ProfileService {
 	private async getByPerson(person: Person) {
 		const profile = await this.findByPerson(person);
 		if (!profile) {
-			throw new HttpException(`Person's ${person.id} profile not found`, 404);
+			throw new LocalizedException("PROFILE_NOT_FOUND", 404, { id: person.id });
 		}
 		return profile;
 	}

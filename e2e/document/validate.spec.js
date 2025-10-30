@@ -79,8 +79,8 @@ describe("/documents/validate", function() {
 					]
 				}
 			},
-			"message": "Unprocessable Entity",
-			"statusCode": 422
+			"message": "Validation exception",
+			"errorCode": "VALIDATION_EXCEPTION"
 		});
 	});
 
@@ -216,8 +216,8 @@ describe("/documents/validate", function() {
 						}
 					}
 				},
-				"message": "Unprocessable Entity",
-				"statusCode": 422
+				"message": "Validation exception",
+				"errorCode": "VALIDATION_EXCEPTION"
 			});
 		});
 
@@ -276,8 +276,8 @@ describe("/documents/validate", function() {
 						}
 					}
 				},
-				"message": "Unprocessable Entity",
-				"statusCode": 422
+				"message": "Validation exception",
+				"errorCode": "VALIDATION_EXCEPTION"
 			});
 		});
 	});
@@ -319,8 +319,8 @@ describe("/documents/validate", function() {
 						"There already exists a named place in that location"
 					]
 				},
-				"message": "Unprocessable Entity",
-				"statusCode": 422
+				"message": "Validation exception",
+				"errorCode": "VALIDATION_EXCEPTION"
 			});
 		});
 	});

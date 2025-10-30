@@ -15,7 +15,6 @@ import { UniqueNamedPlaceAlternativeIDsValidatorService }
 import { ProfileModule } from "src/profile/profile.module";
 import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
 import { CollectionsModule } from "src/collections/collections.module";
-import { PersonsModule } from "src/persons/persons.module";
 
 @Module({
 	providers: [
@@ -32,8 +31,7 @@ import { PersonsModule } from "src/persons/persons.module";
 		forwardRef(() => NamedPlacesModule),
 		ProfileModule,
 		FormPermissionsModule,
-		CollectionsModule,
-		PersonsModule
+		CollectionsModule
 	],
 	exports: [DocumentValidatorService]
 })

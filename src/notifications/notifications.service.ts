@@ -1,4 +1,4 @@
-import { HttpException, Inject } from "@nestjs/common";
+import { Inject } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import * as equals from "fast-deep-equal";
@@ -7,6 +7,7 @@ import { Optional, omit } from "src/typing.utils";
 import { Person } from "src/persons/person.dto";
 import { Notification } from "@luomus/laji-schema";
 import { NotificationQuery } from "./notifications.module";
+import { LocalizedException } from "src/utils";
 
 @Injectable()
 export class NotificationsService {
@@ -37,7 +38,7 @@ export class NotificationsService {
 	async getByIdAndPerson(id: string, person: Person) {
 		const notification = await this.store.get(id);
 		if (notification.toPerson !== person.id) {
-			throw new HttpException("This isn't your notification", 403);
+			throw new LocalizedException("NOT_YOUR_NOTIFICATION", 403);
 		}
 		return notification;
 	}
@@ -45,10 +46,10 @@ export class NotificationsService {
 	async update(id: string, notification: Notification & { id: string }, person: Person) {
 		const existing = await this.getByIdAndPerson(id, person);
 		if (!existing) {
-			throw new HttpException("No notification found to update", 404);
+			throw new LocalizedException("NOTIFICATION_NOT_FOUND_TO_UPDATE", 404);
 		}
 		if (!equals(omit(existing, "seen", "@context"), omit(notification, "seen", "@context"))) {
-			throw new HttpException("You can only update the 'seen' property", 422);
+			throw new LocalizedException("NOTIFICATION_CAN_ONLY_UPDATE_SEEN", 422);
 		}
 		return this.store.update(notification);
 	}
@@ -56,7 +57,7 @@ export class NotificationsService {
 	async delete(id: string, person: Person) {
 		const existing = await this.getByIdAndPerson(id, person);
 		if (!existing) {
-			throw new HttpException("No notification found to delete", 404);
+			throw new LocalizedException("NOTIFICATION_NOT_FOUND_TO_DELETE", 404);
 		}
 		return this.store.delete(id);
 	}

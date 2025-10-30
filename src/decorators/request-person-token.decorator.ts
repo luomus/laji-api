@@ -1,5 +1,6 @@
-import { ExecutionContext, HttpException, createParamDecorator } from "@nestjs/common";
+import { ExecutionContext, createParamDecorator } from "@nestjs/common";
 import { RequestPersonDecoratorConfig, personTokenMethods } from "./request-person.decorator";
+import { LocalizedException } from "src/utils";
 
 /**
  * Populates a Person instance to the decorated parameter. The request must have `personToken` in the query or in the
@@ -11,7 +12,7 @@ const RequestPersonRuntime = createParamDecorator((data: RequestPersonDecoratorC
 	const { required = true } = data;
 	const { personToken } = ctx.switchToHttp().getRequest();
 	if (!personToken && required) {
-		throw new HttpException("personToken is required", 400);
+		throw new LocalizedException("PERSON_TOKEN_IS_REQUIRED", 400);
 	}
 	return personToken;
 });

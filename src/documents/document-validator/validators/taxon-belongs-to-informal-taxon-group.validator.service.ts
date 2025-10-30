@@ -54,7 +54,7 @@ export class TaxonBelongsToInformalTaxonGroupValidatorService implements Documen
 			|| !taxon.informalGroups.some(({ id }) => informalTaxonGroups.includes(id))
 		) {
 			throw new ValidationException({
-				[documentTaxon.path]: ["Taxon does not belong to given informal taxon groups."]
+				[documentTaxon.path]: ["DOCUMENT_VALIDATION_TAXON_NOT_IN_INFORMAL_TAXON_GROUP"]
 			});
 		}
 	}

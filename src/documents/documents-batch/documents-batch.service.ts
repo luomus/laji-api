@@ -8,7 +8,7 @@ import {
 	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument,
 	PublicityRestrictions, DataOrigin, BatchJobPhase, BatchJobStep
 } from "../documents.dto";
-import { ValidationException, formatErrorDetails, isValidationException }
+import { PreTranslatedDetailsValidationException, ValidationException, formatErrorDetails, isValidationExceptionBase }
 	from "../document-validator/document-validator.utils";
 import { firstFromNonEmptyArr, uuid } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -168,7 +168,7 @@ export class DocumentsBatchService {
 
 				formIDs.add(populatedDocument.formID);
 				if (formIDs.size > 1) {
-					throw new ValidationException({ "": ["All documents must have the same formID"] });
+					throw new ValidationException({ "": ["DOCUMENT_VALIDATION_BATCH_SAME_FORM_ID"] });
 				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument) && !isSecondaryDocument(populatedDocument)) {
@@ -180,9 +180,11 @@ export class DocumentsBatchService {
 				return null;
 			} catch (e) {
 				job.status.processed++;
-				return isValidationException(e)
+				return isValidationExceptionBase(e)
 					? e
-					: new ValidationException({ "": [`Failed due to internal error: ${e.message}`] });
+					: new PreTranslatedDetailsValidationException(
+						{ "": [`Failed due to internal error: ${e.message}`] }
+					);
 			}
 		});
 	}
@@ -197,7 +199,7 @@ export class DocumentsBatchService {
 				);
 			} catch (e) {
 				job.errors = Array(job.documents.length).fill(
-					new ValidationException({ "": ["Upload to the warehouse failed"] })
+					new ValidationException({ "": ["DOCUMENT_VALIDATION_BATCH_WAREHOUSE_UPLOAD_FAILED"] })
 				);
 			} finally {
 				job.status.processed = job.documents.length;
@@ -227,7 +229,9 @@ export class DocumentsBatchService {
 				if (e.error) {
 					message += ` Combined error is: ${e.error}`;
 				}
-				job.errors = Array(job.documents.length).fill(new ValidationException({ "": [message] }));
+				job.errors = Array(job.documents.length).fill(
+					new PreTranslatedDetailsValidationException({ "": [message] })
+				);
 			}
 		}
 

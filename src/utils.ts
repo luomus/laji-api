@@ -1,5 +1,7 @@
+import { HttpException } from "@nestjs/common";
 import * as crypto from "crypto";
 import { MaybePromise, isObject } from "src/typing.utils";
+import * as translations from "src/translations.json";
 
 export const CACHE_1_SEC = 1000;
 export const CACHE_1_MIN = CACHE_1_SEC * 60;
@@ -239,3 +241,21 @@ export const isJSONPointer = (pointer: string) =>
 export const joinOnlyStrings = (...array: (unknown)[]) => {
 	return array.filter(m => typeof m === "string" || typeof m === "number").join(" ");
 };
+
+export class LocalizedException extends HttpException {
+	context?: Record<string, string>;
+	errorCode: string;
+	constructor(errorCode: keyof typeof translations, statusCode: number, context?: Record<string, string>)  {
+		super(errorCode, statusCode);
+		this.errorCode = errorCode;
+		this.context = context;
+	}
+}
+
+export class ExternalException extends HttpException {
+	context?: Record<string, string>;
+	errorCode = "EXTERNAL";
+	constructor(message: string, statusCode: number)  {
+		super(message, statusCode);
+	}
+}

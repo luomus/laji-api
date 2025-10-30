@@ -1,20 +1,19 @@
-// const _app = require('../dist/main');
-const chai = require('chai'),
+const chai = require("chai"),
 	expect = chai.expect,
 	should = chai.should(),
-	chaiHttp = require('chai-http');
+	chaiHttp = require("chai-http");
 chai.use(chaiHttp);
 const { request } = require("chai");
 
 const params = {
-	context: '@context',
-	results: 'results',
-	pageSize: 'pageSize',
-	currentPage: 'currentPage',
-	total: 'total',
-	lastPage: 'lastPage',
-	nextPage: 'nextPage',
-	prevPage: 'prevPage',
+	context: "@context",
+	results: "results",
+	pageSize: "pageSize",
+	currentPage: "currentPage",
+	total: "total",
+	lastPage: "lastPage",
+	nextPage: "nextPage",
+	prevPage: "prevPage",
 };
 
 module.exports = {
@@ -22,19 +21,19 @@ module.exports = {
 	toHaveOnlyKeys(obj, keys) {
 		var objKeys = Object.keys(obj);
 		var diff = objKeys.filter(function(i) {return keys.indexOf(i) < 0;});
-		chai.expect(diff, 'Object has keys that where not expected: ' + JSON.stringify(diff) ).to.have.lengthOf(0);
+		chai.expect(diff, "Object has keys that where not expected: " + JSON.stringify(diff) ).to.have.lengthOf(0);
 	},
 	isPagedResult: (data, pageSize, shouldHaveNext)  => {
 		var keys = [params.context, params.results, params.pageSize,
 			params.total, params.currentPage];
-		if (typeof shouldHaveNext !== 'undefined') {
+		if (typeof shouldHaveNext !== "undefined") {
 			keys.push(params.nextPage);
 		}
-		if (typeof shouldHaveNext !== 'undefined' || typeof data[params.lastPage] !== 'undefined') {
-			keys.push(params.lastPage)
+		if (typeof shouldHaveNext !== "undefined" || typeof data[params.lastPage] !== "undefined") {
+			keys.push(params.lastPage);
 		}
 		data.should.have.keys(keys);
-		if (typeof pageSize !== 'undefined') {
+		if (typeof pageSize !== "undefined") {
 			data[params.pageSize].should.be.equal(pageSize);
 		}
 	},
@@ -52,7 +51,7 @@ module.exports = {
 		}, {});
 		return host + "?" + new URLSearchParams(queryWithArraysAsCommaSeparatedString).toString();
 	},
-	apiRequest: function(server, { accessToken, personToken } = {}) {
+	apiRequest: function(server, { accessToken, personToken, lang } = {}) {
 		return ["get", "post", "put", "delete"].reduce((wrapper, method) => {
 			wrapper[method] = function(url) {
 				const req = request(server)[method](url);
@@ -62,6 +61,9 @@ module.exports = {
 				}
 				if (personToken) {
 					req.set("Person-Token", personToken);
+				}
+				if (lang) {
+					req.set("Accept-language", lang);
 				}
 				return req;
 			};

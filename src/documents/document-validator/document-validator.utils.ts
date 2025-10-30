@@ -1,8 +1,9 @@
 import { MaybePromise } from "src/typing.utils";
 import { Document } from "@luomus/laji-schema";
-import { HttpException } from "@nestjs/common";
 import { ValidationErrorFormat } from "../documents.dto";
-import { isJSONPointer } from "src/utils";
+import { LocalizedException, isJSONPointer } from "src/utils";
+import * as translations from "src/translations.json";
+import { OmitType } from "@nestjs/swagger";
 
 export const joinJSONPointers = (path: string | undefined, subpath: string) => {
 	if (!isJSONPointer(subpath)) {
@@ -23,15 +24,36 @@ export abstract class DocumentValidator<T = Document> {
 }
 
 export class ErrorsObj { [path: string]: ErrorsObj | string[] };
+export type ValidationDetails = Record<string, (keyof typeof translations)[]>
 
-/** The `details` must be a map of JSON pointers and error message arrays. */
-export class ValidationException extends HttpException {
-	constructor(details: ErrorsObj) {
-		super({ statusCode: 422, message: "Unprocessable Entity", details }, 422);
+/**
+ * Not to be instantialized directly. Use LocalizedValidationException or PreLocalizedDetailsValidationException instead.
+ * This is used in the filter to detect all sub-types of validation exceptions.
+ * */
+export class ValidationExceptionBase extends LocalizedException {
+	constructor() {
+		super("VALIDATION_EXCEPTION", 422);
 	}
 }
 
-export const isValidationException = (e: any): e is ValidationException => !!e?.response?.details;
+/** The `details` must be a map of JSON pointers and error message arrays. */
+export class ValidationException extends ValidationExceptionBase {
+	details: ValidationDetails;
+	constructor(details: ValidationDetails) {
+		super();
+		this.details = details;
+	}
+}
+
+export class PreTranslatedDetailsValidationException extends ValidationExceptionBase {
+	details: Record<string, string[]>;
+	constructor(details: Record<string, string[]>) {
+		super();
+		this.details = details;
+	}
+}
+
+export const isValidationExceptionBase = (e: any): e is ValidationExceptionBase => !!e?.details;
 
 const jsonPointerFormatToObjectFormat = (errors: Record<string, string[]>) =>
 	Object.keys(errors).reduce((result, path) => {
@@ -63,7 +85,7 @@ const jsonPointerFormatToJsonPathFormat = (errors: Record<string, string[]>) =>
 	Object.keys(errors).reduce((result, path) => {
 		result[JSONPointerToOldApiJSONPath(path)] = errors[path] as string[];
 		return result;
-	}, {} as ErrorsObj);
+	}, {} as Record<string, string[]>);
 
 export const formatErrorDetails = (
 	errors: Record<string, string[]>,

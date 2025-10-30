@@ -1,8 +1,9 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { AbstractShorthandService } from "./abstract-shorthand.service";
 import { TaxaService } from "src/taxa/taxa.service";
 import { TaxaSearchDto, Taxon } from "src/taxa/taxa.dto";
 import { TripReportUnitShorthandResponseDto } from "./shorthand.dto";
+import { LocalizedException } from "src/utils";
 
 type Interpretation = {
 	taxonName: string;
@@ -22,7 +23,7 @@ implements AbstractShorthandService<Omit<TaxaSearchDto, "query">> {
 		const matches = /^(\d+ )?((?:\D| )+ ?)(\d+ ?)?(\d+)?$/.exec(query);
 
 		if (!matches) {
-			throw new HttpException("Invalid \"query\" query param for trip report short hand value", 422);
+			throw new LocalizedException("TRIP_REPORT_SHORTHAND_INVALID_QUERY", 422);
 		}
 		const [_, count, taxonName, maleIndividualCount, femaleIndividualCount] = matches
 			.map(s =>

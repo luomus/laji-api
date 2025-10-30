@@ -16,7 +16,6 @@ import { DocumentValidatorService } from "./document-validator/document-validato
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
-import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
@@ -24,7 +23,6 @@ import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @ApiTags("Documents")
-@UseFilters(ValidatiorErrorFormatFilter)
 @ApiExtraModels(ErrorsObj)
 @LajiApiController("documents")
 export class DocumentsController {
@@ -132,7 +130,7 @@ export class DocumentsController {
 		}
 
 		if (!document.formID) {
-			throw new ValidationException({ "/formID": ["Missing required param formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 
 		const form = await this.formsService.get(document.formID);
@@ -219,7 +217,7 @@ export class DocumentsController {
 			) as any;
 		}
 		if (!document.formID) {
-			throw new ValidationException({ "/formID": ["Missing required param formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 		const form = await this.formsService.get(document.formID);
 		if (form?.options?.secondaryCopy) {
@@ -254,7 +252,7 @@ export class DocumentsController {
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
 		if (!document.formID) {
-			throw new ValidationException({ "/formID": ["Missing required property formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 
 		const form = await this.formsService.get(document.formID);

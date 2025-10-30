@@ -5,7 +5,7 @@ import { AccessTokenEntity } from "./access-token.entity";
 import { Request } from "express";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { uuid } from "src/utils";
+import { LocalizedException, uuid } from "src/utils";
 
 @Injectable()
 export class AccessTokenService {
@@ -21,7 +21,7 @@ export class AccessTokenService {
 		if (request.query.access_token) {
 			if (request.headers["api-version"] === "1") {
 				// eslint-disable-next-line max-len
-				throw new HttpException("Access token in query parameters is deprecated for API v1. Please use 'authorization' header instead.", 422);
+				throw new LocalizedException("BAD_ACCESS_TOKEN_SIGNATURE", 422);
 			}
 			return request.query.access_token as string;
 		}

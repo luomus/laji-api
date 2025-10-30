@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
@@ -9,7 +9,7 @@ import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulate
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
-import { isValidDate, dateToISODate } from "src/utils";
+import { isValidDate, dateToISODate, LocalizedException } from "src/utils";
 import { MailService } from "src/mail/mail.service";
 import { Person } from "src/persons/person.dto";
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
@@ -112,11 +112,11 @@ export class NamedPlacesService {
 		}
 
 		if (!person) {
-			throw new HttpException("You must provide a personToken when fetching private named places", 403);
+			throw new LocalizedException("PRIVATE_NAMED_PLACES_PERSON_TOKEN_REQUIRED", 403);
 		}
 
 		if (!placeIsReadableFor(place, person)) {
-			throw new HttpException("You are not an editor or an owner of the place", 403);
+			throw new LocalizedException("NAMED_PLACE_NOT_EDITOR_OR_OWNER", 403);
 		}
 
 		return place;
@@ -158,7 +158,7 @@ export class NamedPlacesService {
 		if (existing.public) {
 			const hasDocuments = await this.documentsService.existsByNamedPlaceID(id);
 			if (hasDocuments) {
-				throw new HttpException("Can't delete public place that has documents", 422);
+				throw new LocalizedException("NAMED_PLACE_CANT_DELETE_PUBLIC_WITH_DOCUMENTS", 422);
 			}
 		}
 
@@ -169,29 +169,29 @@ export class NamedPlacesService {
 		const place = await this.get(id);
 
 		if (!place.collectionID) {
-			throw new HttpException("Can't reserve a place that doesn't belong to a collection", 422);
+			throw new LocalizedException("NAMED_PLACE_CANT_RESERVE_IF_NO_COLLECTION", 422);
 		}
 
 		const isAdmin = await this.formPermissionsService.isAdminOf(place.collectionID, person);
 
 		if (!isAdmin && place.reserve?.until && new Date(place.reserve.until) >= new Date()) {
-			throw new HttpException("The place is already reserved", 400);
+			throw new LocalizedException("NAMED_PLACE_RESERVED_ALREADY", 400);
 		}
 
 		let untilDate: Date;
 		if (until) {
 			untilDate = new Date(until);
 			if (!isValidDate(untilDate)) { // TS is wrong here, `Date.parse()` accepts `Date`.
-				throw new HttpException("'until' has bad date format, should be YYYY-MM-DD", 422);
+				throw new LocalizedException("NAMED_PLACE_RESERVATION_UNTIL_BAD_FORMAT", 422);
 			}
 			if (untilDate < new Date()) {
-				throw new HttpException("You can't reserve to a date in the past", 422);
+				throw new LocalizedException("NAMED_PLACE_RESERVATION_CANT_RESERVE_TO_PAST", 422);
 			}
 			if (!isAdmin) {
 				const oneYearAway = new Date();
 				oneYearAway.setFullYear(oneYearAway.getFullYear() + 1);
 				if (untilDate > oneYearAway) {
-					throw new HttpException("You can't reserve to a date so far away in the future", 400);
+					throw new LocalizedException("NAMED_PLACE_RESERVATION_TOO_FAR", 400);
 				}
 			}
 		} else {
@@ -200,13 +200,13 @@ export class NamedPlacesService {
 		}
 
 		if (personID && !isAdmin) {
-			throw new HttpException("Only admin can reserve to other user", 403);
+			throw new LocalizedException("NAMED_PLACE_RESERVATION_ONLY_ADMIN_CAN_RESERVE_TO_OTHERS", 403);
 		}
 
 		await this.formsService.checkWriteAccessIfDisabled(place.collectionID, person);
 
 		if (!await this.formPermissionsService.hasEditRightsOf(place.collectionID, person)) {
-			throw new HttpException("You need permission to the form to reserve a place", 403);
+			throw new LocalizedException("NAMED_PLACE_RESERVATION_NO_FORM_PERMISSION", 403);
 		}
 
 		const forPerson = personID
@@ -224,7 +224,7 @@ export class NamedPlacesService {
 		if (place.reserve?.reserver !== person.id
 			&& !(place.collectionID && await this.formPermissionsService.isAdminOf(place.collectionID, person))
 		) {
-			throw new HttpException("You can't remove other users reservation if you are not admin", 403);
+			throw new LocalizedException("NAMED_PLACE_RESERVATION_CANT_REMOVE_OTHERS_IF_NOT_ADMIN", 403);
 		}
 		delete place.reserve;
 		return this.store.update(place);
@@ -238,7 +238,7 @@ export class NamedPlacesService {
 		}
 
 		if (!collectionID) {
-			throw new HttpException("You don't have access to this place", 403);
+			throw new LocalizedException("NAMED_PLACE_NO_WRITE_ACCESS", 403);
 		}
 
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
@@ -248,14 +248,14 @@ export class NamedPlacesService {
 		}
 
 		if (person && !await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
-			throw new HttpException("Insufficient permission to form to make public named places", 403);
+			throw new LocalizedException("NAMED_PLACE_NO_FORM_PERMISSION_FOR_CREATING_PUBLIC", 403);
 		}
 		const allowedToAddPublic = !!await this.formsService.findFor(
 			collectionID,
 			f => f.options.namedPlaceOptions?.allowAddingPublic
 		);
 		if (!allowedToAddPublic) {
-			throw new HttpException("Adding public places for this collection isn't allowed", 403);
+			throw new LocalizedException("NAMED_PLACE_ADDING_PUBLIC_NOT_ALLOWED_FOR_FORM", 403);
 		}
 	}
 }
