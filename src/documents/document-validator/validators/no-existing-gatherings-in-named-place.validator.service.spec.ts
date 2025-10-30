@@ -100,7 +100,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 
 		describe("existing document", () => {
 			// eslint-disable-next-line max-len
-			it("should not throw ValidationException if there are no conflicting documents in the same period", async () => {
+			it("should not throw ValidationException if new date range stays within form period", async () => {
 				const document = {
 					id: "existing-id",
 					namedPlaceID: "namedPlaceId",
@@ -112,10 +112,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 					{ options: { periods: ["12-22/02-17"] } } as FormSchemaFormat
 				);
 
-				// First call says "yes, there are documents", second says "no conflict for this id"
-				documentsServiceMock.existsByNamedPlaceID
-					.mockResolvedValueOnce(true)
-					.mockResolvedValueOnce(false);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValueOnce(false);
 
 				await expect(service.validate(document)).resolves.not.toThrow();
 
@@ -124,16 +121,10 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 					"namedPlaceId",
 					expect.any(Object)
 				);
-				expect(documentsServiceMock.existsByNamedPlaceID).toHaveBeenNthCalledWith(
-					2,
-					"namedPlaceId",
-					expect.any(Object),
-					"existing-id"
-				);
 			});
 
 			// eslint-disable-next-line max-len
-			it("should throw ValidationException if there are conflicting documents in the same period", async () => {
+			it("should throw ValidationException if new date range doesn't stay within form period", async () => {
 				const document = {
 					id: "existing-id",
 					namedPlaceID: "namedPlaceId",
@@ -145,10 +136,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 					{ options: { periods: ["12-22/02-17"] } } as FormSchemaFormat
 				);
 
-				// Both calls return true (conflict detected)
-				documentsServiceMock.existsByNamedPlaceID
-					.mockResolvedValueOnce(true)
-					.mockResolvedValueOnce(true);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValueOnce(true);
 
 				await expect(service.validate(document)).rejects.toThrow(ValidationException);
 			});
