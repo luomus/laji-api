@@ -25,8 +25,8 @@ export class HtmlToPdfService {
 			"<script type=\"application/javascript\">await document.fonts.ready;</script></head>"
 		);
 		const pdf =	(await htmlPdf.create(html, {
-			port: this.config.get("HTML_PORT"),
-			host: this.config.get("HTML_HOST"),
+			port: this.config.get("CHROME_PORT"),
+			host: this.config.get("CHROME_HOST"),
 			timeout: 30000,
 			printOptions: {
 				paperWidth: 8.27,
