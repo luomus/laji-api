@@ -26,7 +26,7 @@ export class HtmlToPdfService {
 		);
 		const pdf =	(await htmlPdf.create(html, {
 			port: this.config.get("HTML_PORT"),
-			host: this.config.get("HTML_PORT"),
+			host: this.config.get("HTML_HOST"),
 			timeout: 30000,
 			printOptions: {
 				paperWidth: 8.27,
