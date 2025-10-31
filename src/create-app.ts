@@ -101,6 +101,13 @@ export async function createApp(useLogger = true) {
 			description: "Sets the 'Accept-Language' header. One of 'fi', 'sv,' 'en'. Defaults to 'en'."
 		}, "Lang")
 		.addApiKey({ type: "apiKey", name: "Person-Token", in: "header" }, "Person token")
+		.addGlobalResponse(
+			createErrorResponseSwaggerForStatus(401),
+			createErrorResponseSwaggerForStatus(403),
+			createErrorResponseSwaggerForStatus(404),
+			createErrorResponseSwaggerForStatus(422),
+			createErrorResponseSwaggerForStatus(500)
+		)
 		.build()
 	);
 
@@ -187,6 +194,14 @@ function logOutgoingRequests(httpService: HttpService) {
 		return Promise.reject(error);
 	});
 }
+
+const createErrorResponseSwaggerForStatus = (status: number) => ({
+	status,
+	schema: { type: "object", properties: {
+		errorCode: { type: "string" },
+		message: { type: "string" }
+	} } }
+);
 
 const description =
 `
