@@ -47,7 +47,7 @@ export class GeoConvertController {
 		}
 	});
 
-	@All("*")
+	@All("*all")
 	@ApiExcludeEndpoint()
 	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
 		void this.geoConvertProxy(req, res, next);

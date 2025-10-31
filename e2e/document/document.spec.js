@@ -965,7 +965,8 @@ describe("/documents", function() {
 		it("doesn't allow sending documents", async function() {
 			this.timeout(10000);
 			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken }));
+				.post(url(basePath, { access_token, personToken }))
+				.send(document);
 			res.should.have.status(422);
 		});
 
