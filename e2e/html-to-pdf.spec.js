@@ -7,7 +7,7 @@ const { access_token } = config;
 describe("/html-to-pdf", function() {
 	var basePath =  "/html-to-pdf";
 
-	it("returns 404 when no access token specified", async function () {
+	it("returns 401 when no access token specified", async function () {
 		const res = await request(this.server)
 			.get(basePath);
 		res.should.have.status(401);
