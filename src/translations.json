@@ -11,8 +11,8 @@
 	},
 	"INVALID_ACCESS_TOKEN": {
 		"en": "Invalid access token",
-		"sv": "Ogiltig Access token",
-		"fi": "Virheellinen Access token"
+		"sv": "Ogiltig access token",
+		"fi": "Virheellinen access token"
 	},
 	"NO_DATA_FOUND_WITH_GIVEN_TOKEN": {
 		"en": "No data found with given token",
@@ -26,8 +26,8 @@
 	},
 	"EMAIL_REGISTERED_ALREADY": {
 		"en": "This email has been registered already. Use the /renew endpoint to request a new access token to your email.",
-		"sv": "Denna e-postadress är redan registrerad. Använd /renew endpoint för att begära en ny Access token till din e-post.",
-		"fi": "Tämä sähköpostiosoite on jo rekisteröity. Käytä /renew endpointia pyytääksesi uuden Access tokenin sähköpostiisi."
+		"sv": "Denna e-postadress är redan registrerad. Använd /renew endpoint för att begära en ny access token till din e-post.",
+		"fi": "Tämä sähköpostiosoite on jo rekisteröity. Käytä /renew endpointia pyytääksesi uuden access tokenin sähköpostiisi."
 	},
 	"EMAIL_NOT_REGISTERED": {
 		"en": "This email hasn't been registered already. Use the create endpoint to create a new access token for your email.",
@@ -112,7 +112,7 @@
 	"STORE_RESERVED_SYNTAX": {
 		"en": "Store query literals containing reserved syntax (${RESERVED_SYNTAX}) is not allowed",
 		"sv": "Store query-litteraler som innehåller reserverad syntax (${RESERVED_SYNTAX}) är inte tillåtna",
-		"fi": "Store-queryn literalit, jotka sisältävät varatun syntaksin (${RESERVED_SYNTAX}), eivät ole sallittuja"
+		"fi": "Store-queryn literaalit, jotka sisältävät varatun syntaksin (${RESERVED_SYNTAX}), eivät ole sallittuja"
 	},
 	"USER_ALREADY_HAS_A_PROFILE": {
 		"en": "User already has a profile",
@@ -147,22 +147,22 @@
 	"NOT_YOUR_NOTIFICATION": {
 		"en": "This isn't your notification",
 		"sv": "Detta är inte din notification",
-		"fi": "Tämä ei ole sinun notification"
+		"fi": "Tämä ei ole sinun notifikaatio"
 	},
 	"NOTIFICATION_NOT_FOUND_TO_UPDATE": {
 		"en": "No notification found to update",
 		"sv": "Ingen notification hittades att uppdatera",
-		"fi": "Päivitettävää notificationia ei löytynyt"
+		"fi": "Päivitettävää notifikaatiota ei löytynyt"
 	},
 	"NOTIFICATION_CAN_ONLY_UPDATE_SEEN": {
 		"en": "You can only update the 'seen' property",
 		"sv": "Du kan endast uppdatera egenskapen 'seen'",
-		"fi": "Voit päivittää vain 'seen'-ominaisuuden"
+		"fi": "Voit päivittää vain 'seen'-kentän"
 	},
 	"NOTIFICATION_NOT_FOUND_TO_DELETE": {
 		"en": "No notification found to delete",
 		"sv": "Ingen notification hittades att ta bort",
-		"fi": "Poistettavaa notificationia ei löytynyt"
+		"fi": "Poistettavaa notifikaatiota ei löytynyt"
 	},
 	"PRIVATE_NAMED_PLACES_PERSON_TOKEN_REQUIRED": {
 		"en": "You must provide a personToken when fetching private named places",
