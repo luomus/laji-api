@@ -3,7 +3,6 @@ import { Document } from "@luomus/laji-schema";
 import { ValidationErrorFormat } from "../documents.dto";
 import { LocalizedException, isJSONPointer } from "src/utils";
 import * as translations from "src/translations.json";
-import { OmitType } from "@nestjs/swagger";
 
 export const joinJSONPointers = (path: string | undefined, subpath: string) => {
 	if (!isJSONPointer(subpath)) {

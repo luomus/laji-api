@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch } from "@nestjs/common";
 import { ValidationExceptionBase, formatErrorDetails } from "../document-validator/document-validator.utils";
 import { Request } from "express";
 import { ValidationErrorFormat } from "../documents.dto";
-import { LocalizerExceptionFilter, localizeException } from "src/filters/localize-exception.filter";
+import { localizeException } from "src/filters/localize-exception.filter";
 import { ErrorSignatureBackwardCompatibilityFilter } from "src/filters/error-signature-backward-compatibility.filter";
 
 @Catch(ValidationExceptionBase)

@@ -5,8 +5,7 @@ import { IsInt, IsOptional, IsString } from "class-validator";
 import { QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { PickNonNullableKeys, WithNonNullableKeys } from "src/typing.utils";
-import { ErrorsObj, PreTranslatedDetailsValidationException, ValidationException, ValidationExceptionBase }
-	from "./document-validator/document-validator.utils";
+import { ErrorsObj, ValidationExceptionBase } from "./document-validator/document-validator.utils";
 
 export class GetDocumentsDto extends IntersectionType(
 	QueryWithPagingDto

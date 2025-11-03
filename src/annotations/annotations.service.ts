@@ -1,5 +1,5 @@
 import { Annotation, Tag, Document, MMANRequiredRolesEnum } from "@luomus/laji-schema/models";
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { DocumentsService } from "src/documents/documents.service";
 import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
 import { NotificationsService } from "src/notifications/notifications.service";

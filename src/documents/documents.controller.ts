@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.service";
-import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, UseFilters } from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
