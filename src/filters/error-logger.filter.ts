@@ -13,10 +13,10 @@ export class ErrorLoggerFilter extends BaseExceptionFilter {
 		} catch (e) { }
 
 		if (!status || status === 500) {
-			this.logger.fatal(exception, exception.stack, {
-				reason: status === 500 ? "Internal server error" : "Unknown",
-				...exception
-			});
+			// this.logger.fatal(exception, exception.stack, {
+			// 	reason: status === 500 ? "Internal server error" : "Unknown",
+			// 	...exception
+			// });
 		}
 
 		super.catch(exception, host);

@@ -7,8 +7,6 @@ import { AccessTokenEntity } from "./access-token/access-token.entity";
 import { AccessTokenModule } from "./access-token/access-token.module";
 import { AppController } from "./app.controller";
 import { FormsModule } from "./forms/forms.module";
-import { HttpClientErrorToHttpExceptionInterceptor }
-	from "./interceptors/http-client-error-to-http-exception.interceptor";
 import { LajiAuthClientModule } from "./laji-auth-client/laji-auth-client.module";
 import { LajiAuthClientService } from "./laji-auth-client/laji-auth-client.service";
 import { MetadataModule } from "./metadata/metadata.module";
@@ -60,6 +58,7 @@ import { GeoConvertModule } from "./geo-convert/geo-convert.module";
 import { HtmlToPdfModule } from "./html-to-pdf/html-to-pdf.module";
 import { LocalizerExceptionFilter } from "./filters/localize-exception.filter";
 import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format/validatior-error-format.filter";
+import { AxiosErrorFilter } from "./filters/axios-error.filter";
 
 
 @Module({
@@ -137,10 +136,6 @@ import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format
 		},
 		{
 			provide: APP_INTERCEPTOR,
-			useClass: HttpClientErrorToHttpExceptionInterceptor
-		},
-		{
-			provide: APP_INTERCEPTOR,
 			useClass: PersonTokenInterceptor
 		},
 		{
@@ -162,6 +157,10 @@ import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format
 		{
 			provide: APP_FILTER,
 			useClass: ValidatiorErrorFormatFilter
+		},
+		{
+			provide: APP_FILTER,
+			useClass: AxiosErrorFilter
 		},
 		ProxyToOldApiService,
 		{
