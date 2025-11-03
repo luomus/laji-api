@@ -8,7 +8,7 @@ import { FormPermissionsService } from "./form-permissions/form-permissions.serv
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Person } from "src/persons/person.dto";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { FormParticipantsService } from "./form-participants/form-participants.service";
@@ -25,7 +25,7 @@ export class FormsController {
 
 	/** Get form permissions for a person */
 	@Get("permissions")
-	getPermissions(@PersonToken() person: Person) {
+	getPermissions(@RequestPerson() person: Person) {
 		return this.formPermissionsService.getByPerson(person);
 	}
 
@@ -33,7 +33,7 @@ export class FormsController {
 	@Get("permissions/:collectionID")
 	getPermissionsByCollectionID(
 		@Param("collectionID") collectionID: string,
-		@PersonToken({ required: false }) person?: Person
+		@RequestPerson({ required: false }) person?: Person
 	) {
 		return this.formPermissionsService.getByCollectionIDAndPerson(collectionID, person);
 	}
@@ -42,7 +42,7 @@ export class FormsController {
 	@Post("permissions/:collectionID")
 	requestAccess(
 		@Param("collectionID") collectionID: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.formPermissionsService.requestAccess(collectionID, person);
 	}
@@ -53,7 +53,7 @@ export class FormsController {
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
 		@Query() { type }: AcceptAccessDto,
-		@PersonToken({ description: "Person's authentication token who is authorizing the acception" }) person: Person
+		@RequestPerson({ description: "Person's authentication token who is authorizing the acception" }) person: Person
 	) {
 		return this.formPermissionsService.acceptAccess(collectionID, personID, type!, person);
 	}
@@ -63,14 +63,14 @@ export class FormsController {
 	revokeAccess(
 		@Param("collectionID") collectionID: string,
 		@Param("personID") personID: string,
-		@PersonToken({ description: "Person's authentication token who is authorizing the removal" }) person: Person
+		@RequestPerson({ description: "Person's authentication token who is authorizing the removal" }) person: Person
 	) {
 		return this.formPermissionsService.revokeAccess(collectionID, personID, person);
 	}
 
 	/** Get participants of a form. Only for form admins. */
 	@Get(":id/participants")
-	getParticipants(@Param("id") id: string, @PersonToken() person: Person) {
+	getParticipants(@Param("id") id: string, @RequestPerson() person: Person) {
 		return this.formParticipantsService.getParticipants(id, person);
 	}
 

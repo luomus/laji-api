@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { FormSchemaFormat, Format, Hashed } from "src/forms/dto/form.dto";
 import { JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/json-schema.utils";
 import { JSONObjectSerializable, isObject } from "src/typing.utils";
@@ -7,7 +7,7 @@ import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
-import { DocumentValidator, ErrorsObj, ValidationException }
+import { DocumentValidator, PreTranslatedDetailsValidationException, ValidationDetails, ValidationException }
 	from "./document-validator.utils";
 import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
@@ -76,7 +76,7 @@ export class DocumentValidatorService {
 			const errors = Object.keys(e).reduce((jsonPointerErrors, dotNotationKey) => {
 				jsonPointerErrors[dotNotationToJSONPointer(dotNotationKey)] = e[dotNotationKey];
 				return jsonPointerErrors;
-			}, {} as ErrorsObj);
+			}, {} as ValidationDetails);
 			throw new ValidationException(errors);
 		}
 	}
@@ -96,7 +96,7 @@ export class DocumentValidatorService {
 				}
 				errors[error.instancePath]!.push(message ?? "");
 			});
-			throw new ValidationException(errors);
+			throw new PreTranslatedDetailsValidationException(errors);
 		}
 	}
 
@@ -123,7 +123,7 @@ export class DocumentValidatorService {
 		];
 
 		const { friends } = person && creator
-			? await this.profileService.getByPersonIdOrCreate(creator)
+			? await this.profileService.findByPersonID(creator) || { friends: [] } as { friends: string[] }
 			: { friends: [] } as { friends: string[] };
 		const existingNames = await this.getExistingPersonNames(document);
 		const allowedMACodes = new Set([...friends, ...existingNames]);
@@ -136,7 +136,7 @@ export class DocumentValidatorService {
 				personString.toUpperCase().startsWith("MA.")
 				&& !allowedMACodes.has(personString)
 			) {
-				throw new ValidationException({ [path]: ["MA codes must be the creator or the creator's friend!"] });
+				throw new ValidationException({ [path]: ["DOCUMENT_VALIDATION_MA_CODES_UNFAMILIAR"] });
 			}
 		});
 	}
@@ -175,12 +175,12 @@ export class DocumentValidatorService {
 				const collectionChildren = await this.collectionsService.findDescendants(form.collectionID);
 				if (!collectionChildren.find(child => child.id === namedPlace.collectionID)) {
 					throw new ValidationException({
-						"/namedPlaceID": ["Named place doesn't belong to the forms collection or it's descendants."]
+						"/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_NOT_PART_OF_COLLECTION"]
 					});
 				}
 			}
 		} catch (e) {
-			throw new ValidationException({ "/namedPlaceID": ["Named place not found or not public"] });
+			throw new ValidationException({ "/namedPlaceID": ["DOCUMENT_VALIDATION_PUBLIC_NAMED_PLACE_NOT_FOUND"] });
 		}
 	}
 
@@ -192,12 +192,13 @@ export class DocumentValidatorService {
 		type?: ValidationType
 	}) {
 		const  { validator, field, ...validatorOptions } = options;
-		return ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
+		await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
 			.validate(item,
 				field === undefined ? undefined
 					: dotNotationToJSONPointer(field),
 				validatorOptions
 			);
+
 	}
 
 	private extendLajiValidate() {
@@ -218,7 +219,7 @@ export class DocumentValidatorService {
 				} catch (error) {
 					return {
 						status: error.status || 500,
-						json: () => ({ error: error.response }),
+						json: () => ({ error: error }),
 					};
 				}
 			}
@@ -239,21 +240,21 @@ export const checkHasOnlyFieldsInForm = (data: Partial<Document>, form: FormSche
 		"namedPlaceID", "@context", "legUserID", "additionalIDs", "secureLevel",
 		"keywords", "coordinateSource", "dataOrigin", "caption", "namedPlaceNotes"
 	];
-	const recursively = (data: unknown, schema: JSONSchema) => {
+	const recursively = (data: unknown, schema: JSONSchema, jsonPath: string) => {
 		if (isObject(data)) Object.keys(data).forEach(key => {
 			if (metaKeys.some(k => key === k)) {
 				return;
 			}
 			if (!(schema as JSONSchemaObject).properties?.[key]) {
-				throw new HttpException(`Property ${key} not in form ${form.id} schema!`, 422);
+				throw new ValidationException({ [jsonPath]: ["DOCUMENT_VALIDATION_PROPERTY_UNKNOWN_TO_FORM"] });
 			}
 			if (key === "geometry") { // Don't validate internals of the geometry, as the type is just an empty object.
 				return;
 			}
-			recursively(data[key], (schema as JSONSchemaObject).properties![key]!);
+			recursively(data[key], (schema as JSONSchemaObject).properties![key]!, `${jsonPath}/${key}`);
 		}); else if (Array.isArray(data)) {
-			data.forEach(item => recursively(item, (schema as JSONSchemaArray).items));
+			data.forEach((item, idx) => recursively(item, (schema as JSONSchemaArray).items, `${jsonPath}/${idx}`));
 		}
 	};
-	recursively(data, form.schema);
+	recursively(data, form.schema, "");
 };

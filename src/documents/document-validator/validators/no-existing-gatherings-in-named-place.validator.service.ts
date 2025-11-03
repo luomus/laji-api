@@ -2,7 +2,7 @@ import { DocumentsService } from "src/documents/documents.service";
 import { Document } from "@luomus/laji-schema";
 import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
 import { isValidDate } from "src/utils";
-import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { DocumentValidator, ValidationException, joinJSONPointers } from "../document-validator.utils";
 import { FormsService } from "src/forms/forms.service";
 
@@ -15,16 +15,15 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 	) {}
 
 	async validate(document: Document, path = "/gatheringEvent/dateBegin") {
-
 		const { formID, namedPlaceID } = document;
 		if (!formID) {
 			throw new ValidationException(
-				{ "/formID": ["Missing formID"] }
+				{ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] }
 			);
 		}
 		if (!namedPlaceID) {
 			throw new ValidationException(
-				{ "/namedPlaceID": ["Could not find the named place in the document"] }
+				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND"] }
 			);
 		}
 		const form = await this.formsService.get(formID, Format.schema);
@@ -41,14 +40,14 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const isNewDoc = !id;
 		if (isNewDoc) {
 			throw new ValidationException(
-				{ [path]: ["Observation already exists within the given gathering period."] }
+				{ [path]: ["DOCUMENT_VALIDATION_NAMED_PLACE_HAS_GATHERING_IN_PERIOD_ALREADY"] }
 			);
 		} else {
 			const namedPlaceHasDocumentsForExistingDoc =
 				await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange, id);
 			if (!namedPlaceHasDocumentsForExistingDoc) {
 				throw new ValidationException(
-					{ [path]: ["Observation already exists within the given gathering period."] }
+					{ [path]: ["DOCUMENT_VALIDATION_NAMED_PLACE_HAS_GATHERING_IN_PERIOD_ALREADY"] }
 				);
 			}
 		}
@@ -57,12 +56,12 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 	getPeriod(form: FormSchemaFormat, document: Document, path?: string) {
 		const errorPath = joinJSONPointers(path, "/gatheringEvent/dateBegin");
 		if (!document.gatheringEvent || !document.gatheringEvent.dateBegin) {
-			throw new ValidationException({ [errorPath]: ["Date is required"] });
+			throw new ValidationException({ [errorPath]: ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 		const start =  new Date(document.gatheringEvent.dateBegin);
 		if (!isValidDate(start)) {
 			throw new ValidationException(
-				{ "/namedPlaceID": ["Could not find the named place in the document"] }
+				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND"] }
 			);
 		}
 
@@ -81,10 +80,8 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		for (const period of periods.slice().sort()) {
 			const ranges = period.split("/");
 			if (ranges.length !== 2) {
-				throw new HttpException(
-					"Unprocessable Entity",
-					422,
-					{ [errorPath]: ["Form had a badly formatted period. Should be in format MM-DD/MM-DD"] }
+				throw new ValidationException(
+					{ [errorPath]: ["DOCUMENT_VALIDATION_FORM_HAS_INVALID_PERIOD"] }
 				);
 			}
 			const periodStart = +ranges[0]!.replace(/\D/g, "");

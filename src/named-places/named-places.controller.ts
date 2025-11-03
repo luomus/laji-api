@@ -6,8 +6,7 @@ import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serialization/serialization.utils";
-import { PaginatedDto } from "src/pagination.utils";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 
 @ApiTags("Named places")
@@ -21,7 +20,7 @@ export class NamedPlacesController {
 	reserve(
 		@Param("id") id: string,
 		@Query() { personID, until }: ReservationDto,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) : Promise<NamedPlace> {
 		return this.namedPlacesService.reserve(id, person, personID, until);
 	}
@@ -31,7 +30,7 @@ export class NamedPlacesController {
 	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
 	cancelReservation(
 		@Param("id") id: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.namedPlacesService.cancelReservation(id, person);
 	}
@@ -42,11 +41,11 @@ export class NamedPlacesController {
 	@UseInterceptors(FilterUnitsInterceptor)
 	getPage(
 		@Query() query: GetNamedPlacePageDto,
-		@PersonToken({
+		@RequestPerson({
 			required: false,
 			description: "Person's authentication token. Necessary for fetching private places"
 		}) person?: Person
-	): Promise<PaginatedDto<NamedPlace>> {
+	) {
 		const { page, pageSize, selectedFields, includePublic, ...q } = query;
 		(q as Record<string, unknown>).id = q.idIn;
 		const safeQuery = pickAndSerialize(NamedPlace, q, ...AllowedPageQueryKeys);
@@ -67,7 +66,7 @@ export class NamedPlacesController {
 	get(
 		@Param("id") id: string,
 		@Query() _: GetNamedPlaceDto,
-		@PersonToken({
+		@RequestPerson({
 			required: false,
 			description: "Person's authentication token. Necessary for fetching private places"
 		}) person: Person
@@ -80,7 +79,7 @@ export class NamedPlacesController {
 	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
 	create(
 		@Body() place: NamedPlace,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<NamedPlace>  {
 		return this.namedPlacesService.create(place, person);
 	}
@@ -91,7 +90,7 @@ export class NamedPlacesController {
 	update(
 		@Param("id") id: string,
 		@Body() place: NamedPlace,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<NamedPlace>  {
 		return this.namedPlacesService.update(id, place, person);
 	}
@@ -99,7 +98,7 @@ export class NamedPlacesController {
 	/** Delete a named place */
 	@Delete(":id")
 	delete(@Param("id") id: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) {
 		return this.namedPlacesService.delete(id, person);
 	}

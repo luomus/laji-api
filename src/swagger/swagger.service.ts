@@ -22,7 +22,7 @@ import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwag
 import { ConfigService } from "@nestjs/config";
 import { JSONSchema } from "src/json-schema.utils";
 import { HTTP_CODE_METADATA, METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
-import { PersonTokenDecoratorConfig, personTokenMethods } from "src/decorators/person-token.decorator";
+import { RequestPersonDecoratorConfig, personTokenMethods } from "src/decorators/request-person.decorator";
 import { DECORATORS } from "@nestjs/swagger/dist/constants";
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
@@ -106,11 +106,11 @@ export class SwaggerService {
 		}
 	}
 
-	async setDocument(document: OpenAPIObject) {
+	setDocument(document: OpenAPIObject) {
 		this.rawDocument = document;
 	}
 
-	async getRawDocument() {
+	getRawDocument() {
 		return this.rawDocument;
 	}
 
@@ -247,12 +247,12 @@ export class SwaggerService {
 			const httpMethod = Reflect.getMetadata(METHOD_METADATA, controllerClassMethod) as number;
 			map[path] = { ...map[path], [RequestMethod[httpMethod]!.toLowerCase()]: personTokenConfig };
 			return map;
-		}, {} as Record<string, Record<string, PersonTokenDecoratorConfig>>);
+		}, {} as Record<string, Record<string, RequestPersonDecoratorConfig>>);
 
 		Object.keys(document.paths).forEach(path => {
 			Object.keys(document.paths[path]!).forEach((method: "get" | "post" | "put" | "delete") => {
 				const personTokenConfig = map[path]?.[method];
-				if (personTokenConfig) { // Apply @PersonToken() decorator to our swagger.
+				if (personTokenConfig) { // Apply @RequestPerson() decorator to our swagger.
 					if (!document.paths[path]![method]!.parameters) {
 						document.paths[path]![method]!.parameters = [];
 					}

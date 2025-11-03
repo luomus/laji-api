@@ -38,4 +38,4 @@ lerna-debug.log*
 
 *.env
 
-integration-test/config.json
+e2e/config.json

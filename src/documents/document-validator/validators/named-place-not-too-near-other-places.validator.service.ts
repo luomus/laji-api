@@ -30,7 +30,7 @@ export class NamedPlaceNotTooNearOtherPlacesValidatorService implements Document
 				minDistance: 200
 			}) !== undefined) {
 				throw new ValidationException(
-					{ ["/geometry"]: ["There already exists a named place in that location"] }
+					{ ["/geometry"]: ["DOCUMENT_VALIDATION_NAMED_PLACE_TOO_NEAR_OTHERS"] }
 				);
 			}
 		}

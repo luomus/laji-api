@@ -9,7 +9,7 @@ import { FormsService } from "src/forms/forms.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { Person } from "src/persons/person.dto";
 import { NamedPlacesService } from "src/named-places/named-places.service";
-import { isValidDate } from "src/utils";
+import { LocalizedException, isValidDate } from "src/utils";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { PrepopulatedDocumentService } from "src/named-places/prepopulated-document/prepopulated-document.service";
 import { QueryCacheOptions } from "src/store/store-cache";
@@ -192,10 +192,10 @@ export class DocumentsService {
 
 		if (!person.isImporter()) {
 			if (!unpopulatedDocument.creator) {
-				throw new HttpException("Missing creator", 422);
+				throw new ValidationException({ "/creator": ["DOCUMENT_CREATOR_REQUIRED"]  });
 			}
 			if (unpopulatedDocument.creator !== existing.creator) {
-				throw new ValidationException({ "/creator": ["Cannot update a document with a different creator"]  });
+				throw new ValidationException({ "/creator": ["DOCUMENT_VALIDATION_CANT_CHANGE_CREATOR"]  });
 			}
 			if (existing.isTemplate && !unpopulatedDocument.isTemplate) {
 				throw new HttpException("Can't make a template a non-template", 422);
@@ -228,7 +228,7 @@ export class DocumentsService {
 		const { collectionID } = document;
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 		if (!(await this.canAccessIfLocked(document, person))) {
-			throw new ValidationException({ "/locked": ["Editing a locked document is not allowed"] });
+			throw new ValidationException({ "/locked": ["DOCUMENT_VALIDATION_EDITING_LOCKED"] });
 		}
 		if (collectionID) {
 			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
@@ -275,7 +275,7 @@ export class DocumentsService {
 	async deriveCollectionIDMutably<T extends { formID?: string, namedPlaceID?: string, collectionID?: string }>
 	(mutableTarget: T): Promise<T & { collectionID: string }> {
 		if (!mutableTarget.formID) {
-			throw new ValidationException({ "/formID": ["Missing required property formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 		if (mutableTarget.namedPlaceID) {
 			const namedPlace = await this.namedPlacesService.get(mutableTarget.namedPlaceID);
@@ -346,7 +346,7 @@ export class DocumentsService {
 		await this.formsService.checkWriteAccessIfDisabled(collectionID, person);
 
 		if (person?.isImporter() && !document.creator) {
-			throw new ValidationException({ "/creator": ["Creator is mandatory when using importer token"] });
+			throw new ValidationException({ "/creator": ["DOCUMENT_VALIDATION_CREATOR_REQUIRED_WITH_PERSON_TOKEN"] });
 		}
 
 		if (!person) {
@@ -358,7 +358,7 @@ export class DocumentsService {
 			await this.checkHasReadRightsTo(document, person);
 
 			if (!await this.formPermissionsService.hasEditRightsOf(collectionID, person)) {
-				throw new HttpException("Insufficient rights to use this form", 403);
+				throw new LocalizedException("DOCUMENT_NO_EDIT_RIGHTS_TO_FORM", 403);
 			}
 		}
 
@@ -446,12 +446,12 @@ export class DocumentsService {
 			const hasEditRights = await this.formPermissionsService.hasEditRightsOf(collectionID, person);
 			if (!hasEditRights) {
 				// eslint-disable-next-line max-len
-				throw new HttpException("You don't have permission to the form and you are not the owner or an editor of the document", 403);
+				throw new LocalizedException("DOCUMENT_READ_VIEWABLE_FOR_ALL_BUT_NO_PERMISSION_NOT_OWNER_NOT_EDITOR", 403);
 			}
 			return;
 		}
 
-		throw new HttpException("Only document owner and editors can view the document", 403);
+		throw new LocalizedException("DOCUMENT_READ_NOT_OWNER_NOT_EDITOR", 403);
 	}
 
 	async getCountByYear(
@@ -549,7 +549,7 @@ const populateSourceIDMutably = <T extends Document>
 	(document: T, apiUser: ApiUserEntity, overwriteSourceID = true) : WithNonNullableKeys<T, "sourceID"> => {
 	const { systemID } = apiUser;
 	if (!systemID) {
-		throw new HttpException("No valid systemID could be found for the api user", 422);
+		throw new LocalizedException("DOCUMENT_INVALID_SYSTEM_ID", 422);
 	}
 
 	if (overwriteSourceID) {

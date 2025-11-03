@@ -54,7 +54,7 @@ export class JsonLdService {
 		}
 		return { "@context": jsonSchemaToEmbeddedJsonLdContext(
 			schema as JSONSchema,
-			await this.swaggerService.getRawDocument(),
+			this.swaggerService.getRawDocument(),
 			lang
 		) };
 	}

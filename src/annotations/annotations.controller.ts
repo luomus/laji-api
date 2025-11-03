@@ -1,7 +1,7 @@
 import { Body, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { AnnotationsService } from "./annotations.service";
 import { GetAnnotationsDto } from "./annotations.dto";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { PaginatedDto } from "src/pagination.utils";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
@@ -35,7 +35,7 @@ export class AnnotationsController {
 	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
 	getPage(
 		@Query() { rootID, page, pageSize }: GetAnnotationsDto,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<PaginatedDto<Annotation>> {
 		return this.annotationsService.getPage(
 			rootID,
@@ -50,7 +50,7 @@ export class AnnotationsController {
 	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
 	async create(
 		@Body() annotation: Annotation,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<Annotation> {
 		return this.annotationsService.create(annotation, person);
 	}
@@ -59,7 +59,7 @@ export class AnnotationsController {
 	@Delete(":id")
 	async delete(
 		@Param("id") id: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<Annotation> {
 		return this.annotationsService.delete(id, person);
 	}

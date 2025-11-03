@@ -23,14 +23,14 @@ export class PersonsService {
 		if (personId === null) {
 			throw new HttpException("No personId found for personToken", 404);
 		}
-		return this.getByPersonId(personId);
+		return this.get(personId);
 	}
 
-	async getByPersonId(personId: string) {
+	async get(id: string) {
 		return promisePipe(
 			serializeInto(Person),
 			decoratePerson
-		)(this.triplestoreService.get(personId, { cache: CACHE_5_MIN }));
+		)(this.triplestoreService.get(id, { cache: CACHE_5_MIN }));
 	}
 
 	async checkExistsByEmail(email: string) {

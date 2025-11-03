@@ -6,7 +6,7 @@ import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
 import { Image } from "./image.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
 
@@ -22,7 +22,7 @@ export class ImagesController {
 	@HttpCode(200)
 	@ApiOkResponse({ type: FileUploadResponse })
 	async upload(
-		@PersonToken() __: Person, // Checks that the person token is valid.
+		@RequestPerson() __: Person, // Checks that the person token is valid.
 		@Req() req: Request,
 		@Res() res: Response,
 		@Next() next: NextFunction
@@ -35,7 +35,7 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	get(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person?: Person
+		@RequestPerson({ required: false }) person?: Person
 	): Promise<Image> {
 		return this.abstractMediaService.get(id, person);
 	}
@@ -45,7 +45,7 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	updateMetadata(
 		@Param("id") id: string,
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@Body() image: Image
 	): Promise<Image> {
 		return this.abstractMediaService.updateMetadata(id, image, person);
@@ -54,7 +54,7 @@ export class ImagesController {
 	/** Delete image */
 	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	delete(@Param("id") id: string, @PersonToken() person: Person) {
+	delete(@Param("id") id: string, @RequestPerson() person: Person) {
 		return this.abstractMediaService.deleteMedia(id, person);
 	}
 
@@ -62,7 +62,7 @@ export class ImagesController {
 	@Get(":id/large.jpg")
 	findLarge(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "largeURL", person).then(url => {
@@ -74,7 +74,7 @@ export class ImagesController {
 	@Get(":id/square.jpg")
 	findSquare(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "squareThumbnailURL", person).then(url => {
@@ -86,7 +86,7 @@ export class ImagesController {
 	@Get(":id/thumbnail.jpg")
 	findThumbnail(
 		@Param("id") id: string,
-		@PersonToken({ required: false }) person: Person | undefined,
+		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
 		void this.abstractMediaService.getURL(id, "thumbnailURL", person).then(url => {
@@ -99,7 +99,7 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@Body() image: Image
 	): Promise<Image> {
 		return this.abstractMediaService.uploadMetadata(tempId, image, person);

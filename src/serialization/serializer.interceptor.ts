@@ -10,13 +10,17 @@ export function Serializer(
 	serializeInto: Newable<any>,
 	serializeOptions?: SerializeOptions & { localJsonLdContext?: string }
 ) {
+	const { localJsonLdContext } = serializeOptions || {};
+	if (localJsonLdContext) {
+		addMetadata(localJsonLdContext, serializeInto);
+	}
+
 	@Injectable()
 	class Serializer implements NestInterceptor {
 		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 			return next.handle().pipe(switchMap(applyToResult(
 				pipe(
 					_serializeInto(serializeInto, serializeOptions),
-					addMetadata(serializeOptions?.localJsonLdContext),
 					addLocalJsonLdContext(serializeOptions?.localJsonLdContext)
 				)
 			)));
@@ -29,11 +33,10 @@ export const LOCAL_JSON_LD_CONTEXT_METADATA_KEY = Symbol();
 
 export const localJsonLdContextToClass: Record<string, Newable<any>> = {};
 
-const addMetadata = (localJsonLdContext?: string) => (item: any) => {
+const addMetadata = (localJsonLdContext: string, targetConstructor: any) => {
 	if (!localJsonLdContext) {
-		return item;
+		return;
 	}
-	Reflect.defineMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, localJsonLdContext, item.constructor);
-	localJsonLdContextToClass[localJsonLdContext] = item.constructor;
-	return item;
+	Reflect.defineMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, localJsonLdContext, targetConstructor);
+	localJsonLdContextToClass[localJsonLdContext] = targetConstructor;
 };

@@ -1,154 +1,123 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { PersonTokenService } from "src/authentication-event/authentication-event.service";
+import { Inject, Injectable } from "@nestjs/common";
 import { StoreService } from "src/store/store.service";
 import { Profile } from "./profile.dto";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serialization/serialization.utils";
 import * as equals from "fast-deep-equal";
 import { Person } from "src/persons/person.dto";
+import { LocalizedException } from "src/utils";
 
 @Injectable()
 export class ProfileService {
 
 	constructor(
 		@Inject("STORE_RESOURCE_SERVICE") private store: StoreService<Profile>,
-		private personTokenService: PersonTokenService,
 		private notificationsService: NotificationsService) {
 	}
 
 	/**
 	 * Get a profile or creates one if person doesn't have a profile yet.
 	 */
-	async getByPersonIdOrCreate(personId: string) {
-		const profile = await this.findByPersonId(personId);
-		return profile || this.create(personId, {});
-	}
-
 	async getByPersonOrCreate(person: Person) {
-		const profile = await this.findByPersonId(person.id);
-		return profile || this.create(person.id, {});
-	}
-
-	async getByPersonTokenOrCreate(personToken: string) {
-		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		return this.getByPersonIdOrCreate(personId);
+		const profile = await this.findByPerson(person);
+		return profile || this.store.create({ userID: person.id });
 	}
 
 	/** Create a new profile, if person has no profile. */
-	async createWithPersonId(personId: string, profile: Partial<Profile>): Promise<Profile> {
-		let existingProfile: Profile | undefined;
-		try {
-			existingProfile = await this.findByPersonId(personId);
-		} catch (e) {
-			if (e.response?.status !== 404) {
-				throw e;
-			}
+	async create(person: Person, profile: Partial<Profile>): Promise<Profile> {
+		if (await this.findByPerson(person)) {
+			throw new LocalizedException("USER_ALREADY_HAS_A_PROFILE", 422);
 		}
-
-		if (existingProfile) {
-			throw new HttpException("User already has a profile", 422);
-		}
-
-		return this.create(personId, profile);
+		return this.create(person, profile);
 	}
 
-	async updateWithPersonId(personId: string, profile: Partial<Profile>) {
-		const existingProfile = await this.findByPersonId(personId);
+	async update(person: Person, profile: Partial<Profile>) {
+		const existingProfile = await this.findByPerson(person);
 		if (!existingProfile) {
-			throw new HttpException("Can't update profile that doesn't exist", 422);
+			throw new LocalizedException("CANT_UPDATE_NONEXISTENT_PROFILE", 422);
 		}
 		const nextProfile = serializeInto(Profile)({ ...existingProfile, ...profile });
 		const protectedKeys: (keyof Profile)[] = ["id", "userID", "friendRequests", "friends"];
 		protectedKeys.forEach((key: keyof Profile) => {
 			if (!equals(nextProfile[key], existingProfile[key])) {
-				throw new HttpException(`${key} cannot be updated by this method`, 422);
+				throw new LocalizedException("PROFILE_UPDATING_KEY_NOT_ALLOWED", 422, { key });
 			}
 		});
 
 		return this.store.update(nextProfile);
 	}
 
-	async addFriendRequestWithPersonToken(personToken: string, friendPersonID: string) {
-		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		return this.addFriendRequest(personId, friendPersonID);
-	}
-
-	async addFriendRequest(personId: string, friendPersonID: string) {
-		const friendProfile = await this.getByPersonIdOrCreate(friendPersonID);
+	async addFriendRequest(person: Person, friend: Person) {
+		const friendProfile = await this.getByPersonOrCreate(friend);
 		const { friendRequests, blocked, friends, userID: friendID } = friendProfile;
 
-		if ([friendRequests, blocked, friends].some(l => l.includes(personId))) {
-			throw new HttpException("Friend request already sent", 422);
+		if ([friendRequests, blocked, friends].some(l => l.includes(person.id))) {
+			throw new LocalizedException("ALREADY_FRIEND", 422);
 		}
 
 		const updated = await this.store.update({
-			...friendProfile, friendRequests: [...friendRequests, personId]
+			...friendProfile, friendRequests: [...friendRequests, person.id]
 		});
-		void this.notificationsService.add({ toPerson: friendID, friendRequest: personId });
+		void this.notificationsService.add({ toPerson: friendID, friendRequest: person.id });
 		return updated;
 	}
 
-	async acceptFriendRequest(personToken: string, friendPersonId: string) {
-		await this.getByPersonId(friendPersonId);
-		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		const friendProfile = await this.getByPersonId(friendPersonId);
-		const profile = await this.getByPersonIdOrCreate(personId);
+	async acceptFriendRequest(person: Person, friend: Person) {
+		await this.getByPerson(friend);
+		const friendProfile = await this.getByPerson(friend);
+		const profile = await this.getByPersonOrCreate(person);
 
-		if (!profile.friendRequests.includes(friendPersonId)) {
-			throw new HttpException("No friend request found", 422);
+		if (!profile.friendRequests.includes(friend.id)) {
+			throw new LocalizedException("NO_FRIEND_REQUEST_FOUND", 422);
 		}
 
-		await this.store.update(addFriend(friendProfile, personId));
-		const updated = await this.store.update(addFriend(profile, friendPersonId));
-		void this.notificationsService.add({ toPerson: friendPersonId, friendRequestAccepted: personId });
+		await this.store.update(addFriend(friendProfile, person));
+		const updated = await this.store.update(addFriend(profile, friend));
+		void this.notificationsService.add({ toPerson: friend.id, friendRequestAccepted: person.id });
 		return updated;
 
-		function addFriend(profile: Profile, friendPersonId: string) {
+		function addFriend(profile: Profile, friend: Person) {
 			return {
 				...profile,
-				friends: [...profile.friends, friendPersonId],
-				friendRequests: profile.friendRequests.filter((id: string) => id !== friendPersonId)
+				friends: [...profile.friends, friend.id],
+				friendRequests: profile.friendRequests.filter((id: string) => id !== friend.id)
 			};
 		}
 	}
 
-	async removeFriendWithPersonToken(personToken: string, friendPersonId: string, block: boolean) {
-		const personId = await this.personTokenService.getPersonIdFromToken(personToken);
-		return this.removeFriend(personId, friendPersonId, block);
-	}
+	async removeFriend(person: Person, friendID: string, block: boolean) {
+		const profile = await this.getByPersonOrCreate(person);
+		const friendProfile = await this.findByPersonID(friendID);
 
-	async removeFriend(personId: string, friendPersonId: string, block: boolean) {
-		const profile = await this.getByPersonIdOrCreate(personId);
-		const friendProfile = await this.getByPersonId(friendPersonId);
+		if (friendProfile) {
+			await this.store.update(removeFriend(friendProfile, person.id, false));
+		}
+		return this.store.update(removeFriend(profile, friendID, block));
 
-		await this.store.update(removeFriend(friendProfile, personId, false));
-		return this.store.update(removeFriend(profile, friendPersonId, block));
-
-		function removeFriend(profile: Profile, removePersonId: string, block: boolean) {
-			const removeFriendFilter = (f: string) => f !== removePersonId;
+		function removeFriend(profile: Profile, removePersonID: string, block: boolean) {
+			const removeFriendFilter = (f: string) => f !== removePersonID;
 			return {
 				...profile,
 				friends: profile.friends.filter(removeFriendFilter),
 				friendRequests: profile.friendRequests.filter(removeFriendFilter),
-				blocked: block ? [...profile.blocked,  removePersonId] : profile.blocked
+				blocked: block ? [...profile.blocked, removePersonID] : profile.blocked
 			};
 		}
 	}
 
-	private async create(personId: string, profile: Partial<Profile>) {
-		profile.userID = personId;
-		return this.store.create(profile);
-	}
-
-	private async getByPersonId(personId: string) {
-		const profile = await this.findByPersonId(personId);
+	private async getByPerson(person: Person) {
+		const profile = await this.findByPerson(person);
 		if (!profile) {
-			throw new HttpException(`Person ${personId} not found`, 404);
+			throw new LocalizedException("PROFILE_NOT_FOUND", 404, { id: person.id });
 		}
 		return profile;
 	}
 
-	private async findByPersonId(personId: string): Promise<Profile | undefined> {
-		return this.store.findOne({ userID: personId });
+	private async findByPerson(person: Person): Promise<Profile | undefined> {
+		return this.store.findOne({ userID: person.id });
+	}
+
+	async findByPersonID(personID: string): Promise<Profile | undefined> {
+		return this.store.findOne({ userID: personID });
 	}
 }

@@ -39,60 +39,108 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 	});
 
 	describe("validate", () => {
-		// eslint-disable-next-line max-len
-		it("should not throw ValidationException if namedPlaceHasDocuments is false and document date is within a period of the form", async () => {
-			const document = {
-				namedPlaceID: "namedPlaceId",
-				formID: "formID",
-				gatheringEvent: { dateBegin: "2024-02-01" }
-			} as Document;
-			formsServiceMock.get.mockResolvedValue(
-				{ options: { periods: ["10-25/12-21", "12-22/02-17", "02-18/03-15"] } } as FormSchemaFormat
-			);
-			documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
 
-			await expect(service.validate(document)).resolves.not.toThrow();
+		describe("new document", () => {
+			// eslint-disable-next-line max-len
+			it("should not throw ValidationException if namedPlaceHasDocuments is false and document date is within a period of the form", async () => {
+				const document = {
+					namedPlaceID: "namedPlaceId",
+					formID: "formID",
+					gatheringEvent: { dateBegin: "2024-02-01" }
+				} as Document;
+				formsServiceMock.get.mockResolvedValue(
+					{ options: { periods: ["10-25/12-21", "12-22/02-17", "02-18/03-15"] } } as FormSchemaFormat
+				);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
+
+				await expect(service.validate(document)).resolves.not.toThrow();
+			});
+
+			// eslint-disable-next-line max-len
+			it("should throw ValidationException if namedPlaceHasDocuments is true and document date is within a period of the form", async () => {
+				const document = {
+					namedPlaceID: "namedPlaceId",
+					formID: "formID",
+					gatheringEvent: { dateBegin: "2024-02-01" }
+				} as Document;
+				formsServiceMock.get.mockResolvedValue(
+					{ options: { periods: ["10-25/12-21", "12-22/02-17", "02-18/03-15"] } } as FormSchemaFormat
+				);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
+
+				await expect(service.validate(document)).rejects.toThrow(ValidationException);
+			});
+
+			// eslint-disable-next-line max-len
+			it("should throw ValidationException if the form does not have any periods and there are documents for the named place in the documents date range", async () => {
+				const document = {
+					namedPlaceID: "namedPlaceId",
+					formID: "formID",
+					gatheringEvent: { dateBegin: "2024-02-01" }
+				} as Document;
+				formsServiceMock.get.mockResolvedValue({} as any);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
+
+				await expect(service.validate(document)).rejects.toThrow(ValidationException);
+			});
+
+			// eslint-disable-next-line max-len
+			it("should not throw ValidationException if the form does not have any periods and there are no documents for the named place in the documents date range", async () => {
+				const document = {
+					namedPlaceID: "namedPlaceId",
+					formID: "formID",
+					gatheringEvent: { dateBegin: "2024-02-01" }
+				} as Document;
+				formsServiceMock.get.mockResolvedValue({} as any);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
+
+				await expect(service.validate(document)).resolves.not.toThrow();
+			});
 		});
 
-		// eslint-disable-next-line max-len
-		it("should throw ValidationException if namedPlaceHasDocuments is true and document date is within a period of the form", async () => {
-			const document = {
-				namedPlaceID: "namedPlaceId",
-				formID: "formID",
-				gatheringEvent: { dateBegin: "2024-02-01" }
-			} as Document;
-			formsServiceMock.get.mockResolvedValue(
-				{ options: { periods: ["10-25/12-21", "12-22/02-17", "02-18/03-15"] } } as FormSchemaFormat
-			);
-			documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
+		describe("existing document", () => {
+			// eslint-disable-next-line max-len
+			it("should not throw ValidationException if new date range stays within form period", async () => {
+				const document = {
+					id: "existing-id",
+					namedPlaceID: "namedPlaceId",
+					formID: "formID",
+					gatheringEvent: { dateBegin: "2024-02-01" }
+				} as Document;
 
-			await expect(service.validate(document)).rejects.toThrow(ValidationException);
-		});
+				formsServiceMock.get.mockResolvedValue(
+					{ options: { periods: ["12-22/02-17"] } } as FormSchemaFormat
+				);
 
-		// eslint-disable-next-line max-len
-		it("should throw ValidationException if the form does not have any periods and there are documents for the named place in the documents date range", async () => {
-			const document = {
-				namedPlaceID: "namedPlaceId",
-				formID: "formID",
-				gatheringEvent: { dateBegin: "2024-02-01" }
-			} as Document;
-			formsServiceMock.get.mockResolvedValue({} as any);
-			documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValueOnce(false);
 
-			await expect(service.validate(document)).rejects.toThrow(ValidationException);
-		});
+				await expect(service.validate(document)).resolves.not.toThrow();
 
-		// eslint-disable-next-line max-len
-		it("should not throw ValidationException if the form does not have any periods and there are no documents for the named place in the documents date range", async () => {
-			const document = {
-				namedPlaceID: "namedPlaceId",
-				formID: "formID",
-				gatheringEvent: { dateBegin: "2024-02-01" }
-			} as Document;
-			formsServiceMock.get.mockResolvedValue({} as any);
-			documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
+				expect(documentsServiceMock.existsByNamedPlaceID).toHaveBeenNthCalledWith(
+					1,
+					"namedPlaceId",
+					expect.any(Object)
+				);
+			});
 
-			await expect(service.validate(document)).resolves.not.toThrow();
+			// eslint-disable-next-line max-len
+			it("should throw ValidationException if new date range doesn't stay within form period", async () => {
+				const document = {
+					id: "existing-id",
+					namedPlaceID: "namedPlaceId",
+					formID: "formID",
+					gatheringEvent: { dateBegin: "2024-02-01" }
+				} as Document;
+
+				formsServiceMock.get.mockResolvedValue(
+					{ options: { periods: ["12-22/02-17"] } } as FormSchemaFormat
+				);
+
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValueOnce(true);
+
+				await expect(service.validate(document)).rejects.toThrow(ValidationException);
+			});
+
 		});
 	});
 });

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, Post, Query, Req, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Req, UseInterceptors } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { AccessTokenService } from "src/access-token/access-token.service";
 import { ApiUsersService } from "./api-users.service";
@@ -8,6 +8,7 @@ import { ApiUserEntity } from "./api-user.entity";
 import { serializeInto } from "src/serialization/serialization.utils";
 import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
+import { LocalizedException } from "src/utils";
 
 @ApiTags("API user")
 @Controller("api-users")
@@ -24,7 +25,7 @@ export class ApiUsersController {
 	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
 		const token = accessToken || this.accessTokenService.findAccessTokenFromRequest(request);
 		if (!token) {
-			throw new HttpException("You must provide a token", 422);
+			throw new LocalizedException("ACCESS_TOKEN_MISSING", 422);
 		}
 		return this.apiUsersService.getByAccessToken(token);
 	}

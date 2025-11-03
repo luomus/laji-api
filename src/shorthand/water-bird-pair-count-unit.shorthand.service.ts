@@ -1,6 +1,7 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { AbstractShorthandService } from "./abstract-shorthand.service";
 import { GetWaterBirdPairCountUnitShorthandDto } from "./shorthand.dto";
+import { LocalizedException } from "src/utils";
 
 enum WaterbirdTaxon {
   CYGOLO = "MX.26277",
@@ -160,12 +161,12 @@ implements AbstractShorthandService<Omit<GetWaterBirdPairCountUnitShorthandDto, 
 		query = query.replace(/\s+/g, ""); // remove spaces
 
 		if (!taxonID) {
-			throw new HttpException("Invalid count value. Missing taxonID", 422);
+			throw new LocalizedException("WATER_BIRD_COUNT_SHORTHAND_MISSING_TAXONID", 422);
 		}
 
 		const matches = /^[\dknpKNPÄä\,\.]*$/.exec(query);
 		if (!matches) {
-			throw new HttpException("Invalid count value. Could not parse count", 422);
+			throw new LocalizedException("WATER_BIRD_COUNT_SHORTHAND_BAD_COUNT", 422);
 		}
 
 		const { parsedQuery, parsedCounts } = parseQuery(query);

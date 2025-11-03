@@ -1,8 +1,6 @@
 import { fixRequestBody } from "http-proxy-middleware";
 
 export function fixRequestBodyAndAuthHeader(proxyReq: any, req: any) {
-	fixRequestBody(proxyReq, req);
-
 	const auth = req.headers["authorization"];
 	if(auth && auth.toLowerCase().startsWith("bearer ")) {
 		// Remove "Bearer "  since old api doesn't like it.
@@ -16,4 +14,5 @@ export function fixRequestBodyAndAuthHeader(proxyReq: any, req: any) {
 		url.searchParams.set("personToken", personToken);
 		proxyReq.path = url.pathname + url.search;
 	}
+	fixRequestBody(proxyReq, req);
 }

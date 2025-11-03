@@ -3,7 +3,7 @@ import { ApiExtraModels, ApiOkResponse, ApiTags, OpenAPIObject, getSchemaPath } 
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { AutocompleteService } from "./autocomplete.service";
 import { GetFriendsDto, GetPersonsDto, GetPersonsResponseDto } from "./autocomplete.dto";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
@@ -44,7 +44,7 @@ export class AutocompleteController {
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(GetPersonsResponseDto) }) })
 	@ApiExtraModels(GetPersonsResponseDto)
 	@UseInterceptors(SelectedFields, ResultsArray, Limit)
-	getFriends(@PersonToken() person: Person, @Query() { query }: GetFriendsDto) {
+	getFriends(@RequestPerson() person: Person, @Query() { query }: GetFriendsDto) {
 		return this.autocompleteService.getFriends(person, query);
 	}
 

@@ -11,3 +11,4 @@ export const STORE_CLIENT = Symbol();
 export const WAREHOUSE_CLIENT = Symbol();
 export const INFORMATION_CLIENT = Symbol();
 export const GLOBAL_CLIENT = Symbol();
+export const GEOCONVERT_CLIENT = Symbol();

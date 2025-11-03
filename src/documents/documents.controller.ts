@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.service";
-import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, UseFilters } from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query } from "@nestjs/common";
 import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
 	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
 	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
@@ -16,15 +16,13 @@ import { DocumentValidatorService } from "./document-validator/document-validato
 import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
-import { ValidatiorErrorFormatFilter } from "./validatior-error-format/validatior-error-format.filter";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
-import { PersonToken } from "src/decorators/person-token.decorator";
+import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 
 @ApiTags("Documents")
-@UseFilters(ValidatiorErrorFormatFilter)
 @ApiExtraModels(ErrorsObj)
 @LajiApiController("documents")
 export class DocumentsController {
@@ -51,7 +49,7 @@ export class DocumentsController {
 	@HttpCode(200)
 	async startBatchJob(
 		@Body() documents: Document[],
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.start(documents, person, apiUser);
@@ -70,7 +68,7 @@ export class DocumentsController {
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
 		@Query() { validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.getStatus(jobID, person, validationErrorFormat);
 	}
@@ -87,7 +85,7 @@ export class DocumentsController {
 				publicityRestrictions,
 				dataOrigin
 			}: BatchJobQueryDto,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.complete(
 			jobID,
@@ -105,7 +103,7 @@ export class DocumentsController {
 		@Body() document: Document,
 		@Query() query: ValidateQueryDto,
 		@ApiUser() apiUser: ApiUserEntity,
-		@PersonToken({ required: false }) person?: Person
+		@RequestPerson({ required: false }) person?: Person
 	): Promise<unknown> {
 		const { validator, validationErrorFormat, type } = query;
 		if (validator) {
@@ -132,7 +130,7 @@ export class DocumentsController {
 		}
 
 		if (!document.formID) {
-			throw new ValidationException({ "/formID": ["Missing required param formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 
 		const form = await this.formsService.get(document.formID);
@@ -155,7 +153,7 @@ export class DocumentsController {
 	@Get("count/byYear")
 	getCountByYear(
 		@Query() { collectionID, namedPlace, formID }: GetCountDto,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	) : Promise<DocumentCountItemResponse[]> {
 		return this.documentsService.getCountByYear(
 			person,
@@ -174,7 +172,7 @@ export class DocumentsController {
 	/** Get a page of documents */
 	@Get()
 	@SwaggerRemoteRef({ source: "store", ref: "/document" })
-	getPage(@Query() query: GetDocumentsDto, @PersonToken() person: Person): Promise<PaginatedDto<Document>> {
+	getPage(@Query() query: GetDocumentsDto, @RequestPerson() person: Person): Promise<PaginatedDto<Document>> {
 		const { page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
 			whitelistKeys(q, allowedQueryKeysForExternalAPI),
@@ -190,7 +188,7 @@ export class DocumentsController {
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	get(@Param("id") id: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<Document> {
 		return this.documentsService.get(id, person);
 	}
@@ -202,7 +200,7 @@ export class DocumentsController {
 		@Body() document: Document,
 		@Query() { validationErrorFormat }: CreateDocumentDto,
 		@ApiUser() apiUser: ApiUserEntity,
-		@PersonToken({ required: false }) person?: Person,
+		@RequestPerson({ required: false }) person?: Person,
 	): Promise<Document> {
 		if (isBatchJobDto(document)) {
 			if (!person) {
@@ -219,7 +217,7 @@ export class DocumentsController {
 			) as any;
 		}
 		if (!document.formID) {
-			throw new ValidationException({ "/formID": ["Missing required param formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 		const form = await this.formsService.get(document.formID);
 		if (form?.options?.secondaryCopy) {
@@ -250,11 +248,11 @@ export class DocumentsController {
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,
 		@Query() { skipValidations }: UpdateDocumentDto,
-		@PersonToken() person: Person,
+		@RequestPerson() person: Person,
 		@ApiUser() apiUser: ApiUserEntity
 	): Promise<Document> {
 		if (!document.formID) {
-			throw new ValidationException({ "/formID": ["Missing required property formID"] });
+			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 
 		const form = await this.formsService.get(document.formID);
@@ -276,7 +274,7 @@ export class DocumentsController {
 	@Delete(":id")
 	async delete(
 		@Param("id") id: string,
-		@PersonToken() person: Person
+		@RequestPerson() person: Person
 	): Promise<StoreDeleteResponse> {
 		return this.documentsService.delete(id, person);
 	}

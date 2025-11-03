@@ -53,13 +53,9 @@ describe("TaxonBelongsToInformalTaxonGroupValidatorService", () => {
 			try {
 				await service.validate(document as any, "", { informalTaxonGroup: informalTaxonGroups });
 			} catch (error) {
-				expect(error.getResponse()).toEqual({
-					statusCode: 422,
-					message: "Unprocessable Entity",
-					details: {
-						"/gatherings/0/units/0/unitFact/autocompleteSelectedTaxonID":
-						 ["Taxon does not belong to given informal taxon groups."]
-					}
+				expect(error.details).toEqual({
+					"/gatherings/0/units/0/unitFact/autocompleteSelectedTaxonID":
+					 ["DOCUMENT_VALIDATION_TAXON_NOT_IN_INFORMAL_TAXON_GROUP"]
 				});
 			}
 		});

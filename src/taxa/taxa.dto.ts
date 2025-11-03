@@ -195,7 +195,7 @@ export class TaxaSearchDto {
 	excludedInformalTaxonGroup?: string;
 
 	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
-	matchType?: SearchMatchType;
+	matchType?: string;
 
 	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
 	excludeNameTypes?: string;

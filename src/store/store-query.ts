@@ -1,5 +1,5 @@
-import { HttpException } from "@nestjs/common";
 import { Flatten, KeyOf, MaybeArray, isObject, omit } from "src/typing.utils";
+import { LocalizedException } from "src/utils";
 
 /** Defaults to "AND" */
 export type Operation = "AND" | "OR" | "NOT" | undefined;
@@ -176,8 +176,11 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 	const parseLiteral = (clause: Literal) => {
 		if (typeof clause === "string") {
 			if (RESERVED_SYNTAX.some(reservedSyntax => clause.toUpperCase().includes(reservedSyntax))) {
-				// eslint-disable-next-line max-len
-				throw new HttpException(`Store query literals containing reserved syntax (${RESERVED_SYNTAX.join(", ")}) is not allowed`, 422);
+				throw new LocalizedException(
+					"STORE_RESERVED_SYNTAX",
+					422,
+					{ RESERVED_SYNTAX: RESERVED_SYNTAX.join(", ") }
+				);
 			}
 			return  `"${clause}"`;
 		}

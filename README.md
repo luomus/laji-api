@@ -29,7 +29,7 @@ npm run docker
 *Hint:* The docker container runs any npm script, `start:dev` being the default. You can run other scripts like so:
 
 ```bash
-npm run docker -- test:e2e-old
+npm run docker -- test:e2e
 ```
 
 #### Without Docker
@@ -79,18 +79,18 @@ npm test
 
 #### Integration tests
 
-Currently we rely on the e2e tests from the old api. Fill in `integration-test/config.json` and then you can run the tests:
+Currently we rely on the e2e tests from the old api. Fill in `e2e/config.json` and then you can run the tests:
 
 With Docker:
 
 ```bash
-$ npm run docker -- test:e2e-old
+$ npm run docker -- test:e2e
 ```
 
 Without Docker:
 
 ```bash
-$ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run test:e2e-old
+$ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run test:e2e
 ```
 
 ## Contact

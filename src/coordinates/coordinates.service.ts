@@ -12,7 +12,7 @@ export class CoordinatesService {
 
 	async getLocationInformation(geoJSON: GeoJSON, lang: Lang) {
 		const { hits } = await this.elasticService.search<LocationElastic>("location", geometryToESQuery(geoJSON));
-		return { results: hits.hits.map(hit => {
+		return hits.hits.map(hit => {
 			const { name, description, qname } = hit["_source"];
 			const { _type } = hit;
 			const descriptionTranslated = translateMaybeMultiLang(description, lang);
@@ -29,7 +29,7 @@ export class CoordinatesService {
 				place_id: qname,
 				types: _type ? [_type] : []
 			};
-		}) };
+		});
 	}
 }
 

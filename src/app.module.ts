@@ -37,7 +37,7 @@ import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.mo
 import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 import { TraitModule } from "./trait/trait.module";
 import { ErrorSignatureBackwardCompatibilityFilter }
-	from "./error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
+	from "./filters/error-signature-backward-compatibility.filter";
 import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor";
 import { AnnotationsModule } from "./annotations/annotations.module";
 import { InformationModule } from "./information/information.module";
@@ -56,6 +56,11 @@ import { AutocompleteModule } from "./autocomplete/autocomplete.module";
 import { ShorthandModule } from "./shorthand/shorthand.module";
 import { CoordinatesModule } from "./coordinates/coordinates.module";
 import { FeedbackModule } from "./feedback/feedback.module";
+import { GeoConvertModule } from "./geo-convert/geo-convert.module";
+import { HtmlToPdfModule } from "./html-to-pdf/html-to-pdf.module";
+import { LocalizerExceptionFilter } from "./filters/localize-exception.filter";
+import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format/validatior-error-format.filter";
+
 
 @Module({
 	imports: [
@@ -116,7 +121,9 @@ import { FeedbackModule } from "./feedback/feedback.module";
 		AutocompleteModule,
 		ShorthandModule,
 		CoordinatesModule,
-		FeedbackModule
+		FeedbackModule,
+		GeoConvertModule,
+		HtmlToPdfModule
 	],
 	controllers: [AppController],
 	providers: [
@@ -147,6 +154,14 @@ import { FeedbackModule } from "./feedback/feedback.module";
 		{
 			provide: APP_FILTER,
 			useClass: ErrorSignatureBackwardCompatibilityFilter
+		},
+		{
+			provide: APP_FILTER,
+			useClass: LocalizerExceptionFilter
+		},
+		{
+			provide: APP_FILTER,
+			useClass: ValidatiorErrorFormatFilter
 		},
 		ProxyToOldApiService,
 		{

@@ -1,20 +1,21 @@
 import { ArgumentsHost, Catch } from "@nestjs/common";
-import { ValidationException, formatErrorDetails } from "../document-validator/document-validator.utils";
+import { ValidationExceptionBase, formatErrorDetails } from "../document-validator/document-validator.utils";
 import { Request } from "express";
 import { ValidationErrorFormat } from "../documents.dto";
-import { ErrorSignatureBackwardCompatibilityFilter }
-	from "src/error-signature-backward-compatibility/error-signature-backward-compatibility.filter";
+import { localizeException } from "src/filters/localize-exception.filter";
+import { ErrorSignatureBackwardCompatibilityFilter } from "src/filters/error-signature-backward-compatibility.filter";
 
-@Catch(ValidationException)
-export class ValidatiorErrorFormatFilter<T> extends ErrorSignatureBackwardCompatibilityFilter<T> {
+@Catch(ValidationExceptionBase)
+export class ValidatiorErrorFormatFilter extends ErrorSignatureBackwardCompatibilityFilter<ValidationExceptionBase> {
 
-	catch(e: T, host: ArgumentsHost) {
+	catch(e: ValidationExceptionBase, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
 		const request = ctx.getRequest<Request>();
 		const { validationErrorFormat = "object" } = request.query;
 
-		(e as any).response.details = formatErrorDetails(
-			(e as any).response.details,
+		localizeException(e, host);
+		(e as any).details = formatErrorDetails(
+			(e as any).details,
 			validationErrorFormat as ValidationErrorFormat
 		);
 		super.catch(e, host);
