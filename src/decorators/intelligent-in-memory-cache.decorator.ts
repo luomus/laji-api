@@ -18,7 +18,7 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 	// Monkey patch the `warmup()` method to bust memoized methods.
 	const originalWarmup = target.prototype.warmup;
 	target.prototype.warmup = function() {
-		target.prototype._memoizedFns.forEach((f: any) => f.clear());
+		(target.prototype._memoizedFns || []).forEach((f: any) => f.clear());
 		return originalWarmup?.call(this);
 	};
 

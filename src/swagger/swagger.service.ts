@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common"
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, pipe,
+	promisePipe,
 	updateWithJSONPointer, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
@@ -13,7 +14,6 @@ import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-pro
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
-import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { JSONSerializable, Newable, isObject } from "src/typing.utils";
 import { GLOBAL_CLIENT, STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
@@ -56,6 +56,7 @@ export class SwaggerService {
 		this.patchMultiLangs = this.patchMultiLangs.bind(this);
 		this.patchPersonToken = this.patchPersonToken.bind(this);
 		this.getStoreSwaggerDoc = this.getStoreSwaggerDoc.bind(this);
+		this.getLajiBackendSwaggerDoc = this.getLajiBackendSwaggerDoc.bind(this);
 	}
 
 	@Interval(CACHE_30_MIN)
@@ -77,16 +78,6 @@ export class SwaggerService {
 		);
 	}
 
-	/** Assumes that remote sources are already loaded. */
-	private getRemoteSwaggerDocSync(entry: SwaggerRemoteRefEntry): OpenAPIObject {
-		switch (entry.source) {
-		case "store":
-			return this.storeSwaggerDoc!;
-		case "laji-backend":
-			return this.lajiBackendSwaggerDoc!;
-		}
-	}
-
 	getRemoteSwaggerDoc(entry: SwaggerRemoteRefEntry): Promise<OpenAPIObject> {
 		switch (entry.source) {
 		case "store":
@@ -106,30 +97,18 @@ export class SwaggerService {
 		}
 	}
 
-	setDocument(document: OpenAPIObject) {
-		this.rawDocument = document;
-	}
-
 	getRawDocument() {
 		return this.rawDocument;
 	}
 
-	patch(document: OpenAPIObject) {
-		if (Object.values(this.remoteSwaggers).some(({ document }) => !document)) {
-			throw new Error("Remote swagger docs weren't loaded yet. Try again soon.");
-		}
-		return this.memoizedPatch(document);
-	}
-
-	// `length` 0 to memoize the result regardless of the document equalness. It's identical always, just not the same instance.
-	@IntelligentMemoize({ length: 0 })
-	private memoizedPatch(document: OpenAPIObject) {
-		return pipe(
+	patchMutably(document: OpenAPIObject) {
+		this.rawDocument = document;
+		return promisePipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs,
 			this.patchMultiLangs,
 			this.patchPersonToken
-		)(document);
+		)(JSON.parse(JSON.stringify(document)));
 	}
 
 	/** Patches the Swagger document with controllers decorated with `@ProxyWithSwaggerMerge()` */
@@ -149,14 +128,14 @@ export class SwaggerService {
 	 *
 	 * Patching is performed mutably.
 	 */
-	private patchRemoteRefs(document: OpenAPIObject) {
-		Object.keys(swaggerCustomizationEntries).forEach((path: string) => {
+	private async patchRemoteRefs(document: OpenAPIObject) {
+		for (const path of Object.keys(swaggerCustomizationEntries)) {
 			const methods = swaggerCustomizationEntries[path]!;
-			Object.keys(methods).forEach((methodName: string) => {
+			for (const methodName of Object.keys(methods)) {
 				const entries = swaggerCustomizationEntries[path]![methodName]!;
 
-				entries?.forEach(entry => {
-					this.entrySideEffectForSchema(document!.components!.schemas!, entry);
+				for (const entry of entries) {
+					await this.entrySideEffectForSchema(document!.components!.schemas!, entry);
 					for (const iteratedPath of Object.keys(document.paths)) {
 						const pathItem = document.paths[iteratedPath]!;
 						for (const httpMethod of (["get", "put", "post", "delete"] as const)) {
@@ -199,7 +178,9 @@ export class SwaggerService {
 									schema = entry.customizeRequestBodySchema(
 										schema,
 										document,
-										isSwaggerRemoteRefEntry(entry) ? this.getRemoteSwaggerDocSync(entry) : undefined
+										isSwaggerRemoteRefEntry(entry)
+											? await this.getRemoteSwaggerDoc(entry)
+											: undefined
 									);
 								}
 								operation.requestBody = {
@@ -212,9 +193,9 @@ export class SwaggerService {
 							}
 						}
 					}
-				});
-			});
-		});
+				}
+			}
+		}
 		return document;
 	}
 
@@ -287,16 +268,16 @@ export class SwaggerService {
 	}
 
 
-	private entrySideEffectForSchema(schema: Record<string, SchemaItem>, entry: SwaggerCustomizationEntry) {
+	private async entrySideEffectForSchema(schema: Record<string, SchemaItem>, entry: SwaggerCustomizationEntry) {
 		if (isSwaggerRemoteRefEntry(entry)) {
-			this.remoteRefEntrySideEffectForSchema(schema, entry);
+			await this.remoteRefEntrySideEffectForSchema(schema, entry);
 		} else if (isSerializeEntry(entry)) {
 			this.serializeEntrySideEffectForSchema(schema, entry);
 		}
 	}
 
-	private remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
-		const remoteDoc = this.getRemoteSwaggerDocSync(entry);
+	private async remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
+		const remoteDoc = await this.getRemoteSwaggerDoc(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
 		if (!entry.ref) {
 			return;
@@ -306,7 +287,7 @@ export class SwaggerService {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
 		}
 		schema[entry.schemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"))] = remoteSchema;
-		this.mergeRefsFromRemote(schema, entry, remoteSchema);
+		await this.mergeRefsFromRemote(schema, entry, remoteSchema);
 	}
 
 	private serializeEntrySideEffectForSchema(
@@ -328,21 +309,21 @@ export class SwaggerService {
 	 * A remote entry might have references to the remote document's schema. This method finds those and merges them to our
 	 * patched document.
 	 * */
-	private mergeRefsFromRemote(
+	private async mergeRefsFromRemote(
 		schema: SwaggerSchema,
 		entry: SwaggerRemoteRefEntry,
 		referencedRemoteSchema: SchemaObject
 	) {
-		const traverseAndMerge = (iteratedRemoteSchema: SchemaObject | ReferenceObject) => {
+		const traverseAndMerge = async (iteratedRemoteSchema: SchemaObject | ReferenceObject) => {
 			if (isSchemaObject(iteratedRemoteSchema)) {
 				if (iteratedRemoteSchema.items) {
-					traverseAndMerge(iteratedRemoteSchema.items!);
+					await traverseAndMerge(iteratedRemoteSchema.items!);
 				} else if (iteratedRemoteSchema.properties) {
 					for (const key of Object.keys(iteratedRemoteSchema.properties)) {
 						if (!iteratedRemoteSchema.properties![key]) {
 							continue;
 						}
-						traverseAndMerge(iteratedRemoteSchema.properties![key]!);
+						await traverseAndMerge(iteratedRemoteSchema.properties![key]!);
 					}
 				} else if (iteratedRemoteSchema.anyOf) {
 					iteratedRemoteSchema.anyOf.forEach(traverseAndMerge);
@@ -354,15 +335,15 @@ export class SwaggerService {
 				const referencedSchemaRefName = lastFromNonEmptyArr(ref.split("/"));
 				if (!schema[referencedSchemaRefName]) {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(
-						this.getRemoteSwaggerDocSync(entry), ref
+						await this.getRemoteSwaggerDoc(entry), ref
 					);
 					schema[referencedSchemaRefName] = referencedSchema;
-					traverseAndMerge(referencedSchema);
+					await traverseAndMerge(referencedSchema);
 				}
 			}
 		};
 
-		traverseAndMerge(referencedRemoteSchema);
+		await traverseAndMerge(referencedRemoteSchema);
 	}
 
 	async getSchemaForEntry(entry: SwaggerRemoteRefEntry) {
