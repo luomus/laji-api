@@ -59,6 +59,7 @@ import { HtmlToPdfModule } from "./html-to-pdf/html-to-pdf.module";
 import { LocalizerExceptionFilter } from "./filters/localize-exception.filter";
 import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format/validatior-error-format.filter";
 import { AxiosErrorFilter } from "./filters/axios-error.filter";
+import { StoreValidationFilter } from "./filters/store-validation.filter";
 
 
 @Module({
@@ -161,6 +162,10 @@ import { AxiosErrorFilter } from "./filters/axios-error.filter";
 		{
 			provide: APP_FILTER,
 			useClass: AxiosErrorFilter
+		},
+		{
+			provide: APP_FILTER,
+			useClass: StoreValidationFilter
 		},
 		ProxyToOldApiService,
 		{

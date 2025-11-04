@@ -23,7 +23,7 @@ export abstract class DocumentValidator<T = Document> {
 }
 
 export class ErrorsObj { [path: string]: ErrorsObj | string[] };
-export type ValidationDetails = Record<string, (keyof typeof translations)[]>
+export type ValidationDetails = { [jsonPointer: string]: (keyof typeof translations)[] }
 
 /**
  * Not to be instantialized directly. Use LocalizedValidationException or PreLocalizedDetailsValidationException instead.
@@ -35,7 +35,6 @@ export class ValidationExceptionBase extends LocalizedException {
 	}
 }
 
-/** The `details` must be a map of JSON pointers and error message arrays. */
 export class ValidationException extends ValidationExceptionBase {
 	details: ValidationDetails;
 	constructor(details: ValidationDetails) {
@@ -45,8 +44,8 @@ export class ValidationException extends ValidationExceptionBase {
 }
 
 export class PreTranslatedDetailsValidationException extends ValidationExceptionBase {
-	details: Record<string, string[]>;
-	constructor(details: Record<string, string[]>) {
+	details: { [jsonPointer: string]: string[] };
+	constructor(details: { [jsonPointer: string]: string[] }) {
 		super();
 		this.details = details;
 	}
