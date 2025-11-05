@@ -117,7 +117,7 @@ export class DocumentValidatorService {
 
 		const personValidations = [
 			...(document.gatheringEvent?.leg || [])
-				.map((leg, i) => ({ personString: leg, path: `/gatheringEvent/${i}/leg` })),
+				.map((leg, i) => ({ personString: leg, path: `/gatheringEvent/leg/${i}` })),
 			...(document.editors || [])
 				.map((editor, i) => ({ personString: editor, path: `/editors/${i}` }))
 		];

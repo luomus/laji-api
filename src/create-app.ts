@@ -169,7 +169,8 @@ function logOutgoingRequests(httpService: HttpService) {
 		const logger = getLoggerFromAxiosConfig(config);
 		const { lajiApiTimeStamp } = (config as any).meta || {};
 		const query = new URLSearchParams(config?.params).toString();
-		logger[method](joinOnlyStrings("END",
+		logger[method](joinOnlyStrings(
+			"END",
 			config.method?.toUpperCase(),
 			config.url + (query ? `?${query}` : ""),
 			status && `[STATUS ${status}]`,
