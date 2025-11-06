@@ -305,7 +305,7 @@ const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorF
 	if (job.status.processed === job.documents.length) {
 		exposedJob.errors = job.errors.map(e => e === null
 			? e
-			: formatErrorDetails((e as any).response.details, validationErrorFormat)
+			: formatErrorDetails(e.details, validationErrorFormat)
 		);
 		return exposedJob;
 	}

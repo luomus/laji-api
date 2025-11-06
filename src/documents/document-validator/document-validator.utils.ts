@@ -29,7 +29,8 @@ export type ValidationDetails = { [jsonPointer: string]: (keyof typeof translati
  * Not to be instantialized directly. Use LocalizedValidationException or PreLocalizedDetailsValidationException instead.
  * This is used in the filter to detect all sub-types of validation exceptions.
  * */
-export class ValidationExceptionBase extends LocalizedException {
+export abstract class ValidationExceptionBase extends LocalizedException {
+	abstract details: ValidationDetails | { [jsonPointer: string]: string[] };
 	constructor() {
 		super("VALIDATION_EXCEPTION", 422);
 	}
