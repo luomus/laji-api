@@ -172,7 +172,7 @@ export class BatchJobQueryDto {
 }
 
 class BatchJobValidationStatus {
-	processed = 0;
+	processed: number = 0;
 	total: number;
 
 	@ApiProperty()
