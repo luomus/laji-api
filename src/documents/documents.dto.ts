@@ -42,18 +42,17 @@ export class GetDocumentsDto extends IntersectionType(
 }
 
 export enum ValidationErrorFormat {
-	remote = "remote",
+	remote = "remote", // TODO to be removed
 	object = "object",
 	jsonPointer = "jsonPointer",
-	jsonPath = "jsonPath",
+	jsonPath = "jsonPath", // TODO to be removed
 	dotNotation = "dotNotation"
 }
 
 class HasValidationErrorFormat {
 	/** Format of validation error details */
-	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.remote;
+	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.object;
 }
-
 
 export class CreateDocumentDto extends IntersectionType(
 	HasValidationErrorFormat
@@ -162,11 +161,11 @@ export class ValidateQueryDto {
 	type?: ValidationType = ValidationType.error;
 
 	/** Format of validation error details */
-	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
+	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.object;
 }
 
 export class BatchJobQueryDto {
-	validationErrorFormat?: Exclude<ValidationErrorFormat, "remote"> = ValidationErrorFormat.object;
+	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.object;
 	publicityRestrictions?: PublicityRestrictions;
 	dataOrigin?: DataOrigin;
 }
