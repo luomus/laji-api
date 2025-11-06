@@ -286,7 +286,10 @@ export class SwaggerService {
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
 		}
-		schema[entry.schemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"))] = remoteSchema;
+		const name = entry.schemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"));
+		if (!schema[name]) {
+			schema[name] = remoteSchema;
+		}
 		await this.mergeRefsFromRemote(schema, entry, remoteSchema);
 	}
 
@@ -337,7 +340,9 @@ export class SwaggerService {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(
 						await this.getRemoteSwaggerDoc(entry), ref
 					);
-					schema[referencedSchemaRefName] = referencedSchema;
+					if (!schema[referencedSchemaRefName]) {
+						schema[referencedSchemaRefName] = referencedSchema;
+					}
 					await traverseAndMerge(referencedSchema);
 				}
 			}
