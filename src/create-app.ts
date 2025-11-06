@@ -103,9 +103,11 @@ export async function createApp(useLogger = true) {
 		}, "Lang")
 		.addApiKey({ type: "apiKey", name: "Person-Token", in: "header" }, "Person token")
 		.addGlobalResponse(
+			createErrorResponseSwaggerForStatus(400),
 			createErrorResponseSwaggerForStatus(401),
 			createErrorResponseSwaggerForStatus(403),
 			createErrorResponseSwaggerForStatus(404),
+			createErrorResponseSwaggerForStatus(406),
 			createErrorResponseSwaggerForStatus(422),
 			createErrorResponseSwaggerForStatus(500)
 		)
