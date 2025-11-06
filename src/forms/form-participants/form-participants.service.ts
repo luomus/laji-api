@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { FormsService } from "../forms.service";
-import { FormPermissionsService } from "../form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { Person } from "src/persons/person.dto";
 import { DocumentsService } from "src/documents/documents.service";
 import { PersonsService } from "src/persons/persons.service";

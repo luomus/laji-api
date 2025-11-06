@@ -91,14 +91,4 @@ export class TransformDto {
 	lang?: Lang = Lang.en;
 }
 
-enum AcceptAccess {
-	admin = "admin",
-	editor = "editor"
-}
-
-export class AcceptAccessDto {
-	/** Access type */
-	type?: AcceptAccess = AcceptAccess.editor;
-}
-
 export type Hashed<T> = T & { "$id": string }

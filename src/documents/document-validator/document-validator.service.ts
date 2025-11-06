@@ -21,7 +21,7 @@ import { UniqueNamedPlaceAlternativeIDsValidatorService }
 import { dotNotationToJSONPointer } from "src/utils";
 import { Person } from "src/persons/person.dto";
 import { ProfileService } from "src/profile/profile.service";
-import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { DocumentsService } from "../documents.service";
 

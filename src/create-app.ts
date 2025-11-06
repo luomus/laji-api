@@ -64,7 +64,7 @@ export async function createApp(useLogger = true) {
 
 	// Backward compatibity to old API signature of form permissions.
 	app.use("/formPermissions", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/forms/permissions`
+		target: `http://127.0.0.1:${port}/form-permissions`
 	}));
 
 	// Backward compatibity to old API signature of checklist versions.

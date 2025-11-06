@@ -6,7 +6,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { ConfigService } from "@nestjs/config";
 import { Form } from "./dto/form.dto";
 import { PersonsModule } from "src/persons/persons.module";
-import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
+import { FormPermissionsModule } from "src/form-permissions/form-permissions.module";
 import { CollectionsModule } from "src/collections/collections.module";
 import { CACHE_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";

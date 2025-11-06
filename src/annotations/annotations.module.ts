@@ -9,7 +9,7 @@ import { StoreService } from "src/store/store.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_10_MIN } from "src/utils";
 import { TriplestoreReadonlyModule } from "src/triplestore/triplestore-readonly.module";
-import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
+import { FormPermissionsModule } from "src/form-permissions/form-permissions.module";
 import { NotificationsModule } from "src/notifications/notifications.module";
 import { WarehouseModule } from "src/warehouse/warehouse.module";
 

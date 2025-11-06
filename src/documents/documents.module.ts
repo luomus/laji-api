@@ -6,7 +6,7 @@ import { StoreConfig, StoreService } from "src/store/store.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { STORE_CLIENT } from "src/provider-tokens";
 import { DocumentsController } from "./documents.controller";
-import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
+import { FormPermissionsModule } from "src/form-permissions/form-permissions.module";
 import { PersonsModule } from "src/persons/persons.module";
 import { FormsModule } from "src/forms/forms.module";
 import { CollectionsModule } from "src/collections/collections.module";

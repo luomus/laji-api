@@ -60,6 +60,7 @@ import { LocalizerExceptionFilter } from "./filters/localize-exception.filter";
 import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format/validatior-error-format.filter";
 import { AxiosErrorFilter } from "./filters/axios-error.filter";
 import { StoreValidationFilter } from "./filters/store-validation.filter";
+import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 
 
 @Module({
@@ -86,6 +87,7 @@ import { StoreValidationFilter } from "./filters/store-validation.filter";
 		RedisCacheModule,
 		ScheduleModule.forRoot(),
 		FormsModule,
+		FormPermissionsModule,
 		AccessTokenModule,
 		PersonsModule,
 		LajiAuthClientModule,

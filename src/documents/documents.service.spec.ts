@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DocumentsService } from "./documents.service";
-import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { FormsService } from "src/forms/forms.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { NamedPlacesService } from "src/named-places/named-places.service";

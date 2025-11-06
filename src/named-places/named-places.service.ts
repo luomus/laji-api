@@ -4,7 +4,7 @@ import { NamedPlace } from "./named-places.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { getQueryVocabulary, Query, QueryLiteralMap } from "src/store/store-query";
 import { FormsService } from "src/forms/forms.service";
-import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulated-document.service";
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";

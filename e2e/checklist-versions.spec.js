@@ -5,7 +5,7 @@ const { url } = helpers;
 const { access_token } = config;
 
 describe("/checklist-versions", function() {
-	const basePath =  "/checklist-versions";
+	const basePath =  "/checklistVersions";
 
 	it("returns 401 when no access token specified", async function() {
 		const res = await request(this.server)
