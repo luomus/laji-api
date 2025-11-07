@@ -4,7 +4,7 @@ import { StoreService } from "src/store/store.service";
 import { Document } from "@luomus/laji-schema";
 import { DocumentCountItemResponse, Populated, StatisticsResponse } from "./documents.dto";
 import { Query, getQueryVocabulary } from "src/store/store-query";
-import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { FormsService } from "src/forms/forms.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { Person } from "src/persons/person.dto";

@@ -6,8 +6,8 @@ import { MailService } from "src/mail/mail.service";
 import { Person, Role } from "src/persons/person.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { StoreService } from "src/store/store.service";
-import { FormListing, Format } from "../dto/form.dto";
-import { FormsService } from "../forms.service";
+import { FormListing, Format } from "src/forms/dto/form.dto";
+import { FormsService } from "src/forms/forms.service";
 import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto, RestrictAccess
 } from "./dto/form-permission.dto";
 

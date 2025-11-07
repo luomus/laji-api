@@ -6,8 +6,8 @@ const { access_token, friend, friend2 } = config;
 
 const adminToken = friend2.personToken;
 
-describe("/formPermissions", function() {
-	const basePath = "/forms/permissions";
+describe("/form-permissions", function() {
+	const basePath = "/form-permissions";
 	const collectionID = "HR.2991";
 
 	it("listing permissions for person works", async function() {

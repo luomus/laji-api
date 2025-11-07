@@ -13,7 +13,7 @@ import { NamedPlaceNotTooNearOtherPlacesValidatorService }
 import { UniqueNamedPlaceAlternativeIDsValidatorService }
 	from "./validators/unique-named-place-alternativeIDs.validator.service";
 import { ProfileModule } from "src/profile/profile.module";
-import { FormPermissionsModule } from "src/forms/form-permissions/form-permissions.module";
+import { FormPermissionsModule } from "src/form-permissions/form-permissions.module";
 import { CollectionsModule } from "src/collections/collections.module";
 
 @Module({

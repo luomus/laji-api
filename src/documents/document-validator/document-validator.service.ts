@@ -21,7 +21,7 @@ import { UniqueNamedPlaceAlternativeIDsValidatorService }
 import { dotNotationToJSONPointer } from "src/utils";
 import { Person } from "src/persons/person.dto";
 import { ProfileService } from "src/profile/profile.service";
-import { FormPermissionsService } from "src/forms/form-permissions/form-permissions.service";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { DocumentsService } from "../documents.service";
 
@@ -117,9 +117,9 @@ export class DocumentValidatorService {
 
 		const personValidations = [
 			...(document.gatheringEvent?.leg || [])
-				.map((leg, i) => ({ personString: leg, path: `/document/gatheringEvent/${i}/leg` })),
+				.map((leg, i) => ({ personString: leg, path: `/gatheringEvent/leg/${i}` })),
 			...(document.editors || [])
-				.map((editor, i) => ({ personString: editor, path: `/document/editors/${i}` }))
+				.map((editor, i) => ({ personString: editor, path: `/editors/${i}` }))
 		];
 
 		const { friends } = person && creator

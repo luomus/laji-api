@@ -11,6 +11,7 @@ import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
 import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
+import { RedisCacheService } from "./redis-cache/redis-cache.service";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -63,7 +64,7 @@ export async function createApp(useLogger = true) {
 
 	// Backward compatibity to old API signature of form permissions.
 	app.use("/formPermissions", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/forms/permissions`
+		target: `http://127.0.0.1:${port}/form-permissions`
 	}));
 
 	// Backward compatibity to old API signature of checklist versions.
@@ -102,16 +103,23 @@ export async function createApp(useLogger = true) {
 		}, "Lang")
 		.addApiKey({ type: "apiKey", name: "Person-Token", in: "header" }, "Person token")
 		.addGlobalResponse(
+			createErrorResponseSwaggerForStatus(400),
 			createErrorResponseSwaggerForStatus(401),
 			createErrorResponseSwaggerForStatus(403),
 			createErrorResponseSwaggerForStatus(404),
+			createErrorResponseSwaggerForStatus(406),
 			createErrorResponseSwaggerForStatus(422),
 			createErrorResponseSwaggerForStatus(500)
 		)
 		.build()
 	);
 
-	SwaggerModule.setup("explorer-v1", app, document, {
+	// These need to be initialized before SwaggerService can patch the document.
+	await app.get(RedisCacheService).onModuleInit();
+	await app.get(SwaggerService).warmup();
+	const patchedDocument = await app.get(SwaggerService).patchMutably(document);
+
+	SwaggerModule.setup("explorer-v1", app, patchedDocument, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
 		customCssUrl: "/swagger.css",
 		swaggerOptions: {
@@ -124,25 +132,10 @@ export async function createApp(useLogger = true) {
 				return req;
 			},
 		},
-		// Error management isn't perfect here. We'd like to send a 500 if swagger patching fails but the library doesn't
-		// let us take care of the response. Without the try/catch the server would crash upon SwaggerService.patch()
-		// failing. The patching can fail if the document is requested before the service has patched the document so it can
-		// return the document synchronously, or if some of the remote swagger documents can't be fetched.
-		patchDocumentOnRequest: (req, res, swaggerDoc) => {
-			try {
-				return app.get(SwaggerService).patch(swaggerDoc);
-			} catch (e) {
-				new Logger().error(e, e.stack);
-				return undefined as any;
-			}
-		}
 	});
-
-	app.get(SwaggerService).setDocument(document);
 
 	return app;
 }
-
 
 type LajiApiAxiosRequestConfig = AxiosRequestConfig & {
 	meta: {
@@ -178,7 +171,8 @@ function logOutgoingRequests(httpService: HttpService) {
 		const logger = getLoggerFromAxiosConfig(config);
 		const { lajiApiTimeStamp } = (config as any).meta || {};
 		const query = new URLSearchParams(config?.params).toString();
-		logger[method](joinOnlyStrings("END",
+		logger[method](joinOnlyStrings(
+			"END",
 			config.method?.toUpperCase(),
 			config.url + (query ? `?${query}` : ""),
 			status && `[STATUS ${status}]`,

@@ -2,11 +2,9 @@ const { createApp } = require("../dist/create-app");
 
 exports.mochaHooks = {
 	beforeAll: async function() {
-		const app = await createApp();
-		console.log('creating');
+		const app = await createApp(false);
 		await app.init();
 		this.server = app.getHttpServer();
-		console.log('created');
 	},
 	afterAll: function () {
 		return this.server.close();
