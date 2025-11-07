@@ -6,7 +6,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
 import { SwaggerService } from "./swagger/swagger.service";
 import { LogLevel, Logger, NestApplicationOptions, VersioningType } from "@nestjs/common";
-import { LoggerService } from "./logger/logger.service";
+import { ConsoleLoggerService } from "./console-logger/console-logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
@@ -23,7 +23,7 @@ export async function createApp(useLogger = true) {
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, appOptions);
 
 	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,log,verbose,debug").split(",");
-	const logger = app.get(LoggerService);
+	const logger = app.get(ConsoleLoggerService);
 	if (!useLogger) {
 		app.useLogger(false);
 	} else {

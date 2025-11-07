@@ -43,7 +43,7 @@ import { ChecklistModule } from "./checklist/checklist.module";
 import { ChecklistVersionsModule } from "./checklist-versions/checklist-versions.module";
 import { OrganizationsModule } from "./organizations/organizations.module";
 import { LoggerInterceptor } from "./interceptors/logger.interceptor";
-import { LoggerModule } from "./logger/logger.module";
+import { ConsoleLoggerModule } from "./console-logger/console-logger.module";
 import { InformalTaxonGroupsModule } from "./informal-taxon-groups/informal-taxon-groups.module";
 import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 import { GlobalRestClientModule } from "./rest-client/global-rest-client.module";
@@ -115,7 +115,7 @@ import { FormPermissionsModule } from "./form-permissions/form-permissions.modul
 		ChecklistModule,
 		ChecklistVersionsModule,
 		OrganizationsModule,
-		LoggerModule,
+		ConsoleLoggerModule,
 		InformalTaxonGroupsModule,
 		GlobalRestClientModule,
 		JsonLdModule,
