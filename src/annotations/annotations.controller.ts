@@ -1,4 +1,4 @@
-import { Body, Delete, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Delete, Get, Param, Post, Query, UseInterceptors, Version } from "@nestjs/common";
 import { AnnotationsService } from "./annotations.service";
 import { GetAnnotationsDto } from "./annotations.dto";
 import { RequestPerson }from "src/decorators/request-person.decorator";
@@ -11,6 +11,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { Lang } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { RequestLang } from "src/decorators/request-lang.decorator";
+import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 
 @ApiTags("Annotations")
 @LajiApiController("annotations")
@@ -23,9 +24,18 @@ export class AnnotationsController {
 	@SwaggerRemoteRef({
 		source: "store",
 		ref: "/tag",
-		customizeResponseSchema: schema => ({ type: "array", items: schema })
+		customizeResponseSchema: swaggerResponseAsResultsArray
 	})
+	@Version("1")
+	@UseInterceptors(ResultsArray)
 	async getTags(@RequestLang() lang: Lang) {
+		const tags = await this.annotationsService.getTags();
+		return tags.map(tag => this.langService.translate(tag, lang));
+	}
+
+	// Old way of fetching annotation tags. Nowadays it's wrapped inside "results".
+	@Get("tags")
+	async getTagsOld(@RequestLang() lang: Lang) {
 		const tags = await this.annotationsService.getTags();
 		return tags.map(tag => this.langService.translate(tag, lang));
 	}
