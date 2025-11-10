@@ -23,7 +23,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		}
 		if (!namedPlaceID) {
 			throw new ValidationException(
-				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND"] }
+				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_MISSING"] }
 			);
 		}
 		const form = await this.formsService.get(formID, Format.schema);
@@ -61,7 +61,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const start =  new Date(document.gatheringEvent.dateBegin);
 		if (!isValidDate(start)) {
 			throw new ValidationException(
-				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND"] }
+				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_MISSING"] }
 			);
 		}
 

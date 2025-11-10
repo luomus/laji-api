@@ -4,6 +4,7 @@ import { Request } from "express";
 import { ValidationErrorFormat } from "../documents.dto";
 import { localizeException } from "src/filters/localize-exception.filter";
 import { ErrorSignatureBackwardCompatibilityFilter } from "src/filters/error-signature-backward-compatibility.filter";
+import { getLang } from "src/interceptors/translator.interceptor";
 
 @Catch(ValidationExceptionBase)
 export class ValidatiorErrorFormatFilter extends ErrorSignatureBackwardCompatibilityFilter<ValidationExceptionBase> {
@@ -12,8 +13,9 @@ export class ValidatiorErrorFormatFilter extends ErrorSignatureBackwardCompatibi
 		const ctx = host.switchToHttp();
 		const request = ctx.getRequest<Request>();
 		const { validationErrorFormat = "object" } = request.query;
+		const lang = getLang(request);
 
-		localizeException(e, host);
+		localizeException(e, lang);
 		(e as any).details = formatErrorDetails(
 			(e as any).details,
 			validationErrorFormat as ValidationErrorFormat

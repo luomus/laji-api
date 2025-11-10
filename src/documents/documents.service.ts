@@ -278,7 +278,15 @@ export class DocumentsService {
 			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
 		if (mutableTarget.namedPlaceID) {
-			const namedPlace = await this.namedPlacesService.get(mutableTarget.namedPlaceID);
+			let namedPlace: NamedPlace;
+			try {
+				namedPlace = await this.namedPlacesService.get(mutableTarget.namedPlaceID);
+			} catch (e) {
+				if ((e as any).response?.status === 404) {
+					throw new ValidationException({ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND"] });
+				}
+				throw e;
+			}
 			if (namedPlace.collectionID) {
 				mutableTarget.collectionID = namedPlace.collectionID;
 				return mutableTarget as T & { collectionID: string };
