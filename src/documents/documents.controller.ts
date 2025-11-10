@@ -21,6 +21,8 @@ import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
+import { RequestLang } from "src/decorators/request-lang.decorator";
+import { Lang } from "src/common.dto";
 
 @ApiTags("Documents")
 @ApiExtraModels(ErrorsObj)
@@ -68,9 +70,10 @@ export class DocumentsController {
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
 		@Query() { validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto,
+		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		return this.documentsBatchService.getStatus(jobID, person, validationErrorFormat);
+		return this.documentsBatchService.getStatus(jobID, person, validationErrorFormat, lang);
 	}
 
 	/**
@@ -85,12 +88,14 @@ export class DocumentsController {
 				publicityRestrictions,
 				dataOrigin
 			}: BatchJobQueryDto,
+		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.complete(
 			jobID,
 			person,
 			validationErrorFormat,
+			lang,
 			publicityRestrictions,
 			dataOrigin
 		);
@@ -103,6 +108,7 @@ export class DocumentsController {
 		@Body() document: Document,
 		@Query() query: ValidateQueryDto,
 		@ApiUser() apiUser: ApiUserEntity,
+		@RequestLang() lang: Lang,
 		@RequestPerson({ required: false }) person?: Person
 	): Promise<unknown> {
 		const { validator, validationErrorFormat, type } = query;
@@ -125,7 +131,8 @@ export class DocumentsController {
 				person,
 				 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 				// typings bit awkward.
-				validationErrorFormat!
+				validationErrorFormat!,
+				lang
 			);
 		}
 

@@ -2,7 +2,7 @@ import { ConsoleLogger, Injectable } from "@nestjs/common";
 import { MailService } from "src/mail/mail.service";
 
 @Injectable()
-export class LoggerService extends ConsoleLogger {
+export class ConsoleLoggerService extends ConsoleLogger {
 	constructor(private mailService: MailService) {
 		super();
 	}

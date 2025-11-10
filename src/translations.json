@@ -279,6 +279,11 @@
 		"sv": "Named place hittades inte eller är inte public",
 		"fi": "Nimettyä paikkaa ei löytynyt tai se ei ole julkinen"
 	},
+	"DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND": {
+		"en": "Named place not found",
+		"sv": "Named place hittades inte",
+		"fi": "Nimettyä paikkaa ei löytynyt"
+	},
 	"DOCUMENT_VALIDATION_BATCH_SAME_FORM_ID": {
 		"en": "All documents must have the same formID",
 		"sv": "Alla dokument måste ha samma formID",
@@ -299,7 +304,7 @@
 		"sv": "Taxon tillhör inte de angivna informella taxon-grupperna.",
 		"fi": "Taksoni ei kuulu annettuihin taksoniryhmiin."
 	},
-	"DOCUMENT_VALIDATION_NAMED_PLACE_NOT_FOUND": {
+	"DOCUMENT_VALIDATION_NAMED_PLACE_MISSING": {
 		"en": "Could not find the named place in the document",
 		"sv": "Kunde inte hitta named place i dokumentet",
 		"fi": "Nimettyä paikkaa ei löytynyt havaintoerästä"

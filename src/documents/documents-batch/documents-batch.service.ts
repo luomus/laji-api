@@ -17,6 +17,8 @@ import { serializeInto } from "src/serialization/serialization.utils";
 import { FormsService } from "src/forms/forms.service";
 import { SecondaryDocumentsService } from "../secondary-documents.service";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
+import { localizeException } from "src/filters/localize-exception.filter";
+import { Lang } from "src/common.dto";
 
 const CHUNK_SIZE = 10;
 
@@ -70,13 +72,14 @@ export class DocumentsBatchService {
 	async getStatus(
 		jobID: string,
 		person: Person,
-		validationErrorFormat: ValidationErrorFormat
+		validationErrorFormat: ValidationErrorFormat,
+		lang: Lang
 	): Promise<BatchJobValidationStatusResponse> {
 		const job = await this.getJobFromCache(jobID, person);
 		if (!job) {
 			throw new HttpException("Job not found", 404);
 		}
-		return exposeJobStatus(job, validationErrorFormat);
+		return exposeJobStatus(job, validationErrorFormat, lang);
 	}
 
 	/** Creates the documents of a given job if it's processed and valid, sending them to store or warehouse. */
@@ -84,6 +87,7 @@ export class DocumentsBatchService {
 		jobID: string,
 		person: Person,
 		validationErrorFormat: ValidationErrorFormat,
+		lang: Lang,
 		publicityRestrictions?: PublicityRestrictions,
 		dataOrigin?: DataOrigin
 	): Promise<BatchJobValidationStatusResponse> {
@@ -99,7 +103,7 @@ export class DocumentsBatchService {
 
 		// TODO REMOVE_AFTER_#36 - we must keep this for now to keep bw compatibility {
 		if (job.phase === BatchJobPhase.completing || job.phase === BatchJobPhase.completed) {
-			return exposeJobStatus(job, validationErrorFormat);
+			return exposeJobStatus(job, validationErrorFormat, lang);
 		}
 		// } TODO REPLACE_WITH_AFTER_#36 {
 		// throw new HttpException("The job is still processing the sending", 422);
@@ -295,7 +299,7 @@ const asChunks = <T>(items: T[], chunkSize: number) => {
 
 const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, jobID].join(":");
 
-const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat) => {
+const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat, lang?: Lang) => {
 	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(job);
 
 	if (exposedJob.phase !== BatchJobPhase.completed) {
@@ -305,7 +309,7 @@ const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorF
 	if (job.status.processed === job.documents.length) {
 		exposedJob.errors = job.errors.map(e => e === null
 			? e
-			: formatErrorDetails(e.details, validationErrorFormat)
+			: formatErrorDetails((lang ? localizeException(e, lang) as any : e).details, validationErrorFormat)
 		);
 		return exposedJob;
 	}

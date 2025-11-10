@@ -38,7 +38,7 @@ export class TaxaService {
 	async get(id: string, selectedFields?: MaybeArray<string>): Promise<Taxon> {
 		const query: TaxaSearchDto = { query: id };
 		if (selectedFields) {
-			query.selectedFields = asArray(selectedFields).join(",");
+			query.selectedFields = getSelectedFields(asArray(selectedFields)).join(",");
 		}
 
 		const matches = (await this.search(query));
@@ -110,7 +110,7 @@ export class TaxaService {
 		const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
 		if (childrenQuery.selectedFields) {
 			childrenQuery.selectedFields = [
-				...childrenQuery.selectedFields,
+				...getSelectedFields(childrenQuery.selectedFields),
 				query.includeHidden ? "isPartOf" : "isPartOfNonHidden",
 				depthProp,
 				"nameAccordingTo"
@@ -292,3 +292,6 @@ const processAggsResult = (fields: string[], aggsResult: any, results: any[] = [
 		results.push({ values: newValues, count: bucket["doc_count"] });
 	});
 };
+
+const getSelectedFields = (selectedFields: string[]): string[] =>
+	selectedFields.map(s => s.replace("MultiLang", ""));
