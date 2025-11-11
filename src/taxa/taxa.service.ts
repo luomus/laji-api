@@ -38,7 +38,7 @@ export class TaxaService {
 	async get(id: string, selectedFields?: MaybeArray<string>): Promise<Taxon> {
 		const query: TaxaSearchDto = { query: id };
 		if (selectedFields) {
-			query.selectedFields = getSelectedFields(asArray(selectedFields)).join(",");
+			query.selectedFields = asArray(selectedFields).join(",");
 		}
 
 		const matches = (await this.search(query));
@@ -58,7 +58,10 @@ export class TaxaService {
 	}
 
 	private async elasticSearch(query: Partial<AllQueryParams>, filters?: TaxaFilters, taxon?: TaxonElastic) {
-		return this.elasticService.search<TaxonElastic>(`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa`, 
+		if (query.selectedFields) {
+			query.selectedFields = getSelectedFields(query.selectedFields);
+		}
+		return this.elasticService.search<TaxonElastic>(`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa`,
 			buildElasticQuery(query, filters, await this.getFiltersSchema(), taxon)
 		);
 	}
@@ -110,7 +113,7 @@ export class TaxaService {
 		const depthProp = query.includeHidden ? "depth" : "nonHiddenDepth";
 		if (childrenQuery.selectedFields) {
 			childrenQuery.selectedFields = [
-				...getSelectedFields(childrenQuery.selectedFields),
+				...childrenQuery.selectedFields,
 				query.includeHidden ? "isPartOf" : "isPartOfNonHidden",
 				depthProp,
 				"nameAccordingTo"
