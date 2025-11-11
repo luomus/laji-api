@@ -4,7 +4,7 @@ import { PersonTokenService } from "src/authentication-event/authentication-even
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CACHE_5_MIN, promisePipe } from "src/utils";
+import { CACHE_1_D, CACHE_5_MIN, promisePipe } from "src/utils";
 
 @Injectable()
 export class PersonsService {
@@ -60,7 +60,7 @@ export class PersonsService {
 	getAll() {
 		return this.triplestoreService.find<Person>(
 			{ type: "MA.person" },
-			{ cache: CACHE_5_MIN }
+			{ cache: CACHE_1_D }
 		);
 	}
 }
