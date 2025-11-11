@@ -207,7 +207,8 @@ export class DocumentsController {
 		@Body() document: Document,
 		@Query() { validationErrorFormat }: CreateDocumentDto,
 		@ApiUser() apiUser: ApiUserEntity,
-		@RequestPerson({ required: false }) person?: Person,
+		@RequestLang() lang: Lang,
+		@RequestPerson({ required: false }) person?: Person
 	): Promise<Document> {
 		if (isBatchJobDto(document)) {
 			if (!person) {
@@ -219,6 +220,7 @@ export class DocumentsController {
 				document.id,
 				person,
 				validationErrorFormat!,
+				lang,
 				document.publicityRestrictions as any,
 				document.dataOrigin?.[0] as any,
 			) as any;

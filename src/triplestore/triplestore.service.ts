@@ -83,15 +83,12 @@ export class TriplestoreService {
 			}
 		}
 
-		let result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
+		const result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
 			this.triplestoreClient.get("search", { params: query }),
 			getPathAndQuery("search", query),
 			options
 		);
-		if (!Array.isArray(result)) { // Singular results are as non-arrays.
-			result = [result];
-		}
-		return result;
+		return asArray(result);
 	}
 
 	/**
