@@ -61,6 +61,7 @@ import { ValidatorErrorFormatFilter } from "./documents/validatior-error-format/
 import { AxiosErrorFilter } from "./filters/axios-error.filter";
 import { StoreValidationFilter } from "./filters/store-validation.filter";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
+import { LoggerModule } from "./logger/logger.module";
 
 
 @Module({
@@ -125,7 +126,8 @@ import { FormPermissionsModule } from "./form-permissions/form-permissions.modul
 		CoordinatesModule,
 		FeedbackModule,
 		GeoConvertModule,
-		HtmlToPdfModule
+		HtmlToPdfModule,
+		LoggerModule
 	],
 	controllers: [AppController],
 	providers: [
