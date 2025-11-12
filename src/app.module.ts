@@ -57,7 +57,7 @@ import { FeedbackModule } from "./feedback/feedback.module";
 import { GeoConvertModule } from "./geo-convert/geo-convert.module";
 import { HtmlToPdfModule } from "./html-to-pdf/html-to-pdf.module";
 import { LocalizerExceptionFilter } from "./filters/localize-exception.filter";
-import { ValidatiorErrorFormatFilter } from "./documents/validatior-error-format/validatior-error-format.filter";
+import { ValidatorErrorFormatFilter } from "./documents/validatior-error-format/validatior-error-format.filter";
 import { AxiosErrorFilter } from "./filters/axios-error.filter";
 import { StoreValidationFilter } from "./filters/store-validation.filter";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
@@ -159,7 +159,7 @@ import { FormPermissionsModule } from "./form-permissions/form-permissions.modul
 		},
 		{
 			provide: APP_FILTER,
-			useClass: ValidatiorErrorFormatFilter
+			useClass: ValidatorErrorFormatFilter
 		},
 		{
 			provide: APP_FILTER,

@@ -189,7 +189,9 @@ export enum BatchJobPhase {
 	validating = "VALIDATING",
 	readyToComplete = "READY_TO_COMPLETE",
 	completing = "COMPLETING",
-	completed = "COMPLETED"
+	completed = "COMPLETED",
+	failedUponValidation = "FAILED_UPON_VALIDATION",
+	failedUponCompletion = "FAILED_UPON_COMPLETION",
 }
 
 export class BatchJob<
@@ -209,10 +211,16 @@ export class BatchJob<
 	@ApiProperty({ enum: Object.values(BatchJobPhase) }) @Expose() get phase(): BatchJobPhase {
 		const { status } = this;
 		if (this.step === BatchJobStep.validate) {
+			if (this.errors.some(e => e !== null)) {
+				return BatchJobPhase.failedUponValidation;
+			}
 			return status.processed < status.total
 				? BatchJobPhase.validating
 				: BatchJobPhase.readyToComplete;
 		} else {
+			if (this.errors.some(e => e !== null)) {
+				return BatchJobPhase.failedUponCompletion;
+			}
 			return status.processed < status.total
 				? BatchJobPhase.completing
 				: BatchJobPhase.completed;

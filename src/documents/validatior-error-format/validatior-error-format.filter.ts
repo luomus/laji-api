@@ -7,7 +7,7 @@ import { ErrorSignatureBackwardCompatibilityFilter } from "src/filters/error-sig
 import { getLang } from "src/interceptors/translator.interceptor";
 
 @Catch(ValidationExceptionBase)
-export class ValidatiorErrorFormatFilter extends ErrorSignatureBackwardCompatibilityFilter<ValidationExceptionBase> {
+export class ValidatorErrorFormatFilter extends ErrorSignatureBackwardCompatibilityFilter<ValidationExceptionBase> {
 
 	catch(e: ValidationExceptionBase, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();

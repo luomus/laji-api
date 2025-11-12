@@ -19,6 +19,7 @@ import { SecondaryDocumentsService } from "../secondary-documents.service";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { localizeException } from "src/filters/localize-exception.filter";
 import { Lang } from "src/common.dto";
+import { isStoreSchemaError, toValidationDetail } from "src/filters/store-validation.filter";
 
 const CHUNK_SIZE = 10;
 
@@ -114,7 +115,8 @@ export class DocumentsBatchService {
 		// }
 
 		if (job.errors.some(e => e !== null)) {
-			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
+			return exposeJobStatus(job, validationErrorFormat, lang);
+			// throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
 		}
 
 		job = serializeInto(BatchJob)({
@@ -229,13 +231,25 @@ export class DocumentsBatchService {
 				await this.process(processes, job);
 				await this.flushDocumentsCache(job as BatchJob<Populated<Document>>, docsWithNamedPlace);
 			} catch (e) {
-				let message = "Upload to store failed.";
-				if (e.error) {
-					message += ` Combined error is: ${e.error}`;
+				job.status.processed = job.status.total;
+				if (
+					e.response?.data
+					&& Array.isArray(e.response.data.error)
+					&& Array.isArray(e.response.data.error[0])
+					&& isStoreSchemaError(e.response.data.error[0][0])
+				) {
+					job.errors = e.response.data.error.map(
+						(e: any) => new PreTranslatedDetailsValidationException(toValidationDetail(e[0]))
+					);
+				} else {
+					let message = "Upload to store failed.";
+					if (e.error) {
+						message += ` Combined error is: ${e.error}`;
+					}
+					job.errors = Array(job.documents.length).fill(
+						new PreTranslatedDetailsValidationException({ "": [message] })
+					);
 				}
-				job.errors = Array(job.documents.length).fill(
-					new PreTranslatedDetailsValidationException({ "": [message] })
-				);
 			}
 		}
 

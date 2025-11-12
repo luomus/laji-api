@@ -46,6 +46,7 @@ export class ValidationException extends ValidationExceptionBase {
 
 export class PreTranslatedDetailsValidationException extends ValidationExceptionBase {
 	details: { [jsonPointer: string]: string[] };
+	pretranslated: true;
 	constructor(details: { [jsonPointer: string]: string[] }) {
 		super();
 		this.details = details;

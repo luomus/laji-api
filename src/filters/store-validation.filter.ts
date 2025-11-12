@@ -9,8 +9,8 @@ import { AxiosErrorFilter } from "./axios-error.filter";
 export class StoreValidationFilter extends AxiosErrorFilter {
 	catch(exception: AxiosError<any>, host: ArgumentsHost) {
 		const error = exception.response?.data;
-		if (isStoreSchemaError(error)) {
-			throw new PreTranslatedDetailsValidationException(merge(...error.error.map(toValidationDetail)));
+		if (isStoreSchemaErrors(error)) {
+			throw storeSchemaErrorsToPreTranslatedDetailsValidationException(error);
 		} else {
 			super.catch(exception, host);
 		}
@@ -28,9 +28,13 @@ type StoreSchemaErrors = {
 	error: StoreSchemaError[];
 }
 
-const isStoreSchemaError = (error: any): error is StoreSchemaErrors => !!error.error?.[0]?.instancePath;
+export const isStoreSchemaError = (error: any): error is StoreSchemaError => !!error.instancePath;
+const isStoreSchemaErrors = (error: any): error is StoreSchemaErrors => isStoreSchemaError(error.error?.[0]);
 
-const toValidationDetail = (error: StoreSchemaError): PreTranslatedDetailsValidationException["details"] => (
+export const storeSchemaErrorsToPreTranslatedDetailsValidationException = (error: StoreSchemaErrors) =>
+	new PreTranslatedDetailsValidationException(merge(...error.error.map(toValidationDetail)));
+
+export const toValidationDetail = (error: StoreSchemaError): PreTranslatedDetailsValidationException["details"] => (
 	{ [error.instancePath]: [error.message] }
 );
 

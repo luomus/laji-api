@@ -42,4 +42,4 @@ export const localizeException = (exception: LocalizedException, lang: Lang) => 
 	return exception;
 };
 
-const isValidationException = (e: any): e is ValidationException => e.details;
+const isValidationException = (e: any): e is ValidationException => e.details && !e.pretranslated;
