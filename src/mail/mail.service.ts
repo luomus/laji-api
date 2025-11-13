@@ -99,7 +99,12 @@ export class MailService {
 			from: person?.emailAddress || "noreply",
 			subject: feedback.subject,
 			template: "./feedback",
-			context: { feedback, system, person }
+			context: {
+				message: JSON.stringify(feedback.message, undefined, 2),
+				meta: JSON.stringify(feedback.meta, undefined, 2),
+				system,
+				person
+			}
 		});
 	}
 }
