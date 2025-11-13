@@ -87,8 +87,8 @@ export class MailService {
 			template: "./fatal-error",
 			context: {
 				message,
-				stack,
-				context
+				stack: JSON.stringify(stack, undefined, 2),
+				context: JSON.stringify(context, undefined, 2)
 			}
 		});
 	}
