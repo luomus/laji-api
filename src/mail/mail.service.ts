@@ -22,6 +22,9 @@ export class MailService {
 		if (this.configService.get("NO_MAIL") === "true") {
 			return;
 		}
+		if (options.from === undefined) {
+			delete options.from;
+		}
 		const staging = this.configService.get("STAGING") === "true";
 		const subject = staging ? `[STAGING] ${options.subject}` : options.subject;
 		const context = {
