@@ -36,9 +36,6 @@ export class GeoConvertController {
 		on: {
 			proxyReq: (proxyReq, req) => {
 				fixRequestBodyAndAuthHeader(proxyReq, req);
-				const base = this.config.get<string>("GEOCONVERT_HOST");
-				const finalUrl = base + proxyReq.path;
-				this.logger.verbose(`Outgoing proxy request → ${finalUrl}`);
 			},
 			proxyRes:  (proxyRes) => {
 				if (proxyRes.statusCode === 303) {
