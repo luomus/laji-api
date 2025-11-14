@@ -22,17 +22,23 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploadsfor data uploads,
 			// so this hack detects those queries and translates the signature.
-			if (req.query.outputFormat) {
-				path = `${req.path}/${req.query.outputFormat}/${req.query.geometryType}/${req.query.crs}`;
+			const { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
+			const url = new URL("", "http://dummy"); // Base is required but ignored.
+			url.searchParams.set("timeout", "0");
+			Object.keys(unknownQueryParams).forEach(k => {
+				url.searchParams.set(k, unknownQueryParams[k] as any);
+			});
+			if (outputFormat) {
+				path = `${req.path}/${outputFormat}/${geometryType}/${crs}?${url.searchParams}`;
 			}
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
-			proxyReq:  (proxyReq, req) => {
-				const url = new URL(proxyReq.path, "http://dummy"); // Base is required but ignored.
-				url.searchParams.set("timeout", "0");
-				proxyReq.path = url.pathname + url.search;
+			proxyReq: (proxyReq, req) => {
 				fixRequestBodyAndAuthHeader(proxyReq, req);
+				const base = this.config.get<string>("GEOCONVERT_HOST");
+				const finalUrl = base + proxyReq.path;
+				this.logger.verbose(`Outgoing proxy request → ${finalUrl}`);
 			},
 			proxyRes:  (proxyRes) => {
 				if (proxyRes.statusCode === 303) {
