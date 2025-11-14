@@ -96,7 +96,7 @@ export class MailService {
 	sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
 		return this.send({
 			to: "helpdesk@laji.fi",
-			from: person?.emailAddress || "noreply",
+			from: person?.emailAddress,
 			subject: feedback.subject,
 			template: "./feedback",
 			context: {
