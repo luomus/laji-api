@@ -103,7 +103,7 @@ export class MailService {
 				message: JSON.stringify(feedback.message, undefined, 2),
 				meta: JSON.stringify(feedback.meta, undefined, 2),
 				system,
-				person
+				person: person || {}
 			}
 		});
 	}
