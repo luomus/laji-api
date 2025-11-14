@@ -1,6 +1,6 @@
 import { ISendMailOptions, MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
-import { Person } from "src/persons/person.dto";
+import { Person, decoratePerson } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 import { CompleteMultiLang } from "src/common.dto";
 import { NamedPlace } from "src/named-places/named-places.dto";
@@ -103,7 +103,7 @@ export class MailService {
 				message: JSON.stringify(feedback.message, undefined, 2),
 				meta: JSON.stringify(feedback.meta, undefined, 2),
 				system,
-				person: person || {}
+				person: person ? decoratePerson(person) : undefined
 			}
 		});
 	}
