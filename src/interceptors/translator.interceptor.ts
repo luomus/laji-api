@@ -106,7 +106,7 @@ const parseLangFromHeader = (acceptLanguage: string): Lang => {
 	if (lang.startsWith("fi")) {
 		return Lang.fi;
 	} else if (lang.startsWith("sv")) {
-		return Lang.fi;
+		return Lang.sv;
 	} else if (lang.startsWith("mul")) {
 		return Lang.multi;
 	}
