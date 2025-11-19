@@ -5,10 +5,11 @@ import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
 import { CacheOptions, asArray, nthFromNonEmptyArr, promisePipe } from "src/utils";
-import { ContextProperties, MetadataService, Property } from "src/metadata/metadata.service";
+import { DomainProperties, MetadataService } from "src/metadata/metadata.service";
 import { HasJsonLdContext, MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
+import { Property } from "src/metadata/metadata.dto";
 
 const BASE_URL = "http://tun.fi/";
 
@@ -117,7 +118,7 @@ export class TriplestoreService {
 			? (jsonld["@graph"] as any)[0]["@type"]
 			: jsonld["@type"];
 		const metadataContext = await this.metadataService.getPropertiesForJsonLdContext(
-			MetadataService.parseQNameLocalPartFromJsonLdContext(jsonldContext)
+			MetadataService.parseClassNameFromJsonLdContext(jsonldContext)
 		);
 		const formatted = (isArrayResult
 			? await Promise.all((jsonld["@graph"] as any).map((i: any) =>
@@ -129,7 +130,7 @@ export class TriplestoreService {
 		return this.cacheResult(formatted, cacheKey, options) as T;
 	}
 
-	private formatJsonLd(jsonld: any, context: ContextProperties) {
+	private formatJsonLd(jsonld: any, context: DomainProperties) {
 		return promisePipe(
 			stripBadProps,
 			compactJsonLd,
@@ -228,7 +229,7 @@ const resolveResources = (data: JSONObjectSerializable): JSONObjectSerializable 
 };
 
 /** RDF doesn't know about our properties' schema info. This function makes the output adhere to the schema. */
-const adhereToSchemaWith = (properties: ContextProperties) => async (data: JSONObjectSerializable) => {
+const adhereToSchemaWith = (properties: DomainProperties) => async (data: JSONObjectSerializable) => {
 	function maxOccurs(value: JSONSerializable, property: Property) {
 		if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
 			return [value];

@@ -198,3 +198,12 @@ Old API filtered out non QNames from queries. For example, when querying named p
 ## Coordinates
 
 * `/coordinates/location` doesn't have { "status": "OK" } in the response JSON. Use the actual HTTP status instead.
+
+## Metadata
+
+* `/metadata/classes` results are wrapped in `results`
+* `/metadata/properties` results are wrapped in `results`
+* `/metadata/ranges` -> `/metadata/alts`
+* `/metadata/properties/{property}/ranges`  `/metadata/properties/{property}/alts` (and wrapped in `results`)
+
+Class path params `property` and `class` must be the prefixed name. Old API accepted non-prefixed names (`MY.unit` vs `unit`)

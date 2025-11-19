@@ -12,7 +12,7 @@ export function Serializer(
 ) {
 	const { localJsonLdContext } = serializeOptions || {};
 	if (localJsonLdContext) {
-		addMetadata(localJsonLdContext, serializeInto);
+		addLocalJsonLdContextToMetadata(localJsonLdContext, serializeInto);
 	}
 
 	@Injectable()
@@ -33,7 +33,7 @@ export const LOCAL_JSON_LD_CONTEXT_METADATA_KEY = Symbol();
 
 export const localJsonLdContextToClass: Record<string, Newable<any>> = {};
 
-const addMetadata = (localJsonLdContext: string, targetConstructor: any) => {
+const addLocalJsonLdContextToMetadata = (localJsonLdContext: string, targetConstructor: any) => {
 	if (!localJsonLdContext) {
 		return;
 	}
