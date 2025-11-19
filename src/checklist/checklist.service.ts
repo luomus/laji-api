@@ -40,7 +40,7 @@ export class ChecklistService {
 			type: "MR.checklist",
 			predicate: "MR.isPublic",
 			objectliteral: true
-		})).map(checklist => {
+		}, { cache: CACHE_30_MIN })).map(checklist => {
 			// In the checklist data from triplestore, it uses dct: prefix instead of dc for some reason...
 			const badlyNamedBibliographicCitation = (checklist as any)["dct:bibliographicCitation"];
 			if (badlyNamedBibliographicCitation) {
