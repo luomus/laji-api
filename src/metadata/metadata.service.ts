@@ -11,8 +11,8 @@ import { LangService } from "src/lang/lang.service";
 import { omit } from "src/typing.utils";
 import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
 
-export type DomainProperties = { [ propertyName: string ]: Property };
-type Contexts = { [domain: string]: DomainProperties };
+export type ClassProperties = { [ propertyName: string ]: Property };
+type DomainsToClassProperties = { [domain: string]: ClassProperties };
 
 @Injectable()
 export class MetadataService {
@@ -48,11 +48,11 @@ export class MetadataService {
 
 	/** Get a mapping between contexts' and their properties. */
 	@Cache(CACHE_30_MIN)
-	private async getDomainToProperties(): Promise<Contexts> {
-		return (await this.getProperties()).reduce<Contexts>((contextMap, property) => {
+	private async getDomainToProperties(): Promise<DomainsToClassProperties> {
+		return (await this.getProperties()).reduce<DomainsToClassProperties>((contextMap, property) => {
 			const { domain } = property;
 			domain?.forEach(d => {
-				contextMap[d] = contextMap[d] || ({} as DomainProperties);
+				contextMap[d] = contextMap[d] || ({} as ClassProperties);
 				contextMap[d]![property.property] = property;
 			});
 			return contextMap;

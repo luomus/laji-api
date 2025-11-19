@@ -5,7 +5,7 @@ import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
 import { CacheOptions, asArray, nthFromNonEmptyArr, promisePipe } from "src/utils";
-import { DomainProperties, MetadataService } from "src/metadata/metadata.service";
+import { ClassProperties, MetadataService } from "src/metadata/metadata.service";
 import { HasJsonLdContext, MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
@@ -117,25 +117,25 @@ export class TriplestoreService {
 		const jsonldContext = isArrayResult
 			? (jsonld["@graph"] as any)[0]["@type"]
 			: jsonld["@type"];
-		const metadataContext = await this.metadataService.getPropertiesForJsonLdContext(
+		const properties = await this.metadataService.getPropertiesForJsonLdContext(
 			MetadataService.parseClassNameFromJsonLdContext(jsonldContext)
 		);
 		const formatted = (isArrayResult
 			? await Promise.all((jsonld["@graph"] as any).map((i: any) =>
-				this.formatJsonLd(i, metadataContext))
+				this.formatJsonLd(i, properties))
 			)
-			: await this.formatJsonLd(jsonld, metadataContext)
+			: await this.formatJsonLd(jsonld, properties)
 		) as T;
 
 		return this.cacheResult(formatted, cacheKey, options) as T;
 	}
 
-	private formatJsonLd(jsonld: any, context: DomainProperties) {
+	private formatJsonLd(jsonld: any, properties: ClassProperties) {
 		return promisePipe(
 			stripBadProps,
 			compactJsonLd,
 			resolveResources,
-			adhereToSchemaWith(context),
+			adhereToSchemaWith(properties),
 			dropPrefixes,
 			rmIdAndType,
 			useSchemaLajiFiJsonldContext
@@ -229,7 +229,7 @@ const resolveResources = (data: JSONObjectSerializable): JSONObjectSerializable 
 };
 
 /** RDF doesn't know about our properties' schema info. This function makes the output adhere to the schema. */
-const adhereToSchemaWith = (properties: DomainProperties) => async (data: JSONObjectSerializable) => {
+const adhereToSchemaWith = (properties: ClassProperties) => async (data: JSONObjectSerializable) => {
 	function maxOccurs(value: JSONSerializable, property: Property) {
 		if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
 			return [value];
@@ -252,7 +252,7 @@ const adhereToSchemaWith = (properties: DomainProperties) => async (data: JSONOb
 
 	function typeFromRange(value: JSONSerializable, property: Property) {
 		const { range } = property;
-		if (range?.length === 1 && range[0] === "xsd:boolean") {
+		if (range === "xsd:boolean") {
 			if (value === "true") {
 				return true;
 			}
