@@ -192,8 +192,8 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 ## Person token
 
-* `GET /person-token/{personToken}` -> `GET /person-token`
-* `DELETE /person-token/{personToken}` -> `DELETE /person-token`
+* `GET /person-token/{personToken}` -> `GET /authentication-event` (with person-token as header)
+* `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with person-token as header)
 
 ## Coordinates
 
@@ -203,7 +203,7 @@ Old API filtered out non QNames from queries. For example, when querying named p
 
 * `/metadata/classes` results are wrapped in `results`
 * `/metadata/properties` results are wrapped in `results`
-* `/metadata/ranges` -> `/metadata/alts`
-* `/metadata/properties/{property}/ranges`  `/metadata/properties/{property}/alts` (and wrapped in `results`)
-
-Class path params `property` and `class` must be the prefixed name. Old API accepted non-prefixed names (`MY.unit` vs `unit`)
+* `/metadata/ranges` -> `/metadata/alts` (same as `/metadata/ranges?asLookupObject=true`, while support for `?asLookupObject=false` is dropped)
+* `/metadata/properties/{property}/ranges` -> `/metadata/properties/{property}/alts` (and wrapped in `results`)
+* Class path params `property` and `class` must be the prefixed name. Old API accepted non-prefixed names (`MY.unit` vs `unit`)
+* Properties `range` is a string instead of an array of strings

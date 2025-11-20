@@ -45,7 +45,6 @@ Install the following:
 * [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) >= 5
 * [Oracle Instant Client](https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip)
 
-
 ##### Running
 
 1. Start Redis
