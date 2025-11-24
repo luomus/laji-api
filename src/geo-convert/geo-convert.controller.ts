@@ -17,12 +17,16 @@ export class GeoConvertController {
 	constructor(private config: ConfigService) {}
 
 	geoConvertProxy = createProxyMiddleware({
-		target: this.config.get<string>("GEOCONVERT_HOST"),
 		changeOrigin: true,
+		router: (req: Request) => {
+			return req.query.outputFormat
+				? this.config.get<string>("GEOCONVERT_HOST_OLD")
+				: this.config.get<string>("GEOCONVERT_HOST");
+		},
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploadsfor data uploads,
 			// so this hack detects those queries and translates the signature.
-			const { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
+			const { outputFormat, lang, geometryType, crs, ...unknownQueryParams } = req.query;
 			const url = new URL("", "http://dummy"); // Base is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
@@ -30,6 +34,8 @@ export class GeoConvertController {
 			});
 			if (outputFormat) {
 				path = `${req.path}/${outputFormat}/${geometryType}/${crs}?${url.searchParams}`;
+			} else if (lang) {
+				path = `${req.path}/${lang}/${geometryType}/${crs}?${url.searchParams}`;
 			}
 			return path.replace(/^\/geo-convert/, "");
 		},

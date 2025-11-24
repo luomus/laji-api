@@ -10,7 +10,6 @@ export class SourcesService {
 		private triplestoreService: TriplestoreService
 	) { }
 
-
 	async find(ids?: string[]) {
 		if (!ids) {
 			return this.getAll();
