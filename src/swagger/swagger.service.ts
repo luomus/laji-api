@@ -303,7 +303,6 @@ export class SwaggerService {
 				throw new Error("An entry with 'whitelist' should also have a 'swaggerSchemaDefinitionName'");
 			}
 			if (entry.swaggerSchemaDefinitionName) {
-				console.log(entry.swaggerSchemaDefinitionName, jsonSchema);
 				schema[entry.swaggerSchemaDefinitionName] = jsonSchema;
 			}
 		}
