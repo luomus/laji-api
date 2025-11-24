@@ -286,7 +286,7 @@ export class SwaggerService {
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
 		}
-		const name = entry.schemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"));
+		const name = entry.swaggerSchemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"));
 		if (!schema[name]) {
 			schema[name] = remoteSchema;
 		}
@@ -299,11 +299,12 @@ export class SwaggerService {
 		const jsonSchema = getJsonSchema(entry.serializeInto);
 		if (entryHasWhiteList(entry)) {
 			whitelistKeys((jsonSchema.properties as any), entry.serializeOptions.whitelist);
-			if (!entry.schemaDefinitionName) {
-				throw new Error("An entry with 'whitelist' should also have a 'schemaDefinitionName'");
+			if (!entry.swaggerSchemaDefinitionName) {
+				throw new Error("An entry with 'whitelist' should also have a 'swaggerSchemaDefinitionName'");
 			}
-			if (entry.schemaDefinitionName) {
-				schema[entry.schemaDefinitionName] = jsonSchema;
+			if (entry.swaggerSchemaDefinitionName) {
+				console.log(entry.swaggerSchemaDefinitionName, jsonSchema);
+				schema[entry.swaggerSchemaDefinitionName] = jsonSchema;
 			}
 		}
 	}
@@ -379,16 +380,16 @@ const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | Ref
 		? parseURIFragmentIdentifierRepresentation(document, (schema as any).$ref)
 		: schema;
 
-const hasSchemaDefinitionName = (entry: unknown): entry is { schemaDefinitionName: string } =>
-	isObject(entry) && !!entry.schemaDefinitionName;
+const hasSwaggerSchemaDefinitionName = (entry: unknown): entry is { swaggerSchemaDefinitionName: string } =>
+	isObject(entry) && !!entry.swaggerSchemaDefinitionName;
 
 const applyEntryToResponse = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
 	(schema: SchemaItem): SchemaItem => {
 		if (isSwaggerRemoteRefEntry(entry)) {
 			schema = replaceWithRemote(entry, schema, document);
 		}
-		if (hasSchemaDefinitionName(entry)) {
-			schema = replaceWithRefToCustomSchemaDefinitionName(entry, schema);
+		if (hasSwaggerSchemaDefinitionName(entry)) {
+			schema = replaceWithRefToCustomSwaggerSchemaDefinitionName(entry, schema);
 		}
 		if (entry.customizeResponseSchema) {
 			schema = entry.customizeResponseSchema(schema, document);
@@ -407,11 +408,12 @@ const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, doc
 	}
 };
 
-const replaceWithRefToCustomSchemaDefinitionName = (entry: { schemaDefinitionName: string }, schema: SchemaItem) => (
-	entry.schemaDefinitionName
-		? { "$ref": `#/components/schemas/${entry.schemaDefinitionName}` }
-		: schema
-);
+const replaceWithRefToCustomSwaggerSchemaDefinitionName =
+	(entry: { swaggerSchemaDefinitionName: string }, schema: SchemaItem) => (
+		entry.swaggerSchemaDefinitionName
+			? { "$ref": `#/components/schemas/${entry.swaggerSchemaDefinitionName}` }
+			: schema
+	);
 
 export const isPagedOperation = (operation: OperationObject) =>
 	(operation.parameters || []).some(param => (param as ParameterObject).name === "page") || false;

@@ -54,10 +54,10 @@ export const Serialize: SerializeOverload = (...params) =>
 export const SwaggerSerializeOptionsApplied: SerializeOverload = (
 	serializeInto: Newable<unknown>,
 	serializeOptions?: SerializeOptions,
-	schemaDefinitionName?: string
+	swaggerSchemaDefinitionName?: string
 ) => {
 	return function (target: any, propertyKey: any) {
-		const entry: SerializeEntry = { serializeInto, serializeOptions, schemaDefinitionName };
+		const entry: SerializeEntry = { serializeInto, serializeOptions, swaggerSchemaDefinitionName };
 		Reflect.defineMetadata(
 			SERIALIZE_METADATA + propertyKey,
 			entry,

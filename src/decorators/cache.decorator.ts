@@ -9,7 +9,7 @@ export function Cache(ttl?: number) {
 
 		descriptor.value = async function (...args: any[]) {
 			if (!this.cache || !(this.cache instanceof RedisCacheService)) {
-				throw new Error('RedisMemoize decorator requires "this.cache" to be a RedisCacheService instance');
+				throw new Error("RedisMemoize decorator requires \"this.cache\" to be a RedisCacheService instance");
 			}
 
 			const argsKey = args.map(arg => JSON.stringify(arg)).join(":");

@@ -58,7 +58,7 @@ export class AutocompleteController {
 			swaggerResponseAsResultsArray
 		)(asTuple(schema, document)),
 		localJsonLdContext: "taxon-search",
-		schemaDefinitionName: "TaxonAutocompleteResponse"
+		swaggerSchemaDefinitionName: "TaxonAutocompleteResponse"
 	})
 	@UseInterceptors(Translator, ResultsArray, SelectedFields)
 	getTaxa(@Query() query: TaxaSearchDto) {

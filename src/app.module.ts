@@ -62,6 +62,7 @@ import { AxiosErrorFilter } from "./filters/axios-error.filter";
 import { StoreValidationFilter } from "./filters/store-validation.filter";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 import { LoggerModule } from "./logger/logger.module";
+import { SourcesModule } from "./sources/sources.module";
 
 
 @Module({
@@ -127,7 +128,8 @@ import { LoggerModule } from "./logger/logger.module";
 		FeedbackModule,
 		GeoConvertModule,
 		HtmlToPdfModule,
-		LoggerModule
+		LoggerModule,
+		SourcesModule
 	],
 	controllers: [AppController],
 	providers: [

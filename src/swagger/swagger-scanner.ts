@@ -5,7 +5,7 @@ import { SchemaItem } from "./swagger.service";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { Newable } from "src/typing.utils";
 
-export type HasSchemaDefinitionName = { schemaDefinitionName: string };
+export type HasSchemaDefinitionName = { swaggerSchemaDefinitionName: string };
 
 export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
 	/** Function to customize the OpenAPI response schema. Has higher precedence than `replacePointer` */
