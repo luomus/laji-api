@@ -7,8 +7,6 @@ import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { Serializer } from "src/serialization/serializer.interceptor";
 
 @ApiTags("Source")
 @LajiApiController("sources")

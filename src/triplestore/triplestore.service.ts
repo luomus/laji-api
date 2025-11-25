@@ -52,7 +52,7 @@ export class TriplestoreService {
 	 * @param resource The resource identifier to get
 	 * @param options Cache options
 	 */
-	async get<T>(resource: string, options?: TriplestoreQueryOptions): Promise<T> {
+	async get<T>(resource: string, options?: TriplestoreQueryOptions, type?: string): Promise<T> {
 		const { cache } = options || {};
 		if (cache) {
 			const cached = await this.cache.get<T>(getPathAndQuery(resource));
@@ -61,7 +61,7 @@ export class TriplestoreService {
 			}
 		}
 		return this.rdfToJsonLd<T>(
-			this.triplestoreClient.get(resource, { params: baseQuery }),
+			this.triplestoreClient.get(resource, { params: { ...baseQuery, ...(type ? { type } : { }) } }),
 			getPathAndQuery(resource),
 			options
 		);
