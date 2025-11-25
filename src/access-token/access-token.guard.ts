@@ -4,6 +4,7 @@ import { Request } from "src/request";
 import { AccessTokenService } from "./access-token.service";
 import { ApiUsersService } from "src/api-users/api-users.service";
 import { LocalizedException } from "src/utils";
+import { findAccessTokenFromRequest } from "src/access-token/access-token.service";
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
@@ -20,7 +21,7 @@ export class AccessTokenGuard implements CanActivate {
 			return true;
 		}
 
-		const accessToken = this.accessTokenService.findAccessTokenFromRequest(request);
+		const accessToken = findAccessTokenFromRequest(request);
 		if (typeof accessToken !== "string") {
 			throw new LocalizedException("ACCESS_TOKEN_MISSING", 401);
 		}

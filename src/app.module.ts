@@ -63,6 +63,7 @@ import { StoreValidationFilter } from "./filters/store-validation.filter";
 import { FormPermissionsModule } from "./form-permissions/form-permissions.module";
 import { LoggerModule } from "./logger/logger.module";
 import { SourcesModule } from "./sources/sources.module";
+import { LoginModule } from "./login/login.module";
 
 
 @Module({
@@ -129,7 +130,8 @@ import { SourcesModule } from "./sources/sources.module";
 		GeoConvertModule,
 		HtmlToPdfModule,
 		LoggerModule,
-		SourcesModule
+		SourcesModule,
+		LoginModule
 	],
 	controllers: [AppController],
 	providers: [

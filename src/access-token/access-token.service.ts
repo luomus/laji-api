@@ -17,21 +17,6 @@ export class AccessTokenService {
 		return this.accessTokenRepository.findOneBy({ id });
 	}
 
-	findAccessTokenFromRequest(request: Request): string | undefined {
-		if (request.query.access_token) {
-			if (request.headers["api-version"] === "1") {
-				// eslint-disable-next-line max-len
-				throw new LocalizedException("BAD_ACCESS_TOKEN_SIGNATURE", 422);
-			}
-			return request.query.access_token as string;
-		}
-		const { authorization } = request.headers;
-		if (authorization) {
-			return authorization.replace("Bearer ", "").replace("bearer ", "");
-		}
-		return (request.query.access_token as string) || request.headers.authorization;
-	}
-
 	findByUserID(userId: number): Promise<AccessTokenEntity | null> {
 		return this.accessTokenRepository.findOneBy({ userId });
 	}
@@ -49,3 +34,18 @@ export class AccessTokenService {
 		return serializeInto(AccessTokenEntity)({ ...accessTokenEntity, id });
 	}
 }
+
+export const findAccessTokenFromRequest = (request: Request): string | undefined => {
+	if (request.query.access_token) {
+		if (request.headers["api-version"] === "1") {
+			// eslint-disable-next-line max-len
+			throw new LocalizedException("BAD_ACCESS_TOKEN_SIGNATURE", 422);
+		}
+		return request.query.access_token as string;
+	}
+	const { authorization } = request.headers;
+	if (authorization) {
+		return authorization.replace("Bearer ", "").replace("bearer ", "");
+	}
+	return (request.query.access_token as string) || request.headers.authorization;
+};

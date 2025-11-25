@@ -9,6 +9,7 @@ import { serializeInto } from "src/serialization/serialization.utils";
 import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { LocalizedException } from "src/utils";
+import { RequestAccessToken } from "src/decorators/request-access-token.decorator";
 
 @ApiTags("API user")
 @Controller("api-users")
@@ -22,12 +23,11 @@ export class ApiUsersController {
 	@Get()
 	@UseInterceptors(Serializer(ApiUserEntity, { filterNulls: true }))
 	@ApiSecurity("access_token")
-	getInfo(@Req() request: Request, @Query() { accessToken }: GetApiUserDto) {
-		const token = accessToken || this.accessTokenService.findAccessTokenFromRequest(request);
-		if (!token) {
+	getInfo(@Req() request: Request, @RequestAccessToken() accessToken: string) {
+		if (!accessToken) {
 			throw new LocalizedException("ACCESS_TOKEN_MISSING", 422);
 		}
-		return this.apiUsersService.getByAccessToken(token);
+		return this.apiUsersService.getByAccessToken(accessToken);
 	}
 
 	/** Register as an api user (access token will be sent to your email) */

@@ -7,14 +7,13 @@ import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
-import { Serializer } from "src/serialization/serializer.interceptor";
 
 @ApiTags("Source")
 @LajiApiController("sources")
 export class SourcesController {
 	constructor(private sourcesService: SourcesService) {}
 
+	/** Get all sources */
 	@Get(":id")
 	@UseInterceptors(Translator)
 	@Serialize(Source, { whitelist: ["id", "name", "description"] }, "SensitiveSource")
@@ -22,6 +21,7 @@ export class SourcesController {
 		return this.sourcesService.get(id);
 	}
 
+	/** Get a source by id */
 	@Get()
 	@UseInterceptors(Translator, Paginator)
 	@Serialize(Source, { whitelist: ["id", "name", "description"] }, "SensitiveSource")
