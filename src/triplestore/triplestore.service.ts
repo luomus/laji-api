@@ -47,13 +47,9 @@ export class TriplestoreService {
 		this.formatJsonLd = this.formatJsonLd.bind(this);
 	}
 
-	/**
-	 * Get a resource from triplestore.
-	 * @param resource The resource identifier to get
-	 * @param options Cache options
-	 */
+	/** Get a resource from triplestore */
 	async get<T>(resource: string, options?: TriplestoreQueryOptions, type?: string): Promise<T> {
-		const { cache } = options || {};
+		const { cache, ...restClientOptions } = options || {};
 		if (cache) {
 			const cached = await this.cache.get<T>(getPathAndQuery(resource));
 			if (cached) {
@@ -63,20 +59,16 @@ export class TriplestoreService {
 		return this.rdfToJsonLd<T>(
 			this.triplestoreClient.get(resource, { params: { ...baseQuery, ...(type ? { type } : { }) } }),
 			getPathAndQuery(resource),
-			options
+			restClientOptions
 		);
 	}
 
-	/**
-	 * Find multple resources from triplestore.
-	 * @param query Query options
-	 * @param options Cache options
-	 */
+	/** * Find multple resources from triplestore */
 	async find<T extends MaybeContextual>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
 		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
 
-		const { cache } = options || {};
+		const { cache, ...restClientOptions } = options || {};
 		if (cache) {
 			const cached = await this.cache.get<RemoteContextual<T>[]>(getPathAndQuery("search", query));
 			if (cached) {
@@ -87,16 +79,12 @@ export class TriplestoreService {
 		const result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
 			this.triplestoreClient.get("search", { params: query }),
 			getPathAndQuery("search", query),
-			options
+			restClientOptions
 		);
 		return asArray(result);
 	}
 
-	/**
-	 * get count for a resource
-	 * @param query Query options
-	 * @param options Cache options
-	 */
+	/** Get count for a resource */
 	async count(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
 		: Promise<number> {
 		query = { ...baseQuery, format: "json", ...query };
