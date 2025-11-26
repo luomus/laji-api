@@ -9,6 +9,6 @@ export class AppController {
 	@Get("/")
 	@BypassAccessTokenAuth()
 	redirectToExplorer(@Res() res: Response) {
-		res.redirect("/explorer/");
+		res.redirect("/openapi");
 	}
 }

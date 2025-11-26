@@ -12,6 +12,8 @@ import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
 import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
 import { RedisCacheService } from "./redis-cache/redis-cache.service";
+import { Request } from "express";
+import { swaggerDescription } from "./swagger-description";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -47,19 +49,24 @@ export async function createApp(useLogger = true) {
 
 	const port = configService.get("PORT") || 3004;
 
-	app.use("/explorer", createProxyMiddleware({
-		target: "http://127.0.0.1:3003/explorer"
-	}));
-
-	// Backward compatible redirect from old api with version (v0) path prefix.
+	// ProxyToOldApiService handles redirection to old API. We just check that people don't try to access the new API with API-Version: 1.
 	app.use("/v0", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}`,
-		pathRewrite: {
-			"^/v0": "/"
+		pathRewrite: function (path: string, req: Request) {
+			if (req.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw `Shouldn't use '/v0' in path when using API-Version: 1. Use ${configService.get("MAIL_API_BASE")}${path} instead.`;
+			}
+			return path;
 		},
 		on: {
 			proxyReq: fixRequestBodyAndAuthHeader
 		},
+	}));
+
+	// Redirect from the old Swagger explorer to the new.
+	app.use("/explorer", createProxyMiddleware({
+		target: `http://127.0.0.1:${port}`
 	}));
 
 	// Backward compatibity to old API signature of form permissions.
@@ -91,7 +98,7 @@ export async function createApp(useLogger = true) {
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("Laji API")
-		.setDescription(description)
+		.setDescription(swaggerDescription)
 		.setVersion("1")
 		.addBearerAuth({ type: "http", description: "Access token" }, "Access token")
 		.addApiKey({
@@ -119,7 +126,8 @@ export async function createApp(useLogger = true) {
 	await app.get(SwaggerService).warmup();
 	const patchedDocument = await app.get(SwaggerService).patchMutably(document);
 
-	SwaggerModule.setup("explorer-v1", app, patchedDocument, {
+	// Redirect from / to /openapi is done by AppController.
+	SwaggerModule.setup("openapi", app, patchedDocument, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
 		customCssUrl: "/swagger.css",
 		swaggerOptions: {
@@ -196,52 +204,3 @@ const createErrorResponseSwaggerForStatus = (status: number) => ({
 		message: { type: "string" }
 	} } }
 );
-
-const description =
-`
-Access token is needed to use this API. To get a token, send a POST request with your email address to /api-users
-endpoint and one will be sent to your email. Include the token to each request either as access_token parameter or
-Authentication header value
-
-You can find more documentation [here](https://laji.fi/about/806).
-
-If you have any questions you can contact us at helpdesk@laji.fi.
-
-## Endpoints
-
-## Observations and collections
-* Warehouse - Observation Data Warehouse API
-* Collection - Collection metadata
-* Source - Information sources (IT systems)
-* Annotation - Quality control
-
-## Taxonomy
-* Checklist - Mainly you only work with one checklits: the FinBIF master checklist. There are others.
-* Taxa - Taxonomy API
-* InformalTaxonGroup - Informal taxon groups are used in taxa and warehouse endpoints
-* Publication - Scientific publications
-
-## Other master data
-* Metadata - Variable descriptions
-* Area - Countries, municipalities and biogeographical provinces of Finland, etc.
-* Person - Information about people.
-
-## Helpers
-* APIUser - Register as an API user
-* AuthenticationEvent - Information about the authentication event of a person token
-* Autocomplete - For making an autocomplete filed for taxa, collections or persons (friends)
-* Login - Login for standalone applications (contact helpdesk if you want to use this)
-* Shorthand - Vihko form shorthand service
-
-## Vihko observation system
-* Audio - Audio of a document
-* Form - Form definition
-* Document - Document instance of a form
-* Image - Image of a document
-
-## Laji.fi portal
-* Feedback - Feedback form API
-* Information - CMS content of information pages
-* Logger - Error logging from user's browsers to FinBIF
-* News - News
-`;
