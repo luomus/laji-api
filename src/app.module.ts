@@ -66,6 +66,7 @@ import { SourcesModule } from "./sources/sources.module";
 import { RedListEvaluationGroupsModule } from "./red-list-evaluation-groups/red-list-evaluation-groups.module";
 import { LoginModule } from "./login/login.module";
 import { PublicationsModule } from "./publications/publications.module";
+import { NewsModule } from "./news/news.module";
 
 
 @Module({
@@ -135,7 +136,8 @@ import { PublicationsModule } from "./publications/publications.module";
 		SourcesModule,
 		RedListEvaluationGroupsModule,
 		LoginModule,
-		PublicationsModule
+		PublicationsModule,
+		NewsModule
 	],
 	controllers: [AppController],
 	providers: [
