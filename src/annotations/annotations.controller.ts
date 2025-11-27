@@ -7,7 +7,7 @@ import { PaginatedDto } from "src/pagination.utils";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Annotation } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
 import { Lang } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { RequestLang } from "src/decorators/request-lang.decorator";
@@ -35,6 +35,7 @@ export class AnnotationsController {
 
 	// Old way of fetching annotation tags. Nowadays it's wrapped inside "results".
 	@Get("tags")
+	@ApiExcludeEndpoint()
 	async getTagsOld(@RequestLang() lang: Lang) {
 		const tags = await this.annotationsService.getTags();
 		return tags.map(tag => this.langService.translate(tag, lang));

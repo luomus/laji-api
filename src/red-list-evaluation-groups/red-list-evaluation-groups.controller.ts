@@ -10,8 +10,9 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 export class RedListEvaluationGroupsController {
 	constructor(private redListEvaluationGroupsService: RedListEvaluationGroupsService) {}
 
-	@UseInterceptors(Translator)
+	/** Get a red list evaluation group by id */
 	@Get(":id")
+	@UseInterceptors(Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
 	get(@Param("id") id: string) {
 		return this.redListEvaluationGroupsService.get(id);
