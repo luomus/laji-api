@@ -3,7 +3,7 @@ const helpers = require("./helpers");
 const { apiRequest, url } = helpers;
 const { accessTokenMobileVihko } = config;
 
-describe("/metadata", function() {
+describe("/login", function() {
 
 	it("returns 401 when no access token specified", async function() {
 		const res = await apiRequest(this.server).get("/login");

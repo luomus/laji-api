@@ -1,12 +1,12 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
-const { apiRequest, url } = helpers;
+const { apiRequest } = helpers;
 const { accessToken } = config;
 
 describe("/sources", function() {
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await apiRequest(this.server).get("/metadata/classes");
+		const res = await apiRequest(this.server).get("/sources");
 		res.should.have.status(401);
 	});
 
