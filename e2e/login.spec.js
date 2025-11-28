@@ -12,21 +12,21 @@ describe("/login", function() {
 
 	let tmpToken;
 
-	// it("GET /login returns tmp token", async function() {
-	// 	const res = await apiRequest(this.server, { accessToken: accessTokenMobileVihko })
-	// 		.get(url("/login"));
-  //
-	// 	res.should.have.status(200);
-	// 	res.body.should.have.property("tmpToken").that.is.a("string");
-	// 	res.body.should.have.property("loginURL").that.is.a("string");
-	// 	tmpToken = res.body.tmpToken;
-	// });
-  //
-	// it("POST /check", async function() {
-	// 	const res = await apiRequest(this.server, { accessToken: accessTokenMobileVihko })
-	// 		.post(url("/login/check", { tmpToken }));
-  //
-	// 	res.should.have.status(404);
-	// 	res.body.should.have.property("code").that.is.a("string");
-	// });
+	it("GET /login returns tmp token", async function() {
+		const res = await apiRequest(this.server, { accessToken: accessTokenMobileVihko })
+			.get(url("/login"));
+
+		res.should.have.status(200);
+		res.body.should.have.property("tmpToken").that.is.a("string");
+		res.body.should.have.property("loginURL").that.is.a("string");
+		tmpToken = res.body.tmpToken;
+	});
+
+	it("POST /check", async function() {
+		const res = await apiRequest(this.server, { accessToken: accessTokenMobileVihko })
+			.post(url("/login/check", { tmpToken }));
+
+		res.should.have.status(404);
+		res.body.should.have.property("code").that.is.a("string");
+	});
 });
