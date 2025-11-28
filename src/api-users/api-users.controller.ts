@@ -1,13 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseInterceptors } from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiUsersService } from "./api-users.service";
-import { ApiUserCreateDto } from "./dto/api-user.dto";
+import { ApiUserCreateDto, GetApiUserDto } from "./dto/api-user.dto";
 import { ApiUserEntity } from "./api-user.entity";
 import { serializeInto } from "src/serialization/serialization.utils";
 import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { LocalizedException } from "src/utils";
-import { RequestAccessToken } from "src/decorators/request-access-token.decorator";
 
 @ApiTags("API user")
 @Controller("api-users")
@@ -20,7 +19,7 @@ export class ApiUsersController {
 	@Get()
 	@UseInterceptors(Serializer(ApiUserEntity, { filterNulls: true }))
 	@ApiSecurity("access_token")
-	getInfo(@Req() @RequestAccessToken() accessToken: string) {
+	getInfo(@Query() { accessToken }: GetApiUserDto) {
 		if (!accessToken) {
 			throw new LocalizedException("ACCESS_TOKEN_MISSING", 422);
 		}
