@@ -15,7 +15,7 @@ describe("/api-user", function() {
 
 	it("returns user info", async function() {
 		const res = await request(this.server)
-			.get(url(basePath, { access_token }));
+			.get(url(basePath, { access_token, accessToken: access_token }));
 		res.should.have.status(200);
 		res.body.should.have.property("email");
 		res.body.should.not.have.property("password");
