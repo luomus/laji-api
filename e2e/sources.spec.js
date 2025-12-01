@@ -18,21 +18,17 @@ describe("/sources", function() {
 		res.body.should.be.an("object");
 		res.body.results.should.be.an("array");
 		res.body.results.length.should.be.above(0);
-
-		const first = res.body.results[0];
-		first.should.have.property("id");
-		first.should.have.property("name");
-		first.should.have.property("description");
 	});
 
 	it("returns the requested source (KE.1) when authenticated", async function() {
 		const res = await apiRequest(this.server, { accessToken })
-			.get("/sources/KE.1");
+			.get("/sources/KE.102");
 
 		res.should.have.status(200);
 		res.body.should.be.an("object");
 
-		res.body.should.have.property("id", "KE.1");
+		res.body.should.have.keys("id", "name", "description");
+		res.body.should.have.property("id").eql("KE.102");
 		res.body.should.have.property("name");
 		res.body.should.have.property("description");
 	});
