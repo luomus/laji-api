@@ -239,4 +239,4 @@ The API swagger documents the filters like so:
 
 #### Annotations
 
-* `/annotation/tags` deprecated. At least laji.fi doesn't use it, I'm not aware what other system would use it.
+* `/annotation/tags` results are wrapped in `results`

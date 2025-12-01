@@ -77,7 +77,7 @@ export class TriplestoreService {
 		}
 
 		const result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
-			this.triplestoreClient.get("search", { params: query }),
+			await this.triplestoreClient.get("search", { params: query }),
 			getPathAndQuery("search", query),
 			restClientOptions
 		);
@@ -226,10 +226,10 @@ const adhereToSchemaWith = (properties: ClassProperties) => async (data: JSONObj
 
 	function resolveLangResources(value: JSONSerializable, property: Property) {
 		if (value && property.multiLanguage) {
-			return asArray(value).reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource | string) => {
-				if (typeof resource === "string") {
-					return langObj;
-				}
+			if (typeof value === "string") {
+				return { en: value };
+			}
+			return asArray(value).reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => {
 				return {
 					...langObj,
 					[resource["@language"]]: resource["@value"]

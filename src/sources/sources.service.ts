@@ -1,14 +1,23 @@
 import { InformationSystem } from "@luomus/laji-schema/models";
 import { HttpException, Injectable } from "@nestjs/common";
+import { Interval } from "@nestjs/schedule";
+import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
 
 @Injectable()
+@IntelligentInMemoryCache()
 export class SourcesService {
 	constructor(
 		private triplestoreService: TriplestoreService
 	) { }
+
+	@Interval(CACHE_30_MIN)
+	async warmup() {
+		await this.getAllDict();
+	}
+
 
 	async find(ids?: string[]) {
 		if (!ids) {
@@ -34,7 +43,8 @@ export class SourcesService {
 	@IntelligentMemoize()
 	private async getAll() {
 		return this.triplestoreService.find<InformationSystem>(
-			{ type: "KE.informationSystem" }, { cache: CACHE_30_MIN }
+			{ type: "KE.informationSystem", predicate: "KE.isWarehouseSource", objectliteral: "true" },
+			{ cache: CACHE_30_MIN }
 		);
 	}
 }
