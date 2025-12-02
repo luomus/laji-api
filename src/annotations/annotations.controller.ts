@@ -66,8 +66,9 @@ export class AnnotationsController {
 		return this.annotationsService.create(annotation, person);
 	}
 
-	/** Delete an annotation */
+	/** Delete an annotation. It's a soft delete, a succesful delete returns the updated annotation */
 	@Delete(":id")
+	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
 	async delete(
 		@Param("id") id: string,
 		@RequestPerson() person: Person
