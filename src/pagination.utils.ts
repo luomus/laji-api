@@ -1,6 +1,7 @@
 import { HasJsonLdContext } from "src/common.dto";
 import { MaybePromise, isObject, omitForKeys } from "src/typing.utils";
 import { pipe } from "src/utils";
+import { getJsonLdContextFromSample } from "./json-ld/json-ld.utils";
 
 export class PaginatedDto<T> {
 	currentPage: number;
@@ -72,7 +73,8 @@ export const addLastPrevAndNextPage = <
 
 export const addContextToPageLikeResult = <T extends Partial<HasJsonLdContext>, R extends { results: T[] }>
 	(hasResults: R): Omit<R, "results"> & { results: Omit<T, "@context">[] } & HasJsonLdContext => {
-	const jsonLdContext = hasResults.results[0]?.["@context"];
+	const sample = hasResults.results[0];
+	const jsonLdContext = sample && getJsonLdContextFromSample(sample);
 	const results = jsonLdContext
 		? hasResults.results.map(omitForKeys("@context"))
 		: hasResults.results;

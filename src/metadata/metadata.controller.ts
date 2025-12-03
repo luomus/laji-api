@@ -21,7 +21,7 @@ export class MetadataController {
 	@UseInterceptors(
 		Translator,
 		ResultsArray,
-		Serializer(MetadataClass, { localJsonLdContext: "metadata-class" })
+		Serializer(MetadataClass)
 	)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(MetadataClass) }) })
 	getClasses() {
@@ -33,7 +33,7 @@ export class MetadataController {
 	@Get("classes/:class")
 	@UseInterceptors(
 		Translator,
-		Serializer(MetadataClass, { localJsonLdContext: "metadata-class" })
+		Serializer(MetadataClass)
 	)
 	getClass(@Param("class") className: string) {
 		return this.metadataService.getClass(className);
@@ -45,7 +45,7 @@ export class MetadataController {
 	@UseInterceptors(
 		Translator,
 		ResultsArray,
-		Serializer(Property, { localJsonLdContext: "metadata-property" })
+		Serializer(Property)
 	)
 	getClassProperty(@Param("class") className: string) {
 		return this.metadataService.getClassProperties(className);
@@ -57,7 +57,7 @@ export class MetadataController {
 	@UseInterceptors(
 		Translator,
 		ResultsArray,
-		Serializer(Property, { localJsonLdContext: "metadata-property" })
+		Serializer(Property)
 	)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(Property) }) })
 	getProperties() {
@@ -69,7 +69,7 @@ export class MetadataController {
 	@Get("properties/:property")
 	@UseInterceptors(
 		Translator,
-		Serializer(Property, { localJsonLdContext: "metadata-property" })
+		Serializer(Property)
 	)
 	getProperty(@Param("property") property: string) {
 		return this.metadataService.getProperty(property);
@@ -81,7 +81,7 @@ export class MetadataController {
 	@UseInterceptors(
 		Translator,
 		ResultsArray,
-		Serializer(Alt, { localJsonLdContext: "metadata-alt" })
+		Serializer(Alt)
 	)
 	@ApiExtraModels(Alt)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(Alt) }) })

@@ -1,4 +1,4 @@
-import { HasJsonLdContext, Lang } from "src/common.dto";
+import { Lang } from "src/common.dto";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { JSONSchema, TypedJSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef }
 	from "src/json-schema.utils";
@@ -6,18 +6,22 @@ import { parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { HttpException } from "@nestjs/common";
 import { instanceToInstance } from "class-transformer";
+import { LOCAL_JSON_LD_CONTEXT_METADATA_KEY } from "src/decorators/local-json-ld-context.decorator";
 
-export const applyLangToJsonLdContext = <T extends HasJsonLdContext>(item: T, lang?: Lang) => {
-	if (item.constructor === Object) { // Slight optimization to prevent deeply copying if it's just a simple object.
+export const applyLangToJsonLdContext = <T extends Record<string, unknown>>(item: T, lang?: Lang) => {
+	if ((item as any).constructor === Object) { // Slight optimization to prevent deeply copying if it's just a simple object.
 		item = { ...item };
 	} else {
 		item = instanceToInstance(item);
 	}
-	item["@context"] = getJsonLdContextForLang(item["@context"], lang);
+	(item as any)["@context"] = getJsonLdContextForLang(getJsonLdContextFromSample(item), lang);
 	return item;
 };
 
-const getJsonLdContextForLang = (jsonLdContext: string, lang?: Lang) => {
+const getJsonLdContextForLang = (jsonLdContext?: string, lang?: Lang) => {
+	if (!jsonLdContext) {
+		return jsonLdContext;
+	}
 	if (lang && lang !== Lang.multi && jsonLdContext.startsWith("http://schema.laji.fi")) {
 		return jsonLdContext.replace(/\.jsonld$/, `-${lang}.jsonld`);
 	}
@@ -93,3 +97,17 @@ export const addLocalJsonLdContext = (localJsonLdContext?: string) =>
 		result["@context"] = `${SELF_HOST}/context/${localJsonLdContext}`;
 		return result;
 	};
+
+export const getJsonLdContextFromSample = (sample?: Record<string, unknown>) => {
+	if (!sample) {
+		return undefined;
+	}
+	if (sample["@context"]) {
+		return sample["@context"] as string;
+	}
+	const localJsonLdContextName = Reflect.getMetadata(LOCAL_JSON_LD_CONTEXT_METADATA_KEY, sample.constructor);
+	if (localJsonLdContextName) {
+		const { SELF_HOST } = process.env;
+		return `${SELF_HOST}/context/${localJsonLdContextName}`;
+	}
+};

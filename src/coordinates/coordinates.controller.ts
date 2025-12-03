@@ -3,7 +3,6 @@ import { CoordinatesService } from "./coordinates.service";
 import { GeoJSON } from "geojson";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { Lang } from "src/common.dto";
-import { AddContextToPageLikeResult } from "src/interceptors/add-context-to-page-like-result.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { AddressComponent, Location } from "./coordinates.dto";
@@ -19,10 +18,9 @@ export class CoordinatesController {
 
 	@Post("location")
 	@UseInterceptors(
-		AddContextToPageLikeResult,
 		ResultsArray,
 		Translator,
-		Serializer(Location, { localJsonLdContext: "coordinates-location" })
+		Serializer(Location)
 	)
 	@HttpCode(200)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(Location) }) })

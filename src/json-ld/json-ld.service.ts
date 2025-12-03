@@ -11,7 +11,7 @@ import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-pro
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
 import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema } from "src/json-schema.utils";
-import { localJsonLdContextToClass } from "src/serialization/serializer.interceptor";
+import { localJsonLdContextToClass } from "src/decorators/local-json-ld-context.decorator";
 
 export const localJsonLdContextToRemoteSwaggerRefEntry: Record<string, SwaggerRemoteRefEntry> = {};
 
@@ -76,4 +76,6 @@ export class JsonLdService {
 		}
 		return (await jsonld.documentLoader(context)).document["@context"] as JSONObjectSerializable;
 	}
+
 }
+
