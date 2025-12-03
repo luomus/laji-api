@@ -84,11 +84,6 @@
 		"sv": "Borttagna taggar måste vara unika",
 		"fi": "Poistettuken tagien on oltava uniikkeja"
 	},
-	"PROFILE_UPDATING_KEY_NOT_ALLOWED": {
-		"en": "${key} cannot be updated by this method",
-		"sv": "${key} kan inte uppdateras med denna metod",
-		"fi": "${key} ei voi tulla päivitetyksi tällä menetelmällä"
-	},
 	"PROFILE_NOT_FOUND": {
 		"en": "Person's ${person.id} profile not found",
 		"sv": "Personens ${person.id} profil hittades inte",

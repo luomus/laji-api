@@ -22,9 +22,9 @@ export class LocalizerExceptionFilter extends ErrorSignatureBackwardCompatibilit
 
 export const localizeException = (exception: LocalizedException, lang: Lang) => {
 	const errorCode = exception.errorCode;
-	let localizedMessage = (translations as any)[errorCode]?.[lang] || errorCode;
+	let localizedMessage = (translations as any)[errorCode]?.[lang];
 	const { context } = exception;
-	if (context) {
+	if (localizedMessage && context) {
 		const keys = Object.keys(context);
 		keys.forEach(key => {
 			localizedMessage = localizedMessage.replace(`\$\{${key}\}`, context[key]);

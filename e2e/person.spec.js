@@ -111,7 +111,7 @@ describe("/person", function() {
 				.put(url(`/person/${personToken}/profile`, { access_token }))
 				.send(profile);
 			res.should.have.status(422);
-			res.body.should.have.property("message").eql("userID cannot be updated by this method");
+			res.body.should.have.property("errorCode").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
 		});
 
 		it("updates profile", async function() {
@@ -140,7 +140,7 @@ describe("/person", function() {
 				.put(url(`/person/${personToken}/profile`, { access_token }))
 				.send(profile);
 			res.should.have.status(422);
-			res.body.should.have.property("message").eql("id cannot be updated by this method");
+			res.body.should.have.property("message").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
 		});
 
 		it("will not allow updating friends", async function() {
@@ -151,7 +151,7 @@ describe("/person", function() {
 				.put(url(`/person/${personToken}/profile`, { access_token }))
 				.send(profile);
 			res.should.have.status(422);
-			res.body.should.have.property("message").eql("friends cannot be updated by this method");
+			res.body.should.have.property("message").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
 		});
 
 		it("will not allow updating friends requests", async function() {
@@ -162,7 +162,7 @@ describe("/person", function() {
 				.put(url(`/person/${personToken}/profile`, { access_token }))
 				.send(profile);
 			res.should.have.status(422);
-			res.body.should.have.property("message").eql("friendRequests cannot be updated by this method");
+			res.body.should.have.property("message").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
 		});
 	});
 
