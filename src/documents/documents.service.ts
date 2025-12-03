@@ -305,9 +305,6 @@ export class DocumentsService {
 		if (document.gatheringEvent && document.gatheringEvent.dateBegin === "") {
 			delete document.gatheringEvent.dateBegin;
 		}
-		if (document.gatheringEvent && document.gatheringEvent.dateEnd === "") {
-			delete document.gatheringEvent.dateEnd;
-		}
 
 		await this.deriveCollectionIDMutably(document);
 
