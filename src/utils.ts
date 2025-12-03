@@ -243,12 +243,20 @@ export const joinOnlyStrings = (...array: (unknown)[]) => {
 	return array.filter(m => typeof m === "string" || typeof m === "number").join(" ");
 };
 
-export class LocalizedException extends HttpException {
+export class ErrorCodeException extends HttpException {
 	context?: Record<string, string>;
 	errorCode: string;
-	constructor(errorCode: keyof typeof translations, statusCode: number, context?: Record<string, string>)  {
+	constructor(errorCode: string, statusCode: number)  {
 		super(errorCode, statusCode);
 		this.errorCode = errorCode;
+	}
+}
+
+/** LocalizerExceptionFilter takes care of localizing the exception based on the error code */
+export class LocalizedException extends ErrorCodeException {
+	context?: Record<string, string>;
+	constructor(errorCode: keyof typeof translations, statusCode: number, context?: Record<string, string>)  {
+		super(errorCode, statusCode);
 		this.context = context;
 	}
 }

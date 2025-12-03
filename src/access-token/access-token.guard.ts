@@ -3,7 +3,7 @@ import { Reflector } from "@nestjs/core";
 import { Request } from "src/request";
 import { AccessTokenService } from "./access-token.service";
 import { ApiUsersService } from "src/api-users/api-users.service";
-import { LocalizedException } from "src/utils";
+import { ErrorCodeException } from "src/utils";
 import { findAccessTokenFromRequest } from "src/access-token/access-token.service";
 
 @Injectable()
@@ -23,17 +23,17 @@ export class AccessTokenGuard implements CanActivate {
 
 		const accessToken = findAccessTokenFromRequest(request);
 		if (typeof accessToken !== "string") {
-			throw new LocalizedException("ACCESS_TOKEN_MISSING", 401);
+			throw new ErrorCodeException("ACCESS_TOKEN_MISSING", 401);
 		}
 		try {
 			const accessTokenEntity = await this.accessTokenService.findOne(accessToken);
 			if (!accessTokenEntity) {
-				throw new LocalizedException("INVALID_ACCESS_TOKEN", 401);
+				throw new ErrorCodeException("INVALID_ACCESS_TOKEN", 401);
 			}
 			request.accessToken = accessToken;
 			request.apiUser = await this.apiUsersService.getByAccessToken(accessToken);
 		} catch (e) {
-			throw new LocalizedException("INVALID_ACCESS_TOKEN", 401);
+			throw new ErrorCodeException("INVALID_ACCESS_TOKEN", 401);
 		}
 		return true;
 	}

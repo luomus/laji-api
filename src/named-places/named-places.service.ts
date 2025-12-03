@@ -9,7 +9,7 @@ import { PrepopulatedDocumentService } from "./prepopulated-document/prepopulate
 import { DocumentsService } from "src/documents/documents.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { QueryCacheOptions } from "src/store/store-cache";
-import { isValidDate, dateToISODate, LocalizedException } from "src/utils";
+import { isValidDate, dateToISODate, LocalizedException, ErrorCodeException } from "src/utils";
 import { MailService } from "src/mail/mail.service";
 import { Person } from "src/persons/person.dto";
 const { or, and, not, exists } = getQueryVocabulary<NamedPlace>();
@@ -169,7 +169,7 @@ export class NamedPlacesService {
 		const place = await this.get(id);
 
 		if (!place.collectionID) {
-			throw new LocalizedException("NAMED_PLACE_CANT_RESERVE_IF_NO_COLLECTION", 422);
+			throw new ErrorCodeException("NAMED_PLACE_CANT_RESERVE_IF_NO_COLLECTION", 422);
 		}
 
 		const isAdmin = await this.formPermissionsService.isAdminOf(place.collectionID, person);

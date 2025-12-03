@@ -5,7 +5,7 @@ import { ApiUserEntity } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { LocalizedException } from "src/utils";
+import { ErrorCodeException, LocalizedException } from "src/utils";
 
 @Injectable()
 export class ApiUsersService {
@@ -23,13 +23,13 @@ export class ApiUsersService {
 		const token = await this.accessTokenService.findOne(accessToken);
 
 		if (!token) {
-			throw new LocalizedException("NO_DATA_FOUND_WITH_GIVEN_TOKEN", 404);
+			throw new ErrorCodeException("NO_DATA_FOUND_WITH_GIVEN_TOKEN", 404);
 		}
 
 		const apiUser = await this.apiUserRepository.findOneBy({ id: token.userId });
 
 		if (!apiUser) {
-			throw new LocalizedException("NO_API_USER_FOUND_FOR_TOKEN", 404);
+			throw new ErrorCodeException("NO_API_USER_FOUND_FOR_TOKEN", 404);
 		}
 
 		return apiUser;

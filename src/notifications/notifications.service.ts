@@ -7,7 +7,7 @@ import { Optional, omit } from "src/typing.utils";
 import { Person } from "src/persons/person.dto";
 import { Notification } from "@luomus/laji-schema";
 import { NotificationQuery } from "./notifications.module";
-import { LocalizedException } from "src/utils";
+import { ErrorCodeException, LocalizedException } from "src/utils";
 
 @Injectable()
 export class NotificationsService {
@@ -49,7 +49,7 @@ export class NotificationsService {
 			throw new LocalizedException("NOTIFICATION_NOT_FOUND_TO_UPDATE", 404);
 		}
 		if (!equals(omit(existing, "seen", "@context"), omit(notification, "seen", "@context"))) {
-			throw new LocalizedException("NOTIFICATION_CAN_ONLY_UPDATE_SEEN", 422);
+			throw new ErrorCodeException("NOTIFICATION_CAN_ONLY_UPDATE_SEEN", 422);
 		}
 		return this.store.update(notification);
 	}

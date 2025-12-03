@@ -6,7 +6,7 @@ import { ApiUserEntity } from "./api-user.entity";
 import { serializeInto } from "src/serialization/serialization.utils";
 import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
-import { LocalizedException } from "src/utils";
+import { ErrorCodeException } from "src/utils";
 
 @ApiTags("API user")
 @Controller("api-users")
@@ -21,7 +21,7 @@ export class ApiUsersController {
 	@ApiSecurity("access_token")
 	getInfo(@Query() { accessToken }: GetApiUserDto) {
 		if (!accessToken) {
-			throw new LocalizedException("ACCESS_TOKEN_MISSING", 422);
+			throw new ErrorCodeException("ACCESS_TOKEN_MISSING", 422);
 		}
 		return this.apiUsersService.getByAccessToken(accessToken);
 	}

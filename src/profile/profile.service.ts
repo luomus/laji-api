@@ -5,7 +5,7 @@ import { NotificationsService } from "src/notifications/notifications.service";
 import { serializeInto } from "src/serialization/serialization.utils";
 import * as equals from "fast-deep-equal";
 import { Person } from "src/persons/person.dto";
-import { LocalizedException } from "src/utils";
+import { ErrorCodeException, LocalizedException } from "src/utils";
 
 @Injectable()
 export class ProfileService {
@@ -23,24 +23,23 @@ export class ProfileService {
 		return profile || this.store.create({ userID: person.id });
 	}
 
-	/** Create a new profile, if person has no profile. */
 	async create(person: Person, profile: Partial<Profile>): Promise<Profile> {
 		if (await this.findByPerson(person)) {
-			throw new LocalizedException("USER_ALREADY_HAS_A_PROFILE", 422);
+			throw new ErrorCodeException("USER_ALREADY_HAS_A_PROFILE", 422);
 		}
-		return this.create(person, profile);
+		return this.store.create(profile);
 	}
 
 	async update(person: Person, profile: Partial<Profile>) {
 		const existingProfile = await this.findByPerson(person);
 		if (!existingProfile) {
-			throw new LocalizedException("CANT_UPDATE_NONEXISTENT_PROFILE", 422);
+			throw new ErrorCodeException("CANT_UPDATE_NONEXISTENT_PROFILE", 422);
 		}
 		const nextProfile = serializeInto(Profile)({ ...existingProfile, ...profile });
 		const protectedKeys: (keyof Profile)[] = ["id", "userID", "friendRequests", "friends"];
 		protectedKeys.forEach((key: keyof Profile) => {
 			if (!equals(nextProfile[key], existingProfile[key])) {
-				throw new LocalizedException("PROFILE_UPDATING_KEY_NOT_ALLOWED", 422, { key });
+				throw new ErrorCodeException("PROFILE_UPDATING_KEY_NOT_ALLOWED", 422);
 			}
 		});
 

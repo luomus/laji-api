@@ -5,7 +5,7 @@ import { AccessTokenEntity } from "./access-token.entity";
 import { Request } from "express";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { LocalizedException, uuid } from "src/utils";
+import { ErrorCodeException, uuid } from "src/utils";
 
 @Injectable()
 export class AccessTokenService {
@@ -39,7 +39,7 @@ export const findAccessTokenFromRequest = (request: Request): string | undefined
 	if (request.query.access_token) {
 		if (request.headers["api-version"] === "1") {
 			// eslint-disable-next-line max-len
-			throw new LocalizedException("BAD_ACCESS_TOKEN_SIGNATURE", 422);
+			throw new ErrorCodeException("BAD_ACCESS_TOKEN_SIGNATURE", 422);
 		}
 		return request.query.access_token as string;
 	}

@@ -1,5 +1,5 @@
 import { Flatten, KeyOf, MaybeArray, isObject, omit } from "src/typing.utils";
-import { LocalizedException } from "src/utils";
+import { ErrorCodeException, LocalizedException } from "src/utils";
 
 /** Defaults to "AND" */
 export type Operation = "AND" | "OR" | "NOT" | undefined;
@@ -176,10 +176,9 @@ export const parseQuery = <T>(...queries: HigherClause<T, Operation>): string =>
 	const parseLiteral = (clause: Literal) => {
 		if (typeof clause === "string") {
 			if (RESERVED_SYNTAX.some(reservedSyntax => clause.toUpperCase().includes(reservedSyntax))) {
-				throw new LocalizedException(
+				throw new ErrorCodeException(
 					"STORE_RESERVED_SYNTAX",
 					422,
-					{ RESERVED_SYNTAX: RESERVED_SYNTAX.join(", ") }
 				);
 			}
 			return  `"${clause}"`;

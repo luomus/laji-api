@@ -1,29 +1,4 @@
 {
-	"BAD_ACCESS_TOKEN_SIGNATURE": {
-		"en": "Access token in query parameters is deprecated for API v1. Please use \"authorization\" header instead.",
-		"sv": "Access token i query-parametrarna är föråldrad för API v1. Använd istället \"authorization\" header.",
-		"fi": "Access token kyselyparametreissa on vanhentunut API v1:ssä. Käytä sen sijaan \"authorization\" headeria."
-	},
-	"ACCESS_TOKEN_MISSING": {
-		"en": "Access token missing",
-		"fi": "Access token puuttuu",
-		"sv": "Access token saknas"
-	},
-	"INVALID_ACCESS_TOKEN": {
-		"en": "Invalid access token",
-		"sv": "Ogiltig access token",
-		"fi": "Virheellinen access token"
-	},
-	"NO_DATA_FOUND_WITH_GIVEN_TOKEN": {
-		"en": "No data found with given token",
-		"sv": "Inga data hittades med angiven token",
-		"fi": "Annetulla tokenilla ei löytynyt tietoja"
-	},
-	"NO_API_USER_FOUND_FOR_TOKEN": {
-		"en": "No api user found for token",
-		"sv": "Ingen API-användare hittades för token",
-		"fi": "API-käyttäjää ei löytynyt annetulla tokenilla"
-	},
 	"EMAIL_REGISTERED_ALREADY": {
 		"en": "This email has been registered already. Use the /renew endpoint to request a new access token to your email.",
 		"sv": "Denna e-postadress är redan registrerad. Använd /renew endpoint för att begära en ny access token till din e-post.",
@@ -35,9 +10,9 @@
 		"fi": "Tätä sähköpostiosoitetta ei ole vielä rekisteröity. Käytä create endpointia luodaksesi uuden Access tokenin sähköpostillesi."
 	},
 	"PERSON_TOKEN_IS_REQUIRED": {
-		"en": "Person token is required",
-		"sv": "Person token krävs",
-		"fi": "Person token vaaditaan"
+		"en": "You did something that requires loggin in. Please log in.",
+		"sv": "Du gjorde något som kräver inloggning. Vänligen logga in.",
+		"fi": "Teit jotain joka vaatii sisäänkirjautumisen. Kirjaudu sisään ensin"
 	},
 	"WATER_BIRD_COUNT_SHORTHAND_MISSING_TAXONID": {
 		"en": "Invalid \"count\" value. Missing \"taxonID\"",
@@ -50,29 +25,29 @@
 		"fi": "Virheellinen \"count\"-arvo. Ei voitu jäsentää \"count\""
 	},
 	"TRIP_REPORT_SHORTHAND_INVALID_QUERY": {
-		"en": "Invalid \"query\" query param for trip report short hand value",
-		"sv": "Ogiltig \"query\"-parameter för trip report shorthand-värde",
-		"fi": "Virheellinen \"query\"-parametri trip reportin lyhennemuodolle"
+		"en": "Invalid prompt for trip report short hand value",
+		"sv": "Ogiltig uppmaning för reserapportens korta handvärde",
+		"fi": "Virheellinen syöte retkilomakkeen lyhennemuodolle"
 	},
 	"LINE_TRANSECT_SHORTHAND_INVALID_QUERY": {
-		"en": "Invalid line transect short hand value. Could not parse query",
-		"sv": "Ogiltigt shorthand-värde för line transect. Kunde inte tolka query",
-		"fi": "Virheellinen linjalaskenta-lyhennemuoto. Queryn jäsentäminen epäonnistui"
+		"en": "Invalid line transect short hand value",
+		"sv": "Ogiltigt shorthand-värde för line transect",
+		"fi": "Virheellinen linjalaskenta-lyhennemuoto"
 	},
 	"LINE_TRANSECT_SHORTHAND_MISSING_TYPE": {
-		"en": "Invalid line transect short hand value. Missing \"type\"",
-		"sv": "Ogiltigt shorthand-värde för line transect. Saknar \"type\"",
-		"fi": "Virheellinen linjalaskenta-lyhennemuoto. Puuttuu \"type\""
+		"en": "Invalid line transect short hand value",
+		"sv": "Ogiltigt shorthand-värde för line transect",
+		"fi": "Virheellinen linjalaskenta-lyhennemuoto"
 	},
 	"LINE_TRANSECT_SHORTHAND_MISSING_TAXON": {
-		"en": "Invalid line transect short hand value. No taxon found for the query",
-		"sv": "Ogiltigt shorthand-värde för line transect. Ingen taxon hittades för query",
-		"fi": "Virheellinen linjalaskenta-lyhennemuoto. Taxonia ei löytynyt querylle"
+		"en": "Invalid line transect short hand value. No taxon found for the prompt",
+		"sv": "Ogiltigt shorthand-värde för line transect. Ingen taxon hittades för uppmaning",
+		"fi": "Virheellinen linjalaskenta-lyhennemuoto. Taksonia ei löytynyt syötteelle"
 	},
 	"LINE_TRANSECT_SHORTHAND_BAD_A_WITH_TYPE_O_OR_Y": {
 		"en": "Invalid line transect short hand value. Pair (A) marking can only be used when type is O or Y",
 		"sv": "Ogiltigt shorthand-värde för line transect. Markering (A) får endast användas när type är O eller Y",
-		"fi": "Virheellinen linjalaskenta-lyhennemuoto. Merkintää (A) saa käyttää vain, kun type on O tai Y"
+		"fi": "Virheellinen linjalaskenta-lyhennemuoto. Merkintää (A) saa käyttää vain, kun tyyppi on O tai Y"
 	},
 	"ANNOTATION_CREATE_SHOULDNT_HAVE_ID": {
 		"en": "You should not specify ID when adding primary data!",
@@ -80,9 +55,9 @@
 		"fi": "ID:tä ei tule määrittää, kun lisätään primääridataa!"
 	},
 	"ANNOTATION_BAD_TAG_ID": {
-		"en": "Bad tag id ${id}",
-		"sv": "Felaktig tag id ${id}",
-		"fi": "Virheellinen tag id ${id}"
+		"en": "Bad tag ${id}",
+		"sv": "Felaktig tag ${id}",
+		"fi": "Virheellinen tag ${id}"
 	},
 	"ANNOTATION_NO_RIGHT_FOR_ROLE": {
 		"en": "No rights to use tags that require ${role} role",
@@ -90,9 +65,9 @@
 		"fi": "Ei oikeuksia käyttää tageja, jotka vaativat roolin ${role}"
 	},
 	"ANNOTATION_UNKNOWN_ROLE": {
-		"en": "Unknown role ${role}",
-		"sv": "Okänd roll ${role}",
-		"fi": "Tuntematon rooli ${role}"
+		"en": "Unknown role ${role}. Please contact system administators",
+		"sv": "Okänd roll ${role}. Vänligen kontakta systemadministratörerna",
+		"fi": "Tuntematon rooli ${role}. Ota yhteys ylläpitoon."
 	},
 	"ANNOTATION_NOT_YOURS": {
 		"en": "Not your annotation",
@@ -100,29 +75,14 @@
 		"fi": "Ei sinun annotation"
 	},
 	"ANNOTATION_ADDED_TAGS_MUST_BE_UNIQUE": {
-		"en": "addedTags items must be unique",
-		"sv": "addedTags-items måste vara unika",
-		"fi": "addedTags-kohteiden on oltava uniikkeja"
+		"en": "Added tags must be unique",
+		"sv": "Tillagda taggar måste vara unika",
+		"fi": "Lisättyjen tagien on oltava uniikkeja"
 	},
 	"ANNOTATION_REMOVED_TAGS_MUST_BE_UNIQUE": {
-		"en": "removedTags items must be unique",
-		"sv": "removedTags-items måste vara unika",
-		"fi": "removedTags-kohteiden on oltava uniikkeja"
-	},
-	"STORE_RESERVED_SYNTAX": {
-		"en": "Store query literals containing reserved syntax (${RESERVED_SYNTAX}) is not allowed",
-		"sv": "Store query-litteraler som innehåller reserverad syntax (${RESERVED_SYNTAX}) är inte tillåtna",
-		"fi": "Store-queryn literaalit, jotka sisältävät varatun syntaksin (${RESERVED_SYNTAX}), eivät ole sallittuja"
-	},
-	"USER_ALREADY_HAS_A_PROFILE": {
-		"en": "User already has a profile",
-		"sv": "Användaren har redan en profil",
-		"fi": "Käyttäjällä on jo profiili"
-	},
-	"CANT_UPDATE_NONEXISTENT_PROFILE": {
-		"en": "Can't update profile that doesn't exist",
-		"sv": "Kan inte uppdatera en profil som inte finns",
-		"fi": "Profiilia, jota ei ole, ei voi päivittää"
+		"en": "Removed tags must be unique",
+		"sv": "Borttagna taggar måste vara unika",
+		"fi": "Poistettuken tagien on oltava uniikkeja"
 	},
 	"PROFILE_UPDATING_KEY_NOT_ALLOWED": {
 		"en": "${key} cannot be updated by this method",
@@ -154,35 +114,25 @@
 		"sv": "Ingen notification hittades att uppdatera",
 		"fi": "Päivitettävää notifikaatiota ei löytynyt"
 	},
-	"NOTIFICATION_CAN_ONLY_UPDATE_SEEN": {
-		"en": "You can only update the 'seen' property",
-		"sv": "Du kan endast uppdatera egenskapen 'seen'",
-		"fi": "Voit päivittää vain 'seen'-kentän"
-	},
 	"NOTIFICATION_NOT_FOUND_TO_DELETE": {
 		"en": "No notification found to delete",
 		"sv": "Ingen notification hittades att ta bort",
 		"fi": "Poistettavaa notifikaatiota ei löytynyt"
 	},
 	"PRIVATE_NAMED_PLACES_PERSON_TOKEN_REQUIRED": {
-		"en": "You must provide a personToken when fetching private named places",
-		"sv": "Du måste ange personToken när du hämtar privata named places",
-		"fi": "Täytyy antaa personToken haettaessa private named places"
+		"en": "You did something that requires loggin in. Please log in.",
+		"sv": "Du gjorde något som kräver inloggning. Vänligen logga in.",
+		"fi": "Teit jotain joka vaatii sisäänkirjautumisen. Kirjaudu sisään ensin"
 	},
 	"NAMED_PLACE_NOT_EDITOR_OR_OWNER": {
-		"en": "You are not an editor or an owner of the place",
+		"en": "You are not the owner or an editor  of the place",
 		"sv": "Du är inte redaktör eller ägare av platsen",
-		"fi": "Et ole editor tai paikan omistaja"
+		"fi": "Et ole paikan omistaja tai muokkaaja"
 	},
 	"NAMED_PLACE_CANT_DELETE_PUBLIC_WITH_DOCUMENTS": {
-		"en": "Can't delete public place that has documents",
+		"en": "Can't delete a public place that has documents",
 		"sv": "Kan inte ta bort en public plats som har dokument",
-		"fi": "Ei voi poistaa public-paikkaa, jolla on dokumentteja"
-	},
-	"NAMED_PLACE_CANT_RESERVE_IF_NO_COLLECTION": {
-		"en": "Can't reserve a place that doesn't belong to a collection",
-		"sv": "Kan inte reservera en plats som inte tillhör en collection",
-		"fi": "Ei voi varata paikkaa, joka ei kuulu collectioniin"
+		"fi": "Ei voi poistaa julkista paikkaa, jolla on dokumentteja"
 	},
 	"NAMED_PLACE_RESERVED_ALREADY": {
 		"en": "The place is already reserved",
@@ -190,9 +140,9 @@
 		"fi": "Paikka on jo varattu"
 	},
 	"NAMED_PLACE_RESERVATION_UNTIL_BAD_FORMAT": {
-		"en": "\"until\" has bad date format, should be YYYY-MM-DD",
-		"sv": "\"until\" har dåligt datumformat, bör vara YYYY-MM-DD",
-		"fi": "\"until\"-kentässä on väärä päivämäärämuoto, sen pitäisi olla YYYY-MM-DD"
+		"en": "The reservation date format is incorrect, it should be YYYY-MM-DD",
+		"sv": "Datumformatet för reservationen är felaktigt, det ska vara ÅÅÅÅ-MM-DD",
+		"fi": "Varauksen päivämäärämuoto on väärin, sen pitäisi olla YYYY-MM-DD"
 	},
 	"NAMED_PLACE_RESERVATION_CANT_RESERVE_TO_PAST": {
 		"en": "You can't reserve to a date in the past",
@@ -200,9 +150,9 @@
 		"fi": "Et voi varata ajankohdaksi mennyttä päivää"
 	},
 	"NAMED_PLACE_RESERVATION_TOO_FAR": {
-		"en": "You can't reserve to a date so far away in the future",
-		"sv": "Du kan inte reservera till ett datum så långt fram i tiden",
-		"fi": "Et voi varata niin kauas tulevaisuuteen"
+		"en": "You cannot reserver more than a year in the future",
+		"sv": "Du kan inte reservera mer än ett år framåt i tiden",
+		"fi": "Et voi varata yli vuoden päähän tulevaisuuteen"
 	},
 	"NAMED_PLACE_RESERVATION_ONLY_ADMIN_CAN_RESERVE_TO_OTHERS": {
 		"en": "Only admin can reserve to other user",
@@ -245,14 +195,14 @@
 		"fi": "Puuttuu creator"
 	},
 	"DOCUMENT_VALIDATION_CANT_CHANGE_CREATOR": {
-		"en": "Cannot update a document with a different creator",
-		"sv": "Kan inte uppdatera ett dokument med en annan skapare",
-		"fi": "Asiakirjaa ei voi päivittää eri tekijällä"
+		"en": "The owner of the document cannot be changed",
+		"sv": "Ägaren till observationsplatsen kan inte ändras.",
+		"fi": "Havaintoerälle ei voi vaihtaa omistajaa"
 	},
 	"DOCUMENT_VALIDATION_EDITING_LOCKED": {
 		"en": "Editing a locked document is not allowed",
 		"sv": "Det är inte tillåtet att redigera ett låst dokument",
-		"fi": "Lukitun asiakirjan muokkaaminen ei ole sallittua"
+		"fi": "Lukitun havaintoerän muokkaaminen ei ole sallittua"
 	},
 	"DOCUMENT_VALIDATION_REQUIRED_PROPERTY": {
 		"en": "Required property",
@@ -265,9 +215,9 @@
 		"fi": "Creator on pakollinen, kun käytetään importer tokenia"
 	},
 	"DOCUMENT_VALIDATION_MA_CODES_UNFAMILIAR": {
-		"en": "MA codes must be the creator or the creator's friend!",
-		"sv": "MA-koderna måste tillhöra skaparen eller skaparens vän!",
-		"fi": "MA-koodien on oltava tekijän tai tekijän ystävän!"
+		"en": "Observers and editors must be the author or a friend of the creator!",
+		"sv": "Observatörer och redaktörer måste vara författaren eller en vän till författaren!",
+		"fi": "Havainnoijien ja muokkaajien on oltava tekijän tai tekijän ystävän!"
 	},
 	"DOCUMENT_VALIDATION_NAMED_PLACE_NOT_PART_OF_COLLECTION": {
 		"en": "Named place doesn't belong to the form's collection or its descendants.",
