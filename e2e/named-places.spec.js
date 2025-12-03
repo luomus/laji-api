@@ -454,7 +454,7 @@ describe("/named-place", function() {
 			const res = await request(this.server)
 				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken: friend2.personToken, until: dateToISODate(date) }));
 			res.should.have.status(400);
-			res.body.should.have.property("message").eql("You can't reserve to a date so far away in the future");
+			res.body.should.have.property("errorCode").eql("NAMED_PLACE_RESERVATION_TOO_FAR");
 		});
 
 		it("with far-away 'until' when is admin", async function() {
