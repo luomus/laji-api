@@ -8,7 +8,6 @@ The new API uses Swagger v3.
 
 Swagger JSON is at https://api.laji.fi/openapi-json
 
-
 # Migration
 
 For most requests you are already using the new API. There are some endpoints that have breaking changes, and for those your client still uses the old API. To migrate your client to use the new API for those endpoints, you need to add `API-Version: 1` header to the requests.

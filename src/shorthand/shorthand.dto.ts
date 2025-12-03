@@ -27,7 +27,9 @@ export class GetWaterBirdPairCountUnitShorthandDto extends IntersectionType(Comm
 }
 
 export class TripReportUnitListResultDto {
-	results: Unit[]; // TODO not working
+	// TODO the imported unit is an interface, and thus nestjs/swagger can't pull the typing correct.
+	// To fix this, the @luomus/laji-schema would need to be fixed so that the import would be a class.
+	results: Unit[];
 	count: number;
 	nonMatchingCount: number;
 }

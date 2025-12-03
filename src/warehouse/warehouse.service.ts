@@ -4,8 +4,6 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { SecondaryDocument, SecondaryDocumentDelete, isSecondaryDocumentDelete } from "src/documents/documents.dto";
 import { SingleQueryResponse } from "./warehouse.dto";
 
-// TODO This is how the requests are done by old API. Ask from Esko if there's a better way to do this since the
-// swagger typings don't work for the used. There's a push DELETE endpoint so this delete via POST seems weird.
 @Injectable()
 export class WarehouseService {
 	constructor(

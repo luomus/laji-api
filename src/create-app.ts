@@ -70,29 +70,16 @@ export async function createApp(useLogger = true) {
 		target: `http://127.0.0.1:${port}`
 	}));
 
-	// Backward compatibity to old API signature of form permissions.
-	app.use("/formPermissions", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/form-permissions`
-	}));
-
-	// Backward compatibity to old API signature of checklist versions.
-	app.use("/checklistVersions", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/checklist-versions`
-	}));
-
-	// Backward compatibity to old API signature of organizations.
-	app.use("/organization/by-id", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/organizations/`
-	}));
-
-	// Backward compatibity to old API signature of organizations.
-	app.use("/organization", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/organizations`
-	}));
-
 	// Backward compatibity to old API signature of person-token.
 	app.use("/person-token", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/authentication-event`
+		target: `http://127.0.0.1:${port}/authentication-event`,
+		pathRewrite: function (path: string, req: Request) {
+			if (req.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw "/person-token is deprecated for API V1. Use /authentication-event instead";
+			}
+			return path;
+		}
 	}));
 
 	app.useStaticAssets("static");
