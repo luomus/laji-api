@@ -10,10 +10,10 @@ import { ConsoleLoggerService } from "./console-logger/console-logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
-import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
 import { RedisCacheService } from "./redis-cache/redis-cache.service";
 import { Request } from "express";
 import { swaggerDescription } from "./swagger-description";
+import { fixRequestBody } from "http-proxy-middleware";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -49,21 +49,21 @@ export async function createApp(useLogger = true) {
 
 	const port = configService.get("PORT") || 3004;
 
-	// ProxyToOldApiService handles redirection to old API. We just check that people don't try to access the new API with API-Version: 1.
-	app.use("/v0", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}`,
-		pathRewrite: function (path: string) {
-		// pathRewrite: function (path: string, req: Request) {
-			// if (req.headers["api-version"] === "1") {
-			// 	// eslint-disable-next-line max-len
-			// 	throw `Shouldn't use '/v0' in path when using API-Version: 1. Use ${configService.get("MAIL_API_BASE")}${path} instead.`;
-			// }
-			return path;
-		},
-		on: {
-			proxyReq: fixRequestBodyAndAuthHeader
-		},
-	}));
+	// // ProxyToOldApiService handles redirection to old API. We just check that people don't try to access the new API with API-Version: 1.
+	// app.use("/v0", createProxyMiddleware({
+	// 	target: `http://127.0.0.1:${port}`,
+	// 	pathRewrite: function (path: string) {
+	// 	// pathRewrite: function (path: string, req: Request) {
+	// 		// if (req.headers["api-version"] === "1") {
+	// 		// 	// eslint-disable-next-line max-len
+	// 		// 	throw `Shouldn't use '/v0' in path when using API-Version: 1. Use ${configService.get("MAIL_API_BASE")}${path} instead.`;
+	// 		// }
+	// 		return path;
+	// 	},
+	// 	on: {
+	// 		proxyReq: fixRequestBody
+	// 	},
+	// }));
 
 	// Redirect from the old Swagger explorer to the new.
 	app.use("/explorer", createProxyMiddleware({
