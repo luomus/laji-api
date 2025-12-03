@@ -301,11 +301,6 @@ export class DocumentsService {
 		document: T,
 		person?: Person
 	): Promise<Populated<T>> {
-		// TODO remove after Mobiilivihko fixed. There's a issue about this.
-		if (document.gatheringEvent && document.gatheringEvent.dateBegin === "") {
-			delete document.gatheringEvent.dateBegin;
-		}
-
 		await this.deriveCollectionIDMutably(document);
 
 		if (!document.publicityRestrictions) {
