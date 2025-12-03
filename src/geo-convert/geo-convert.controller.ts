@@ -24,10 +24,10 @@ export class GeoConvertController {
 				: this.config.get<string>("GEOCONVERT_HOST");
 		},
 		pathRewrite: function (path: string, req: Request) {
-			// For some reason we offer a different API signature for GET/POST endpoints for data uploadsfor data uploads,
+			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
 			const { outputFormat, lang, geometryType, crs, ...unknownQueryParams } = req.query;
-			const url = new URL("", "http://dummy"); // Base is required but ignored.
+			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
