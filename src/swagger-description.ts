@@ -5,7 +5,7 @@ Access token is needed to use this API. To get a token, send a POST request with
 
 Access token, person token and language can be globally configured using the "Authorize" button.
 
-You can find more documentation [here](https://laji.fi/about/806).
+You can find more documentation [here](https://info.laji.fi/en/frontpage/api/api-laji-fi/).
 
 If you have any questions you can contact us at helpdesk@laji.fi.
 
