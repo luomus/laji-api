@@ -36,19 +36,11 @@ export class ChecklistService {
 
 	@IntelligentMemoize()
 	private async getAll() {
-		return (await this.triplestoreService.find<Checklist>({
+		return this.triplestoreService.find<Checklist>({
 			type: "MR.checklist",
 			predicate: "MR.isPublic",
 			objectliteral: true
-		}, { cache: CACHE_30_MIN })).map(checklist => {
-			// In the checklist data from triplestore, it uses dct: prefix instead of dc for some reason...
-			const badlyNamedBibliographicCitation = (checklist as any)["dct:bibliographicCitation"];
-			if (badlyNamedBibliographicCitation) {
-				checklist["dc:bibliographicCitation"] = badlyNamedBibliographicCitation;
-			}
-			delete (checklist as any)["dct:bibliographicCitation"];
-			return checklist;
-		});
+		}, { cache: CACHE_30_MIN });
 	}
 
 	@IntelligentMemoize()
