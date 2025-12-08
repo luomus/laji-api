@@ -7,6 +7,9 @@ import { ConfigService } from "@nestjs/config";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
 import { NextFunction, Request, Response } from "express";
+import { TriplestoreService } from "src/triplestore/triplestore.service";
+import { DownloadRequest } from "@luomus/laji-schema/models";
+import { firstFromNonEmptyArr, joinOnlyStrings, lastFromNonEmptyArr } from "src/utils";
 
 @ApiTags("GeoConvert")
 @LajiApiController("geo-convert")
@@ -14,29 +17,54 @@ export class GeoConvertController {
 
 	private logger = new Logger(GeoConvertController.name);
 
-	constructor(private config: ConfigService) {}
+	constructor(private config: ConfigService, private triplestoreService: TriplestoreService) {}
 
 	geoConvertProxy = createProxyMiddleware({
 		changeOrigin: true,
-		router: (req: Request) => {
-			return req.query.outputFormat
-				? this.config.get<string>("GEOCONVERT_HOST_OLD")
-				: this.config.get<string>("GEOCONVERT_HOST");
-		},
+		target: this.config.get<string>("GEOCONVERT_HOST"),
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
-			const { outputFormat, lang, geometryType, crs, ...unknownQueryParams } = req.query;
+			const { lang, geometryType, crs, ...unknownQueryParams } = req.query;
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
-			if (outputFormat) {
-				path = `${req.path}/${outputFormat}/${geometryType}/${crs}?${url.searchParams}`;
-			} else if (lang) {
-				path = `${req.path}/${lang}/${geometryType}/${crs}?${url.searchParams}`;
-			}
+			path = `${joinOnlyStrings(req.path, lang, geometryType, crs)}?${url.searchParams}`
+			return path.replace(/^\/geo-convert/, "");
+		},
+		on: {
+			proxyReq: (proxyReq, req) => {
+				fixRequestBodyAndAuthHeader(proxyReq, req);
+			},
+			proxyRes:  (proxyRes) => {
+				if (proxyRes.statusCode === 303) {
+					proxyRes.statusCode = 200;
+				}
+			},
+		},
+		logger: {
+			info: this.logger.verbose,
+			warn: this.logger.warn,
+			error: this.logger.error
+		}
+	});
+
+	oldGeoConvertProxy = createProxyMiddleware({
+		changeOrigin: true,
+		target: this.config.get<string>("GEOCONVERT_HOST_OLD"),
+		pathRewrite: function (path: string, req: Request) {
+			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
+			// so this hack detects those queries and translates the signature.
+			const { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
+			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
+			url.searchParams.set("timeout", "0");
+			Object.keys(unknownQueryParams).forEach(k => {
+				url.searchParams.set(k, unknownQueryParams[k] as any);
+			});
+			path = `${joinOnlyStrings(req.path, outputFormat, geometryType, crs)}?${url.searchParams}`
+			// path = `${req.path}/${outputFormat}/${geometryType}/${crs}?${url.searchParams}`;
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
@@ -58,8 +86,16 @@ export class GeoConvertController {
 
 	@All("*all")
 	@ApiExcludeEndpoint()
-	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
-		void this.geoConvertProxy(req, res, next);
+	async proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
+		const { fileId, conversionId } = req.query;
+		const pathParam = lastFromNonEmptyArr(req.path.split("/"));
+		const downloadRequestId = pathParam.includes("-") ? firstFromNonEmptyArr(pathParam.split("-")) : pathParam;
+		const { createdFileVersion } = await this.triplestoreService.get<DownloadRequest>(downloadRequestId as string);
+		if (createdFileVersion) {
+			void this.geoConvertProxy(req, res, next);
+		} else {
+			void this.oldGeoConvertProxy(req, res, next);
+		}
 	}
 
 	// The method below are just for swagger. The proxy handles all requests really.
@@ -76,7 +112,8 @@ export class GeoConvertController {
 		@Query() query: GetGeoConvertDto,
 		@RequestPersonToken({ required: false, description:	"For use with restricted data downloads" })
 			personToken?: string
-	) { }
+	) {
+	}
 
 	/** Convert a FinBIF occurrence data file into a geographic data format */
 	@Post(":fileId")
