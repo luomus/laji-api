@@ -35,8 +35,15 @@ export type TriplestoreSearchQuery = {
 
 type TriplestoreQueryOptions = CacheOptions;
 
+type SWRCacheEntry<S> = {
+	data: S,
+	timestamp: number
+}
+
 const baseQuery = { format: "rdf/xml", limit: 999999999 };
 
+// Caching is implemented with stale-while-revalidate strategy. Data stored in Redis cache doesn't use Redis' TTL
+// mechanism because we need the stale data. Instead, we timestamp the cached data and do a TTL comparison ourself.
 @Injectable()
 export class TriplestoreService {
 	constructor(
@@ -63,11 +70,30 @@ export class TriplestoreService {
 		);
 	}
 
+	private async findWithStaleWhileRevalidate<S>(
+		query: TriplestoreSearchQuery = {},
+		cache: TriplestoreQueryOptions["cache"],
+		createAndCacheRequest: () => Promise<S>
+	): Promise<S> {
+		if (cache) {
+			const staleWhileRevalidateEntry = await this.cache.get<SWRCacheEntry<S>>(
+				getPathAndQuery("search", query)
+			);
+			if (staleWhileRevalidateEntry
+				&& typeof cache === "number"
+				&& staleWhileRevalidateEntry.timestamp + cache > Date.now()
+			) {
+				void createAndCacheRequest();
+				return staleWhileRevalidateEntry.data;
+			}
+		}
+		return createAndCacheRequest();
+	}
+
 	/** * Find multple resources from triplestore */
 	async find<T extends MaybeContextual>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
 		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
-
 		const { cache, ...restClientOptions } = options || {};
 		if (cache) {
 			const cached = await this.cache.get<RemoteContextual<T>[]>(getPathAndQuery("search", query));
@@ -76,12 +102,13 @@ export class TriplestoreService {
 			}
 		}
 
-		const result = await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
-			await this.triplestoreClient.get("search", { params: query }),
-			getPathAndQuery("search", query),
-			restClientOptions
+		return this.findWithStaleWhileRevalidate(query, cache, async () =>
+			asArray(await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
+				this.triplestoreClient.get("search", { params: query }),
+				getPathAndQuery("search", query),
+				restClientOptions
+			))
 		);
-		return asArray(result);
 	}
 
 	/** Get count for a resource */
@@ -91,6 +118,7 @@ export class TriplestoreService {
 		return (await this.triplestoreClient.get<{ count: number }>("search/count", { params: query }, options)).count;
 	}
 
+	/** Caches the result also */
 	private async rdfToJsonLd<T>(
 		rdf: MaybePromise<JSONSerializable>,
 		cacheKey: string,
@@ -133,8 +161,7 @@ export class TriplestoreService {
 	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
 		options?.cache && await this.cache.set(
 			cacheKey,
-			item,
-			typeof options.cache === "number" ? options.cache : undefined
+			{ data: item, timestamp: Date.now() }
 		);
 		return item;
 	}
