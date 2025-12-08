@@ -9,7 +9,7 @@ import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-bo
 import { NextFunction, Request, Response } from "express";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { DownloadRequest } from "@luomus/laji-schema/models";
-import { firstFromNonEmptyArr, joinOnlyStrings, lastFromNonEmptyArr } from "src/utils";
+import { firstFromNonEmptyArr, joinOnlyStringsWith, lastFromNonEmptyArr } from "src/utils";
 
 @ApiTags("GeoConvert")
 @LajiApiController("geo-convert")
@@ -31,7 +31,7 @@ export class GeoConvertController {
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
-			path = `${joinOnlyStrings(req.path, lang, geometryType, crs)}?${url.searchParams}`
+			path = `${joinOnlyStringsWith("/")(req.path, lang, geometryType, crs)}?${url.searchParams}`
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
@@ -63,7 +63,7 @@ export class GeoConvertController {
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
-			path = `${joinOnlyStrings(req.path, outputFormat, geometryType, crs)}?${url.searchParams}`
+			path = `${joinOnlyStringsWith("/")(req.path, outputFormat, geometryType, crs)}?${url.searchParams}`
 			// path = `${req.path}/${outputFormat}/${geometryType}/${crs}?${url.searchParams}`;
 			return path.replace(/^\/geo-convert/, "");
 		},

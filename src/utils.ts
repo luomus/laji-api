@@ -238,10 +238,14 @@ export const dotNotationToJSONPointer = (pointer: string) => {
 export const isJSONPointer = (pointer: string) =>
 	pointer === "" || pointer[0] === "/";
 
-/** Filters all except strings and numbers out and joins them with " " */
-export const joinOnlyStrings = (...array: (unknown)[]) => {
-	return array.filter(m => typeof m === "string" || typeof m === "number").join(" ");
+
+/** Filters all except strings and numbers out and joins them with given separator */
+export const joinOnlyStringsWith = (separator = " ") => (...array: (unknown)[]) => {
+	return array.filter(m => typeof m === "string" || typeof m === "number").join(separator);
 };
+
+/** Filters all except strings and numbers out and joins them with " " */
+export const joinOnlyStrings = joinOnlyStringsWith();
 
 export class ErrorCodeException extends HttpException {
 	context?: Record<string, string>;
