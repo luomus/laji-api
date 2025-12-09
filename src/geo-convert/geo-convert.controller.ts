@@ -72,7 +72,6 @@ export class GeoConvertController {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
 			path = `${joinOnlyStringsWith("/")(req.path, outputFormat, geometryType, crs)}?${url.searchParams}`
-			// console.log(path.replace(/^\/geo-convert/, ""));
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
@@ -96,9 +95,8 @@ export class GeoConvertController {
 	@All("*all")
 	@ApiExcludeEndpoint()
 	async proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
-		const { fileId, conversionId } = req.query;
 		const pathParam = lastFromNonEmptyArr(req.path.split("/"));
-		const downloadRequestId = pathParam.includes("-") ? firstFromNonEmptyArr(pathParam.split("-")) : pathParam;
+		const downloadRequestId = firstFromNonEmptyArr(pathParam.match(/HBF\.\d+/) as string[]);
 		const { createdFileVersion } = await this.triplestoreService.get<DownloadRequest>(downloadRequestId as string);
 		if (createdFileVersion) {
 			void this.geoConvertProxy(req, res, next);
