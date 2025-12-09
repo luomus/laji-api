@@ -25,7 +25,10 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
-			const { lang = "tech", geometryType, crs, ...unknownQueryParams } = req.query;
+			let { lang = "tech", geometryType, crs, ...unknownQueryParams } = req.query;
+			if (["output", "status"].some(uriFragment => !req.path.includes(uriFragment))) {
+				lang = lang ?? "gpkg";
+			}
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
@@ -57,13 +60,17 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
-			const { outputFormat = "gpkg", geometryType, crs, ...unknownQueryParams } = req.query;
+			let { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
+			if (["output", "status"].some(uriFragment => !req.path.includes(uriFragment))) {
+				outputFormat = outputFormat ?? "gpkg";
+			}
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
 			path = `${joinOnlyStringsWith("/")(req.path, outputFormat, geometryType, crs)}?${url.searchParams}`
+			// console.log(path.replace(/^\/geo-convert/, ""));
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
