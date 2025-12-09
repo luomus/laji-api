@@ -25,9 +25,10 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
-			let { lang = "tech", geometryType, crs, ...unknownQueryParams } = req.query;
+			// eslint-disable-next-line prefer-const
+			let { lang, geometryType, crs, ...unknownQueryParams } = req.query;
 			if (["output", "status"].some(uriFragment => !req.path.includes(uriFragment))) {
-				lang = lang ?? "gpkg";
+				lang = lang ?? "tech";
 			}
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
@@ -60,6 +61,7 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
+			// eslint-disable-next-line prefer-const
 			let { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
 			if (["output", "status"].some(uriFragment => !req.path.includes(uriFragment))) {
 				outputFormat = outputFormat ?? "gpkg";
