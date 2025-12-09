@@ -31,7 +31,7 @@ export class GeoConvertController {
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
-			path = `${joinOnlyStringsWith("/")(req.path, lang, geometryType, crs)}?${url.searchParams}`
+			path = `${joinOnlyStringsWith("/")(req.path, lang, geometryType, crs)}?${url.searchParams}`;
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
@@ -57,14 +57,13 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
-			const { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
+			const { outputFormat = "gpkg", geometryType, crs, ...unknownQueryParams } = req.query;
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
 				url.searchParams.set(k, unknownQueryParams[k] as any);
 			});
 			path = `${joinOnlyStringsWith("/")(req.path, outputFormat, geometryType, crs)}?${url.searchParams}`
-			// path = `${req.path}/${outputFormat}/${geometryType}/${crs}?${url.searchParams}`;
 			return path.replace(/^\/geo-convert/, "");
 		},
 		on: {
@@ -74,6 +73,7 @@ export class GeoConvertController {
 			proxyRes:  (proxyRes) => {
 				if (proxyRes.statusCode === 303) {
 					proxyRes.statusCode = 200;
+					delete proxyRes.headers["location"];
 				}
 			},
 		},
