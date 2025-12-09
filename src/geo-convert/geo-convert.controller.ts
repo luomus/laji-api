@@ -27,7 +27,7 @@ export class GeoConvertController {
 			// so this hack detects those queries and translates the signature.
 			// eslint-disable-next-line prefer-const
 			let { lang, geometryType, crs, ...unknownQueryParams } = req.query;
-			if (["output", "status"].some(uriFragment => !req.path.includes(uriFragment))) {
+			if (["output", "status"].every(uriFragment => !req.path.includes(uriFragment))) {
 				lang = lang ?? "tech";
 			}
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
@@ -63,7 +63,7 @@ export class GeoConvertController {
 			// so this hack detects those queries and translates the signature.
 			// eslint-disable-next-line prefer-const
 			let { outputFormat, geometryType, crs, ...unknownQueryParams } = req.query;
-			if (["output", "status"].some(uriFragment => !req.path.includes(uriFragment))) {
+			if (["output", "status"].every(uriFragment => !req.path.includes(uriFragment))) {
 				outputFormat = outputFormat ?? "gpkg";
 			}
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
