@@ -25,7 +25,7 @@ export class GeoConvertController {
 		pathRewrite: function (path: string, req: Request) {
 			// For some reason we offer a different API signature for GET/POST endpoints for data uploads,
 			// so this hack detects those queries and translates the signature.
-			const { lang, geometryType, crs, ...unknownQueryParams } = req.query;
+			const { lang = "tech", geometryType, crs, ...unknownQueryParams } = req.query;
 			const url = new URL("", "http://dummy"); // Base (the "dummy" part) is required but ignored.
 			url.searchParams.set("timeout", "0");
 			Object.keys(unknownQueryParams).forEach(k => {
