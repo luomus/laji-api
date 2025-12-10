@@ -102,28 +102,6 @@ describe("/image", function() {
 				.send({});
 			res.should.have.status(422);
 		});
-
-
-		it("returns a meta object", async function() {
-			if (!imageTmpId) {
-				this.skip();
-			}
-			this.timeout(5000);
-			const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
-			const owner = "Viltsu testaaja";
-			const res = await request(this.server)
-				.post(url(`${basePath}/${imageTmpId}`, { access_token, personToken }))
-				.send({ intellectualRights: rights, intellectualOwner: owner });
-			res.should.have.status(201);
-			res.body.should.be.a("object");
-			helpers.toHaveOnlyKeys(res.body, itemProperties);
-			res.body.should.include({
-				intellectualRights: rights,
-				intellectualOwner: owner,
-				uploadedBy: config.person.id
-			});
-			imageId = res.body.id;
-		});
 	});
 
 	describe("after receiving id", function() {

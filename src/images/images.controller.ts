@@ -60,44 +60,41 @@ export class ImagesController {
 
 	/** Fetch large image by id */
 	@Get(":id/large.jpg")
-	findLarge(
+	async findLarge(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "largeURL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "largeURL", person)
+		res.redirect(url);
 	}
 
 	/** Fetch square thumbnail by id */
 	@Get(":id/square.jpg")
-	findSquare(
+	async findSquare(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "squareThumbnailURL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "squareThumbnailURL", person);
+		res.redirect(url);
 	}
 
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
-	findThumbnail(
+	async findThumbnail(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "thumbnailURL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "thumbnailURL", person);
+		res.redirect(url);
 	}
 
 	/** Upload image metadata */
 	@Post(":tempId")
 	@UseInterceptors(Serializer(Image))
-	async uploadMetadata(
+	uploadMetadata(
 		@Param("tempId") tempId: string,
 		@RequestPerson() person: Person,
 		@Body() image: Image

@@ -63,50 +63,46 @@ export class AudioController {
 
 	/** Fetch mp3 by id */
 	@Get(":id/mp3")
-	getMp3(
+	async getMp3(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "mp3URL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "mp3URL", person);
+		res.redirect(url);
 	}
 
 	/** Fetch thumbnail by id */
 	@Get(":id/thumbnail.jpg")
-	getThumbnail(
+	async getThumbnail(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "thumbnailURL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "thumbnailURL", person);
+		res.redirect(url);
 	}
 
 	/** Fetch wav by id */
 	@Get(":id/wav")
-	getWav(
+	async getWav(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "wavURL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "wavURL", person);
+		res.redirect(url);
 	}
 
 	/** Fetch flac by id */
 	@Get(":id/flac")
-	findFlac(
+	async findFlac(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		void this.abstractMediaService.getURL(id, "flacURL", person).then(url => {
-			res.redirect(url);
-		});
+		const url = await this.abstractMediaService.getURL(id, "flacURL", person);
+		res.redirect(url);
 	}
 
 	/** Upload audio metadata */

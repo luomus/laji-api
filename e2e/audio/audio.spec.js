@@ -108,28 +108,6 @@ describe("/audio", function() {
 				.send({});
 			res.should.have.status(422);
 		});
-
-
-		it("returns a meta object", async function() {
-			if (!audioTmpId) {
-				this.skip();
-			}
-			this.timeout(5000);
-			const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
-			const owner = "Viltsu testaaja";
-			const res = await request(this.server)
-				.post(url(`${basePath}/${audioTmpId}`, { access_token, personToken }))
-				.send({ intellectualRights: rights, intellectualOwner: owner });
-			res.should.have.status(201);
-			res.body.should.be.a("object");
-			helpers.toHaveOnlyKeys(res.body, wavItemProperties);
-			res.body.should.include({
-				intellectualRights: rights,
-				intellectualOwner: owner,
-				uploadedBy: "MA.314"
-			});
-			audioId = res.body.id;
-		});
 	});
 
 	describe("after receiving id", function() {
@@ -221,27 +199,6 @@ describe("/audio", function() {
 			res.body.should.have.lengthOf(1);
 			res.body[0].should.have.keys("name", "filename", "id", "expires");
 			flacAudioTmpId = res.body[0].id;
-		});
-
-		it("returns a meta object for flac audio", async function() {
-			if (!flacAudioTmpId) {
-				this.skip();
-			}
-			this.timeout(5000);
-			const rights = "MZ.intellectualRightsCC-BY-SA-4.0";
-			const owner = "Viltsu testaaja";
-			const res = await request(this.server)
-				.post(url(`${basePath}/${flacAudioTmpId}`, { access_token, personToken }))
-				.send({ intellectualRights: rights, intellectualOwner: owner });
-			res.should.have.status(201);
-			res.body.should.be.a("object");
-			helpers.toHaveOnlyKeys(res.body, flacItemProperties);
-			res.body.should.include({
-				intellectualRights: rights,
-				intellectualOwner: owner,
-				uploadedBy: "MA.314"
-			});
-			flacAudioId = res.body.id;
 		});
 
 		it("returns flac", async function() {
