@@ -1,6 +1,5 @@
 import { All, Inject, Logger, Next, Req, Res } from "@nestjs/common";
 import { ApiExcludeEndpoint, OpenAPIObject } from "@nestjs/swagger";
-import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ConfigService } from "@nestjs/config";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
@@ -14,7 +13,6 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { GLOBAL_CLIENT } from "src/provider-tokens";
 import { JSONSerializable } from "src/typing.utils";
 
-@LajiApiController("geo-convert")
 @RemoteSwaggerMerge("geo-convert")
 export class GeoConvertController implements MergesRemoteSwagger {
 
