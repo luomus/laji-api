@@ -40,7 +40,7 @@ export abstract class MergesRemoteSwagger {
 	abstract fetchSwagger: FetchSwagger;
 }
 
-export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") =>
+export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", tag?: string) =>
 	(document: OpenAPIObject, remoteDocument: OpenAPIObject): OpenAPIObject => {
 		const remotePaths = Object.keys(remoteDocument.paths).reduce((paths, p) => {
 			if (typeof pathMatcher === "string" && !p.startsWith(pathMatcher)) {
@@ -53,6 +53,9 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "") 
 					continue;
 				}
 				operation.security = [ { access_token: [] } ];
+				if (tag) {
+					operation.tags = [tag];
+				}
 			}
 			paths[pathPrefix + p] = pathItem;
 			return paths;
