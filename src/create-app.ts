@@ -73,15 +73,15 @@ export async function createApp(useLogger = true) {
 		target: `http://127.0.0.1:${port}`
 	}));
 
-  // Backward compatibity to old API signature of form permissions.
-  app.use("/formPermissions", createProxyMiddleware({
-    target: `http://127.0.0.1:${port}/form-permissions`
-  }));
+	// Backward compatibity to old API signature of form permissions.
+	app.use("/formPermissions", createProxyMiddleware({
+		target: `http://127.0.0.1:${port}/form-permissions`
+	}));
 
-  // Backward compatibity to old API signature of checklist versions.
-  app.use("/checklistVersions", createProxyMiddleware({
-    target: `http://127.0.0.1:${port}/checklist-versions`
-  }));
+	// Backward compatibity to old API signature of checklist versions.
+	app.use("/checklistVersions", createProxyMiddleware({
+		target: `http://127.0.0.1:${port}/checklist-versions`
+	}));
 
 	// Backward compatibity to old API signature of person-token.
 	app.use("/person-token", createProxyMiddleware({

@@ -35,12 +35,7 @@ export class GeoConvertController implements MergesRemoteSwagger {
 		on: {
 			proxyReq: (proxyReq, req) => {
 				fixRequestBodyAndAuthHeader(proxyReq, req);
-			},
-			proxyRes: (proxyRes) => {
-				if (proxyRes.statusCode === 303) {
-					proxyRes.statusCode = 200;
-				}
-			},
+			}
 		},
 		logger: {
 			info: this.logger.verbose,
