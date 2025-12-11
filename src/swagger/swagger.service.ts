@@ -93,7 +93,7 @@ export class SwaggerService {
 		try {
 			this.remoteSwaggers[entry.name]!.document = await controller.fetchSwagger();
 		} catch (e) {
-			this.logger.error("Failed to fetch remote swagger. Our swagger document is broken!", { entry });
+			this.logger.fatal("Failed to fetch remote swagger. Our swagger document is broken!", { entry });
 		}
 	}
 
@@ -114,9 +114,13 @@ export class SwaggerService {
 	/** Patches the Swagger document with controllers decorated with `@ProxyWithSwaggerMerge()` */
 	private patchRemoteSwaggers(document: OpenAPIObject) {
 		return Object.values(this.remoteSwaggers).reduce(
-			(patchedDocument, { instance, document }) =>
-				((instance as any).patchSwagger || (instance as any).prototype.patchSwagger)
-					.call(instance, patchedDocument, document!),
+			(patchedDocument, entry) => {
+				if (!entry.document) {
+					return patchedDocument;
+				}
+				return ((entry.instance as any).patchSwagger || (entry.instance as any).prototype.patchSwagger)
+					.call(entry.instance, patchedDocument, entry.document!)
+			},
 			document
 		);
 	}
