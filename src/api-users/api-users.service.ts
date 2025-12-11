@@ -5,20 +5,29 @@ import { ApiUserEntity } from "./api-user.entity";
 import { Repository, DataSource } from "typeorm";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { ErrorCodeException, LocalizedException } from "src/utils";
+import { CACHE_30_MIN, ErrorCodeException, LocalizedException } from "src/utils";
+import { IntelligentInMemoryCache, clearMemoization } from "src/decorators/intelligent-in-memory-cache.decorator";
+import { RedisMemoize, clearRedisMemoization } from "src/decorators/redis-memoize.decorator";
+import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
+import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 @Injectable()
+@IntelligentInMemoryCache()
 export class ApiUsersService {
 
-	private logger = new Logger(ApiUsersService.name);
+	protected logger = new Logger(ApiUsersService.name);
 
 	constructor(
 		@InjectRepository(ApiUserEntity) private apiUserRepository: Repository<ApiUserEntity>,
 		private accessTokenService: AccessTokenService,
 		private mailService: MailService,
-		private dataSource: DataSource
-	) {}
+		private dataSource: DataSource,
+		private cache: RedisCacheService
+	) { }
 
+	// Cached in app memory for optimal performance and in redis for reboot survival.
+	@IntelligentMemoize({ maxAge: CACHE_30_MIN })
+	@RedisMemoize(CACHE_30_MIN)
 	async getByAccessToken(accessToken: string): Promise<ApiUserEntity> {
 		const token = await this.accessTokenService.findOne(accessToken);
 
@@ -55,6 +64,8 @@ export class ApiUsersService {
 			const accessTokenEntity = this.accessTokenService.getNewForUser(createdApiUser);
 			await queryRunner.manager.save(accessTokenEntity);
 			await this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, accessTokenEntity.id);
+			clearMemoization(this);
+			await clearRedisMemoization(this, this.cache);
 		} catch (e) {
 			await queryRunner.rollbackTransaction();
 			await queryRunner.release();

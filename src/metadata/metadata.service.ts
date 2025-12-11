@@ -3,7 +3,7 @@ import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
-import { Cache } from "src/decorators/cache.decorator";
+import { RedisMemoize } from "src/decorators/redis-memoize.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { Alt, MetadataClass, Property } from "./metadata.dto";
 import { Lang } from "src/common.dto";
@@ -25,7 +25,7 @@ export class MetadataService {
 	) {}
 
 	/** Get all properties */
-	@Cache(CACHE_30_MIN)
+	@RedisMemoize(CACHE_30_MIN)
 	async getProperties() {
 		return [
 			...await this.triplestoreRestClient.get<Property[]>(
@@ -33,7 +33,7 @@ export class MetadataService {
 				undefined,
 				{
 					serializeInto: Property as any,
-					transformer: properties => 
+					transformer: properties =>
 						properties.map(property => {
 							(property as any).range = (property as any).range?.length
 								? (property as any).range[0]
@@ -47,7 +47,7 @@ export class MetadataService {
 	}
 
 	/** Get a mapping between contexts' and their properties. */
-	@Cache(CACHE_30_MIN)
+	@RedisMemoize(CACHE_30_MIN)
 	private async getDomainToProperties(): Promise<DomainsToClassProperties> {
 		return (await this.getProperties()).reduce<DomainsToClassProperties>((contextMap, property) => {
 			const { domain } = property;
@@ -67,7 +67,7 @@ export class MetadataService {
 		return clazz;
 	}
 
-	@Cache(CACHE_30_MIN)
+	@RedisMemoize(CACHE_30_MIN)
 	getClasses() {
 		return this.triplestoreRestClient.get<MetadataClass[]>("schema/class");
 	}
@@ -118,7 +118,7 @@ export class MetadataService {
 		return this.triplestoreRestClient.get<{ [propertyName: string]: Alt[] }>("schema/alt");
 	}
 
-	@Cache()
+	@RedisMemoize()
 	async getAltsTranslated(lang: Lang) {
 		const alts = await this.getAlts();
 		const translatedAlts: any = {};

@@ -2,8 +2,9 @@ import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 const inflight = new Map<string, Promise<any>>();
 
-/** Memoizes the method in Redis with in-flight deduplication */
-export function Cache(ttl?: number) {
+/** Memoizes the method in Redis with in-flight deduplication. Use `clearRedisMemoization()` to clear all instance's
+ * memoized methods. */
+export function RedisMemoize(ttl?: number) {
 	return function (target: any, key: PropertyKey, descriptor: PropertyDescriptor) {
 		const originalMethod = descriptor.value;
 
@@ -13,7 +14,7 @@ export function Cache(ttl?: number) {
 			}
 
 			const argsKey = args.map(arg => JSON.stringify(arg)).join(":");
-			const redisKey = `redisMemoize:${key.toString()}:${argsKey}`;
+			const redisKey = `redisMemoize:${target.constructor.name}:${key.toString()}:${argsKey}`;
 
 			const cached = await this.cache.get(redisKey);
 			if (cached !== null && cached !== undefined) {
@@ -40,3 +41,7 @@ export function Cache(ttl?: number) {
 		};
 	};
 }
+
+export const clearRedisMemoization = async (instance: object, redis: RedisCacheService) =>  {
+	await redis.patternDel(`redisMemoize:${instance.constructor.name}:*`);
+};
