@@ -65,7 +65,7 @@ export class ImagesController {
 		@RequestPerson({ required: false }) person: Person | undefined,
 		@Res() res: Response
 	) {
-		const url = await this.abstractMediaService.getURL(id, "largeURL", person)
+		const url = await this.abstractMediaService.getURL(id, "largeURL", person);
 		res.redirect(url);
 	}
 

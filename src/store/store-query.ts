@@ -1,5 +1,5 @@
 import { Flatten, KeyOf, MaybeArray, isObject, omit } from "src/typing.utils";
-import { ErrorCodeException, LocalizedException } from "src/utils";
+import { ErrorCodeException } from "src/utils";
 
 /** Defaults to "AND" */
 export type Operation = "AND" | "OR" | "NOT" | undefined;

@@ -119,7 +119,7 @@ export class SwaggerService {
 					return patchedDocument;
 				}
 				return ((entry.instance as any).patchSwagger || (entry.instance as any).prototype.patchSwagger)
-					.call(entry.instance, patchedDocument, entry.document!)
+					.call(entry.instance, patchedDocument, entry.document!);
 			},
 			document
 		);
