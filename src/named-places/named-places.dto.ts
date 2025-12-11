@@ -32,12 +32,6 @@ export class NamedPlaceUnitsFiltered {
 	@Type(() => DocumentUnitsFiltered) acceptedDocument?: DocumentUnitsFiltered;
 }
 
-export class GetNamedPlaceDto {
-	/** Include units in prepopulated and accepted documents (only for forms with 'MHL.includeUnits' true). */
-	@IsOptionalBoolean()
-	includeUnits?: boolean = false;
-}
-
 export class GetNamedPlacePageDto extends IntersectionType(
 	QueryWithPagingDto
 ) {

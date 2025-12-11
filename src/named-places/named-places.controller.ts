@@ -1,6 +1,6 @@
 import { Body, Delete, Get, Param, Post, Put, Query, UseInterceptors } from "@nestjs/common";
 import { AllowedPageQueryKeys, NamedPlacesService } from "./named-places.service";
-import { GetNamedPlaceDto, GetNamedPlacePageDto, NamedPlace, ReservationDto } from "./named-places.dto";
+import { GetNamedPlacePageDto, NamedPlace, ReservationDto } from "./named-places.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
@@ -65,7 +65,6 @@ export class NamedPlacesController {
 	@UseInterceptors(FilterUnitsInterceptor)
 	get(
 		@Param("id") id: string,
-		@Query() _: GetNamedPlaceDto,
 		@RequestPerson({
 			required: false,
 			description: "Person's authentication token. Necessary for fetching private places"

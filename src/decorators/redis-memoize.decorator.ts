@@ -2,8 +2,10 @@ import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 const inflight = new Map<string, Promise<any>>();
 
-/** Memoizes the method in Redis with in-flight deduplication. Use `clearRedisMemoization()` to clear all instance's
- * memoized methods. */
+/**
+ * Memoizes the method in Redis with in-flight deduplication. Use `clearRedisMemoization()` to clear all instance's
+ * memoized methods.
+ */
 export function RedisMemoize(ttl?: number) {
 	return function (target: any, key: PropertyKey, descriptor: PropertyDescriptor) {
 		const originalMethod = descriptor.value;
