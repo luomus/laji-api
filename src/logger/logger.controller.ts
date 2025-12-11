@@ -23,6 +23,7 @@ export class LoggerController {
 	@ApiBody({
 		schema: {
 			type: "object",
+			additionalProperties: true,
 			example: { message: "log message", meta: {} },
 		},
 	})
