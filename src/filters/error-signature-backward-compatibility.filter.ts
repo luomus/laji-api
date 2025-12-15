@@ -28,7 +28,7 @@ export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends 
 				message: exception.message
 			};
 		} else {
-			json = { message: exception.message };
+			json = { errorCode: "GENERIC", message: exception.message };
 		}
 		const responseBody = {
 			...json,
