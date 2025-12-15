@@ -13,7 +13,7 @@ import { whitelistKeys } from "src/utils";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
-import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
+import { ApiExtraModels, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
 import { StoreDeleteResponse } from "src/store/store.dto";
 import { ErrorsObj, ValidationException } from "./document-validator/document-validator.utils";
@@ -103,7 +103,40 @@ export class DocumentsController {
 
 	/** Validate a document */
 	@Post("validate")
-	@HttpCode(200)
+	@HttpCode(204)
+	@ApiResponse({
+		status: 204,
+		description: "Validation raised no errors"
+	})
+	@ApiResponse({
+		status: 422,
+		description: "Validation raised errors",
+		example: {
+			errorCode: "VALIDATION_EXCEPTION",
+			details: { "/json/pointer/to/field": ["error message", "another error message"] }
+		},
+		schema: {
+			oneOf: [
+				{
+					type: "object",
+					properties: {
+						errorCode: { enum: ["VALIDATION_EXCEPTION"] },
+						details: {
+							type: "object",
+							additionalProperties: { type: "array", items: { type: "string" } }
+						}
+					}
+				},
+				{
+					type: "object",
+					properties: {
+						errorCode: { type: "string" },
+						message: { type: "string" }
+					} 
+				}
+			]
+		}
+	})
 	async validate(
 		@Body() document: Document,
 		@Query() query: ValidateQueryDto,

@@ -148,7 +148,7 @@ export enum ValidationType {
 }
 
 export class ValidateQueryDto {
-	/** Json path of the field being validated (defaults to the whole document). */
+	/** JSON pointer to the field being validated (defaults to the whole document). */
 	field?: string;
 
 	/** Taxon belongs to informal taxon group only: Validate that taxon belongs to informal taxon group(s). Multiple values are separated by a comma (,). */
