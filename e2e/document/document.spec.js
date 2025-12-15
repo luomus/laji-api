@@ -285,7 +285,7 @@ describe("/documents", function() {
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
 			.send(document);
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	it("deleting primary is not valid by valid endpoint", async function () {
@@ -320,7 +320,7 @@ describe("/documents", function() {
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
 			.send(document);
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	it("is valid when validating with id", async function () {
@@ -331,7 +331,7 @@ describe("/documents", function() {
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
 			.send(document);
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	it("is valid when validating without id", async function () {
@@ -339,7 +339,7 @@ describe("/documents", function() {
 		const res = await request(this.server)
 			.post(url(validatePath, { access_token, personToken }))
 			.send(document);
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	it("create does not allow fields not in form JSON for strict form", async function() {

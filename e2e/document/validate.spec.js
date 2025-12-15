@@ -47,7 +47,7 @@ describe("/documents/validate", function() {
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
 			.send(document);
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	it("doesn't allow document to existing named place if already count", async function() {
@@ -105,7 +105,7 @@ describe("/documents/validate", function() {
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken }))
 			.send(document);
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	it("doesn't run validators when only warning validators are selected" , async function() {
@@ -128,7 +128,7 @@ describe("/documents/validate", function() {
 		const res = await request(this.server)
 			.post(url(basePath, { access_token, personToken, type: "warning" }))
 			.send(document)
-		res.should.have.status(200);
+		res.should.have.status(204);
 	});
 
 	describe("taxonBelongsToInformalTaxonGroup", function() {
@@ -164,7 +164,7 @@ describe("/documents/validate", function() {
 					informalTaxonGroup: "MVL.1"
 				}))
 				.send(document);
-			res.should.have.status(200);
+			res.should.have.status(204);
 		});
 
 		it("doesn't allow invalid case" , async function() {
@@ -296,7 +296,7 @@ describe("/documents/validate", function() {
 			const res = await request(this.server)
 				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }))
 				.send(document);
-			res.should.have.status(200);
+			res.should.have.status(204);
 		});
 
 		it("does not allow invalid case" , async function() {

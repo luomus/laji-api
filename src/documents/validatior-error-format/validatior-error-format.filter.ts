@@ -22,13 +22,12 @@ export class ValidatorErrorFormatFilter extends ErrorSignatureBackwardCompatibil
 				422
 			);
 		}
-
 		localizeException(e, lang);
 		(e as any).details = formatErrorDetails(
 			(e as any).details,
-			validationErrorFormat as ValidationErrorFormat || apiVersion === "1"
+			validationErrorFormat as ValidationErrorFormat || (apiVersion === "1"
 				? ValidationErrorFormat.jsonPointer
-				: ValidationErrorFormat.object
+				: ValidationErrorFormat.object)
 		);
 		super.catch(e, host);
 	}
