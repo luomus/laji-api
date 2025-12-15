@@ -9,7 +9,7 @@ import { Paginator } from "src/interceptors/paginator.interceptor";
 import { GetAllOrganizationsDto, OrganizationDto } from "./organizations.dto";
 import { Serialize } from "src/serialization/serialize.decorator";
 
-@ApiTags("Organization")
+@ApiTags("Organizations")
 @LajiApiController("organizations")
 export class OrganizationsController {
 	constructor(

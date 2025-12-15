@@ -11,7 +11,7 @@ import { Person } from "src/persons/person.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
 
 @LajiApiController("images")
-@ApiTags("Image")
+@ApiTags("Images")
 export class ImagesController {
 	constructor(
 		private abstractMediaService: AbstractMediaService<MediaType.image>

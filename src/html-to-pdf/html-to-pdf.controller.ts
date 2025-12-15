@@ -4,7 +4,7 @@ import { ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { Body, Header, HttpCode, Post, Res } from "@nestjs/common";
 import { Response } from "express";
 
-@ApiTags("HTMLToPDF")
+@ApiTags("HTML To PDF")
 @LajiApiController("html-to-pdf")
 export class HtmlToPdfController {
 	constructor(private htmlToPdfService: HtmlToPdfService) {}

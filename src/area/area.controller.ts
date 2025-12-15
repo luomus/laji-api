@@ -7,7 +7,7 @@ import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 
-@ApiTags("Area")
+@ApiTags("Areas")
 @LajiApiController("areas")
 export class AreaController {
 

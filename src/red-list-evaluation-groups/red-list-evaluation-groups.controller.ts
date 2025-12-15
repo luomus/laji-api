@@ -5,7 +5,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 
-@ApiTags("RedListEvaluationGroups")
+@ApiTags("Red List Evaluation Groups")
 @LajiApiController("red-list-evaluation-groups")
 export class RedListEvaluationGroupsController {
 	constructor(private redListEvaluationGroupsService: RedListEvaluationGroupsService) {}

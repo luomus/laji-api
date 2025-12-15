@@ -70,7 +70,7 @@ Example for syntax:
 `;
 /* eslint-enable max-len */
 
-@ApiTags("Taxon")
+@ApiTags("Taxa")
 @LajiApiController("taxa")
 export class TaxaController {
 

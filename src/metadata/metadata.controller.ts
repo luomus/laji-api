@@ -9,7 +9,7 @@ import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/re
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { Lang } from "src/common.dto";
 
-@ApiTags("Metadata")
+@ApiTags("Metadatas")
 @LajiApiController("metadata")
 export class MetadataController {
 

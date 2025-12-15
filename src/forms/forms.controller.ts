@@ -12,7 +12,7 @@ import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/re
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { FormParticipantsService } from "./form-participants/form-participants.service";
 
-@ApiTags("Form")
+@ApiTags("Forms")
 @LajiApiController("forms")
 export class FormsController {
 

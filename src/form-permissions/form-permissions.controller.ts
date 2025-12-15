@@ -6,7 +6,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { Person } from "src/persons/person.dto";
 import { RequestPerson } from "src/decorators/request-person.decorator";
 
-@ApiTags("FormPermission")
+@ApiTags("Form Permissions")
 @LajiApiController("form-permissions")
 export class FormPermissionsController {
 

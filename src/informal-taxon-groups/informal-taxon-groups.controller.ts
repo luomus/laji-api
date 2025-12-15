@@ -16,7 +16,7 @@ const fromStoreWithJSONLdContextFixed: SwaggerRemoteRefEntry = {
 	customizeResponseSchema: swaggerResponseAsResultsArray
 };
 
-@ApiTags("InformalTaxonGroup")
+@ApiTags("Informal Taxon Groups")
 @LajiApiController("informal-taxon-groups")
 export class InformalTaxonGroupsController {
 

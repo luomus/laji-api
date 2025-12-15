@@ -4,7 +4,7 @@ import { GetAllInformationDto } from "./information.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
 
-@ApiTags("Information")
+@ApiTags("Informations")
 @LajiApiController("information")
 export class InformationController {
 

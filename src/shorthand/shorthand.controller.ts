@@ -9,7 +9,7 @@ import { Translator } from "src/interceptors/translator.interceptor";
 import { CommonAutocompleteDto } from "src/autocomplete/autocomplete.dto";
 import { ShorthandService } from "./shorthand.service";
 
-@ApiTags("Shorthand")
+@ApiTags("Shorthands")
 @Controller("shorthand")
 export class ShorthandController {
 

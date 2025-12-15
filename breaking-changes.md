@@ -44,7 +44,7 @@ curl https://api.laji.fi/taxa -H 'Authorization: Bearer <PERSON TOKEN>'
 
 ## Person token
 
-* Person token isn't accepted as a query parameter `personToken` anymore. Instead, it's passed as a `Person-Token` header.
+Person token isn't accepted as a query parameter `personToken` anymore. Instead, it's passed as a `Person-Token` header.
 
 What used to be:
 
@@ -60,7 +60,7 @@ curl https://api.laji.fi/documents -H 'Person-Token: <PERSON TOKEN>'
 
 ## Localization
 
-* Requests used to be localized with query param `lang`.  It is replaced with `Accept-Language` header (with value `en`, `fi` or `sv`). Browsers usually add the header automatically to requests according to the user's localization preferences.
+Requests used to be localized with query param `lang`.  It is replaced with `Accept-Language` header (with value `en`, `fi` or `sv`). Browsers usually add the header automatically to requests according to the user's localization preferences.
 
 What used to be:
 
@@ -76,7 +76,7 @@ curl https://api.laji.fi/taxa -H 'Accept-Language: fi'
 
 ## Errors
 
-* Errors used to be wrapped in the response body inside a `errors` object. The `errors` content is now just flattened to the response body
+Errors used to be wrapped in the response body inside a `errors` object. The `errors` content is now just flattened to the response body
 
 What used to be:
 
@@ -108,10 +108,40 @@ is now:
 
 ## Endpoints
 
+### Documents (validation)
+
+`POST /documents/validate` doesn't accept `validationErrorFormat` parameter anymore. It used to default to a `"object"` format. The format is now always JSON pointer.
+
+What used to be (note that the `error` wrapper is also removed, as explained earlier):
+
+```
+{
+	"error": {
+		"statusCode": 422,
+		"details": { "a": { "b": ["validation error"] } }
+	}
+}
+```
+
+is now (with http status 422):
+
+```
+{
+	"errorCode": "VALIDATION_EXCEPTION",
+	"details": {
+		"/a/b": ["validation error"]
+	}
+}
+```
+
+If the `errorCode` is `"VALIDATION_EXCEPTION"`, it is guaranteened to have the details object.
+
+Also, `POST /documents` and `PUT /documents` can return validation exceptions. They recognizable by the errorCode `"VALIDATION_EXCEPTION"`
+
+
 ### Areas
 
-* Areas have `countryCodeISOnumeric` property. It's in the result from triplestore, I don't see why we would filter it out.
-* `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept
+ `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept
 
 ### Taxa
 

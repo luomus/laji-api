@@ -8,7 +8,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 
-@ApiTags("Source")
+@ApiTags("Sources")
 @LajiApiController("sources")
 export class SourcesController {
 	constructor(private sourcesService: SourcesService) {}

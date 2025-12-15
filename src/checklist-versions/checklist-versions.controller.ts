@@ -7,7 +7,7 @@ import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { QueryWithPagingAndIdIn } from "src/common.dto";
 
-@ApiTags("ChecklistVersions")
+@ApiTags("Checklist Versions")
 @LajiApiController("checklist-versions")
 export class ChecklistVersionsController {
 
