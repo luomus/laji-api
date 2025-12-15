@@ -11,7 +11,7 @@ export class FilterUnitsInterceptor implements NestInterceptor {
 	constructor(private formsService: FormsService) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		return next.handle().pipe(switchMap(applyToResult(this.filterUnits)));
+		return next.handle().pipe(switchMap(applyToResult(this.filterUnits.bind(this))));
 	}
 
 	private async filterUnits(place: NamedPlace): Promise<NamedPlace | NamedPlaceUnitsFiltered> {
