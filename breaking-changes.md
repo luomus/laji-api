@@ -28,7 +28,7 @@ curl https://api.laji.fi/taxa
 
 ## Access token
 
-* Access token isn't accepted as a query parameter `access_token` anymore. Instead, it's passed as a Bearer token authentication. Simply put it to `Authorization` header as `Bearer <token>`.
+Access token isn't accepted as a query parameter `access_token` anymore. Instead, it's passed as a Bearer token authentication. Simply put it to `Authorization` header as `Bearer <token>`.
 
 What used to be:
 
