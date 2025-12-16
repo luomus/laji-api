@@ -2,8 +2,8 @@ const config = require("./config.json");
 const helpers = require("./helpers");
 const { request, expect } = require("chai");
 const { dateToISODate } = require("../dist/utils");
-const { access_token, personToken, person, friend, friend2 } = config;
-const { url } = helpers;
+const { accessToken, personToken, person, friend, friend2 } = config;
+const { apiRequest, url } = helpers;
 
 describe("/named-place", function() {
 	const basePath =  "/named-places";
@@ -177,15 +177,15 @@ describe("/named-place", function() {
 	const formWithNpFeatureCollectionIDNonStrict = "HR.5764";
 	const collectionWithIncludeDescendantCollectionFeatureFalse = "HR.61";
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(basePath);
 		res.should.have.status(401);
 	});
 
 	it("returns list of public namespaces when access token is correct", async function() {
 		this.timeout(5000);
-		const res = await request(this.server)
-			.get(url(basePath, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(url(basePath));
 		res.should.have.status(200);
 	});
 
@@ -194,8 +194,8 @@ describe("/named-place", function() {
 			name: "test",
 			geometry: { type: "Point", coordinates: [30, 60] }
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.post(url(basePath))
 			.send(np);
 		res.should.have.status(400);
 	});
@@ -203,8 +203,8 @@ describe("/named-place", function() {
 	it("it finds single public", async function() {
 		this.timeout(6000);
 		const { id, collectionID } = namedPlace;
-		const res = await request(this.server)
-			.get(url(`${basePath}/${id}`, { access_token, personToken: friend.personToken, collectionID }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+			.get(url(`${basePath}/${id}`, { collectionID }));
 		res.should.have.status(200);
 		res.body.should.have.property("id").equal(id);
 	});
@@ -212,8 +212,8 @@ describe("/named-place", function() {
 	it("it finds single private", async function() {
 		this.timeout(6000);
 		const { id, collectionID } = namedPlacePrivate;
-		const res = await request(this.server)
-			.get(url(`${basePath}/${id}`, { access_token, personToken: friend.personToken, collectionID }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken, })
+			.get(url(`${basePath}/${id}`, { collectionID }));
 		res.should.have.status(200);
 		res.body.should.have.property("id").equal(id);
 	});
@@ -221,8 +221,8 @@ describe("/named-place", function() {
 	it("it finds by collections ID", async function() {
 		this.timeout(6000);
 		const { collectionID } = namedPlace;
-		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken: friend.personToken, collectionID }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+			.get(url(basePath, { collectionID }));
 		res.should.have.status(200);
 		res.body.should.have.any.keys("results");
 		res.body[helpers.params.results].filter((document) => {
@@ -234,8 +234,8 @@ describe("/named-place", function() {
 	it("it finds by collections ID and alternative ID", async function() {
 		this.timeout(6000);
 		const { collectionID, alternativeIDs } = namedPlace;
-		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken: friend.personToken, collectionID, alternativeIDs }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+			.get(url(basePath, { collectionID, alternativeIDs }));
 		res.should.have.status(200);
 		res.body.should.have.any.keys("results");
 		res.body[helpers.params.results].filter((document) => {
@@ -249,8 +249,8 @@ describe("/named-place", function() {
 			name: "test",
 			geometry: { type: "Point", coordinates: [30, 60] }
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.post(basePath)
 			.send(np);
 		res.should.have.status(400);
 	});
@@ -264,8 +264,8 @@ describe("/named-place", function() {
 				coordinates: [60, 30]
 			}
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(place);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
@@ -283,8 +283,8 @@ describe("/named-place", function() {
 				coordinates: [60, 30]
 			}
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(place);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
@@ -300,8 +300,8 @@ describe("/named-place", function() {
 			if (!npId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${npId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.get(`${basePath}/${npId}`);
 			res.should.have.status(200);
 		});
 
@@ -309,8 +309,8 @@ describe("/named-place", function() {
 			if (!npId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${npId}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.get(`${basePath}/${npId}`);
 			res.should.have.status(403);
 		});
 
@@ -329,8 +329,8 @@ describe("/named-place", function() {
 				},
 				public: false
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${npId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${npId}`)
 				.send(document);
 			res.should.have.status(200);
 			document.owners = [person.id];
@@ -353,8 +353,8 @@ describe("/named-place", function() {
 					},
 					public: false
 				};
-				const res = await request(this.server)
-					.put(url(`${basePath}/${npId}`, { access_token, personToken: friend.personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+					.put(`${basePath}/${npId}`)
 					.send(place);
 				res.should.have.status(403);
 			});
@@ -363,8 +363,8 @@ describe("/named-place", function() {
 				if (!npId) {
 					this.skip();
 				}
-				const res = await request(this.server)
-					.delete(url(`${basePath}/${npId}`, { access_token, personToken: friend.personToken }));
+				const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+					.delete(`${basePath}/${npId}`);
 				res.should.have.status(403);
 			});
 
@@ -415,19 +415,19 @@ describe("/named-place", function() {
 					"formID": "JX.519",
 				};
 				let documentId;
-				const res = await request(this.server)
-					.post(url("/documents", { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.post("/documents")
 					.send(document);
 				if (res.status !== 200) {
 					this.skip();
 				}
 				documentId = res.body.id;
-				const res2 = await request(this.server)
-					.delete(url(`${basePath}/${npId}`, { access_token, personToken }));
+				const res2 = await apiRequest(this.server, { accessToken, personToken })
+					.delete(`${basePath}/${npId}`);
 				res2.should.have.status(200);
 
 			 // Rm test doc silently.
-				void request(this.server).delete(`/documents/${documentId}`);
+				void apiRequest(this.server).delete(`/documents/${documentId}`);
 			});
 		});
 	});
@@ -437,22 +437,22 @@ describe("/named-place", function() {
 		const namedPlaceNotPermittedForTestUser = "MNP.53659";
 
 		it("fails if user doesn't have access to place's collection", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlaceNotPermittedForTestUser}/reservation`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${basePath}/${namedPlaceNotPermittedForTestUser}/reservation`);
 			res.should.have.status(403);
 		});
 
 		it("fails when 'until' is in the past", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken, until: "1920-12-02" }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(url(`${basePath}/${namedPlace.id}/reservation`, { until: "1920-12-02" }));
 			res.should.have.status(422);
 		});
 
 		it("fails when 'until' is too far away in the future", async function() {
 			const date = new Date();
 			date.setMonth(date.getMonth() + 13);
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken: friend2.personToken, until: dateToISODate(date) }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.post(url(`${basePath}/${namedPlace.id}/reservation`, { until: dateToISODate(date) }));
 			res.should.have.status(400);
 			res.body.should.have.property("errorCode").eql("NAMED_PLACE_RESERVATION_TOO_FAR");
 		});
@@ -460,68 +460,68 @@ describe("/named-place", function() {
 		it("with far-away 'until' when is admin", async function() {
 			const date = new Date();
 			date.setMonth(date.getMonth() + 13);
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken, until: dateToISODate(date) }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(url(`${basePath}/${namedPlace.id}/reservation`, { until: dateToISODate(date) }));
 			res.should.have.status(201);
 			res.body.reserve.should.have.property("until").eql(dateToISODate(date));
 		});
 
 		it("can be added if user has access to place's collection", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${basePath}/${namedPlace.id}/reservation`);
 			res.should.have.status(201);
 			res.body.reserve.should.have.property("reserver").eql(person.id);
 		});
 
 		it("can't be added if already reserved and not admin", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken: friend2.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.post(`${basePath}/${namedPlace.id}/reservation`);
 			res.should.have.status(400);
 		});
 
 		it("can be removed", async function() {
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${namedPlace.id}/reservation`);
 			res.should.have.status(200);
 			res.body.should.not.have.property("reserve");
 		});
 
 		it("can't be removed if not own and not admin", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${basePath}/${namedPlace.id}/reservation`);
 			res.should.have.status(201);
 
-			const res2 = await request(this.server)
-				.delete(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken: friend2.personToken }));
+			const res2 = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.delete(`${basePath}/${namedPlace.id}/reservation`, );
 			res2.should.have.status(403);
 		});
 
 		it("can be reserved by admin even if reserved already", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${basePath}/${namedPlace.id}/reservation`);
 			res.should.have.status(201);
 
 			// Clean reservation for next tests.
-			const res2 = await request(this.server)
-				.delete(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }));
+			const res2 = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${namedPlace.id}/reservation`);
 			res2.should.have.status(200);
 		});
 
 		it("can't be reserved to other users if not admin", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken: friend2.personToken, personID: friend.id }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.post(url(`${basePath}/${namedPlace.id}/reservation`, { personID: friend.id }));
 			res.should.have.status(403);
 		});
 
 		it("can be reserved to other user by admin", async function() {
-			const res = await request(this.server)
-				.post(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken, personID: friend2.id }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(url(`${basePath}/${namedPlace.id}/reservation`, { personID: friend2.id }));
 			res.should.have.status(201);
 			res.body.reserve.should.have.property("reserver").eql(friend2.id);
 
 			// Remove reservation in order to keep reservation status untouched after tests
-			const res2 = await request(this.server)
-				.delete(url(`${basePath}/${namedPlace.id}/reservation`, { access_token, personToken }));
+			const res2 = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${namedPlace.id}/reservation`);
 			res2.should.have.status(200);
 			res2.body.should.not.have.property("reserve");
 		});
@@ -529,33 +529,33 @@ describe("/named-place", function() {
 
 	describe("Accepted document", function() {
 		it("modifying fails if not admin", async function() {
-			const res = await request(this.server)
-				.put(url(`${basePath}/${namedPlace.id}`, { access_token, personToken: friend2.personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.put(`${basePath}/${namedPlace.id}`)
 				.send({ ...namedPlace, acceptedDocument: { gatherings: [{}] } });
 			res.should.have.status(403);
 		});
 
 		it("modifying works if MHL.allowAddingPublic", async function() {
-			const res = await request(this.server)
-				.put(url(`${basePath}/${namedPlaceWithFeatureAddingPublicNamedPlacesAllowedTestUserHasAccess.id}`, { access_token, personToken: friend2.personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.put(`${basePath}/${namedPlaceWithFeatureAddingPublicNamedPlacesAllowedTestUserHasAccess.id}`)
 				.send({
-				...namedPlaceWithFeatureAddingPublicNamedPlacesAllowedTestUserHasAccess,
-				acceptedDocument: { gatherings: [{}] }
-			});
+					...namedPlaceWithFeatureAddingPublicNamedPlacesAllowedTestUserHasAccess,
+					acceptedDocument: { gatherings: [{}] }
+				});
 			res.should.have.status(200);
 		});
 
 		it("modifying works if admin", async function() {
-			const res = await request(this.server)
-				.put(url(`${basePath}/${namedPlace.id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${namedPlace.id}`)
 				.send({ ...namedPlace, acceptedDocument: { gatherings: [{ units: [{}] }] } });
 			res.should.have.status(200);
 			res.body.should.have.property("acceptedDocument");
 		});
 
 		it("filters units on fetching single", async function() {
-			const res = await request(this.server)
-				.get(url(`${basePath}/${namedPlace.id}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.get(`${basePath}/${namedPlace.id}`);
 			res.should.have.status(200);
 			res.body.acceptedDocument.should.have.property("gatherings");
 			res.body.acceptedDocument.gatherings.forEach(gathering => {
@@ -568,8 +568,8 @@ describe("/named-place", function() {
 		});
 
 		it("filters units on fetching many", async function() {
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken: friend2.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(basePath);
 			res.should.have.status(200);
 			res.body.results.should.not.have.length(0);
 			res.body.results.forEach(namedPlace => {
@@ -590,8 +590,8 @@ describe("/named-place", function() {
 
 		it("filters units on fetching many when using Elastic", async function() {
 			this.timeout(6000);
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken: friend2.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(basePath);
 			res.should.have.status(200);
 			res.body.results.should.not.have.length(0);
 			res.body.results.forEach(namedPlace => {
@@ -612,8 +612,8 @@ describe("/named-place", function() {
 
 		it("doesn't filter units on fetching single if includeUnits is true", async function() {
 			this.timeout(6000);
-			const res = await request(this.server)
-				.get(url(`${basePath}/${namedPlace.id}`, { access_token, personToken: friend2.personToken, includeUnits: true }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(url(`${basePath}/${namedPlace.id}`, { includeUnits: true }));
 			res.should.have.status(200);
 			res.body.acceptedDocument.should.have.property("gatherings");
 			res.body.prepopulatedDocument.should.have.property("gatherings");
@@ -628,8 +628,8 @@ describe("/named-place", function() {
 		});
 
 		it("doesn't filter units on fetching many if includeUnits is true", async function() {
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken: friend2.personToken, collectionID: "HR.2049", includeUnits: true }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(url(basePath, { collectionID: "HR.2049", includeUnits: true }));
 			res.should.have.status(200);
 			res.body.results.should.not.have.length(0);
 			const someHas = res.body.results.some(namedPlace => {
@@ -649,8 +649,8 @@ describe("/named-place", function() {
 		});
 
 		it("filters units if collectionID isn't HR.2049 even if includeUnits is true on fetching single", async function() {
-			const res = await request(this.server)
-				.get(url(`${basePath}/${namedPlace.id}`, { access_token, personToken: friend2.personToken, includeUnits: true }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(url(`${basePath}/${namedPlace.id}`, { includeUnits: true }));
 			res.should.have.status(200);
 			res.body.acceptedDocument.should.have.property("gatherings");
 			res.body.acceptedDocument.gatherings.forEach(gathering => {
@@ -663,8 +663,8 @@ describe("/named-place", function() {
 		});
 
 		it("filters units if collectionID isn't HR.2049 even if includeUnits is true for many", async function() {
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken: friend2.personToken, includeUnits: true }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(url(basePath, { includeUnits: true }));
 			res.should.have.status(200);
 			res.body.results.should.not.have.length(0);
 			res.body.results.forEach(namedPlace => {
@@ -686,8 +686,8 @@ describe("/named-place", function() {
 		});
 
 		it("has only selected fields that where asked", async function() {
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken: friend2.personToken, selectedFields: "name" }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.get(url(basePath, { selectedFields: "name" }));
 			res.should.have.status(200);
 			res.body.results.should.not.have.length(0);
 			res.body.results.forEach(namedPlace => {
@@ -716,8 +716,8 @@ describe("/named-place", function() {
 				collectionID: testCollectionID
 			};
 
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(basePath)
 				.send(np);
 			npId = res.body.id;
 			const doc = {
@@ -727,22 +727,22 @@ describe("/named-place", function() {
 				formID,
 				namedPlaceID: npId
 			};
-			const res2 = await request(this.server)
-				.post(url("/documents", { access_token, personToken }))
+			const res2 = await apiRequest(this.server, { accessToken, personToken })
+				.post("/documents")
 				.send(doc);
 			res2.should.have.status(201);
 			docId = res.body.id;
 		});
 
 		it("editor can't delete", async function() {
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${npId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.delete(`${basePath}/${npId}`);
 			res.should.have.status(403);
 		});
 
 		it("doesn't delete public named place if it has documents", async function() {
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${npId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${npId}`);
 			res.should.have.status(422);
 		});
 	});
@@ -765,8 +765,8 @@ describe("/named-place", function() {
 
 		it("doesn't allow adding if editor and has not feature", async function() {
 			this.timeout(4000);
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken: friend.personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.post(basePath)
 				.send(npForNoFeature);
 			res.should.have.status(403);
 		});
@@ -774,26 +774,26 @@ describe("/named-place", function() {
 		it("doesn't allow deleting if editor and has not feature", async function() {
 			this.timeout(4000);
 			// Create the place with admin token for test.
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(basePath)
 				.send(npForNoFeature);
 			res.should.have.status(201);
 			npId = res.body.id;
 			// Try deleting with person token.
-			const res2 = await request(this.server)
-				.delete(url(`${basePath}/${npId}`, { access_token, personToken: friend.personToken }));
+			const res2 = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.delete(`${basePath}/${npId}`);
 			res2.should.have.status(403);
 
 			// Silently remove after test.
-			void request(this.server)
-				.delete(url(`${basePath}/${npId}`, { access_token, personToken }));
+			void apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${npId}`);
 		});
 
 		it("allows adding if editor and has feature", async function() {
 			const namedPlace = { ...namedPlaceWithFeatureAddingPublicNamedPlacesAllowedTestUserHasAccess };
 			delete namedPlace.id;
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken: friend2.personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+				.post(basePath)
 				.send(namedPlace);
 			res.should.have.status(201);
 			npId = res.body.id;
@@ -803,8 +803,8 @@ describe("/named-place", function() {
 			if (!npId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${npId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.delete(`${basePath}/${npId}`);
 			res.should.have.status(200);
 		});
 	});
@@ -823,8 +823,8 @@ describe("/named-place", function() {
 		};
 
 		it("doesn't allow adding", async function() {
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(basePath)
 				.send(npForNoFeature);
 			res.should.have.status(422);
 		});
@@ -832,15 +832,15 @@ describe("/named-place", function() {
 		it("doesn't allow editing", async function() {
 			const updatedNP = { ...npForNoFeature, id: disabledFormNp };
 			delete updatedNP.collectionID;
-			const res = await request(this.server)
-				.put(url(`${basePath}/${disabledFormNp}`, { access_token, personToken}))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${disabledFormNp}`)
 				.send(updatedNP);
 			res.should.have.status(422);
 		});
 
 		it("doesn't allow deleting", async function() {
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${disabledFormNp}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${disabledFormNp}`);
 			res.should.have.status(422);
 		});
 	});
@@ -850,8 +850,8 @@ describe("/named-place", function() {
 		let strictNp;
 
 		before(async function() {
-			const res = await request(this.server)
-				.get(url(`${basePath}/${strictNpId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.get(`${basePath}/${strictNpId}`);
 			res.should.have.status(200);
 			strictNp = res.body;
 		});
@@ -862,8 +862,8 @@ describe("/named-place", function() {
 				strictNpWithInvalidPrepopDoc.prepopulatedDocument = { gatheringEvent: { acknowledgeNoUnitsInCensus: true } };
 				delete strictNpWithInvalidPrepopDoc.id;
 
-				const res = await request(this.server)
-					.post(url(basePath, { access_token, personToken: personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.post(basePath)
 					.send(strictNpWithInvalidPrepopDoc);
 				res.should.have.status(422);
 			});
@@ -872,8 +872,8 @@ describe("/named-place", function() {
 				const strictNpWithInvalidPrepopDoc = JSON.parse(JSON.stringify(strictNp));
 				strictNpWithInvalidPrepopDoc.prepopulatedDocument = { gatheringEvent: { acknowledgeNoUnitsInCensus: true } };
 
-				const res = await request(this.server)
-					.put(url(`${basePath}/${strictNpWithInvalidPrepopDoc.id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.put(`${basePath}/${strictNpWithInvalidPrepopDoc.id}`)
 					.send(strictNpWithInvalidPrepopDoc);
 				res.should.have.status(422);
 			});
@@ -886,8 +886,8 @@ describe("/named-place", function() {
 				np.collectionID = formWithNpFeatureCollectionIDNonStrict;
 				delete np.id;
 
-				const res = await request(this.server)
-					.post(url(basePath, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.post(basePath)
 					.send(np);
 				res.should.have.status(201);
 				id = res.id;
@@ -898,8 +898,8 @@ describe("/named-place", function() {
 				np.prepopulatedDocument.gatheringEvent.acknowledgeNoUnitsInCensus = true;
 				np.collectionID = formWithNpFeatureCollectionIDNonStrict;
 
-				const res = await request(this.server)
-					.put(url(`${basePath}/${np.id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.put(`${basePath}/${np.id}`)
 					.send(strictNp);
 				res.should.have.status(422);
 			});
@@ -908,10 +908,8 @@ describe("/named-place", function() {
 
 	describe("MHL.includeDescendantCollections", function() {
 		it("form with feature makes the form not return named places of descendant collections", async function() {
-			const res = await request(this.server)
+			const res = await apiRequest(this.server, { accessToken, personToken })
 				.get(url(basePath, {
-					access_token,
-					personToken,
 					collectionID: collectionWithIncludeDescendantCollectionFeatureFalse,
 					pageSize: 100000
 				}));
