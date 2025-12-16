@@ -1,8 +1,7 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken } = config;
+const { apiRequest, url } = helpers;
+const { accessToken, personToken } = config;
 
 const annotation = {
 	rootID: "JX.128736",
@@ -18,14 +17,14 @@ describe("/annotation", function() {
 	let savedId;
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(basePath);
 		res.should.have.status(401);
 	});
 
 	it("returns 401 when trying to add without permissions", async function() {
-		const res = await request(this.server)
-			.post(url(basePath, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.post(basePath)
 			.send({});
 		res.should.have.status(400);
 	});
@@ -33,8 +32,8 @@ describe("/annotation", function() {
 	it("adds annotation", async function() {
 		this.timeout(20000);
 		const document = JSON.parse(JSON.stringify(annotation));
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(annotation);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
@@ -57,8 +56,8 @@ describe("/annotation", function() {
 		const document = JSON.parse(JSON.stringify(annotation));
 		document["addedTags"].push("MMAN.51");
 		document["rootID"] = "JX.322170"; // line transect document
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(403);
 	});
@@ -68,8 +67,8 @@ describe("/annotation", function() {
 		this.timeout(6000);
 		const document = JSON.parse(JSON.stringify(annotation));
 		document["addedTags"] = ["MMAN.33"];
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(403);
 	});
@@ -78,16 +77,16 @@ describe("/annotation", function() {
 		this.timeout(6000);
 		const document = JSON.parse(JSON.stringify(annotation));
 		document["removedTags"] = ["MMAN.33"];
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(403);
 	});
 
 	describe("After adding annotation", function() {
 		it("returns annotations when asking list", async function() {
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(url(basePath, { rootID: annotation.rootID }));
 			res.should.have.status(200);
 		});
 
@@ -95,8 +94,8 @@ describe("/annotation", function() {
 			if (!savedId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(url(basePath, { rootID: annotation.rootID }));
 			res.should.have.status(200);
 		});
 
@@ -104,8 +103,8 @@ describe("/annotation", function() {
 			if (!savedId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, rootID: annotation.rootID }));
+			const res = await apiRequest(this.server, { accessToken })
+				.get(url(basePath, { rootID: annotation.rootID }));
 			res.should.have.status(400);
 		});
 
@@ -113,8 +112,8 @@ describe("/annotation", function() {
 			if (!savedId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(basePath);
 			res.should.have.status(400);
 		});
 
@@ -122,8 +121,8 @@ describe("/annotation", function() {
 			if (!savedId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${savedId}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.delete(`${basePath}/${savedId}`);
 			res.should.have.status(400);
 		});
 
@@ -131,8 +130,8 @@ describe("/annotation", function() {
 			if (!savedId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${savedId}`, { access_token, personToken: config.friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: config.friend.personToken })
+				.delete(`${basePath}/${savedId}`);
 			res.should.have.status(403);
 		});
 
@@ -140,8 +139,8 @@ describe("/annotation", function() {
 			if (!savedId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${savedId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${savedId}`);
 			res.should.have.status(200);
 			res.body.should.have.property("deleted").eql(true);
 		});
@@ -151,8 +150,8 @@ describe("/annotation", function() {
 				if (!savedId) {
 					this.skip();
 				}
-				const res = await request(this.server)
-					.get(url(basePath, { access_token, personToken, rootID: annotation.rootID }));
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(url(basePath, { rootID: annotation.rootID }));
 				res.should.have.status(200);
 				helpers.isPagedResult(res.body, 20, true);
 				res.body[helpers.params.results].filter((a) => {
