@@ -10,7 +10,7 @@ export function RedisMemoize(ttl?: number) {
 	return function (target: any, key: PropertyKey, descriptor: PropertyDescriptor) {
 		const originalMethod = descriptor.value;
 
-		descriptor.value = async function (...args: any[]) {
+		const wrappedMethod = async function (...args: any[]) {
 			if (!this.cache || !(this.cache instanceof RedisCacheService)) {
 				throw new Error("RedisMemoize decorator requires \"this.cache\" to be a RedisCacheService instance");
 			}
@@ -41,6 +41,14 @@ export function RedisMemoize(ttl?: number) {
 
 			return promise;
 		};
+
+		// Keep the original length property so @IntelligentMemoize can automatically detect length.
+		Object.defineProperty(wrappedMethod, "length", {
+			value: originalMethod.length,
+			writable: false,
+		});
+
+		descriptor.value = wrappedMethod;
 	};
 }
 
