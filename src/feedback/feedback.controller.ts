@@ -6,7 +6,7 @@ import { FeedbackDto } from "./feedback.dto";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Feedback")
 @LajiApiController("feedback")
@@ -16,11 +16,15 @@ export class FeedbackController {
 
 	@Post()
 	@HttpCode(204)
-	send(
+	@ApiResponse({
+		status: 204,
+		description: "Feedback succesfully sent"
+	})
+	async send(
 		@Body() feedback: FeedbackDto,
 		@ApiUser() apiUser: ApiUserEntity,
 		@RequestPerson({ required: false }) person?: Person
 	) {
-		return this.feedbackService.send(feedback, apiUser, person);
+		await this.feedbackService.send(feedback, apiUser, person);
 	}
 }
