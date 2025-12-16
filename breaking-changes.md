@@ -12,6 +12,8 @@ Swagger JSON is at https://api.laji.fi/openapi-json
 
 For most requests you are already using the new API. There are some endpoints that have breaking changes, and for those your client still uses the old API. To migrate your client to use the new API for those endpoints, you need to add `API-Version: 1` header to the requests.
 
+Once the old API is removed, the `API-Version: 1` header will be dropped and all requests will use the new API.
+
 ## Base path
 
 Previously all endpoints were under https://api.laji.fi/v0. Now the basepath is simply https://api.laji.fi/.
@@ -33,7 +35,7 @@ Access token isn't accepted as a query parameter `access_token` anymore. Instead
 What used to be:
 
 ```bash
-curl https://api.laji.fi/v0/taxa?access_token=<ACCESS TOKEN>
+curl 'https://api.laji.fi/v0/taxa?access_token=<ACCESS TOKEN>'
 ```
 
 is now:
@@ -49,7 +51,7 @@ Person token isn't accepted as a query parameter `personToken` anymore. Instead,
 What used to be:
 
 ```bash
-curl https://api.laji.fi/v0/documents?personToken=<PERSON TOKEN>
+curl 'https://api.laji.fi/v0/documents?personToken=<PERSON TOKEN>'
 ```
 
 is now:
@@ -65,7 +67,7 @@ Requests used to be localized with query param `lang`.  It is replaced with `Acc
 What used to be:
 
 ```bash
-curl https://api.laji.fi/v0/taxa?lang=fi
+curl 'https://api.laji.fi/v0/taxa?lang=fi'
 ```
 
 is now:
@@ -141,7 +143,7 @@ Also, `POST /documents` and `PUT /documents` can return validation exceptions. T
 
 ### Areas
 
- `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum. Backward compatibility is kept
+ `/areas` `type` param is deprecated. It's renamed to `areaType`, and the values are actual Qnames from https://schema.laji.fi/alt/ML.areaTypeEnum.
 
 ### Taxa
 
@@ -222,7 +224,7 @@ The API swagger documents the filters like so:
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
 * query param `includeSelf` is removed, self is always included
 
-###### `/autocomplete/taxon`
+#### `/autocomplete/taxon`
 
 * renamed as `/autocomplete/taxa`
 * results are wrapped in `results`
@@ -232,7 +234,7 @@ The API swagger documents the filters like so:
 * in the result, the `matchType` renamed as `type`
 * query param `includePayload` is removed, fields can be filtered with `selectedFields` instead
 
-###### `/autocomplete/unit`
+#### `/autocomplete/unit`
 
 * Broken down to the following endpoints:
 	* `/autocomplete/unit/list`
@@ -240,7 +242,7 @@ The API swagger documents the filters like so:
 	* `/autocomplete/unit/shorthand/line-transect`
 	* `/autocomplete/unit/shorthand/water-bird-pair-count`
 
-#### Person
+### Person
 
 * `GET /person/{personToken}` -> `GET /person` (with Person-Token as a aheader)
 * `GET /person/by-id/{personId}` -> `GET /person/{id}`
@@ -252,12 +254,12 @@ The API swagger documents the filters like so:
 * `POST /person/{personToken}/profile` -> `POST /person/profile`
 * `PUT /person/{personToken}/profile` -> `PUT /person/profile`
 
-#### Person token
+### Person token
 
 * `GET /person-token/{personToken}` -> `GET /authentication-event` (with person-token as header)
 * `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with person-token as header)
 
-#### Metadata
+### Metadata
 
 * `/metadata/classes` results are wrapped in `results`
 * `/metadata/properties` results are wrapped in `results`
@@ -266,6 +268,6 @@ The API swagger documents the filters like so:
 * Class path params `property` and `class` must be the prefixed name. Old API accepted non-prefixed names (`MY.unit` vs `unit`)
 * Properties `range` is a string instead of an array of strings
 
-#### Annotations
+### Annotations
 
 * `/annotation/tags` results are wrapped in `results`
