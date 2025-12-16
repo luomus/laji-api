@@ -2,8 +2,8 @@
 var config = require("../config.json");
 var helpers = require("../helpers");
 const { request, expect } = require("chai");
-const { url } = helpers;
-const { access_token, personToken } = config;
+const { apiRequest } = helpers;
+const { accessToken, personToken } = config;
 
 describe("/documents/batch", function() {
 	const batchPath = "/documents/batch";
@@ -28,30 +28,30 @@ describe("/documents/batch", function() {
 
 		before(async function () {
 			this.timeout(10000);
-			countBeforeSend = (await request(this.server)
-				.get(`/documents/count/byYear?access_token=${access_token}&personToken=${personToken}`).send()
+			countBeforeSend = (await apiRequest(this.server, { accessToken, personToken })
+				.get("/documents/count/byYear").send()
 			).body.find(countResponse => countResponse.year === "2024").count;
 		});
 
 		let id;
 
 		it("returns 401 when no access token specified", async function() {
-			const res = await request(this.server)
-				.post(url(batchPath, { personToken }))
+			const res = await apiRequest(this.server, { personToken })
+				.post(batchPath)
 				.send(documents);
 			res.should.have.status(401);
 		});
 
 		it("returns 401 when no person token specified", async function() {
-			const res = await request(this.server)
-				.post(url(batchPath, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.post(batchPath)
 				.send(documents);
 			res.should.have.status(400);
 		});
 
 		it("starts job", async function() {
-			const res = await request(this.server)
-				.post(url(batchPath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(batchPath)
 				.send(documents);
 
 			res.should.have.status(200);
@@ -72,8 +72,8 @@ describe("/documents/batch", function() {
 			this.timeout(5000);
 			let processed = 0;
 			while (processed < documents.length) {
-				const res = await request(this.server)
-					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(`${batchPath}/${id}`)
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -97,8 +97,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
@@ -116,8 +116,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.post(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${batchPath}/${id}`)
 				.send();
 
 			res.should.have.status(200);
@@ -137,8 +137,8 @@ describe("/documents/batch", function() {
 			this.timeout(5000);
 			let processed = 0;
 			while (processed < documents.length) {
-				const res = await request(this.server)
-					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(`${batchPath}/${id}`)
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -164,8 +164,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("COMPLETED");
@@ -187,8 +187,8 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 
-			countAfterSend = (await request(this.server)
-				.get(url("/documents/count/byYear", { access_token, personToken })).send()
+			countAfterSend = (await apiRequest(this.server, { accessToken, personToken })
+				.get("/documents/count/byYear").send()
 			).body.find(countResponse => countResponse.year === "2024").count;
 
 			expect(countAfterSend).to.equal(countBeforeSend + documents.length);
@@ -196,7 +196,7 @@ describe("/documents/batch", function() {
 			// Silently remove documents.
 			createdDocuments.forEach(d => {
 				void request(this.server)
-					.delete(url(`${batchPath}/${d.id}`, { access_token, personToken })).send()
+					.delete(`${batchPath}/${d.id}`).send()
 					.send();
 			});
 		});
@@ -223,8 +223,8 @@ describe("/documents/batch", function() {
 		let createdSecondaryDocuments;
 
 		it("starts job", async function() {
-			const res = await request(this.server)
-				.post(url(batchPath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(batchPath)
 				.send(documents);
 
 			res.should.have.status(200);
@@ -245,8 +245,8 @@ describe("/documents/batch", function() {
 			this.timeout(5000);
 			let processed = 0;
 			while (processed < documents.length) {
-				const res = await request(this.server)
-					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(`${batchPath}/${id}`)
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -270,8 +270,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("READY_TO_COMPLETE");
@@ -289,8 +289,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.post(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${batchPath}/${id}`)
 				.send();
 
 			res.should.have.status(200);
@@ -310,8 +310,8 @@ describe("/documents/batch", function() {
 			this.timeout(5000);
 			let processed = 0;
 			while (processed < documents.length) {
-				const res = await request(this.server)
-					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(`${batchPath}/${id}`)
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -334,8 +334,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)
 				.send();
 			res.should.have.status(200);
 			res.body.should.have.property("phase").to.eql("COMPLETED");
@@ -356,8 +356,8 @@ describe("/documents/batch", function() {
 			if (!id) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)
 				.send();
 			res.should.have.status(200);
 			res.body.documents.forEach(d => expect(d.dataOrigin).to.eql(["MY.dataOriginSpreadsheetFile"]));
@@ -368,8 +368,8 @@ describe("/documents/batch", function() {
 			this.timeout(10000);
 
 			// Start a job.
-			const res = await request(this.server)
-				.post(url(batchPath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(batchPath)
 				.send(createdSecondaryDocuments.map(({ id }) => ({ id, delete: true, formID: "MHL.618" })));
 
 			res.should.have.status(200);
@@ -385,8 +385,8 @@ describe("/documents/batch", function() {
 			// Wait until processed.
 			let processed = 0;
 			while (processed < documents.length) {
-				const res = await request(this.server)
-					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(`${batchPath}/${id}`)
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -405,8 +405,8 @@ describe("/documents/batch", function() {
 			}
 
 			// Start job completion.
-			const completionRes = await request(this.server)
-				.post(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const completionRes = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${batchPath}/${id}`)
 				.send();
 
 			completionRes.should.have.status(200);
@@ -421,8 +421,8 @@ describe("/documents/batch", function() {
 			// Wait until processed.
 			processed = 0;
 			while (processed < documents.length) {
-				const res = await request(this.server)
-					.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+				const res = await apiRequest(this.server, { accessToken, personToken })
+					.get(`${batchPath}/${id}`)
 					.send();
 				processed = res.body.status.processed;
 				if (processed === documents.length) {
@@ -441,8 +441,8 @@ describe("/documents/batch", function() {
 			}
 			expect(res.body.status.processed).to.equal(documents.length);
 
-			const completedRes = await request(this.server)
-				.get(url(`${batchPath}/${id}`, { access_token, personToken }))
+			const completedRes = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)
 				.send();
 			res.body.should.have.property("phase").to.eql("COMPLETED");
 			completedRes.should.have.status(200);
