@@ -244,7 +244,7 @@ The API swagger documents the filters like so:
 
 ### Person
 
-* `GET /person/{personToken}` -> `GET /person` (with Person-Token as a aheader)
+* `GET /person/{personToken}` -> `GET /person` (with Person-Token as a header)
 * `GET /person/by-id/{personId}` -> `GET /person/{id}`
 * `GET /person/by-id/{personId}/profile` -> `GET /person/{id}/profile`
 * `POST /person/{personToken}/friends/{id}` -> `POST /person/friends/{id}`

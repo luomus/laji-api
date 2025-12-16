@@ -1,4 +1,4 @@
-import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
+import { Get, HttpException, Param, Query, Req, UseInterceptors } from "@nestjs/common";
 import { AreaService } from "./area.service";
 import { AreaTypeDto, GetAreaPageDto } from "./area.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -6,6 +6,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
+import { Request } from "src/request";
 
 @ApiTags("Areas")
 @LajiApiController("areas")
@@ -25,9 +26,12 @@ export class AreaController {
 	@Get()
 	@UseInterceptors(Paginator, Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/area" })
-	getPage(@Query() { type, areaType, idIn }: GetAreaPageDto) {
+	getPage(@Query() { type, areaType, idIn }: GetAreaPageDto, @Req() request: Request) {
 		let typeQName: AreaTypeDto | undefined = areaType;
 		if (!typeQName && type) {
+			if (request.headers["api-version"] === "1"){
+				throw new HttpException("'type' param is deprecated for API v1. Use `areaType` instead", 422)
+			}
 			const maybeValidQName = `ML.${type}`;
 			if (Object.values(AreaTypeDto).includes(maybeValidQName as AreaTypeDto)) {
 				typeQName = maybeValidQName as AreaTypeDto;
