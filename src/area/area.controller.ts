@@ -26,7 +26,8 @@ export class AreaController {
 	@Get()
 	@UseInterceptors(Paginator, Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/area" })
-	getPage(@Query() { type, areaType, idIn }: GetAreaPageDto, @Req() request: Request) {
+	getPage(@Query() query: GetAreaPageDto, @Req() request: Request) {
+		const { type, areaType, idIn } = query as any;
 		let typeQName: AreaTypeDto | undefined = areaType;
 		if (!typeQName && type) {
 			if (request.headers["api-version"] === "1"){

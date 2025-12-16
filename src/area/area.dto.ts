@@ -17,9 +17,6 @@ export enum AreaTypeDto {
 export class GetAreaPageDto extends IntersectionType(
 	QueryWithPagingDto,
 ) {
-	// For backward compatibility. We're going to deprecate it and use areaType.
-	type?: unknown;
-
 	/** Area type */
 	areaType?: AreaTypeDto;
 
