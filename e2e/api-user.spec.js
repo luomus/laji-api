@@ -1,21 +1,20 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token } = config;
+const { apiRequest, url } = helpers;
+const { accessToken } = config;
 
 describe("/api-user", function() {
 	var basePath = "/api-users";
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(basePath);
 		res.should.have.status(401);
 	});
 
 	it("returns user info", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token, accessToken: access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(url(basePath, { accessToken }));
 		res.should.have.status(200);
 		res.body.should.have.property("email");
 		res.body.should.not.have.property("password");
@@ -23,8 +22,8 @@ describe("/api-user", function() {
 	});
 
 	it("returns error when no email is given", async function() {
-		const res = await request(this.server)
-			.post(url(basePath, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.post(basePath)
 			.send({});
 		res.should.have.status(400);
 	});
