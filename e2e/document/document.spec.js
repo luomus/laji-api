@@ -2,8 +2,8 @@ var config = require("../config.json");
 var helpers = require("../helpers");
 const assert = require("assert");
 const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken, friend, friend2 } = config;
+const { apiRequest, url } = helpers;
+const { accessToken, personToken, friend, friend2 } = config;
 
 describe("/documents", function() {
 	const basePath = "/documents";
@@ -60,33 +60,33 @@ describe("/documents", function() {
 	const formWithSecondaryCopyFeatureId = "MHL.618";
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(basePath);
 		res.should.have.status(401);
 	});
 
 	it("returns 401 when no access token specified for id", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`${basePath}/${documentOthersId}`);
 		res.should.have.status(401);
 	});
 
 	it("returns 400 when no person token specified when using ES index", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(basePath);
 		res.should.have.status(400);
 	});
 
 	it("returns 400 when no person token specified", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(basePath);
 		res.should.have.status(400);
 	});
 
 	it("returns 404 when accessing others documents", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/${documentOthersId}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(`${basePath}/${documentOthersId}`);
 		res.should.have.status(404);
 	});
 
@@ -107,15 +107,15 @@ describe("/documents", function() {
 				}
 			]
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken, validationErrorFormat: "object" }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(422);
 		res.body.should.be.a("object");
 		res.body.should.have.property("details");
 		res.body.details.should.be.a("object");
-		res.body.details.should.have.property("formID");
-		res.body.details.formID.should.be.a("array");
+		res.body.details.should.have.property("/formID");
+		res.body.details["/formID"].should.be.a("array");
 	});
 
 	it("check that api returns detailed error message", async function () {
@@ -137,21 +137,15 @@ describe("/documents", function() {
 				}
 			]
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken, validationErrorFormat: "object" }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(422);
 		res.body.should.be.a("object");
 		res.body.should.have.property("details");
 		res.body.details.should.be.a("object");
-		res.body.details.should.have.property("gatherings");
-		res.body.details.gatherings.should.be.a("object");
-		res.body.details.gatherings.should.have.property("0");
-		res.body.details.gatherings["0"].should.have.property("units");
-		res.body.details.gatherings["0"].units.should.be.a("object");
-		res.body.details.gatherings["0"].units.should.have.property("0");
-		res.body.details.gatherings["0"].units["0"].should.have.property("recordBasis");
-		res.body.details.gatherings["0"].units["0"].recordBasis.should.be.a("array");
+		res.body.details.should.have.property("/gatherings/0/units/0/recordBasis");
+		res.body.details["/gatherings/0/units/0/recordBasis"].should.be.a("array");
 	});
 
 	it("adding template works", async function () {
@@ -170,8 +164,8 @@ describe("/documents", function() {
 			templateName: "Test template",
 			templateDescription: "Test template description"
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
@@ -211,8 +205,8 @@ describe("/documents", function() {
 			],
 			locked: true
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
@@ -223,8 +217,8 @@ describe("/documents", function() {
 
 	it("check that adding generates default fields", async function () {
 		const document = JSON.parse(JSON.stringify(validDocument));
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.any.keys("id");
@@ -257,8 +251,8 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: formWithSecondaryCopyFeatureId
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(201);
 	});
@@ -269,8 +263,8 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: formWithSecondaryCopyFeatureId
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(201);
 		res.body.should.have.property("collectionID");
@@ -282,8 +276,8 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: formWithSecondaryCopyFeatureId
 		};
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(document);
 		res.should.have.status(204);
 	});
@@ -294,8 +288,8 @@ describe("/documents", function() {
 			id: "T.123",
 			formID: validDocument.formID
 		};
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(document);
 		res.should.have.status(422);
 	});
@@ -305,8 +299,8 @@ describe("/documents", function() {
 			...validDocument,
 			formID: formWithSecondaryCopyFeatureId
 		};
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(document);
 		res.should.have.status(422);
 	});
@@ -317,8 +311,8 @@ describe("/documents", function() {
 			formID: formWithSecondaryCopyFeatureId,
 			id: "FOOBAR"
 		};
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(document);
 		res.should.have.status(204);
 	});
@@ -328,16 +322,16 @@ describe("/documents", function() {
 			...validDocument,
 			id: "FOOBAR"
 		};
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(document);
 		res.should.have.status(204);
 	});
 
 	it("is valid when validating without id", async function () {
 		const document = { ...validDocument };
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(document);
 		res.should.have.status(204);
 	});
@@ -345,33 +339,33 @@ describe("/documents", function() {
 	it("create does not allow fields not in form JSON for strict form", async function() {
 		const doc = JSON.parse(JSON.stringify(documentWithPropertyNotInFormJSONStrictForm));
 		delete doc.id;
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(doc);
 		res.should.have.status(422);
 	});
 
 	it("edit does not allow fields not in form JSON for strict form", async function() {
-		const res = await request(this.server)
-			.put(url(`${basePath}/${strictFormDocId}`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${strictFormDocId}`)
 			.send(documentWithPropertyNotInFormJSONStrictForm);
 		res.should.have.status(422);
 	});
 
 	it("edit allows fields not in form JSON for non-strict form", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/${nonStrictFormDocId}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(`${basePath}/${nonStrictFormDocId}`);
 		res.should.have.status(200);
 		res.body.gatheringEvent.acknowledgeNoUnitsInCensus = true;
-		const res2 = await request(this.server)
-			.put(url(`${basePath}/${nonStrictFormDocId}`, { access_token, personToken }))
+		const res2 = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${nonStrictFormDocId}`)
 			.send(res.body);
 		res2.should.have.status(200);
 	});
 
 	it("validator endpoint does not allow fields not in form JSON", async function() {
-		const res = await request(this.server)
-			.post(url(validatePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(validatePath)
 			.send(documentWithPropertyNotInFormJSONStrictForm);
 		res.should.have.status(422);
 	});
@@ -381,18 +375,18 @@ describe("/documents", function() {
 			...validDocument,
 			formID: formWithSecondaryCopyFeatureId
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(422);
 	});
 
 	it("document with MZ.publicityRestrictionsPrivate bypasses validators", async function() {
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(privateDocumentInvalidAgainstValidatorsButSchematicallyOK);
 		res.should.have.status(201);
-		void request(this.server).delete(url(basePath, { access_token, personToken })).send(); // Silent cleanup
+		void request(this.server).delete(basePath).send(); // Silent cleanup
 	});
 
 	describe("After adding document", function() {
@@ -463,8 +457,8 @@ describe("/documents", function() {
 				]
 			};
 
-			const res = await request(this.server)
-				.put(url(`${basePath}/${documentId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${documentId}`)
 				.send(document);
 			res.should.have.status(200);
 			res.body.should.have.property("id").eql(documentId);
@@ -553,8 +547,8 @@ describe("/documents", function() {
 					}
 				]
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${documentId}`, { access_token, personToken: friend.personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.put(`${basePath}/${documentId}`)
 				.send(document);
 			res.should.have.status(200);
 			res.body.should.have.property("id").eql(documentId);
@@ -596,22 +590,22 @@ describe("/documents", function() {
 				],
 				locked: true
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${lockedId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${lockedId}`)
 				.send(document);
 			res.body.should.be.a("object");
 			res.body.should.have.property("details");
 			res.body.details.should.be.a("object");
-			res.body.details.should.have.property("locked");
-			res.body.details.locked.should.be.a("array");
+			res.body.details.should.have.property("/locked");
+			res.body.details["/locked"].should.be.a("array");
 		});
 
 		it("does not allow deleting lockedId", async function() {
 			if (!lockedId) {
 				return this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${lockedId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${lockedId}`);
 			res.should.have.status(422);
 		});
 
@@ -654,13 +648,13 @@ describe("/documents", function() {
 					}
 				]
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${documentId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${documentId}`)
 				.send(document);
 			res.body.should.be.a("object");
 			res.body.should.have.property("details");
 			res.body.details.should.be.a("object");
-			res.body.details.should.have.property("formID");
+			res.body.details.should.have.property("/formID");
 		});
 
 		it("cannot update template as editor", async function() {
@@ -681,8 +675,8 @@ describe("/documents", function() {
 				gatherings: [],
 				isTemplate: true
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${templateId}`, { access_token, personToken: friend.personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.put(`${basePath}/${templateId}`)
 				.send(document);
 			res.should.have.status(403);
 		});
@@ -726,8 +720,8 @@ describe("/documents", function() {
 					}
 				]
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${documentId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${documentId}`)
 				.send(document);
 			res.should.have.status(422);
 		});
@@ -736,8 +730,8 @@ describe("/documents", function() {
 			if (!documentId) {
 				return this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${documentId}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.get(`${basePath}/${documentId}`);
 			res.should.have.status(400);
 		});
 
@@ -745,8 +739,8 @@ describe("/documents", function() {
 			if (!templateId) {
 				return this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${templateId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.get(`${basePath}/${templateId}`);
 			res.should.have.status(403);
 		});
 
@@ -755,8 +749,8 @@ describe("/documents", function() {
 			if (!documentId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${documentId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${basePath}/${documentId}`);
 			res.should.have.status(200);
 			res.body.should.include({ id: documentId });
 			res.body.should.have.any.keys("@context");
@@ -767,8 +761,8 @@ describe("/documents", function() {
 				return this.skip();
 			}
 			var pageSize = 10;
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken, pageSize }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(url(basePath, { pageSize }));
 			res.should.have.status(200);
 			helpers.isPagedResult(res.body, pageSize, true);
 			res.body.results.filter((document) => {
@@ -786,8 +780,8 @@ describe("/documents", function() {
 				return this.skip();
 			}
 			var pageSize = 10;
-			const res = await request(this.server)
-				.get(url(basePath, { access_token, personToken, templates: true, pageSize }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(url(basePath, { templates: true, pageSize }));
 			res.should.have.status(200);
 			res.body.results.filter((document) => {
 				document.should.have.any.keys("id");
@@ -803,8 +797,8 @@ describe("/documents", function() {
 			if (!documentId) {
 				return this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${documentId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get(`${basePath}/${documentId}`);
 			res.should.have.status(200);
 			res.body.should.include({ id: documentId });
 			res.body.should.have.any.keys("@context");
@@ -815,8 +809,8 @@ describe("/documents", function() {
 				return this.skip();
 			}
 
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${documentId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.delete(`${basePath}/${documentId}`);
 			res.should.have.status(403);
 		});
 
@@ -825,8 +819,8 @@ describe("/documents", function() {
 				return this.skip();
 			}
 
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${documentId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${documentId}`);
 			res.should.have.status(200);
 		});
 
@@ -835,8 +829,8 @@ describe("/documents", function() {
 				return this.skip();
 			}
 
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${templateId}`, { access_token, personToken: friend.personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.delete(`${basePath}/${templateId}`);
 			res.should.have.status(403);
 		});
 
@@ -845,21 +839,21 @@ describe("/documents", function() {
 				return this.skip();
 			}
 
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${templateId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${templateId}`);
 			res.should.have.status(200);
 		});
 	});
 
 	it("doesn't return other user's single document for form with option MHL.documentsViewableForAll if doesn't have access to form", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`);
 		res.should.have.status(403);
 	});
 
 	it("returns other user's single document for form with option MHL.documentsViewableForAll", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken: friend2.personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+			.get(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`);
 		res.should.have.status(200);
 	});
 
@@ -895,29 +889,29 @@ describe("/documents", function() {
 			"@type": "MY.document",
 			"@context": "http://schema.laji.fi/context/document.jsonld"
 		};
-		const res = await request(this.server)
-			.put(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`)
 			.send(document);
 		res.should.have.status(403);
 	});
 
 	it("does not allow deleting other users document even with form with MHL.documentsViewableForAll", async function() {
-		const res = await request(this.server)
-			.delete(url(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.delete(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`);
 		res.should.have.status(403);
 	});
 
 	it("doesn't return other users' documents for form with MHL.documentsViewableForAll option if no permission to form", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken, collectionID: "HR.2049", formID: "MHL.33" }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(url(basePath, { collectionID: "HR.2049", formID: "MHL.33" }));
 		res.should.have.status(200);
 		const constainsOnlySelf = res.body.results.every(document => document.editors.includes(config.person.id));
 		assert.equal(constainsOnlySelf, true);
 	});
 
 	it("returns other users' documents for form with MHL.documentsViewableForAll option", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken: friend2.personToken, collectionID: "HR.2049", formID: "MHL.33" }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+			.get(url(basePath, { collectionID: "HR.2049", formID: "MHL.33" }));
 		res.should.have.status(200);
 		res.body.results.should.have.length.above(2);
 		const constainsNotSelf = res.body.results.some(document => !(document.editors || []).includes(friend2.id));
@@ -925,8 +919,8 @@ describe("/documents", function() {
 	});
 
 	it("doesn't allow access to other collections when using form with MHL.documentsViewableForAll option", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token, personToken: friend2.personToken, collectionID: "HR.1747", formID: "MHL.33" }));
+		const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken, })
+			.get(url(basePath, { collectionID: "HR.1747", formID: "MHL.33" }));
 		res.should.have.status(200);
 		res.body.results.should.have.lengthOf(0);
 	});
@@ -964,8 +958,8 @@ describe("/documents", function() {
 
 		it("doesn't allow sending documents", async function() {
 			this.timeout(10000);
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(basePath)
 				.send(document);
 			res.should.have.status(422);
 		});
@@ -974,15 +968,15 @@ describe("/documents", function() {
 			this.timeout(10000);
 			// Make sure that altering formID doesn't make it bypass the disabled form check.
 			delete document.formID;
-			const res = await request(this.server)
-				.put(url(`${basePath}/${disabledFormDocId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${disabledFormDocId}`)
 				.send(document);
 			res.should.have.status(422);
 		});
 
 		it("doesn't allow deleting documents", async function() {
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${disabledFormDocId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${disabledFormDocId}`);
 			res.should.have.status(422);
 		});
 	});
