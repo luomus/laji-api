@@ -1,8 +1,7 @@
 const config = require("../config.json");
 const helpers = require("../helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken } = config;
+const { apiRequest, url } = helpers;
+const { accessToken, personToken } = config;
 
 /* jshint ignore:start */
 /*
@@ -22,8 +21,8 @@ describe("/documents/validate", function() {
 	const dateHasNoDoc = "2017-10-21";
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
-			.get(basePath)
+		const res = await apiRequest(this.server)
+			.get(basePath);
 		res.should.have.status(401);
 	});
 
@@ -44,8 +43,8 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(204);
 	});
@@ -67,17 +66,15 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(422);
-		res.body.error.should.be.deep.equal({
+		res.body.should.be.deep.equal({
 			"details": {
-				"gatheringEvent": {
-					"dateBegin": [
-						"Observation already exists within the given gathering period."
-					]
-				}
+				"/gatheringEvent/dateBegin": [
+					"Observation already exists within the given gathering period."
+				]
 			},
 			"message": "Validation exception",
 			"errorCode": "VALIDATION_EXCEPTION"
@@ -102,8 +99,8 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
 			.send(document);
 		res.should.have.status(204);
 	});
@@ -125,9 +122,9 @@ describe("/documents/validate", function() {
 				}
 			]
 		};
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken, type: "warning" }))
-			.send(document)
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(url(basePath, { type: "warning" }))
+			.send(document);
 		res.should.have.status(204);
 	});
 
@@ -156,10 +153,8 @@ describe("/documents/validate", function() {
 					}
 				]
 			};
-			const res = await request(this.server)
+			const res = await apiRequest(this.server, { accessToken, personToken })
 				.post(url(basePath, {
-					access_token,
-					personToken,
 					validator: "taxonBelongsToInformalTaxonGroup",
 					informalTaxonGroup: "MVL.1"
 				}))
@@ -191,30 +186,18 @@ describe("/documents/validate", function() {
 					}
 				]
 			};
-			const res = await request(this.server)
+			const res = await apiRequest(this.server, { accessToken, personToken })
 				.post(url(basePath, {
-					access_token,
-					personToken,
 					validator: "taxonBelongsToInformalTaxonGroup",
 					informalTaxonGroup: "MVL.2"
 				}))
 				.send(document);
 			res.should.have.status(422);
-			res.body.error.should.be.deep.equal({
+			res.body.should.be.deep.equal({
 				"details": {
-					"gatherings": {
-						"0": {
-							"units": {
-								"0": {
-									"unitFact": {
-										"autocompleteSelectedTaxonID": [
-											"Taxon does not belong to given informal taxon groups."
-										]
-									}
-								}
-							}
-						}
-					}
+					"/gatherings/0/units/0/unitFact/autocompleteSelectedTaxonID": [
+						"Taxon does not belong to given informal taxon groups."
+					]
 				},
 				"message": "Validation exception",
 				"errorCode": "VALIDATION_EXCEPTION"
@@ -251,30 +234,18 @@ describe("/documents/validate", function() {
 					}
 				]
 			};
-			const res = await request(this.server)
+			const res = await apiRequest(this.server, { accessToken, personToken })
 				.post(url(basePath, {
-					access_token,
-					personToken,
 					validator: "taxonBelongsToInformalTaxonGroup",
 					informalTaxonGroup: "MVL.2"
 				}))
 				.send(document);
 			res.should.have.status(422);
-			res.body.error.should.be.deep.equal({
+			res.body.should.be.deep.equal({
 				"details": {
-					"gatherings": {
-						"0": {
-							"units": {
-								"1": {
-									"unitFact": {
-										"autocompleteSelectedTaxonID": [
-											"Taxon does not belong to given informal taxon groups."
-										]
-									}
-								}
-							}
-						}
-					}
+					"/gatherings/0/units/1/unitFact/autocompleteSelectedTaxonID": [
+						"Taxon does not belong to given informal taxon groups."
+					]
 				},
 				"message": "Validation exception",
 				"errorCode": "VALIDATION_EXCEPTION"
@@ -293,8 +264,8 @@ describe("/documents/validate", function() {
 					coordinates: [34.365, 60.248]
 				}
 			};
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(url(basePath, { validator: "namedPlaceNotTooNearOtherPlaces" }))
 				.send(document);
 			res.should.have.status(204);
 		});
@@ -309,13 +280,13 @@ describe("/documents/validate", function() {
 					coordinates: [34.001, 32.001]
 				}
 			};
-			const res = await request(this.server)
-				.post(url(basePath, { access_token, personToken, validator: "namedPlaceNotTooNearOtherPlaces" }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(url(basePath, { validator: "namedPlaceNotTooNearOtherPlaces" }))
 				.send(document);
 			res.should.have.status(422);
-			res.body.error.should.be.deep.equal({
+			res.body.should.be.deep.equal({
 				"details": {
-					"geometry": [
+					"/geometry": [
 						"There already exists a named place in that location"
 					]
 				},
