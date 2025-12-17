@@ -1,8 +1,7 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
-const { url } = helpers;
-const { request } = require("chai");
-const { access_token } = config;
+const { apiRequest, url } = helpers;
+const { accessToken } = config;
 
 const itemProperties = [
 	"@context",
@@ -15,17 +14,17 @@ const itemProperties = [
 	"fullName"
 ];
 
-describe("/checklists", function() {
+describe("/organizations", function() {
 	it("returns 401 when no access token specified for id", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get("/organizations/MOS.61");
 		res.should.have.status(401);
 	});
 
 	it("returns organization", async function() {
 		this.timeout(10000);
-		const res = await request(this.server)
-			.get(url("/organizations/MOS.61", { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get("/organizations/MOS.61");
 		res.should.have.status(200);
 		helpers.toHaveOnlyKeys(res.body, itemProperties);
 	});
