@@ -1,42 +1,41 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken } = config;
+const { apiRequest } = helpers;
+const { accessToken, personToken } = config;
 
 describe("/forms", function() {
 	var basePath = "/forms";
 	const disabledForm = "MHL.90";
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(basePath);
 		res.should.have.status(401);
 	});
 
 	it("returns list of forms when access token is correct", async function() {
-		const res = await request(this.server)
-			.get(url(basePath, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(basePath);
 		res.should.have.status(200);
 	});
 
 	it("allows multi lang param", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/JX.519`, { access_token, lang: "multi" }));
+		const res = await apiRequest(this.server, { accessToken, lang: "multi" })
+			.get(`${basePath}/JX.519`);
 		res.should.have.status(200);
 	});
 
 	let testFormJSON;
 
 	it("prevents non ict admin from updating form", async function() {
-		const res = await request(this.server)
-			.get(url(`${basePath}/${disabledForm}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get(`${basePath}/${disabledForm}`);
 		if (res.status !== 200) {
 			return this.skip();
 		}
 		testFormJSON = res.body;
-		const res2 = await request(this.server)
-			.put(url(`${basePath}/${disabledForm}`, { access_token, personToken }))
+		const res2 = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${disabledForm}`)
 			.send(res.body);
 		res2.should.have.status(403);
 	});
@@ -45,8 +44,8 @@ describe("/forms", function() {
 		if (!testFormJSON) {
 			return this.skip();
 		}
-		const res = await request(this.server)
-			.post(url(`${basePath}/transform`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(`${basePath}/transform`)
 			.send(testFormJSON);
 		res.should.have.status(403);
 	});
