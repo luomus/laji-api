@@ -1,46 +1,39 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken, person, friend } = config;
+const { apiRequest, url } = helpers;
+const { accessToken, personToken, person, friend } = config;
 
 const missingFullName = "MA.97";
 
 describe("/person", function() {
 
 	it("returns 401 when fetching with email and no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`/person/exists-by-email/${person.emailAddress}`);
 		res.should.have.status(401);
 	});
 
 	it("returns 204 when fetching with email and access token specified", async function() {
-		const res = await request(this.server)
-			.get(url(`/person/exists-by-email/${person.emailAddress}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(`/person/exists-by-email/${person.emailAddress}`);
 		res.should.have.status(204);
 	});
 
 	it("returns 404 when fetching with non-existing email and access token specified", async function() {
-		const res = await request(this.server)
-			.get(url("/person/exists-by-email/test", { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get("/person/exists-by-email/test");
 		res.should.have.status(404);
 	});
 
 	it("returns 401 when fetching with id and no access token specified", async function() {
-		const res = await request(this.server)
-			.get(`/person/by-id/${person.id}`);
-		res.should.have.status(401);
-	});
-
-	it("returns 401 when fetching with token and no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`/person/by-id/${person.id}`);
 		res.should.have.status(401);
 	});
 
 	it("returns user object without sensitive data when accessing with id", async function() {
-		const res = await request(this.server)
-			.get(url(`/person/by-id/${person.id}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(`/person/by-id/${person.id}`);
 		res.should.have.status(200);
 		res.body.should.not.have.property("emailAddress");
 		res.body.should.not.have.property("lintuvaaraLoginName");
@@ -49,8 +42,8 @@ describe("/person", function() {
 	});
 
 	it("returns full user object when accessing with token", async function() {
-		const res = await request(this.server)
-			.get(url(`/person/${personToken}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.get("/person");
 		res.should.have.status(200);
 		res.body.should.eql({
 			"@context": "http://schema.laji.fi/context/person.jsonld",
@@ -63,8 +56,8 @@ describe("/person", function() {
 	});
 
 	it("returns fullname for user that only has inherited and preferred names", async function() {
-		const res = await request(this.server)
-			.get(url(`/person/by-id/${missingFullName}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(`/person/by-id/${missingFullName}`);
 		res.should.have.status(200);
 		res.body.should.be.a("object");
 		res.body.should.have.property("fullName");
@@ -72,8 +65,8 @@ describe("/person", function() {
 	});
 
 	it("excludes inheritedName, preferredName, lajiAuthLoginName", async function() {
-		const res = await request(this.server)
-			.get(url(`/person/by-id/${missingFullName}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(`/person/by-id/${missingFullName}`);
 		res.should.have.status(200);
 		res.body.should.be.a("object");
 		res.body.should.not.have.property("inheritedName");
@@ -82,8 +75,8 @@ describe("/person", function() {
 	});
 
 	it("returns 404 when asking with non existing id", async function() {
-		const res = await request(this.server)
-			.get(url("/person/by-id/MA.FOOBAR", { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get("/person/by-id/MA.FOOBAR");
 		res.should.have.status(404);
 	});
 
@@ -92,11 +85,11 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`/person/${personToken}/friends/${friend.id}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.delete(`/person/${personToken}/friends/${friend.id}`);
 			res.should.have.status(200);
-			const res2 = await request(this.server)
-				.delete(url(`/person/${friend.personToken}/friends/${person.id}`, { access_token }));
+			const res2 = await apiRequest(this.server, { accessToken })
+				.delete(`/person/${friend.personToken}/friends/${person.id}`);
 			res2.should.have.status(200);
 		});
 	});
@@ -107,8 +100,8 @@ describe("/person", function() {
 			var profile = {
 				userID: "MA.9009"
 			};
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/profile`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.put(`/person/${personToken}/profile`)
 				.send(profile);
 			res.should.have.status(422);
 			res.body.should.have.property("errorCode").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
@@ -120,8 +113,8 @@ describe("/person", function() {
 					search: "none"
 				}
 			};
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/profile`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.put(`/person/${personToken}/profile`)
 				.send(profile);
 			res.should.have.status(200);
 			res.body.should.have.property("id");
@@ -136,8 +129,8 @@ describe("/person", function() {
 			var profile = {
 				id: "JX.0"
 			};
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/profile`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.put(`/person/${personToken}/profile`)
 				.send(profile);
 			res.should.have.status(422);
 			res.body.should.have.property("message").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
@@ -147,8 +140,8 @@ describe("/person", function() {
 			var profile = {
 				friends: ["MA.97"]
 			};
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/profile`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.put(`/person/${personToken}/profile`)
 				.send(profile);
 			res.should.have.status(422);
 			res.body.should.have.property("message").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
@@ -158,8 +151,8 @@ describe("/person", function() {
 			var profile = {
 				friendRequests: ["MA.007"]
 			};
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/profile`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.put(`/person/${personToken}/profile`)
 				.send(profile);
 			res.should.have.status(422);
 			res.body.should.have.property("message").eql("PROFILE_UPDATING_KEY_NOT_ALLOWED");
@@ -172,20 +165,20 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`/person/${personToken}/friends/${friend.id}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`/person/friends/${friend.id}`);
 			res.should.have.status(200);
 		});
 
 		it("returns 404 when no correct user token given", async function() {
-			const res = await request(this.server)
-				.get(url("/person/foobar/profile", { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken: "foo" })
+				.get("/person/profile");
 			res.should.have.status(400);
 		});
 
 		it("returns users public profile", async function() {
-			const res = await request(this.server)
-				.get(url(`/person/by-id/${person.id}/profile`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.get(`/person/by-id/${person.id}/profile`);
 			res.should.have.status(200);
 			res.body.should.have.property("userID");
 			res.body.should.not.have.property("id");
@@ -196,8 +189,8 @@ describe("/person", function() {
 		});
 
 		it("returns users full profile", async function() {
-			const res = await request(this.server)
-				.get(url(`/person/${personToken}/profile`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get("/person/profile");
 			res.should.have.status(200);
 			res.body.should.have.property("id");
 			res.body.should.have.property("userID");
@@ -214,8 +207,8 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.post(url(`/person/${friend.personToken}/friends/${person.id}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.post(`/person/friends/${person.id}`);
 			res.should.have.status(201);
 			res.body.should.have.property("id");
 			res.body.should.have.property("userID");
@@ -229,8 +222,8 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.post(url(`/person/${friend.personToken}/friends/${person.id}`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.post(`/person/friends/${person.id}`);
 			res.should.have.status(422);
 		});
 
@@ -238,8 +231,8 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.delete(url(`/person/${personToken}/friends/${friend.id}`, { access_token, block: true }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(url(`/person/friends/${friend.id}`, { block: true }));
 			res.should.have.status(200);
 			res.body.should.have.property("friends");
 			res.body.friends.should.not.contain(friend.id);
@@ -249,11 +242,11 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.post(url(`/person/${friend.personToken}/friends/${person.id}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.post(`/person/friends/${person.id}`);
 			res.should.have.status(422);
-			const res2 = await request(this.server)
-				.get(url(`/person/${personToken}/profile`, { access_token }));
+			const res2 = await apiRequest(this.server, { accessToken, personToken })
+				.get(`/person/profile`);
 			res2.should.have.status(200);
 			res2.body.should.have.property("friends");
 			res2.body.should.have.property("friendRequests");
@@ -270,8 +263,8 @@ describe("/person", function() {
 			var profile = {
 				blocked: []
 			};
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/profile`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put("/person/profile")
 				.send(profile);
 			res.should.have.status(200);
 			res.body.should.have.property("blocked");
@@ -282,8 +275,8 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.post(url(`/person/${friend.personToken}/friends/${person.id}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.post(`/person/friends/${person.id}`);
 			res.should.have.status(201);
 		});
 
@@ -291,8 +284,8 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.put(url(`/person/${personToken}/friends/${friend.id}`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`/person/friends/${friend.id}`);
 			res.should.have.status(200);
 		});
 
@@ -300,13 +293,13 @@ describe("/person", function() {
 			if (!friend.personToken) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`/person/${personToken}/profile`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.get("/person/profile");
 			res.should.have.status(200);
 			res.body.should.have.property("friends");
 			res.body.friends.should.contain(friend.id);
-			const res2 = await request(this.server)
-				.get(url(`/person/${friend.personToken}/profile`, { access_token }));
+			const res2 = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+				.get("/person/profile");
 			res2.should.have.status(200);
 			res2.body.should.have.property("friends");
 			res2.body.friends.should.contain(person.id);

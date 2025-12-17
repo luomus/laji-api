@@ -1,6 +1,6 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
-const { apiRequest, url } = helpers;
+const { apiRequest } = helpers;
 const { accessToken } = config;
 
 const itemProperties = [
