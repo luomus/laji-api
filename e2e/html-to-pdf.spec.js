@@ -1,14 +1,13 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token } = config;
+const { apiRequest } = helpers;
+const { accessToken } = config;
 
 describe("/html-to-pdf", function() {
 	var basePath =  "/html-to-pdf";
 
 	it("returns 401 when no access token specified", async function () {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(basePath);
 		res.should.have.status(401);
 	});
@@ -16,8 +15,8 @@ describe("/html-to-pdf", function() {
 	it("returns pdf when given html content", async function () {
 		const html = "<br/>";
 
-		const res = await request(this.server)
-			.post(url(basePath, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.post(basePath)
 			.send(html)
 			.set("Content-Type", "text/plain");
 		res.should.have.status(200);
