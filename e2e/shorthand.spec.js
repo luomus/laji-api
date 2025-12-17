@@ -1,6 +1,5 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
-const { request } = require("chai");
 const { apiRequest, url } = helpers;
 const { accessToken, personToken } = config;
 
