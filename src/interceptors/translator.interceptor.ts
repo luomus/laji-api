@@ -65,14 +65,14 @@ const takeSample = (result: any) => {
 	return result;
 };
 
-export const getLang = (request: Request): Lang => {
+export const getLang = (request: Request, allowMulti = true): Lang => {
 	const { query, headers } = request;
 	if (query.lang) {
 		return parseLangFromQuery(query.lang as string);
 	}
 	const acceptLanguage = headers["accept-language"];
 	if (acceptLanguage) {
-		return parseLangFromHeader(acceptLanguage);
+		return parseLangFromHeader(acceptLanguage, allowMulti);
 	}
 	return Lang.en;
 };
@@ -85,13 +85,13 @@ const parseLangFromQuery = (lang: string) => {
 	return validLang;
 };
 
-const parseLangFromHeader = (acceptLanguage: string): Lang => {
+const parseLangFromHeader = (acceptLanguage: string, allowMulti = true): Lang => {
 	const lang = firstFromNonEmptyArr(acceptLanguage.split(",")).toLowerCase();
 	if (lang.startsWith("fi")) {
 		return Lang.fi;
 	} else if (lang.startsWith("sv")) {
 		return Lang.sv;
-	} else if (lang.startsWith("mul")) {
+	} else if (allowMulti && lang.startsWith("mul")) {
 		return Lang.multi;
 	}
 	return Lang.en;

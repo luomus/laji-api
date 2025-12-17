@@ -1,8 +1,9 @@
-import { Get, Param, Query } from "@nestjs/common";
+import { Get, Param } from "@nestjs/common";
 import { InformationService } from "./information.service";
-import { GetAllInformationDto } from "./information.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
+import { RequestLang } from "src/decorators/request-lang.decorator";
+import { Lang } from "src/common.dto";
 
 @ApiTags("Informations")
 @LajiApiController("information")
@@ -10,12 +11,10 @@ export class InformationController {
 
 	constructor(private informationService: InformationService) {}
 
-	/** Returns id of the index page of some language */
+	/** Returns id of the index page. Allowed languages are 'fi', 'sv', 'en'.  */
 	@Get("index")
-	getIndex(@Query() { lang }: GetAllInformationDto) {
-		// '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-		// typings bit awkward.
-		return this.informationService.getIndex(lang!);
+	getIndex(@RequestLang({ allowMulti: false }) lang: Omit<Lang, "multi">) {
+		return this.informationService.getIndex(lang);
 	}
 
 	/** Get information page by id */
@@ -24,12 +23,10 @@ export class InformationController {
 		return this.informationService.get(id);
 	}
 
-	/** Get information page contents */
+	/** Get information page contents. Allowed languages are 'fi', 'sv', 'en'. */
 	@Get()
-	getAll(@Query() { lang }: GetAllInformationDto) {
-		// '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-		// typings bit awkward.
-		return this.informationService.getAll(lang!);
+	getAll(@RequestLang({ allowMulti: false }) lang: Omit<Lang, "multi">) {
+		return this.informationService.getAll(lang);
 	}
 
 }

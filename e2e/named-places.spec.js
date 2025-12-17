@@ -1,6 +1,6 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
-const { request, expect } = require("chai");
+const { expect } = require("chai");
 const { dateToISODate } = require("../dist/utils");
 const { accessToken, personToken, person, friend, friend2 } = config;
 const { apiRequest, url } = helpers;

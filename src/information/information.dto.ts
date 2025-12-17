@@ -1,13 +1,3 @@
-export enum InformationLang {
-	fi = "fi",
-	sv = "sv",
-	en = "en",
-}
-
-export class GetAllInformationDto {
-	lang?: InformationLang = InformationLang.en;
-}
-
 class InformationChild {
 	title: string;
 	id: string;
