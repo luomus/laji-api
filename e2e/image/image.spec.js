@@ -1,9 +1,8 @@
 var fs = require("fs");
 var config = require("../config.json");
 var helpers = require("../helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken } = config;
+const { apiRequest } = helpers;
+const { accessToken, personToken } = config;
 
 const errorOnlyOwn = "Can only update media uploaded by the user";
 const errorOnlyOwnDelete = "Can only delete media uploaded by the user";
@@ -33,56 +32,56 @@ describe("/image", function() {
 	const imageOthers = "MM.55530";
 
 	it("returns 401 when no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`${basePath}/${imageOthers}`);
 		res.should.have.status(401);
 	});
 
 	it("returns 401 when no access token specified for id", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`${basePath}/${imageOthers}`);
 		res.should.have.status(401);
 	});
 
 	it("returns 400 when no person token specified for post request", async function() {
-		const res = await request(this.server)
-			.post(url(`${basePath}/${imageOthers}`, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.post(`${basePath}/${imageOthers}`)
 			.send({ intellectualRights: "MZ.intellectualRightsCC-BY-SA-4.0" });
 		res.should.have.status(400);
 	});
 
 	it("returns 400 when no person token specified for put request", async function() {
-		const res = await request(this.server)
-			.put(url(`${basePath}/${imageOthers}`, { access_token }))
+		const res = await apiRequest(this.server, { accessToken })
+			.put(`${basePath}/${imageOthers}`)
 			.send({});
 		res.should.have.status(400);
 	});
 
 	it("returns 400 when no person token specified for delete request", async function() {
-		const res = await request(this.server)
-			.delete(url(`${basePath}/${imageOthers}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.delete(`${basePath}/${imageOthers}`);
 		res.should.have.status(400);
 	});
 
 	it("returns 400 when trying to update others image", async function() {
-		const res = await request(this.server)
-			.put(url(`${basePath}/${imageOthers}`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${imageOthers}`)
 			.send({});
 		res.should.have.status(400);
 		res.body.should.include({ message: errorOnlyOwn });
 	});
 
 	it("returns 400 when trying to delete others image", async function() {
-		const res = await request(this.server)
-			.delete(url(`${basePath}/${imageOthers}`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.delete(`${basePath}/${imageOthers}`);
 		res.should.have.status(400);
 		res.body.should.include({ message: errorOnlyOwnDelete });
 	});
 
 	it("returns a temp id when adding image", async function() {
-		const res = await request(this.server)
-			.post(url(basePath, { access_token, personToken }))
-			.attach("image", fs.readFileSync(__dirname + "/bird.jpg"), "bird.jpg")
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.post(basePath)
+			.attach("image", fs.readFileSync(__dirname + "/bird.jpg"), "bird.jpg");
 		res.should.have.status(200);
 		res.body.should.be.a("array");
 		res.body.should.have.lengthOf(1);
@@ -97,8 +96,8 @@ describe("/image", function() {
 				this.skip();
 			}
 			this.timeout(10000);
-			const res = await request(this.server)
-				.post(url(`${basePath}/${imageTmpId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.post(`${basePath}/${imageTmpId}`)
 				.send({});
 			res.should.have.status(422);
 		});
@@ -115,8 +114,8 @@ describe("/image", function() {
 				intellectualOwner: "Viltsu",
 				uploadedBy: "MA.97"
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${imageId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${imageId}`)
 				.send(meta);
 			res.should.have.status(200);
 			res.body.should.be.a("object");
@@ -134,8 +133,8 @@ describe("/image", function() {
 			var meta = {
 				intellectualRights: "FooBar"
 			};
-			const res = await request(this.server)
-				.put(url(`${basePath}/${imageId}`, { access_token, personToken }))
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.put(`${basePath}/${imageId}`)
 				.send(meta);
 			res.should.have.status(400);
 		});
@@ -144,8 +143,8 @@ describe("/image", function() {
 			if (!imageId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${imageId}/large.jpg`, { access_token }))
+			const res = await apiRequest(this.server, { accessToken })
+				.get(`${basePath}/${imageId}/large.jpg`);
 			res.should.have.status(200);
 			res.should.have.header("content-type", "image/jpeg");
 		});
@@ -155,8 +154,8 @@ describe("/image", function() {
 			if (!imageId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${imageId}/square.jpg`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.get(`${basePath}/${imageId}/square.jpg`);
 			res.should.have.status(200);
 			res.should.have.header("content-type", "image/jpeg");
 		});
@@ -165,8 +164,8 @@ describe("/image", function() {
 			if (!imageId) {
 				this.skip();
 			}
-			const res = await request(this.server)
-				.get(url(`${basePath}/${imageId}/thumbnail.jpg`, { access_token }));
+			const res = await apiRequest(this.server, { accessToken })
+				.get(`${basePath}/${imageId}/thumbnail.jpg`);
 			res.should.have.status(200);
 			res.should.have.header("content-type", "image/jpeg");
 		});
@@ -176,8 +175,8 @@ describe("/image", function() {
 				this.skip();
 			}
 			this.timeout(5000);
-			const res = await request(this.server)
-				.delete(url(`${basePath}/${imageId}`, { access_token, personToken }));
+			const res = await apiRequest(this.server, { accessToken, personToken })
+				.delete(`${basePath}/${imageId}`);
 			res.should.have.status(204);
 		});
 	});
