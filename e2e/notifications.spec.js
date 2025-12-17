@@ -1,8 +1,7 @@
 const config = require("./config.json");
 const helpers = require("./helpers");
-const { request } = require("chai");
-const { url } = helpers;
-const { access_token, personToken, person } = config;
+const { apiRequest, url } = helpers;
+const { accessToken, personToken, person } = config;
 
 describe("/notifications", function() {
 	const basePath =  "/notifications";
@@ -18,12 +17,12 @@ describe("/notifications", function() {
 	};
 
 	it("returns 401 when fetching with person token and no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`${basePath}/${personToken}`);
 		res.should.have.status(401);
 	});
 	it("returns 401 when fetching with token and no access token specified", async function() {
-		const res = await request(this.server)
+		const res = await apiRequest(this.server)
 			.get(`${basePath}/${personToken}`);
 		res.should.have.status(401);
 	});
@@ -32,8 +31,8 @@ describe("/notifications", function() {
 
 	it("returns notifications", async function() {
 		this.timeout(5000);
-		const res = await request(this.server)
-			.get(url(`${basePath}/${personToken}`, { access_token }));
+		const res = await apiRequest(this.server, { accessToken })
+			.get(`${basePath}/${personToken}`);
 		res.should.have.status(200);
 		res.body.results.length.should.be.above(1);
 		res.body.results.every(item => {
@@ -50,20 +49,20 @@ describe("/notifications", function() {
 		// Create a notification first by adding friend request. This would be nice to do in after/before, but mocha/chai
 		// doesn't keep the order of test execution correct then. The last test removes the friend request, so the
 		// original state of the friends is restored.
-		await request(this.server)
-			.post(url(`/persons/${personToken}/friends/${person.id}`, { access_token }));
+		await apiRequest(this.server, { accessToken })
+			.post(`/persons/${personToken}/friends/${person.id}`);
 
 		// Notification is created in background when friend request is made, so we wait for that.
 		await new Promise(resolve => setTimeout(resolve, 500));
 		while (!addedNotification) {
-			const notificationsRes = await request(this.server)
-				.get(url(`${basePath}/${personToken}`, { access_token, page: lengthBeforeNew, pageSize: 1 }));
+			const notificationsRes = await apiRequest(this.server, { accessToken })
+				.get(url(`${basePath}/${personToken}`, { page: lengthBeforeNew, pageSize: 1 }));
 			addedNotification = notificationsRes.body.results && notificationsRes.body.results[0];
 			await new Promise(resolve => setTimeout(resolve, 500));
 		}
 
-		const updateRes = await request(this.server)
-			.put(url(`${basePath}/${addedNotification.id}`, { access_token, personToken }))
+		const updateRes = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${addedNotification.id}`)
 			.send({ ...addedNotification, friendRequest: ["foo"] });
 		updateRes.should.have.status(422);
 	});
@@ -72,8 +71,8 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		const res = await request(this.server)
-			.put(url(`${basePath}/${addedNotification.id}`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${addedNotification.id}`)
 			.send({ ...addedNotification, seen: true });
 		res.body.seen.should.be.equal(true);
 	});
@@ -82,8 +81,8 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		const res = await request(this.server)
-			.delete(url(`${basePath}/${addedNotification.id}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.delete(`${basePath}/${addedNotification.id}`);
 		res.should.have.status(200);
 	});
 
@@ -91,8 +90,8 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		const res = await request(this.server)
-			.put(url(`${basePath}/${friendsNotification.id}`, { access_token, personToken }))
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/${friendsNotification.id}`)
 			.send(friendsNotification);
 		res.should.have.status(403);
 	});
@@ -101,13 +100,13 @@ describe("/notifications", function() {
 		if (!addedNotification) {
 			throw new Error("added notification not found");
 		}
-		const res = await request(this.server)
-			.delete(url(`${basePath}/${friendsNotification.id}`, { access_token, personToken }));
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.delete(`${basePath}/${friendsNotification.id}`);
 		res.should.have.status(403);
 	});
 
 	it("clear friends after", async function() {
-		await request(this.server)
-			.delete(url(`/persons/${personToken}/friends/${person.id}`, { access_token, personToken }));
+		await apiRequest(this.server, { accessToken, personToken })
+			.delete(`/persons/${personToken}/friends/${person.id}`);
 	});
 });
