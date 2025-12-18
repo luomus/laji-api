@@ -273,3 +273,7 @@ The API swagger documents the filters like so:
 ### Annotations
 
 * `/annotation/tags` results are wrapped in `results`
+
+### API User
+
+* `/api-users -> `/api-user`

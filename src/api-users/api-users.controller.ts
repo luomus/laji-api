@@ -9,7 +9,7 @@ import { Serializer } from "src/serialization/serializer.interceptor";
 import { ErrorCodeException } from "src/utils";
 
 @ApiTags("API user")
-@Controller("api-users")
+@Controller("api-user")
 export class ApiUsersController {
 	constructor(
 		private readonly apiUsersService: ApiUsersService,
