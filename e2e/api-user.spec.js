@@ -4,7 +4,7 @@ const { apiRequest, url } = helpers;
 const { accessToken } = config;
 
 describe("/api-user", function() {
-	var basePath = "/api-users";
+	var basePath = "/api-user";
 
 	it("returns 401 when no access token specified", async function() {
 		const res = await apiRequest(this.server)
