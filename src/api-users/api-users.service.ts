@@ -1,11 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { AccessTokenService } from "src/access-token/access-token.service";
 import { ApiUserEntity } from "./api-user.entity";
-import { Repository, DataSource } from "typeorm";
+import { Repository } from "typeorm";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CACHE_30_MIN, ErrorCodeException, LocalizedException } from "src/utils";
+import { CACHE_30_MIN, ErrorCodeException, uuid } from "src/utils";
 import { IntelligentInMemoryCache, clearMemoization } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { RedisMemoize, clearRedisMemoization } from "src/decorators/redis-memoize.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
@@ -19,9 +18,7 @@ export class ApiUsersService {
 
 	constructor(
 		@InjectRepository(ApiUserEntity) private apiUserRepository: Repository<ApiUserEntity>,
-		private accessTokenService: AccessTokenService,
 		private mailService: MailService,
-		private dataSource: DataSource,
 		private cache: RedisCacheService
 	) { }
 
@@ -29,13 +26,7 @@ export class ApiUsersService {
 	@IntelligentMemoize({ maxAge: CACHE_30_MIN })
 	@RedisMemoize(CACHE_30_MIN)
 	async getByAccessToken(accessToken: string): Promise<ApiUserEntity> {
-		const token = await this.accessTokenService.findOne(accessToken);
-
-		if (!token) {
-			throw new ErrorCodeException("NO_DATA_FOUND_WITH_GIVEN_TOKEN", 404);
-		}
-
-		const apiUser = await this.apiUserRepository.findOneBy({ id: token.userId });
+		const apiUser = await this.apiUserRepository.findOneBy({ accessToken });
 
 		if (!apiUser) {
 			throw new ErrorCodeException("NO_API_USER_FOUND_FOR_TOKEN", 404);
@@ -45,71 +36,23 @@ export class ApiUsersService {
 	}
 
 	async create(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
-		const apiUser = serializeInto(ApiUserEntity)(apiUserWithEmail);
-		const existing = await this.findByEmail(apiUser.email);
+		const apiUser = await this.findByEmail(apiUserWithEmail.email)
+			|| serializeInto(ApiUserEntity)(apiUserWithEmail);
 
-		if (existing) {
-			// eslint-disable-next-line max-len
-			throw new LocalizedException("EMAIL_REGISTERED_ALREADY", 400);
-		}
+		apiUser.accessToken = uuid(64);
 
-		const queryRunner = this.dataSource.createQueryRunner();
-
-		// Do database operation in one transaction. Email is sent before commiting, because if the email sending fails, we
-		// don't want to commit the transaction as it can't be rolled then anymore.
 		try {
-			await queryRunner.connect();
-			await queryRunner.startTransaction();
-			const createdApiUser = await queryRunner.manager.save(apiUser);
-			const accessTokenEntity = this.accessTokenService.getNewForUser(createdApiUser);
-			await queryRunner.manager.save(accessTokenEntity);
-			await this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, accessTokenEntity.id);
+			const createdApiUser = await this.apiUserRepository.save(apiUser);
+			try {
+				await this.mailService.sendApiUserCreated({ emailAddress: apiUser.email }, createdApiUser.accessToken);
+			} catch (e) {
+				this.logger.fatal(new Error("Failed to send email to API user"), apiUser);
+			}
 			clearMemoization(this);
 			await clearRedisMemoization(this, this.cache);
 		} catch (e) {
-			await queryRunner.rollbackTransaction();
-			await queryRunner.release();
-			this.logger.error(e, e.stack);
+			this.logger.fatal(e, e.stack);
 			throw e;
-		}
-
-		// Commit the transaction after succesfully sending email.
-		try {
-			await queryRunner.commitTransaction();
-		} catch (e) {
-			this.logger.fatal(e, e.stack, { emailAddress: apiUser.email });
-		} finally {
-			await queryRunner.release();
-		}
-	}
-
-	async renew(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
-		const existing = await this.findByEmail(apiUserWithEmail.email);
-
-		if (!existing) {
-			// eslint-disable-next-line max-len
-			throw new LocalizedException("EMAIL_NOT_REGISTERED", 400);
-		}
-
-		const accessTokenEntity = await this.accessTokenService.findByUserID(existing.id);
-
-		const queryRunner = this.dataSource.createQueryRunner();
-
-		try {
-			await queryRunner.connect();
-			await queryRunner.startTransaction();
-			if (accessTokenEntity) {
-				await queryRunner.manager.remove(accessTokenEntity);
-			}
-			const newAccessTokenEntity = this.accessTokenService.getNewForUser(existing);
-			await queryRunner.manager.save(newAccessTokenEntity);
-			await queryRunner.commitTransaction();
-			await this.mailService.sendApiUserCreated({ emailAddress: existing.email }, newAccessTokenEntity.id);
-		} catch (e) {
-			await queryRunner.rollbackTransaction();
-			throw e;
-		} finally {
-			await queryRunner.release();
 		}
 	}
 

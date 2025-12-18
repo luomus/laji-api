@@ -1,20 +1,26 @@
-import { Module, forwardRef } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { ApiUsersService } from "./api-users.service";
 import { ApiUsersController } from "./api-users.controller";
-import { AccessTokenModule } from "src/access-token/access-token.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ApiUserEntity } from "./api-user.entity";
 import { MailModule } from "src/mail/mail.module";
-import { AccessTokenEntity } from "src/access-token/access-token.entity";
+import { APP_GUARD } from "@nestjs/core";
+import { AccessTokenGuard } from "./access-token.guard";
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([ApiUserEntity]),
-		TypeOrmModule.forFeature([AccessTokenEntity]),
-		forwardRef(() => AccessTokenModule),
 		MailModule
 	],
-	providers: [ApiUsersService],
+	providers: [
+		ApiUsersService,
+		// Guards are applied globally, even though provided in this module.
+		// We provide it here so it can use dependency injected AccessTokenService.
+		{
+			provide: APP_GUARD,
+			useClass: AccessTokenGuard
+		}
+	],
 	controllers: [ApiUsersController],
 	exports: [ApiUsersService]
 })

@@ -181,7 +181,7 @@ export class NamedPlacesService {
 		let untilDate: Date;
 		if (until) {
 			untilDate = new Date(until);
-			if (!isValidDate(untilDate)) { // TS is wrong here, `Date.parse()` accepts `Date`.
+			if (!isValidDate(untilDate)) {
 				throw new LocalizedException("NAMED_PLACE_RESERVATION_UNTIL_BAD_FORMAT", 422);
 			}
 			if (untilDate < new Date()) {

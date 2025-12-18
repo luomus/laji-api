@@ -43,18 +43,17 @@ $ npm ci
 Install the following:
 
 * [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) >= 5
-* [Oracle Instant Client](https://node-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instzip)
+* [SQLite](https://sqlite.org/) (most likely it's available in your system's package manager)
 
 ##### Running
 
 1. Start Redis
-2. Make sure the Oracle Instant Client is installed at `/opt/oracle/instantclient` or adjust the next step accordingly:
-3. 
+2. 
 ```bash
-$ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run start:dev
+$ npm run start:dev
 ```
 
-The UI will be available at http://localhost:3004
+The app  will be running at http://localhost:3004
 
 ### Test
 
@@ -89,7 +88,7 @@ $ npm run docker -- test:e2e
 Without Docker:
 
 ```bash
-$ LD_LIBRARY_PATH=/opt/oracle/instantclient npm run test:e2e
+$ npm run test:e2e
 ```
 
 ## Contact

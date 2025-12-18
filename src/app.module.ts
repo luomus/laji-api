@@ -1,10 +1,8 @@
 import { HttpModule } from "@nestjs/axios";
 import { Module, ValidationPipe } from "@nestjs/common";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigModule} from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { AccessTokenEntity } from "./access-token/access-token.entity";
-import { AccessTokenModule } from "./access-token/access-token.module";
 import { AppController } from "./app.controller";
 import { FormsModule } from "./forms/forms.module";
 import { LajiAuthClientModule } from "./laji-auth-client/laji-auth-client.module";
@@ -77,24 +75,18 @@ import { NewsModule } from "./news/news.module";
 		},
 		ConfigModule.forRoot({ isGlobal: true }),
 		TypeOrmModule.forRootAsync({
-			imports: [ConfigModule],
-			useFactory: (configService: ConfigService) => ({
-				type: "oracle",
-				connectString: configService.get("ORACLE_TNS"),
-				username: configService.get("ORACLE_USER"),
-				password: configService.get("ORACLE_PASS"),
-				synchronize: false,
-				retryAttempts: 100,
-				retryDelay: 3000,
-				entities: [AccessTokenEntity, ApiUserEntity]
-			}),
-			inject: [ConfigService]
+			useFactory: () => ({
+				type: "sqlite",
+				database: "./api-users.db",
+				entities: [ApiUserEntity],
+				synchronize: true,
+				logging: true
+			})
 		}),
 		RedisCacheModule,
 		ScheduleModule.forRoot(),
 		FormsModule,
 		FormPermissionsModule,
-		AccessTokenModule,
 		PersonsModule,
 		LajiAuthClientModule,
 		PersonTokenModule,
