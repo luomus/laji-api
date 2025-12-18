@@ -2,7 +2,7 @@ import { PickType } from "@nestjs/swagger";
 import { ApiUserEntity } from "../api-user.entity";
 
 export class GetApiUserDto {
-	/** access token which to return information from */
+	/** Access token whose metadata is being queried (i.e. a token issued to another system or user, not the caller’s own authorization token). */
 	accessToken?: string;
 }
 
