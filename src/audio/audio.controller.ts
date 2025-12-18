@@ -12,7 +12,7 @@ import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 
 @LajiApiController("audio")
-@ApiTags("Audios")
+@ApiTags("Audio")
 export class AudioController {
 	constructor(
 		private abstractMediaService: AbstractMediaService<MediaType.audio>,
