@@ -256,7 +256,7 @@ The API swagger documents the filters like so:
 * `POST /person/{personToken}/profile` -> `POST /person/profile`
 * `PUT /person/{personToken}/profile` -> `PUT /person/profile`
 
-### Person token
+### Person token -> Authentication event
 
 * `GET /person-token/{personToken}` -> `GET /authentication-event` (with person-token as header)
 * `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with person-token as header)
