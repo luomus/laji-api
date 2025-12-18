@@ -1,14 +1,14 @@
-# Breaking changes against the old api
-
-# Api V1
+# API V1 Migration Guide - Breaking Changes
 
 https://api.laji.fi/
 
-The new API uses Swagger v3.
+The new API uses Swagger v3. It documents all query parameters, request bodies and response schemas accurately.
 
-Swagger JSON is at https://api.laji.fi/openapi-json
+Swagger JSON is at https://api.laji.fi/openapi-json.
 
 # Migration
+
+We are going to keep the old API alive for one year. This serves as a time window for you to migrate.
 
 For most requests you are already using the new API. There are some endpoints that have breaking changes, and for those your client still uses the old API. To migrate your client to use the new API for those endpoints, you need to add `API-Version: 1` header to the requests.
 
@@ -30,7 +30,9 @@ curl https://api.laji.fi/taxa
 
 ## Access token
 
-Access token isn't accepted as a query parameter `access_token` anymore. Instead, it's passed as a Bearer token authentication. Simply put it to `Authorization` header as `Bearer <token>`.
+There's no need to order new access tokens. How the access token is passed in the requests has changed though.
+
+Access token isn't accepted as a query parameter `access_token` anymore. Instead, it's passed as a Bearer token authentication. Simply put it to `Authorization` header as `Bearer <ACCESS TOKEN>`.
 
 What used to be:
 
@@ -41,8 +43,9 @@ curl 'https://api.laji.fi/v0/taxa?access_token=<ACCESS TOKEN>'
 is now:
 
 ```bash
-curl https://api.laji.fi/taxa -H 'Authorization: Bearer <PERSON TOKEN>'
+curl https://api.laji.fi/taxa -H 'Authorization: Bearer <ACCESS TOKEN>'
 ```
+
 
 ## Person token
 
@@ -151,7 +154,7 @@ The new API's /taxa endpoints bring many breaking changes. Main design changes i
 
 * All query parameters that affect filtering are moved to the request body. The body is called "filters". Filtering can be now done by any property.
 * Aggregate queries are separated to their own endpoints (`/aggregate`)
-* Some of the filter parameters are also renamed to reflect the actual properties from the taxa elastic
+* Old filter parameter names are no longer supported. Use the actual property names from the model. For example `informalGroupFilters` -> `informalTaxonGroups`
 * Name fields ("vernacularName" etc) are served also as multi-lang ("vernacularNameMultiLang"), so the translations can be shown even though `lang` param isn't `multi`
 
 Here's the list of all parameters moved from request query parameters to the body:
@@ -203,7 +206,6 @@ The API swagger documents the filters like so:
 >   "informalTaxonGroups": "MVL.1",                // Matches taxa with informalTaxonGoup MVL.1
 >   "multimedia.author": "somebody",               // Matches taxa with any multimedia item having author "somebody"
 >   "taxonRank": ["MX.genus", "MX.subGenus"]       // Matches taxa that are of rank genus or sub-genus
->   "scientificName": "!MX.genus", "MX.subGenus"]  // Matches taxa that are of rank genus or sub-genus
 >   "secureLevel": "!MX.secureLevelNoShow"         // Matches everything but taxa with MX.secureLevelNoShow
 > }
 > ```

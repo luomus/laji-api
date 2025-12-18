@@ -63,7 +63,6 @@ Example for syntax:
   "informalTaxonGroups": "MVL.1",                // Matches taxa with informalTaxonGoup MVL.1
   "multimedia.author": "somebody",               // Matches taxa with any multimedia item having author "somebody"
   "taxonRank": ["MX.genus", "MX.subGenus"]       // Matches taxa that are of rank genus or sub-genus
-  "scientificName": "!MX.genus", "MX.subGenus"]  // Matches taxa that are of rank genus or sub-genus
   "secureLevel": "!MX.secureLevelNoShow"         // Matches everything but taxa with MX.secureLevelNoShow
 }
 \`\`\`
