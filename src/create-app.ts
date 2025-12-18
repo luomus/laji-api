@@ -163,6 +163,7 @@ export async function createApp(useLogger = true) {
 			docExpansion: "none",
 			tagsSorter: "alpha",
 			operationsSorter: "alpha",
+			tryItOutEnabled: true,
 			requestInterceptor: (req: any) => {
 				req.headers["API-Version"] = "1";
 				return req;
