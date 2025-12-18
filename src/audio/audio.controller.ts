@@ -8,7 +8,6 @@ import { NextFunction, Request, Response } from "express";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
-import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 
 @LajiApiController("audio")
@@ -35,7 +34,7 @@ export class AudioController {
 
 	/** Get audio by id */
 	@Get(":id")
-	@UseInterceptors(Translator, Serializer(Audio))
+	@UseInterceptors(Serializer(Audio))
 	get(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person?: Person
