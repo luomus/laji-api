@@ -16,6 +16,8 @@ Check the [wiki](https://github.com/luomus/laji-api/wiki) for a more technically
 
 Fill in `.env` file, using `.env.example` as a template.
 
+Note that access tokens are not read from a remote source, but a local file instead. Either generate tokens with the 'API User' endpoints or grab the `api-users.db` from staging machine.
+ 
 The app can be ran inside a docker, or directly on the host machine.
 
 #### Docker (recommended)
@@ -53,7 +55,7 @@ Install the following:
 $ npm run start:dev
 ```
 
-The app  will be running at http://localhost:3004
+The app will be running at http://localhost:3004
 
 ### Test
 
