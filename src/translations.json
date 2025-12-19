@@ -1,8 +1,13 @@
 {
 	"PERSON_TOKEN_IS_REQUIRED": {
-		"en": "You did something that requires loggin in. Please log in.",
+		"en": "You did something that requires logging in. Please log in.",
 		"sv": "Du gjorde något som kräver inloggning. Vänligen logga in.",
 		"fi": "Teit jotain joka vaatii sisäänkirjautumisen. Kirjaudu sisään ensin"
+	},
+	"PERSON_TOKEN_IS_INVALID": {
+		"en": "Your login is not valid. Please log out and log in again.",
+		"sv": "Din inloggning är inte giltig. Vänligen logga ut och logga in igen.",
+		"fi": "Sisäänkirjautumisesi ei ole enää voimassa. Ole hyvä ja kirjaudu uudelleen sisään."
 	},
 	"WATER_BIRD_COUNT_SHORTHAND_MISSING_TAXONID": {
 		"en": "Invalid \"count\" value. Missing \"taxonID\"",

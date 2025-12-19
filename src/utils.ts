@@ -259,6 +259,7 @@ export class ErrorCodeException extends HttpException {
 /** LocalizerExceptionFilter takes care of localizing the exception based on the error code */
 export class LocalizedException extends ErrorCodeException {
 	context?: Record<string, string>;
+	localized = true;
 	constructor(errorCode: keyof typeof translations, statusCode: number, context?: Record<string, string>)  {
 		super(errorCode, statusCode);
 		this.context = context;
