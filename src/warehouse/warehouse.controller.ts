@@ -44,7 +44,6 @@ export class WarehouseController implements MergesRemoteSwagger {
 	}
 
 	fetchSwagger() {
-		console.log('fet');
 		return this.warehouseClient.get<OpenAPIObject>("openapi-v3.json", undefined, { cache: CACHE_30_MIN });
 	}
 

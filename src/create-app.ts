@@ -228,9 +228,13 @@ function logOutgoingRequests(httpService: HttpService) {
 
 const createErrorResponseSwaggerForStatus = (status: number) => ({
 	status,
-	schema: { type: "object", properties: {
-		errorCode: { type: "string" },
-		message: { type: "string" },
-		localized: { type: "boolean" }
-	} } }
+	schema: {
+		type: "object",
+		properties: {
+			errorCode: { type: "string" },
+			message: { type: "string" },
+			localized: { type: "boolean" }
+		}
+	}
+}
 );
