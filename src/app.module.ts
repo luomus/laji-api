@@ -80,7 +80,7 @@ import { NewsModule } from "./news/news.module";
 				database: "./api-users.db",
 				entities: [ApiUserEntity],
 				synchronize: true,
-				logging: true
+				logging: false
 			})
 		}),
 		RedisCacheModule,
