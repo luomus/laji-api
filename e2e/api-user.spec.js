@@ -1,7 +1,7 @@
 var config = require("./config.json");
 var helpers = require("./helpers");
 const { apiRequest, url } = helpers;
-const { accessToken } = config;
+const { accessToken, personToken } = config;
 
 describe("/api-user", function() {
 	var basePath = "/api-user";
@@ -28,4 +28,10 @@ describe("/api-user", function() {
 		res.should.have.status(400);
 	});
 
+	it("doesn't allow non ICT-admin updating access token", async function() {
+		const res = await apiRequest(this.server, { accessToken, personToken })
+			.put(`${basePath}/some@email.com`)
+			.send({ systemID: "foo" });
+		res.should.have.status(403);
+	});
 });

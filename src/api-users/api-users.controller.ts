@@ -1,11 +1,14 @@
-import { Body, Controller, Get, Post, Query, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, Param, Post, Put, Query, UseGuards, UseInterceptors }
+	from "@nestjs/common";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiUsersService } from "./api-users.service";
-import { ApiUserCreateDto, GetApiUserDto } from "./dto/api-user.dto";
+import { ApiUserCreateDto, ApiUserUpdateDto, GetApiUserDto } from "./dto/api-user.dto";
 import { ApiUserEntity } from "./api-user.entity";
 import { BypassAccessTokenAuth } from "src/decorators/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ErrorCodeException } from "src/utils";
+import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
+import { RequestPersonToken } from "src/decorators/request-person-token.decorator";
 
 @ApiTags("API user")
 @Controller("api-user")
@@ -33,5 +36,15 @@ export class ApiUsersController {
 	@BypassAccessTokenAuth()
 	register(@Body() user: ApiUserCreateDto) {
 		return this.apiUsersService.create(user.email);
+	}
+
+	/** Assing a systemID for an access token. Available only for ICT admins. */
+	@Put(":email")
+	@UseGuards(IctAdminGuard)
+	update(@Param("email") email: string, @Body() { systemID }: ApiUserUpdateDto, @RequestPersonToken() _: string) {
+		if (!systemID) {
+			throw new HttpException("systemID is required", 400);
+		}
+		return this.apiUsersService.assignSystemID(email, systemID);
 	}
 }
