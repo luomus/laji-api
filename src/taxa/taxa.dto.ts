@@ -194,8 +194,11 @@ export class TaxaSearchDto {
 	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
 	matchType?: string;
 
-	/** Filter to include only species (and subspecies, aggregates) */
-	@IsOptionalBoolean() onlySpecies?: boolean = false;
+	/** 
+	 * true: Will include only "lower taxa" (species, subspecies, aggregates, ...)
+	 * false: Will only include "higher taxa" (genus and above)
+	 * */
+	@IsOptionalBoolean() species?: boolean;
 
 	/**
 	 * true: Will include only finnish taxa.

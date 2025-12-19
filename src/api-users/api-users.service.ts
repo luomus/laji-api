@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ApiUserEntity } from "./api-user.entity";
 import { Repository } from "typeorm";
@@ -35,9 +35,9 @@ export class ApiUsersService {
 		return apiUser;
 	}
 
-	async create(apiUserWithEmail: Pick<ApiUserEntity, "email">): Promise<void> {
-		const apiUser = await this.findByEmail(apiUserWithEmail.email)
-			|| serializeInto(ApiUserEntity)(apiUserWithEmail);
+	async create(email: string): Promise<void> {
+		const apiUser = await this.apiUserRepository.findOneBy({ email })
+			|| serializeInto(ApiUserEntity)({ email });
 
 		apiUser.accessToken = uuid(64);
 
@@ -48,15 +48,23 @@ export class ApiUsersService {
 			} catch (e) {
 				this.logger.fatal(new Error("Failed to send email to API user"), apiUser);
 			}
-			clearMemoization(this);
-			await clearRedisMemoization(this, this.cache);
+			await this.clearCache();
 		} catch (e) {
 			this.logger.fatal(e, e.stack);
 			throw e;
 		}
 	}
 
-	private findByEmail(email: string): Promise<ApiUserEntity | null> {
-		return this.apiUserRepository.findOneBy({ email });
+	async assignSystemID(email: string, systemID: string) {
+		const apiUsers = await this.apiUserRepository.findBy({ email });
+		for (const apiUser of apiUsers) {
+			await this.apiUserRepository.save({ ...apiUser, systemID });
+		}
+		await this.clearCache();
+	}
+
+	private clearCache() {
+		clearMemoization(this);
+		return clearRedisMemoization(this, this.cache);
 	}
 }

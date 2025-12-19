@@ -7,3 +7,5 @@ export class GetApiUserDto {
 }
 
 export class ApiUserCreateDto extends PickType(ApiUserEntity, ["email"]) {}
+
+export class ApiUserUpdateDto extends PickType(ApiUserEntity, ["systemID"]) {}

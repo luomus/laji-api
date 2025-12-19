@@ -6,16 +6,18 @@ import { ApiUserEntity } from "./api-user.entity";
 import { MailModule } from "src/mail/mail.module";
 import { APP_GUARD } from "@nestjs/core";
 import { AccessTokenGuard } from "./access-token.guard";
+import { PersonsModule } from "src/persons/persons.module";
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([ApiUserEntity]),
-		MailModule
+		MailModule,
+		PersonsModule
 	],
 	providers: [
 		ApiUsersService,
 		// Guards are applied globally, even though provided in this module.
-		// We provide it here so it can use dependency injected AccessTokenService.
+		// We provide it here so it can use dependency injected ApiUsersService.
 		{
 			provide: APP_GUARD,
 			useClass: AccessTokenGuard
