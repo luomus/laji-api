@@ -1,3 +1,5 @@
+import { Exclude } from "class-transformer";
+import { IsString } from "class-validator";
 import {
 	Entity,
 	PrimaryGeneratedColumn,
@@ -9,6 +11,7 @@ import {
 @Entity({ name: "api_user" })
 export class ApiUserEntity {
 
+	@Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -16,6 +19,7 @@ export class ApiUserEntity {
   @Column({ name: "access_token" })
   accessToken: string;
 
+	@IsString()
   @Column()
   email: string;
 

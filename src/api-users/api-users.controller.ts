@@ -3,7 +3,6 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiUsersService } from "./api-users.service";
 import { ApiUserCreateDto, GetApiUserDto } from "./dto/api-user.dto";
 import { ApiUserEntity } from "./api-user.entity";
-import { serializeInto } from "src/serialization/serialization.utils";
 import { BypassAccessTokenAuth } from "src/decorators/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ErrorCodeException } from "src/utils";
@@ -33,6 +32,6 @@ export class ApiUsersController {
 	@Post()
 	@BypassAccessTokenAuth()
 	register(@Body() user: ApiUserCreateDto) {
-		return this.apiUsersService.create(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
+		return this.apiUsersService.create(user.email);
 	}
 }
