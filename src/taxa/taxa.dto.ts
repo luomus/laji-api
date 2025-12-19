@@ -185,7 +185,7 @@ export class TaxaSearchDto {
 	/** Include hidden taxa in the response */
 	includeHidden?: boolean = false;
 
-	/** Filter by type of the matching name: Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively */
+	/** Filter by type of the matching name: (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively */
 	nameTypes?: string;
 
 	/** Filters by the language of the matching name. Multiple values can be specified, separated by commas (,). This applies only to name types that are available in multiple languages (e.g., MX.vernacularName) and does not apply to scientific names. */
