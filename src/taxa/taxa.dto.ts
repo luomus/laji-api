@@ -177,37 +177,34 @@ export class TaxaSearchDto {
 	checklist?: string;
 
 	/** Filter based on taxon set(s). Multiple values are separated by a comma (,) */
-	taxonSet?: string;
+	taxonSets?: string;
 
-	/** Search taxa from specified informal taxon group(s). Multiple values are separated by a comma (,) */
-	informalTaxonGroup?: string;
+	/** Search taxa from specified informal taxon group(s). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively */
+	informalTaxonGroups?: string;
 
 	/** Include hidden taxa in the response */
 	includeHidden?: boolean = false;
 
-	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
-	includeNameTypes?: string;
+	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively */
+	nameTypes?: string;
 
 	/** Filter based on language of the matching name. Multiple values are separated by a comma (,) */
-	includeLanguages?: string;
-
-	/** Exclude taxa from specified informal taxon group(s). Multiple values are separated by a comma (,) */
-	excludedInformalTaxonGroup?: string;
+	languages?: string;
 
 	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
 	matchType?: string;
 
-	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,) */
-	excludeNameTypes?: string;
-
 	/** Filter to include only species (and subspecies) */
 	@IsOptionalBoolean() onlySpecies?: boolean = false;
 
-	/** Filter to include only Finnish taxa */
-	@IsOptionalBoolean() onlyFinnish?: boolean = false;
+	/**
+	 * true: Will include only finnish taxa.
+	 * false: Will exclude finnish taxa.
+	 */
+	@IsOptionalBoolean() finnish?: boolean;
 
 	/** Filter to include only invasive species */
-	@IsOptionalBoolean() onlyInvasive?: boolean = false;
+	@IsOptionalBoolean() invasiveSpecies?: boolean;
 
 	/** Multiple values are separated by a comma (,) */
 	selectedFields?: string;

@@ -39,3 +39,4 @@ lerna-debug.log*
 *.env
 
 e2e/config.json
+api-users.db

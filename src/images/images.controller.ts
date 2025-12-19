@@ -1,6 +1,6 @@
 import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Req, Res, UseInterceptors }
 	from "@nestjs/common";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { NextFunction, Request, Response } from "express";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
@@ -20,6 +20,20 @@ export class ImagesController {
 	/** Upload image and get temporary id */
 	@Post()
 	@HttpCode(200)
+	@ApiConsumes("multipart/form-data")
+	@ApiBody({
+		schema: {
+			type: "object",
+			properties: {
+				file: {
+					type: "string",
+					format: "binary",
+					description: "Audio file",
+				}
+			},
+			required: ["file"],
+		},
+	})
 	@ApiOkResponse({ type: FileUploadResponse })
 	async upload(
 		@RequestPerson() __: Person, // Checks that the person token is valid.

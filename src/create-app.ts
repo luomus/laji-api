@@ -75,12 +75,39 @@ export async function createApp(useLogger = true) {
 
 	// Backward compatibity to old API signature of form permissions.
 	app.use("/formPermissions", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/form-permissions`
+		target: `http://127.0.0.1:${port}/form-permissions`,
+		pathRewrite: function (path: string, req: Request) {
+			if (req.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw "/formPermissions is deprecated for API V1. Use /form-permissions instead";
+			}
+			return path;
+		}
 	}));
 
 	// Backward compatibity to old API signature of checklist versions.
 	app.use("/checklistVersions", createProxyMiddleware({
-		target: `http://127.0.0.1:${port}/checklist-versions`
+		target: `http://127.0.0.1:${port}/checklist-versions`,
+		pathRewrite: function (path: string, req: Request) {
+			if (req.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw "/checklistVersions is deprecated for API V1. Use /checklist-versions instead";
+			}
+			return path;
+		}
+
+	}));
+
+	// Backward compatibity to old API signature of checklist versions.
+	app.use("/api-users", createProxyMiddleware({
+		target: `http://127.0.0.1:${port}/api-user`,
+		pathRewrite: function (path: string, req: Request) {
+			if (req.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw "/api-users is deprecated for API V1. Use /api-user instead";
+			}
+			return path;
+		}
 	}));
 
 	// Backward compatibity to old API signature of person-token.
@@ -136,6 +163,7 @@ export async function createApp(useLogger = true) {
 			docExpansion: "none",
 			tagsSorter: "alpha",
 			operationsSorter: "alpha",
+			tryItOutEnabled: true,
 			requestInterceptor: (req: any) => {
 				req.headers["API-Version"] = "1";
 				return req;

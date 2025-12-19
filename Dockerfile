@@ -1,37 +1,16 @@
 # This Dockerfile is for running the app in production. It is be connected to Redis with docker-compose.yml.
 
-# Use an Oracle Instant Client base image
-FROM oraclelinux:8 AS oracle-client
-
-# Install Oracle Instant Client via Oracle's YUM repository
-RUN dnf install -y oracle-instantclient-release-el8 && \
-    dnf install -y oracle-instantclient-basic
-
 # Use the official Node.js image as the base image
-FROM node:18
+FROM node:20-bullseye
 
 # Set the working directory inside the container
 WORKDIR /app
-
-# Install dependencies for OracleDB
-RUN apt-get update && apt-get install -y \
-       libaio1 && \
-       rm -rf /var/lib/apt/lists/*
-
-# Copy Oracle Instant Client from the previous stage
-COPY --from=oracle-client /usr/lib/oracle /usr/lib/oracle
-COPY --from=oracle-client /usr/share/oracle /usr/share/oracle
-
-# Set environment variables
-ENV LD_LIBRARY_PATH=/usr/lib/oracle/21/client64/lib
-ENV TNS_ADMIN=/usr/lib/oracle/21/client64/network/admin
-ENV PATH="$PATH:/usr/lib/oracle/21/client64/bin"
 
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
 # Install the application dependencies
-RUN npm ci
+RUN npm ci --only=production
 
 # Copy the rest of the application files
 COPY . .

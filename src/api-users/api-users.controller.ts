@@ -4,18 +4,18 @@ import { ApiUsersService } from "./api-users.service";
 import { ApiUserCreateDto, GetApiUserDto } from "./dto/api-user.dto";
 import { ApiUserEntity } from "./api-user.entity";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { BypassAccessTokenAuth } from "src/access-token/bypass-access-token-auth.decorator";
+import { BypassAccessTokenAuth } from "src/decorators/bypass-access-token-auth.decorator";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ErrorCodeException } from "src/utils";
 
 @ApiTags("API user")
-@Controller("api-users")
+@Controller("api-user")
 export class ApiUsersController {
 	constructor(
 		private readonly apiUsersService: ApiUsersService,
 	) {}
 
-	/* Returns info about user based on the access token */
+	/** Returns info about an API user */
 	@Get()
 	@UseInterceptors(Serializer(ApiUserEntity, { filterNulls: true }))
 	@ApiSecurity("access_token")
@@ -26,17 +26,13 @@ export class ApiUsersController {
 		return this.apiUsersService.getByAccessToken(accessToken);
 	}
 
-	/** Register as an api user (access token will be sent to your email) */
+	/**
+	 * Register as an api user. The access token will be sent to your email. You can use this endpoint to create a new
+	 * access token in case you forget it. Note that it won't delete existing tokens.
+	 * */
 	@Post()
 	@BypassAccessTokenAuth()
 	register(@Body() user: ApiUserCreateDto) {
 		return this.apiUsersService.create(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
-	}
-
-	/** Requests new access token (will be sent to your email). Please note that this will not delete any existing tokens.  */
-	@Post("renew")
-	@BypassAccessTokenAuth()
-	renew(@Body() user: ApiUserCreateDto) {
-		return this.apiUsersService.renew(serializeInto(ApiUserCreateDto, { whitelist: ["email"] })(user));
 	}
 }

@@ -1,26 +1,27 @@
-import { Exclude } from "class-transformer";
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import {
+	Entity,
+	PrimaryGeneratedColumn,
+	Column,
+	CreateDateColumn,
+	Index
+} from "typeorm";
 
-@Entity({ name: "APIUSER" })
+@Entity({ name: "api_user" })
 export class ApiUserEntity {
 
-	@Exclude()
-	@PrimaryGeneratedColumn({ name: "ID" })
-	id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-	@Column({ name: "EMAIL" })
-	email: string;
+  @Index({ unique: true })
+  @Column({ name: "access_token" })
+  accessToken: string;
 
-	@Column({ name: "SYSTEMID" })
-	systemID?: string;
+  @Column()
+  email: string;
 
-	@Column({ name: "FEEDBACKEMAIL" })
-	feedbackEmail?: string;
+  @Column({ name: "system_id", nullable: true })
+  systemID?: string;
 
-	// TODO After we get rid of the old API, we should make the password column nullable
-	// and remove it's usage. It's currently there only because old api dependency to loopback.
-	// eslint-disable-next-line @typescript-eslint/no-inferrable-types
-	@Exclude()
-	@Column({ name: "PASSWORD" })
-	password: string = "noop";
+  @CreateDateColumn({ type: "datetime" })
+  created: Date;
 }
