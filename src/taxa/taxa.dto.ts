@@ -195,7 +195,7 @@ export class TaxaSearchDto {
 	matchType?: string;
 
 	/** Filter to include only species (and subspecies) */
-	@IsOptionalBoolean() onlySpecies?: boolean = false;
+	@IsOptionalBoolean() species?: boolean;
 
 	/**
 	 * true: Will include only finnish taxa.
