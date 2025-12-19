@@ -56,17 +56,17 @@ export class TriplestoreService {
 
 	/** Get a resource from triplestore */
 	async get<T>(resource: string, options?: TriplestoreQueryOptions, type?: string): Promise<T> {
-		const { cache, ...restClientOptions } = options || {};
+		const { cache } = options || {};
 		if (cache) {
-			const cached = await this.cache.get<T>(getPathAndQuery(resource));
+			const cached = await this.cache.get<SWRCacheEntry<T>>(getPathAndQuery(resource));
 			if (cached) {
-				return cached;
+				return cached.data;
 			}
 		}
 		return this.rdfToJsonLd<T>(
 			this.triplestoreClient.get(resource, { params: { ...baseQuery, ...(type ? { type } : { }) } }),
 			getPathAndQuery(resource),
-			restClientOptions
+			options
 		);
 	}
 
@@ -75,38 +75,38 @@ export class TriplestoreService {
 		cache: TriplestoreQueryOptions["cache"],
 		createAndCacheRequest: () => Promise<S>
 	): Promise<S> {
-		if (cache) {
-			const staleWhileRevalidateEntry = await this.cache.get<SWRCacheEntry<S>>(
-				getPathAndQuery("search", query)
-			);
-			if (staleWhileRevalidateEntry
-				&& typeof cache === "number"
-				&& staleWhileRevalidateEntry.timestamp + cache > Date.now()
-			) {
-				void createAndCacheRequest();
-				return staleWhileRevalidateEntry.data;
-			}
+		if (!cache) {
+			return createAndCacheRequest();
 		}
-		return createAndCacheRequest();
+		const staleWhileRevalidateEntry = await this.cache.get<SWRCacheEntry<S>>(
+			getPathAndQuery("search", query)
+		);
+		if (!staleWhileRevalidateEntry) {
+			return createAndCacheRequest();
+		}
+		
+		// cache === true would be cached without TTL, hence never stale.
+		if (cache === true) {
+			return staleWhileRevalidateEntry.data;
+		}
+
+		const isFresh = staleWhileRevalidateEntry.timestamp + cache > Date.now();
+		if (!isFresh) {
+			void createAndCacheRequest();
+		}
+		return staleWhileRevalidateEntry.data;
 	}
 
 	/** * Find multple resources from triplestore */
 	async find<T extends MaybeContextual>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
 		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
-		const { cache, ...restClientOptions } = options || {};
-		if (cache) {
-			const cached = await this.cache.get<RemoteContextual<T>[]>(getPathAndQuery("search", query));
-			if (cached) {
-				return cached;
-			}
-		}
-
+		const { cache } = options || {};
 		return this.findWithStaleWhileRevalidate(query, cache, async () =>
 			asArray(await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
 				this.triplestoreClient.get("search", { params: query }),
 				getPathAndQuery("search", query),
-				restClientOptions
+				options
 			))
 		);
 	}
