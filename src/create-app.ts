@@ -230,6 +230,7 @@ const createErrorResponseSwaggerForStatus = (status: number) => ({
 	status,
 	schema: { type: "object", properties: {
 		errorCode: { type: "string" },
-		message: { type: "string" }
+		message: { type: "string" },
+		localized: { type: "boolean" }
 	} } }
 );
