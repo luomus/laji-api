@@ -150,7 +150,7 @@ Also, `POST /documents` and `PUT /documents` can return validation exceptions. T
 
 The new API's /taxa endpoints introduce many breaking changes. Key design changes in the API include:
 
-* All query parameters used for filtering are now moved to the request body, which must be named `filters`.
+* All query parameters used for filtering are now moved to the request body.
 * Data can now be filtered using any property from the response model. (The old filter query parameters only allowed filtering by a limited set of fields.)
 * Old filter parameter names are no longer supported. Use the corresponding property names from the model. For example, `informalGroupFilters` -> `informalTaxonGroups`
 * Aggregate queries have been moved to their own endpoints: for example  `/taxa/{id}/species/aggregate`.
@@ -199,14 +199,15 @@ The API swagger documents the filters:
 > - **array of strings**: Filters by multiple string values using an "OR" operator. The exclamation mark (!) syntax is also supported.
 > 
 > 
-> Example for syntax:
+> Examples:
 >
 > ```
 > {
 >   "species": true,                               // Matches taxa that have "species": true
->   "informalTaxonGroups": "MVL.1,!MVL.2",         // Matches taxa with informalTaxonGoup MVL.1 but not MVL.2
+>   "informalTaxonGroups": "MVL.1",                // Matches taxa with informalTaxonGoup MVL.1
+>   "informalTaxonGroups": ["MVL.1","!MVL.2"],     // Matches taxa with informalTaxonGoup MVL.1 but not MVL.2
 >   "multimedia.author": "somebody",               // Matches taxa with any multimedia item having author "somebody"
->   "taxonRank": ["MX.genus", "MX.subGenus"]       // Matches taxa that are of rank genus or sub-genus
+>   "taxonRank": ["MX.genus", "MX.subGenus"],      // Matches taxa that are of rank genus or sub-genus
 >   "secureLevel": "!MX.secureLevelNoShow"         // Matches everything but taxa with MX.secureLevelNoShow
 > }
 > ```
