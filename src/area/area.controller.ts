@@ -31,7 +31,7 @@ export class AreaController {
 		let typeQName: AreaTypeDto | undefined = areaType;
 		if (!typeQName && type) {
 			if (request.headers["api-version"] === "1"){
-				throw new HttpException("'type' param is deprecated for API v1. Use `areaType` instead", 422)
+				throw new HttpException("'type' param is deprecated for API v1. Use `areaType` instead", 422);
 			}
 			const maybeValidQName = `ML.${type}`;
 			if (Object.values(AreaTypeDto).includes(maybeValidQName as AreaTypeDto)) {

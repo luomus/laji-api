@@ -41,26 +41,16 @@ export class GetDocumentsDto extends IntersectionType(
 	@CommaSeparatedStrings() selectedFields?: (keyof Document)[];
 }
 
+// TODO to be removed
 export enum ValidationErrorFormat {
-	remote = "remote", // TODO to be removed
+	remote = "remote",
 	object = "object",
 	jsonPointer = "jsonPointer",
-	jsonPath = "jsonPath", // TODO to be removed
+	jsonPath = "jsonPath",
 	dotNotation = "dotNotation"
 }
 
-class HasValidationErrorFormat {
-	/** Format of validation error details */
-	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.object;
-}
-
-export class CreateDocumentDto extends IntersectionType(
-	HasValidationErrorFormat
-) { }
-
-export class UpdateDocumentDto extends IntersectionType(
-	HasValidationErrorFormat
-) {
+export class UpdateDocumentDto {
 	/** Skip validations. Only available for the importer token */
 	@IsOptionalBoolean() skipValidations?: boolean = false;
 }
@@ -159,13 +149,9 @@ export class ValidateQueryDto {
 
 	/** Run validators of this type */
 	type?: ValidationType = ValidationType.error;
-
-	/** Format of validation error details */
-	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.object;
 }
 
 export class BatchJobQueryDto {
-	validationErrorFormat?: ValidationErrorFormat = ValidationErrorFormat.object;
 	publicityRestrictions?: PublicityRestrictions;
 	dataOrigin?: DataOrigin;
 }

@@ -1,10 +1,11 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.service";
 import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query } from "@nestjs/common";
-import { BatchJobQueryDto, CreateDocumentDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto,
-	isSecondaryDocument, isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument,
-	SecondaryDocumentOperation, StatisticsResponse, ValidateQueryDto, ValidationErrorFormat,
-	BatchJobValidationStatusResponse, ValidationStrategy, isBatchJobDto, UpdateDocumentDto
+import {
+	BatchJobQueryDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto, isSecondaryDocument,
+	isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument, SecondaryDocumentOperation,
+	StatisticsResponse, ValidateQueryDto, ValidationErrorFormat, BatchJobValidationStatusResponse,
+	ValidationStrategy, isBatchJobDto, UpdateDocumentDto
 } from "./documents.dto";
 import { PaginatedDto } from "src/pagination.utils";
 import { Document } from "@luomus/laji-schema";
@@ -69,10 +70,11 @@ export class DocumentsController {
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
-		@Query() { validationErrorFormat = ValidationErrorFormat.object }: BatchJobQueryDto,
+		@Query() query: BatchJobQueryDto,
 		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
+		const  { validationErrorFormat = ValidationErrorFormat.object } = query as any;
 		return this.documentsBatchService.getStatus(jobID, person, validationErrorFormat, lang);
 	}
 
@@ -83,14 +85,15 @@ export class DocumentsController {
 	@HttpCode(200)
 	async completeBatchJob(
 		@Param("jobID") jobID: string,
-		@Query() {
-				validationErrorFormat = ValidationErrorFormat.object,
-				publicityRestrictions,
-				dataOrigin
-			}: BatchJobQueryDto,
+		@Query() query: BatchJobQueryDto,
 		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
+		const {
+			publicityRestrictions,
+			dataOrigin,
+			validationErrorFormat = ValidationErrorFormat.object
+		} = query as any;
 		return this.documentsBatchService.complete(
 			jobID,
 			person,
@@ -144,7 +147,7 @@ export class DocumentsController {
 		@RequestLang() lang: Lang,
 		@RequestPerson({ required: false }) person?: Person
 	): Promise<unknown> {
-		const { validator, validationErrorFormat, type } = query;
+		const { validator, validationErrorFormat = ValidationErrorFormat.object, type } = query as any;
 		if (validator) {
 			return this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
@@ -162,9 +165,7 @@ export class DocumentsController {
 			return this.documentsBatchService.getStatus(
 				document.id,
 				person,
-				 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-				// typings bit awkward.
-				validationErrorFormat!,
+				validationErrorFormat,
 				lang
 			);
 		}
@@ -238,7 +239,7 @@ export class DocumentsController {
 	@SwaggerRemoteRef({ source: "store", ref: "/document" })
 	async create(
 		@Body() document: Document,
-		@Query() { validationErrorFormat }: CreateDocumentDto,
+		@Query() query: any,
 		@ApiUser() apiUser: ApiUserEntity,
 		@RequestLang() lang: Lang,
 		@RequestPerson({ required: false }) person?: Person
@@ -247,6 +248,7 @@ export class DocumentsController {
 			if (!person) {
 				throw new HttpException("Can't do batch update without a person token", 422);
 			}
+			const { validationErrorFormat = ValidationErrorFormat.object } = query;
 			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
 			// 	// typings a bit awkward.
 			return this.documentsBatchService.complete(

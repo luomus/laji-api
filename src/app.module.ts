@@ -1,6 +1,6 @@
 import { HttpModule } from "@nestjs/axios";
 import { Module, ValidationPipe } from "@nestjs/common";
-import { ConfigModule} from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
