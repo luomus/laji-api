@@ -7,7 +7,7 @@ import {
 	StatisticsResponse, ValidateQueryDto, ValidationErrorFormat, BatchJobValidationStatusResponse,
 	ValidationStrategy, isBatchJobDto, UpdateDocumentDto
 } from "./documents.dto";
-import { PaginatedDto } from "src/pagination.utils";
+import { PaginatedDto } from "src/pagination.dto";
 import { Document } from "@luomus/laji-schema";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";
@@ -135,7 +135,7 @@ export class DocumentsController {
 					properties: {
 						errorCode: { type: "string" },
 						message: { type: "string" }
-					} 
+					}
 				}
 			]
 		}

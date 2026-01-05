@@ -3,7 +3,7 @@ import { AnnotationsService } from "./annotations.service";
 import { GetAnnotationsDto } from "./annotations.dto";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
-import { PaginatedDto } from "src/pagination.utils";
+import { PaginatedDto } from "src/pagination.dto";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { Annotation } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";

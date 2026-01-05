@@ -2,22 +2,7 @@ import { HasJsonLdContext } from "src/common.dto";
 import { MaybePromise, isObject, omitForKeys } from "src/typing.utils";
 import { pipe } from "src/utils";
 import { getJsonLdContextFromSample } from "./json-ld/json-ld.utils";
-
-export class PaginatedDto<T> {
-	currentPage: number;
-	pageSize: number;
-	total: number;
-	lastPage: number;
-	prevPage?: number;
-	nextPage?: number;
-	results: T[];
-	"@context": string;
-}
-
-export class ResultsArrayDto<T> {
-	results: T[];
-	"@context": string;
-}
+import { PaginatedDto } from "./pagination.dto";
 
 export const isPaginatedDto = <T>(maybePaginated: unknown): maybePaginated is PaginatedDto<T> =>
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]

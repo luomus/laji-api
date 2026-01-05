@@ -1,6 +1,7 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
-import { getAllFromPagedResource, paginateAlreadyPaginated, PaginatedDto } from "src/pagination.utils";
+import { getAllFromPagedResource, paginateAlreadyPaginated } from "src/pagination.utils";
 import { JSONObjectSerializable, KeyOf, MaybeArray, hasKey, omitForKeys } from "src/typing.utils";
+import { PaginatedDto } from "src/pagination.dto";
 import { parseQuery, Query } from "./store-query";
 import { asArray, doForDefined, getCacheTTL } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";

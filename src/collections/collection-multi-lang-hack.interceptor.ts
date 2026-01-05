@@ -4,7 +4,8 @@ import { Request } from "express";
 import { Collection } from "./collection.dto";
 import { dictionarify } from "src/utils";
 import { Lang, pickFromMultiLang } from "src/common.dto";
-import { PaginatedDto, isPaginatedDto } from "src/pagination.utils";
+import { isPaginatedDto } from "src/pagination.utils";
+import { PaginatedDto } from "src/pagination.dto";
 
 const notReallyMultiLangKeys = dictionarify([
 	"temporalCoverage", "taxonomicCoverage", "collectionLocation",
