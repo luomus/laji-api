@@ -20,7 +20,7 @@ Note that access tokens are not read from a remote source, but a local file inst
  
 The app can be ran inside a docker, or directly on the host machine.
 
-#### Docker (recommended)
+#### Docker
 
 Use `docker` to build & start the app:
 
@@ -28,7 +28,7 @@ Use `docker` to build & start the app:
 npm run docker
 ```
 
-*Hint:* The docker container runs any npm script, `start:dev` being the default. You can run other scripts like so:
+*Hint*: The docker container runs any npm script, `start:dev` being the default. You can run other scripts like so:
 
 ```bash
 npm run docker -- test:e2e
@@ -39,7 +39,7 @@ npm run docker -- test:e2e
 Install the dependencies:
 
 ```bash
-$ npm ci
+npm ci
 ```
 
 Install the following:
@@ -50,16 +50,13 @@ Install the following:
 ##### Running
 
 1. Start Redis
-2. 
-```bash
-$ npm run start:dev
-```
+2. `npm run start:dev`
 
 The app will be running at http://localhost:3004
 
 ### Test
 
-Hint: The npm command works also with the aforementioned Docker container. These examples run `npm` directly for simplicity.
+*Hint*: The npm command works also with the aforementioned Docker container. These examples run `npm` directly for simplicity.
 
 #### Unit tests
 
@@ -84,13 +81,13 @@ Currently we rely on the e2e tests from the old api. Fill in `e2e/config.json` a
 With Docker:
 
 ```bash
-$ npm run docker -- test:e2e
+npm run docker -- test:e2e
 ```
 
 Without Docker:
 
 ```bash
-$ npm run test:e2e
+npm run test:e2e
 ```
 
 ## Contact
