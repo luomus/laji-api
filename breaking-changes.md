@@ -157,7 +157,7 @@ The new API's /taxa endpoints bring many breaking changes. Main design changes i
 * All query parameters that affect filtering are moved to the request body. The body is called "filters". Filtering can be now done by any property.
 * Aggregate queries are separated to their own endpoints (`/aggregate`)
 * Old filter parameter names are no longer supported. Use the actual property names from the model. For example `informalGroupFilters` -> `informalTaxonGroups`
-* Name fields ("vernacularName" etc) are served also as multi-lang ("vernacularNameMultiLang"), so the translations can be shown even though `lang` param isn't `multi`
+* Name fields (`"vernacularName`" etc) are served also as multi-lang (`"vernacularNameMultiLang"`), so the translations can be shown even though `lang` param isn't `multi`
 
 Here's the list of all parameters moved from request query parameters to the body:
 
@@ -278,4 +278,4 @@ The API swagger documents the filters like so:
 
 ### API User
 
-* `/api-users -> `/api-user`
+* `/api-users` -> `/api-user`
