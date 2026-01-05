@@ -4,7 +4,8 @@ import { PersonTokenService } from "src/authentication-event/authentication-even
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CACHE_1_D, CACHE_5_MIN, promisePipe } from "src/utils";
+import { CACHE_1_D, CACHE_5_MIN, LocalizedException, promisePipe } from "src/utils";
+import { PersonTokenInfo } from "src/authentication-event/authentication-event.dto";
 
 @Injectable()
 export class PersonsService {
@@ -19,7 +20,13 @@ export class PersonsService {
 			return ImporterPerson;
 		}
 
-		const { personId } = await this.personTokenService.getInfo(personToken);
+		let info: PersonTokenInfo;
+		try {
+			info = await this.personTokenService.getInfo(personToken);
+		} catch (e) {
+			throw new LocalizedException("PERSON_TOKEN_IS_INVALID", e.response.status);
+		}
+		const { personId } = info;
 		if (personId === null) {
 			throw new HttpException("No personId found for personToken", 404);
 		}

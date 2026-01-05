@@ -28,7 +28,7 @@ export class OrganizationsService {
 
 	@IntelligentMemoize()
 	getAll() {
-		return this.triplestoreService.find<Organization>({ type: "MOS.organization" });
+		return this.triplestoreService.find<Organization>({ type: "MOS.organization" }, { cache: CACHE_1_H });
 	}
 
 	@IntelligentMemoize()

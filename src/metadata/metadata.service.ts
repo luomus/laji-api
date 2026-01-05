@@ -18,7 +18,7 @@ type DomainsToClassProperties = { [domain: string]: ClassProperties };
 export class MetadataService {
 	constructor(
 		@Inject(TRIPLESTORE_CLIENT) private triplestoreRestClient: RestClientService<unknown>,
-		// (It's used by @Cache())
+		// (It's used by @RedisMemoize())
 		// eslint-disable-next-line no-unused-vars
 		private cache: RedisCacheService,
 		private langService: LangService
@@ -134,7 +134,7 @@ export class MetadataService {
 		return addLocalJsonLdContext("metadata-alt")(translatedAlts);
 	}
 
-	/** Get a property map for a domain. */
+	/** Get a property lookup table for a domain. */
 	async getPropertiesForJsonLdContext(jsonLdContext: string) {
 		const className = MetadataService.parseClassNameFromJsonLdContext(jsonLdContext);
 		const properties = (await this.getDomainToProperties())[className];

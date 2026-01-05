@@ -71,13 +71,14 @@ describe("/documents/validate", function() {
 			.send(document);
 		res.should.have.status(422);
 		res.body.should.be.deep.equal({
-			"details": {
+			details: {
 				"/gatheringEvent/dateBegin": [
 					"Observation already exists within the given gathering period."
 				]
 			},
-			"message": "Validation exception",
-			"errorCode": "VALIDATION_EXCEPTION"
+			message: "Validation exception",
+			errorCode: "VALIDATION_EXCEPTION",
+			localized: true
 		});
 	});
 
@@ -194,13 +195,14 @@ describe("/documents/validate", function() {
 				.send(document);
 			res.should.have.status(422);
 			res.body.should.be.deep.equal({
-				"details": {
+				details: {
 					"/gatherings/0/units/0/unitFact/autocompleteSelectedTaxonID": [
 						"Taxon does not belong to given informal taxon groups."
 					]
 				},
-				"message": "Validation exception",
-				"errorCode": "VALIDATION_EXCEPTION"
+				message: "Validation exception",
+				errorCode: "VALIDATION_EXCEPTION",
+				localized: true
 			});
 		});
 
@@ -242,13 +244,14 @@ describe("/documents/validate", function() {
 				.send(document);
 			res.should.have.status(422);
 			res.body.should.be.deep.equal({
-				"details": {
+				details: {
 					"/gatherings/0/units/1/unitFact/autocompleteSelectedTaxonID": [
 						"Taxon does not belong to given informal taxon groups."
 					]
 				},
-				"message": "Validation exception",
-				"errorCode": "VALIDATION_EXCEPTION"
+				message: "Validation exception",
+				errorCode: "VALIDATION_EXCEPTION",
+				localized: true
 			});
 		});
 	});
@@ -285,13 +288,14 @@ describe("/documents/validate", function() {
 				.send(document);
 			res.should.have.status(422);
 			res.body.should.be.deep.equal({
-				"details": {
+				details: {
 					"/geometry": [
 						"There already exists a named place in that location"
 					]
 				},
-				"message": "Validation exception",
-				"errorCode": "VALIDATION_EXCEPTION"
+				message: "Validation exception",
+				errorCode: "VALIDATION_EXCEPTION",
+				localized: true
 			});
 		});
 	});

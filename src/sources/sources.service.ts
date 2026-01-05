@@ -41,7 +41,7 @@ export class SourcesService {
 	}
 
 	@IntelligentMemoize()
-	private async getAll() {
+	private getAll() {
 		return this.triplestoreService.find<InformationSystem>(
 			{ type: "KE.informationSystem", predicate: "KE.isWarehouseSource", objectliteral: "true" },
 			{ cache: CACHE_30_MIN }

@@ -27,6 +27,6 @@ describe("/login", function() {
 			.post(url("/login/check", { tmpToken }));
 
 		res.should.have.status(404);
-		res.body.should.have.property("code").that.is.a("string");
+		res.body.should.have.property("errorCode").that.is.a("string");
 	});
 });

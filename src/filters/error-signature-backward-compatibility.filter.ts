@@ -19,6 +19,7 @@ export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends 
 		} else if ((exception as any).errorCode) {
 			json = {
 				message: exception.message,
+				localized: !!(exception as any).localized,
 				details: (exception as any).details,
 				errorCode: (exception as any).errorCode,
 			};

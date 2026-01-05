@@ -30,9 +30,9 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 	// Make a `onApplicationBootstrap()` method that warms up by calling the `warmup()` method.
 	const originalOnApplicationBootstrap = target.prototype.onApplicationBootstrap;
 	target.prototype.onApplicationBootstrap = async function() {
-		logger.log("Warming up");
+		const start = Date.now();
 		await target.prototype.warmup.call(this);
-		logger.log("Warming up in background completed");
+		logger.log(`Warming up in background completed [${Date.now() - start}ms]`);
 		originalOnApplicationBootstrap?.call(this);
 	};
 };

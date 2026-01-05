@@ -82,7 +82,8 @@ curl https://api.laji.fi/taxa -H 'Accept-Language: fi'
 
 ## Errors
 
-Previously, errors were wrapped inside an `errors` object in the response body. Errors are now returned directly at the top level of the response body.
+* Previously, errors were wrapped inside an `errors` object in the response body. Errors are now returned directly at the top level of the response body.
+* Previously status code was in the JSON response. It's not included anymore; use the actual HTTP response's status code instead.
 
 What used to be:
 
@@ -91,7 +92,7 @@ What used to be:
 	"error": {
 		"statusCode": 422,
 		"name": "Error",
-		"message": "UserID cannot be changed"
+		"message": "Your login is not valid. Please log out and log in again."
 	}
 }
 ```
@@ -99,15 +100,16 @@ is now:
 
 ```
 {
-	"statusCode": 422,
-	"message": "userID cannot be updated by this method"
+	"message":"Your login is not valid. Please log out and log in again.",
+	"errorCode":"PERSON_TOKEN_IS_INVALID",
+	"localized":true
 }
 ```
 
 ### Hint
 
 * Errors include an `errorCode` that allows clients to identify the type of error.
-* Some error messages are localized and provided in the `localizedMessage` property. These messages are intended for end users and can be displayed directly.
+* Some errors messages are localized. Localized errors have property `localized: true`. These messages are intended for end users and can be displayed directly.
 
 ## Endpoints
 
@@ -290,4 +292,4 @@ The following filters have been renamed (these changes also apply to `/taxa/sear
 
 ### API User
 
-* `/api-users -> `/api-user`
+* `/api-users` -> `/api-user`

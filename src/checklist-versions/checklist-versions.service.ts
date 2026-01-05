@@ -38,7 +38,7 @@ export class ChecklistVersionsService {
 	private getAll() {
 		return this.triplestoreService.find<ChecklistVersion>({
 			type: "MR.checklistVersion",
-		});
+		}, { cache: CACHE_30_MIN });
 	}
 
 	@IntelligentMemoize()

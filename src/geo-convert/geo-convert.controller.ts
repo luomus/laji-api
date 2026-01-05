@@ -6,7 +6,7 @@ import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-bo
 import { NextFunction, Request, Response } from "express";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { DownloadRequest } from "@luomus/laji-schema/models";
-import { firstFromNonEmptyArr, joinOnlyStringsWith, lastFromNonEmptyArr } from "src/utils";
+import { CACHE_30_MIN, firstFromNonEmptyArr, joinOnlyStringsWith, lastFromNonEmptyArr } from "src/utils";
 import { MergesRemoteSwagger, RemoteSwaggerMerge, patchSwaggerWith }
 	from "src/decorators/remote-swagger-merge.decorator";
 import { RestClientService } from "src/rest-client/rest-client.service";
@@ -93,7 +93,11 @@ export class GeoConvertController implements MergesRemoteSwagger {
 	}
 
 	fetchSwagger() {
-		return this.globalClient.get<OpenAPIObject>(`${this.config.get<string>("GEOCONVERT_HOST")}/openapi.json`);
+		return this.globalClient.get<OpenAPIObject>(
+			`${this.config.get<string>("GEOCONVERT_HOST")}/openapi.json`,
+			undefined,
+			{ cache: CACHE_30_MIN }
+		);
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {
