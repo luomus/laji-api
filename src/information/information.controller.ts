@@ -5,7 +5,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { Lang } from "src/common.dto";
 
-@ApiTags("Informations")
+@ApiTags("Information")
 @LajiApiController("information")
 export class InformationController {
 
