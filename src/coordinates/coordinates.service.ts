@@ -24,7 +24,9 @@ export class CoordinatesService {
 					types: _type ? [_type] : []
 				}],
 				formatted_address: _type === "biogeographicalProvince"
-					? `${descriptionTranslated} (${nameTranslated})`
+					? descriptionTranslated && nameTranslated
+						? `${descriptionTranslated} (${nameTranslated})`
+						: descriptionTranslated
 					: nameTranslated,
 				place_id: qname,
 				types: _type ? [_type] : []
@@ -79,7 +81,7 @@ const makeGeometryESFriendly = (geometry: GeoJSON): GeoJSON => {
 				coordinates: convex(geometry)?.geometry.coordinates || [[]]
 			};
 		} else if (geometry.type === "GeometryCollection" && Array.isArray(geometry.geometries)) {
-			return { 
+			return {
 				...geometry,
 				geometries: geometry.geometries.map(geom => makeGeometryESFriendly(geom))
 			} as GeometryCollection;
