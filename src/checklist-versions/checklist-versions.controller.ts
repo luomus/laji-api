@@ -16,7 +16,7 @@ export class ChecklistVersionsController {
 	/** Get a checklist by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/checklist" })
+	@SwaggerRemoteRef({ source: "store", ref: "/checklistVersion" })
 	get(@Param("id") id: string) {
 		return this.checklistService.get(id);
 	}
@@ -24,7 +24,7 @@ export class ChecklistVersionsController {
 	/** Get a page of checklists */
 	@Get()
 	@UseInterceptors(Paginator, Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/checklist" })
+	@SwaggerRemoteRef({ source: "store", ref: "/checklistVersion" })
 	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
 		return this.checklistService.find(idIn);
 	}
