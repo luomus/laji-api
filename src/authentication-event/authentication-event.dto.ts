@@ -6,8 +6,8 @@ export interface LajiAuthPersonGet {
 	target: string;
 }
 
-export interface PersonTokenInfo {
-	personId: string | null;
+export class PersonTokenInfo {
+	personId: string;
 	next: string;
 	target: string;
 }
