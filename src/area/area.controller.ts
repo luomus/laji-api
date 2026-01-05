@@ -14,7 +14,7 @@ export class AreaController {
 
 	constructor(private areaService: AreaService) {}
 
-	/** Get a page of areas */
+	/** Get an area by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/area" })
@@ -22,7 +22,7 @@ export class AreaController {
 		return this.areaService.get(id);
 	}
 
-	/** Get an areas by id */
+	/** Get a page of areas */
 	@Get()
 	@UseInterceptors(Paginator, Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/area" })
