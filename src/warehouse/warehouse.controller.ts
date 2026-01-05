@@ -48,6 +48,6 @@ export class WarehouseController implements MergesRemoteSwagger {
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {
-		return patchSwaggerWith(undefined, "/warehouse")(document, remoteDoc);
+		return patchSwaggerWith(undefined, "/warehouse", undefined, "Warehouse")(document, remoteDoc);
 	};
 }

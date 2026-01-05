@@ -101,6 +101,6 @@ export class GeoConvertController implements MergesRemoteSwagger {
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {
-		return patchSwaggerWith(undefined, "geo-convert", "GeoConvert")(document, remoteDoc);
+		return patchSwaggerWith(undefined, "geo-convert", "GeoConvert", "GeoConvert")(document, remoteDoc);
 	};
 }

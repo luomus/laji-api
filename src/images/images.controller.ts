@@ -47,6 +47,7 @@ export class ImagesController {
 	/** Get image by id */
 	@Get(":id")
 	@UseInterceptors(Serializer(Image))
+	@ApiOkResponse({ type: Image })
 	get(
 		@Param("id") id: string,
 		@RequestPerson({ required: false }) person?: Person

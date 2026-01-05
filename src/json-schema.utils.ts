@@ -66,7 +66,7 @@ export function isJSONSchemaEnum(jsonSchema: JSONSchema): jsonSchema is JSONSche
 
 export type JSONSchemaRef = { $ref: string };
 
-export function isJSONSchemaRef(jsonSchema: JSONSchema): jsonSchema is JSONSchemaRef {
+export function isJSONSchemaRef(jsonSchema: object): jsonSchema is JSONSchemaRef {
 	return !!(jsonSchema as any).$ref;
 }
 

@@ -1,6 +1,7 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
-import { PathsObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { PathsObject, ResponseObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { isJSONSchemaRef } from "src/json-schema.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
 export type FetchSwagger = () => Promise<OpenAPIObject>;
@@ -39,7 +40,7 @@ export abstract class MergesRemoteSwagger {
 	abstract fetchSwagger: FetchSwagger;
 }
 
-export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", tag?: string) =>
+export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", tag?: string, modelPrefix?: string) =>
 	(document: OpenAPIObject, remoteDocument: OpenAPIObject): OpenAPIObject => {
 		const remotePaths = Object.keys(remoteDocument.paths).reduce((paths, p) => {
 			if (typeof pathMatcher === "string" && !p.startsWith(pathMatcher)) {
@@ -55,6 +56,18 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				if (tag) {
 					operation.tags = [tag];
 				}
+				if (modelPrefix && operation.responses) {
+					for (const statusCode of Object.keys(operation.responses)) {
+						const modelSchema =
+							(operation.responses[statusCode] as ResponseObject)!.content?.["application/json"]?.schema;
+						if (!modelSchema || !isJSONSchemaRef(modelSchema)) {
+							continue;
+						}
+						const uriFragments = modelSchema.$ref.split("/");
+						const last = uriFragments.pop() as string;
+						modelSchema.$ref = [...uriFragments, modelPrefix + last].join("/");
+					}
+				}
 			}
 			paths[pathPrefix + p] = pathItem;
 			return paths;
@@ -63,9 +76,19 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 			...document.paths,
 			...remotePaths
 		};
-		document.components!.schemas = {
-			...document.components!.schemas,
-			...remoteDocument.components!.schemas
-		};
+		if (!modelPrefix) {
+			document.components!.schemas = {
+				...document.components!.schemas,
+				...remoteDocument.components!.schemas
+			};
+		} else { 
+			document.components!.schemas = {
+				...document.components!.schemas,
+				...Object.keys(remoteDocument.components!.schemas!).reduce((schemas, name) => {
+					(schemas as any)[modelPrefix + name] = remoteDocument.components!.schemas![name];
+					return schemas;
+				}, {})
+			};
+		}
 		return document;
 	};
