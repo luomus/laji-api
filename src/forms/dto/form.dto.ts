@@ -1,4 +1,4 @@
-import { Lang, QueryWithPagingDto } from "src/common.dto";
+import { QueryWithPagingDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { JSONSchemaObject } from "src/json-schema.utils";
