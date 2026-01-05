@@ -17,7 +17,7 @@ export enum ChecklistVersion {
 }
 
 export class TaxaBaseQuery {
-	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
+	/** Include taxa from the specified checklists (defaults to FinBIF master checklist) */
 	@CommaSeparatedStrings() checklist?: string[] = ["MR.1"];
 
 	/** Checklist version to be used. Defaults to the latest version. */
@@ -167,34 +167,37 @@ export class TaxaSearchDto {
 	// Used only internally
 	@ApiHideProperty() q?: string;
 
-	/** Limit the size of results */
+	/** Limit the number of results */
 	limit?: number = 10;
 
 	// Used only internally
 	@ApiHideProperty() id?: string;
 
-	/** Search taxon from specified checklist (defaults to FinBIF master checklist) */
+	/** Include taxa from the specified checklists (defaults to FinBIF master checklist) */
 	checklist?: string;
 
 	/** Filter based on taxon set(s). Multiple values are separated by a comma (,) */
 	taxonSets?: string;
 
-	/** Search taxa from specified informal taxon group(s). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively */
+	/** Search taxa from specified informal taxon group(s). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively. */
 	informalTaxonGroups?: string;
 
 	/** Include hidden taxa in the response */
 	includeHidden?: boolean = false;
 
-	/** Matching names have a type (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively */
+	/** Filter by type of the matching name (e.g., MX.vernacularName, MX.hasMisappliedName). Multiple values are separated by a comma (,). An exclamation mark in the beginning of a matches exclusively. */
 	nameTypes?: string;
 
-	/** Filter based on language of the matching name. Multiple values are separated by a comma (,) */
+	/** Filters by the language of the matching name. Multiple values can be specified, separated by commas (,). This applies only to name types that are available in multiple languages (e.g., MX.vernacularName) and does not apply to scientific names. */
 	languages?: string;
 
 	/** Default: All match types; exact = exact matches, partial = partially matching, likely = fuzzy matching. Multiple values are separated by a comma (,) */
 	matchType?: string;
 
-	/** Filter to include only species (and subspecies) */
+	/** 
+	 * true: Will include only "lower taxa" (species, subspecies, aggregates, ...)
+	 * false: Will only include "higher taxa" (genus and above)
+	 * */
 	@IsOptionalBoolean() species?: boolean;
 
 	/**
