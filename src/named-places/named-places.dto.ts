@@ -58,7 +58,7 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	/** Filter by tags. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() tags?: string[];
 
-	/** Include public named places (used only when personToken is given). Defaults to true. */
+	/** Include public named places (used only when Person-Token is given). Defaults to true. */
 	@IsOptionalBoolean() includePublic?: boolean = true;
 
 	/** Include units in prepopulated and accepted documents (only form forms with 'MHL.includeUnits' true). Defaults to false. */

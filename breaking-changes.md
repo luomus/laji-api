@@ -293,3 +293,7 @@ The following filters have been renamed (these changes also apply to `/taxa/sear
 ### API User
 
 * `/api-users` -> `/api-user`
+
+### Organizations
+
+* `/organization/by-id/{id}` -> `/organizations/{id}`
