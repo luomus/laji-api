@@ -1,6 +1,6 @@
 import { Get, Post, Body, Param, Delete, Put, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FormsService } from "./forms.service";
-import { Form, Format, GetDto, TransformDto } from "./dto/form.dto";
+import { Form, Format, GetDto } from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang } from "src/common.dto";
@@ -38,7 +38,11 @@ export class FormsController {
 	/** Get a form by id */
 	@Get(":id")
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	getOne(@Param("id") id: string, @Query() { format = Format.schema, lang = Lang.en, expand = true }: GetDto) {
+	getOne(
+		@Param("id") id: string,
+		@Query() { format = Format.schema, expand = true }: GetDto,
+		@RequestLang() lang: Lang
+	) {
 		return this.formsService.get(id, format, lang, expand);
 	}
 
@@ -69,7 +73,7 @@ export class FormsController {
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemoteRef({ source: "store", ref: "/form" })
-	transform(@Body() form: Form, @Query() { lang = Lang.en }: TransformDto) {
+	transform(@Body() form: Form, @RequestLang() lang: Lang) {
 		return this.formsService.transform(form, lang);
 	}
 }

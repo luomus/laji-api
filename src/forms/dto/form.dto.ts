@@ -69,26 +69,12 @@ export type FormListing = Pick<Form & {
 
 export class GetDto {
 	format?: Format = Format.schema;
-	/**
-	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will
-	 * contain language objects. Defaults to 'en'
-	 */
-	lang?: Lang = Lang.en;
 	/** Expand response */
 	expand?: boolean = true;
 }
 
 export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingDto {
-	lang?: Lang = Lang.en;
 	pageSize?: number = 1000;
-}
-
-export class TransformDto {
-	/**
-	 * Language of fields that have multiple languages. If multi is selected fields that can have multiple languages will
-	 * contain language objects. Defaults to 'en'
-	 */
-	lang?: Lang = Lang.en;
 }
 
 export type Hashed<T> = T & { "$id": string }
