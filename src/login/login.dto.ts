@@ -1,3 +1,4 @@
+import { IntersectionType } from "@nestjs/swagger";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
 export class GetTmpTokenQueryDto {
@@ -6,4 +7,12 @@ export class GetTmpTokenQueryDto {
 
 export class CheckTmpTokenQueryDto {
 	tmpToken: string;
+}
+
+export class CheckTmpTokenDto {
+	tmpToken: string;
+}
+
+export class GetTmpTokenDto extends IntersectionType(CheckTmpTokenDto) {
+	loginURL?: string;
 }

@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { LajiAuthPersonGet } from "src/authentication-event/authentication-event.dto";
 import { LAJI_AUTH_CLIENT } from "src/provider-tokens";
 import { RestClientService } from "src/rest-client/rest-client.service";
+import { CheckTmpTokenDto, GetTmpTokenDto } from "./login.dto";
 
 @Injectable()
 export class LoginService {
@@ -10,11 +11,14 @@ export class LoginService {
 	) {}
 
 	getTmpToken(accessToken: string, offerPermanent: boolean) {
-		return this.lajiAuthClient.get("app-login", { params: { access_token: accessToken, offerPermanent } });
+		return this.lajiAuthClient.get<GetTmpTokenDto>(
+			"app-login",
+			{ params: { access_token: accessToken, offerPermanent } }
+		);
 	}
 
 	checkTmpToken(accessToken: string, tmpToken: string) {
-		return this.lajiAuthClient.post(
+		return this.lajiAuthClient.post<CheckTmpTokenDto>(
 			"app-login/check",
 			undefined,
 			{ params: { access_token: accessToken, tmpToken } }
