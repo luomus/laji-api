@@ -21,7 +21,7 @@ const fromStoreWithJSONLdContextFixed: SwaggerRemoteRefEntry = {
 export class RedListEvaluationGroupsController {
 	constructor(private redListEvaluationGroupsService: RedListEvaluationGroupsService) {}
 
-	/** Get a page of informal taxon groups */
+	/** Get a page of red list evaluation groups */
 	@Get()
 	@UseInterceptors(Translator, Paginator)
 	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
@@ -29,7 +29,7 @@ export class RedListEvaluationGroupsController {
 		return this.redListEvaluationGroupsService.find(idIn);
 	}
 
-	/** Get the informal taxon group tree */
+	/** Get the red list evaluation group tree */
 	@Get("tree")
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
 	async getTree(@RequestLang() lang: Lang) {
@@ -39,7 +39,7 @@ export class RedListEvaluationGroupsController {
 		}, lang);
 	}
 
-	/** Get first level of the informal taxon group tree */
+	/** Get first level of the red list evaluation group tree */
 	@Get("roots")
 	@UseInterceptors(Translator, ResultsArray)
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
@@ -47,7 +47,7 @@ export class RedListEvaluationGroupsController {
 		return this.redListEvaluationGroupsService.getRoots();
 	}
 
-	/** Get an informal taxon group by id */
+	/** Get an red list evaluation group by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
@@ -55,7 +55,7 @@ export class RedListEvaluationGroupsController {
 		return this.redListEvaluationGroupsService.get(id);
 	}
 
-	/** Get an informal taxon group's immediate children */
+	/** Get an red list evaluation group's immediate children */
 	@Get(":id/children")
 	@UseInterceptors(Translator, ResultsArray)
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
@@ -63,7 +63,7 @@ export class RedListEvaluationGroupsController {
 		return this.redListEvaluationGroupsService.getChildren(id);
 	}
 
-	/** Get informal taxon group's parents */
+	/** Get red list evaluation group's parents */
 	@Get(":id/parent")
 	@UseInterceptors(Translator)
 	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
@@ -71,7 +71,7 @@ export class RedListEvaluationGroupsController {
 		return this.redListEvaluationGroupsService.getParent(id);
 	}
 
-	/** Get informal taxon group's siblings */
+	/** Get red list evaluation group's siblings */
 	@Get(":id/siblings")
 	@UseInterceptors(Translator, ResultsArray)
 	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
