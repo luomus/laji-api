@@ -3,7 +3,7 @@ import { HttpException } from "@nestjs/common";
 import { NamedPlacesService } from "src/named-places/named-places.service";
 import { ValidationException } from "../document-validator.utils";
 import { NamedPlace as _NamedPlace } from "src/named-places/named-places.dto";
-import { PaginatedDto } from "src/pagination.utils";
+import { PaginatedDto } from "src/pagination.dto";
 import { Test, TestingModule } from "@nestjs/testing";
 
 type NamedPlace = Pick<_NamedPlace, "collectionID" | "alternativeIDs"> & {
