@@ -55,10 +55,14 @@ export const IsOptionalBoolean = () => applyDecorators(
 );
 
 export const CommaSeparatedStrings = (delimiter = ",") => applyDecorators(
-	Transform(({ value }: { value: string }) => value.trim().length
-		? value.split(delimiter).filter(id => !!id)
-		: undefined
-	),
+	Transform(({ value }: { value: string | string[] }) => {
+		if (Array.isArray(value)) { // It can be an array if the query parameter is multiple times in the URI.
+			value = value.join(delimiter);
+		}
+		return value.trim().length
+			? value.split(delimiter).filter(id => !!id)
+			: undefined;
+	}),
 	ApiProperty({ type: String, required: false })
 );
 
