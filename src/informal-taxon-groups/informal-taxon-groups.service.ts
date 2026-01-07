@@ -13,6 +13,7 @@ const CACHE_TTL = CACHE_10_MIN;
 
 type InformalTaxonGroup = WithNonNullableKeys<_InformalTaxonGroup, "id" | "@context">
 
+// Red list evaluation groups service is a copy paste from this
 @Injectable()
 @IntelligentInMemoryCache()
 export class InformalTaxonGroupsService {

@@ -13,6 +13,7 @@ const CACHE_TTL = CACHE_10_MIN;
 
 type RedListEvaluationGroup = WithNonNullableKeys<_IucnRedListTaxonGroup, "id" | "@context">
 
+// Copy paste from informal taxon groups service.
 @Injectable()
 @IntelligentInMemoryCache()
 export class RedListEvaluationGroupsService {
