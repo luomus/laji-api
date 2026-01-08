@@ -99,7 +99,8 @@ export class MailService {
 	}
 
 	async sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
-		// Efecte doesn't support HTMl so we can't use a template.
+		// Efecte doesn't support HTML so we can't use a template. The template must be there though, so we use this noop
+		// template. The 'text' argument is in effect here really instead.
 		const message = getFeedbacMessage(
 			feedback,
 			await this.langService.translate(system, Lang.fi),
@@ -117,7 +118,8 @@ export class MailService {
 
 const getFeedbacMessage = (feedback: FeedbackDto, system: MultiLangAsString<InformationSystem>, person?: Person) => {
 	let message = `
-${ feedback.message }}
+
+${ feedback.message }
 =====================`;
 	if (person) {
 		message += `
@@ -128,8 +130,6 @@ ${ person.fullName } (${person.id})
 	}
 	message += `
 ${ feedback.meta }
-
-=====================
 
 ${ system.name } ${ system.URI } (${ system.id })
 `;
