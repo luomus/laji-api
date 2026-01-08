@@ -103,7 +103,7 @@ export class MailService {
 			subject: feedback.subject,
 			template: "./feedback",
 			context: {
-				message: feedback.message,
+				message: feedback.message.replace(/\n/g, "<br>"),
 				meta: feedback.meta,
 				system,
 				person: person ? decoratePerson(person) : undefined
