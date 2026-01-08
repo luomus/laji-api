@@ -99,17 +99,36 @@ export class MailService {
 	}
 
 	async sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
+		// Efecte doesn't support HTMl so we can't use a template.
+		const message = getFeedbacMessage(feedback, system, person);
 		return this.send({
 			to: "lajitietokeskus@helsinki.fi",
 			from: person?.emailAddress,
 			subject: feedback.subject,
-			template: "./feedback",
-			context: {
-				message: feedback.message.replace(/\n/g, "<br>"),
-				meta: feedback.meta,
-				system: await this.langService.translate(system, Lang.fi),
-				person: person ? decoratePerson(person) : undefined
-			}
+			text: message
 		});
 	}
+}
+
+const getFeedbacMessage = (feedback: FeedbackDto, system: InformationSystem, person?: Person) => {
+	let message = `
+{{ message }}
+=====================
+`
+	if (person) {
+		message += `
+
+${ person.fullName } (${person.id})
+
+`;
+	}
+	message += `
+${ feedback.meta }
+
+=====================
+
+${ system.name } ${ system.URI } (${ system.id })
+`;
+
+	return message;
 }

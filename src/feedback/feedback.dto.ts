@@ -7,5 +7,7 @@ export class FeedbackDto {
 }
 
 export type InformationSystem = HasJsonLdContext & {
+	id: string
 	name: MultiLang;
+	URI?: string;
 }
