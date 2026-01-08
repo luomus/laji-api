@@ -117,9 +117,8 @@ export class MailService {
 
 const getFeedbacMessage = (feedback: FeedbackDto, system: MultiLangAsString<InformationSystem>, person?: Person) => {
 	let message = `
-{{ message }}
-=====================
-`;
+${ feedback.message }}
+=====================`;
 	if (person) {
 		message += `
 
