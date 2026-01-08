@@ -2,9 +2,10 @@ import { ISendMailOptions, MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { Person, decoratePerson } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
-import { CompleteMultiLang } from "src/common.dto";
+import { CompleteMultiLang, Lang } from "src/common.dto";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { FeedbackDto, InformationSystem } from "src/feedback/feedback.dto";
+import { LangService } from "src/lang/lang.service";
 type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
 type HasEmailAddress = { emailAddress: string };
@@ -15,7 +16,8 @@ const ERROR_EMAIL = "grp-a97800-errors@helsinki.fi";
 export class MailService {
 	constructor(
 		private mailerService: MailerService,
-		private configService: ConfigService
+		private configService: ConfigService,
+		private langService: LangService
 	) {}
 
 	private send(options: ISendMailOptions) {
@@ -96,7 +98,7 @@ export class MailService {
 		});
 	}
 
-	sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
+	async sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
 		return this.send({
 			to: "lajitietokeskus@helsinki.fi",
 			from: person?.emailAddress,
@@ -105,7 +107,7 @@ export class MailService {
 			context: {
 				message: feedback.message.replace(/\n/g, "<br>"),
 				meta: feedback.meta,
-				system,
+				system: await this.langService.translate(system, Lang.fi),
 				person: person ? decoratePerson(person) : undefined
 			}
 		});

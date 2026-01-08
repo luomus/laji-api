@@ -1,4 +1,4 @@
-import { MultiLang } from "src/common.dto";
+import { HasJsonLdContext, MultiLang } from "src/common.dto";
 
 export class FeedbackDto {
 	subject: string;
@@ -6,6 +6,6 @@ export class FeedbackDto {
 	meta: string;
 }
 
-export type InformationSystem = {
+export type InformationSystem = HasJsonLdContext & {
 	name: MultiLang;
 }
