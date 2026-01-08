@@ -103,8 +103,8 @@ export class MailService {
 			subject: feedback.subject,
 			template: "./feedback",
 			context: {
-				message: JSON.stringify(feedback.message, undefined, 2),
-				meta: JSON.stringify(feedback.meta, undefined, 2),
+				message: feedback.message,
+				meta: feedback.meta,
 				system,
 				person: person ? decoratePerson(person) : undefined
 			}
