@@ -2,7 +2,7 @@ import { ISendMailOptions, MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { Person, decoratePerson } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
-import { CompleteMultiLang, Lang } from "src/common.dto";
+import { CompleteMultiLang, Lang, MultiLangAsString } from "src/common.dto";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { FeedbackDto, InformationSystem } from "src/feedback/feedback.dto";
 import { LangService } from "src/lang/lang.service";
@@ -100,7 +100,11 @@ export class MailService {
 
 	async sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
 		// Efecte doesn't support HTMl so we can't use a template.
-		const message = getFeedbacMessage(feedback, system, person);
+		const message = getFeedbacMessage(
+			feedback,
+			await this.langService.translate(system, Lang.fi),
+			person ? decoratePerson(person) : undefined
+		);
 		return this.send({
 			to: "lajitietokeskus@helsinki.fi",
 			from: person?.emailAddress,
@@ -110,11 +114,11 @@ export class MailService {
 	}
 }
 
-const getFeedbacMessage = (feedback: FeedbackDto, system: InformationSystem, person?: Person) => {
+const getFeedbacMessage = (feedback: FeedbackDto, system: MultiLangAsString<InformationSystem>, person?: Person) => {
 	let message = `
 {{ message }}
 =====================
-`
+`;
 	if (person) {
 		message += `
 
@@ -131,4 +135,4 @@ ${ system.name } ${ system.URI } (${ system.id })
 `;
 
 	return message;
-}
+};
