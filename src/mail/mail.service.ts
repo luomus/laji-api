@@ -109,6 +109,7 @@ export class MailService {
 			to: "lajitietokeskus@helsinki.fi",
 			from: person?.emailAddress,
 			subject: feedback.subject,
+			template: "./noop",
 			text: message
 		});
 	}
