@@ -1,5 +1,5 @@
 import { InformalTaxonGroup as _InformalTaxonGroup } from "@luomus/laji-schema/classes";
-import { ApiHideProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PickType } from "@nestjs/swagger";
 import { Exclude, Type } from "class-transformer";
 import { IsInt } from "class-validator";
 import { HasSelectedFields, MultiLang, QueryWithPagingDto } from "src/common.dto";
@@ -18,7 +18,12 @@ export enum ChecklistVersion {
 
 export class TaxaBaseQuery {
 	/** Include taxa from the specified checklists (defaults to FinBIF master checklist) */
-	@CommaSeparatedStrings() checklist?: string[] = ["MR.1"];
+	@ApiProperty({
+		  required: false,
+		  default: "MR.1",
+	})
+	@CommaSeparatedStrings()
+	checklist?: string[] = ["MR.1"];
 
 	/** Checklist version to be used. Defaults to the latest version. */
 	checklistVersion?: ChecklistVersion = ChecklistVersion.current;
