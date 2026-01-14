@@ -5,7 +5,7 @@ const { accessToken } = config;
 
 describe("/sound-identification", function() {
 	it("POST returns 401 when no access token specified", async function() {
-		const res = await apiRequest(this.server)
+		const res = await request(this.server)
 			.post("/sound-identification");
 		res.should.have.status(401);
 	});

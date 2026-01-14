@@ -27,6 +27,11 @@ export class SoundIdentificationController {
 			info: this.logger.verbose,
 			warn: this.logger.warn,
 			error: this.logger.error
+		},
+		on: {
+			proxyReq: (proxyReq) => {
+				proxyReq.setHeader("x-key", this.config.get<string>("SOUND_IDENTIFICATION_AUTH") || "");
+			}
 		}
 	});
 
