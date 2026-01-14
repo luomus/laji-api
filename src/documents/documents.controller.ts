@@ -53,9 +53,10 @@ export class DocumentsController {
 	async startBatchJob(
 		@Body() documents: Document[],
 		@RequestPerson() person: Person,
-		@ApiUser() apiUser: ApiUserEntity
+		@ApiUser() apiUser: ApiUserEntity,
+		@RequestLang() lang: Lang
 	): Promise<BatchJobValidationStatusResponse> {
-		return this.documentsBatchService.start(documents, person, apiUser);
+		return this.documentsBatchService.start(documents, person, apiUser, lang);
 	}
 
 	/**
@@ -70,12 +71,10 @@ export class DocumentsController {
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
-		@Query() query: BatchJobQueryDto,
 		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		const  { validationErrorFormat = ValidationErrorFormat.object } = query as any;
-		return this.documentsBatchService.getStatus(jobID, person, validationErrorFormat, lang);
+		return this.documentsBatchService.getStatus(jobID, person, ValidationErrorFormat.jsonPointer, lang);
 	}
 
 	/**
@@ -91,13 +90,12 @@ export class DocumentsController {
 	): Promise<BatchJobValidationStatusResponse> {
 		const {
 			publicityRestrictions,
-			dataOrigin,
-			validationErrorFormat = ValidationErrorFormat.object
+			dataOrigin
 		} = query as any;
 		return this.documentsBatchService.complete(
 			jobID,
 			person,
-			validationErrorFormat,
+			ValidationErrorFormat.jsonPointer,
 			lang,
 			publicityRestrictions,
 			dataOrigin
@@ -160,7 +158,7 @@ export class DocumentsController {
 
 		// Backward compatibility with old API, where batch jobs are handled by this endpoint.
 		if (document instanceof Array) {
-			return this.documentsBatchService.start(document, person, apiUser);
+			return this.documentsBatchService.start(document, person, apiUser, lang);
 		} else if (isBatchJobDto(document)) {
 			return this.documentsBatchService.getStatus(
 				document.id,
@@ -183,11 +181,11 @@ export class DocumentsController {
 					422);
 			}
 			const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
-			return this.secondaryDocumentsService.validate(populated, person) as unknown as Promise<Document>;
+			return this.secondaryDocumentsService.validate(populated, person, lang) as unknown as Promise<Document>;
 		}
 
 		const populatedDocument = await this.documentsService.populateMutably(document, apiUser);
-		return this.documentValidatorService.validate(populatedDocument, person, type!);
+		return this.documentValidatorService.validate(populatedDocument, person, type!, lang);
 	}
 
 	/** Get count of documents by type (currently just "byYear") */
@@ -275,12 +273,17 @@ export class DocumentsController {
 			}
 			// The return type for secondary document deletion isn't actually Document. This remains undocumented by our
 			// Swagger document.
-			return this.secondaryDocumentsService.create(document as SecondaryDocument, person) as Promise<Document>;
+			return this.secondaryDocumentsService.create(
+				document as SecondaryDocument,
+				person,
+				lang
+			) as Promise<Document>;
 		}
 
 		return this.documentsService.create(
 			document as Document,
 			apiUser,
+			lang,
 			person
 		);
 	}
@@ -293,7 +296,8 @@ export class DocumentsController {
 		@Body() document: Document | SecondaryDocumentOperation,
 		@Query() { skipValidations }: UpdateDocumentDto,
 		@RequestPerson() person: Person,
-		@ApiUser() apiUser: ApiUserEntity
+		@ApiUser() apiUser: ApiUserEntity,
+		@RequestLang() lang: Lang,
 	): Promise<Document> {
 		if (!document.formID) {
 			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
@@ -310,6 +314,7 @@ export class DocumentsController {
 			document as Document,
 			person,
 			apiUser,
+			lang,
 			skipValidations
 		);
 	}

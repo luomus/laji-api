@@ -44,6 +44,16 @@ export class ValidationException extends ValidationExceptionBase {
 	}
 }
 
+export class FormValidationException extends ValidationExceptionBase {
+	details: { [jsonPointer: string]: string[] };
+	formID: string;
+	constructor(details: { [jsonPointer: string]: string[] }, formID: string) {
+		super();
+		this.formID = formID;
+		this.details = details;
+	}
+}
+
 export class PreTranslatedDetailsValidationException extends ValidationExceptionBase {
 	details: { [jsonPointer: string]: string[] };
 	pretranslated: true;

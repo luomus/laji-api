@@ -7,8 +7,10 @@ import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
 import * as lajiValidate from "@luomus/laji-validate";
-import { DocumentValidator, PreTranslatedDetailsValidationException, ValidationDetails, ValidationException }
-	from "./document-validator.utils";
+import {
+	DocumentValidator, FormValidationException, PreTranslatedDetailsValidationException, ValidationDetails,
+	ValidationException
+} from "./document-validator.utils";
 import { TaxonBelongsToInformalTaxonGroupValidatorService }
 	from "./validators/taxon-belongs-to-informal-taxon-group.validator.service";
 import { NoExistingGatheringsInNamedPlaceValidatorService }
@@ -24,6 +26,7 @@ import { ProfileService } from "src/profile/profile.service";
 import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { DocumentsService } from "../documents.service";
+import { Lang } from "src/common.dto";
 
 @Injectable()
 export class DocumentValidatorService {
@@ -45,7 +48,12 @@ export class DocumentValidatorService {
 		this.extendLajiValidate();
 	}
 
-	async validate(document: Populated<Document>, person?: Person, type?: ValidationType) {
+	async validate(
+		document: Populated<Document>,
+		person: Person | undefined,
+		type: ValidationType | undefined,
+		lang: Lang
+	) {
 		if (document.isTemplate) {
 			return;
 		}
@@ -65,11 +73,11 @@ export class DocumentValidatorService {
 			return;
 		}
 
-		await this.validateAgainstForm(document, type);
+		await this.validateAgainstForm(document, type, lang);
 	}
 
-	private async validateAgainstForm(document: Populated<Document>, type = ValidationType.error) {
-		const { validators, warnings } = await this.formsService.get(document.formID, Format.schema);
+	private async validateAgainstForm(document: Populated<Document>, type = ValidationType.error, lang: Lang) {
+		const { validators, warnings } = await this.formsService.get(document.formID, Format.schema, lang);
 		try {
 			await lajiValidate.async(document, type === ValidationType.error ? validators : warnings);
 		} catch (e) {
@@ -77,7 +85,7 @@ export class DocumentValidatorService {
 				jsonPointerErrors[dotNotationToJSONPointer(dotNotationKey)] = e[dotNotationKey];
 				return jsonPointerErrors;
 			}, {} as ValidationDetails);
-			throw new ValidationException(errors);
+			throw new FormValidationException(errors, document.formID);
 		}
 	}
 
@@ -194,11 +202,11 @@ export class DocumentValidatorService {
 		const  { validator, field, ...validatorOptions } = options;
 		await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
 			.validate(item,
-				field === undefined ? undefined
+				field === undefined
+					? undefined
 					: dotNotationToJSONPointer(field),
 				validatorOptions
 			);
-
 	}
 
 	private extendLajiValidate() {

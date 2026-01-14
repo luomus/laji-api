@@ -26,7 +26,7 @@ describe("/documents/batch", function() {
 
 		let countBeforeSend;
 
-		before(async function () {
+		before(async function() {
 			this.timeout(10000);
 			countBeforeSend = (await apiRequest(this.server, { accessToken, personToken })
 				.get("/documents/count/byYear").send()
@@ -460,6 +460,37 @@ describe("/documents/batch", function() {
 				expect(d.formID).to.equal("MHL.618");
 			});
 		});
+	});
+
+	it("form validations are translated", async function() {
+		const documents = [
+			{
+				"formID":"JX.519",
+				"gatheringEvent": { "leg":[config.person.id], "dateBegin":"2024-05-28", "dateEnd":"2024-05-26" },
+				"gatherings": [ {
+					"geometry":{ "type":"Point","coordinates":[27.74034,63.965225],"coordinateVerbatim":"25 60" },
+					"units": [
+						{ "identifications":[{ "taxon":"kettu" }],
+							"unitFact":{ "autocompleteSelectedTaxonID":"MX.46587" }
+						}]
+				}]
+			}
+		];
+
+		const { id } = (await apiRequest(this.server, { accessToken, personToken, lang: "fi" })
+			.post(batchPath)
+			.send(documents)).body;
+
+		let jobState;
+		while (true) {
+			jobState = (await apiRequest(this.server, { accessToken, personToken })
+				.get(`${batchPath}/${id}`)).body;
+			if (jobState.phase !== "VALIDATING") {
+				break;
+			}
+		}
+
+		expect(jobState.errors[0]).to.eql({ "/gatheringEvent/dateEnd": ["Aikavälin alun 2024-05-28 pitää olla ennen loppua 2024-05-26"] });
 	});
 });
 

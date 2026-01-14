@@ -16,6 +16,7 @@ import { QueryCacheOptions } from "src/store/store-cache";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
+import { Lang } from "src/common.dto";
 
 /** Allowed query keys of the external API of the document service */
 export const allowedQueryKeysForExternalAPI = [
@@ -168,6 +169,7 @@ export class DocumentsService {
 	async create(
 		unpopulatedDocument: Document,
 		apiUser: ApiUserEntity,
+		lang: Lang,
 		person?: Person,
 		skipValidations?: boolean
 	) {
@@ -175,7 +177,7 @@ export class DocumentsService {
 		if (person) {
 			populateCreatorAndEditorMutably(document, person);
 		}
-		await this.validate(document, person, skipValidations);
+		await this.validate(document, person, skipValidations, lang);
 		const created = await this.store.create(document) as Document & { id: string };
 		await this.namedPlaceSideEffects(created, person);
 		return created;
@@ -186,6 +188,7 @@ export class DocumentsService {
 		unpopulatedDocument: Document,
 		person: Person,
 		apiUser: ApiUserEntity,
+		lang: Lang,
 		skipValidations?: boolean
 	) {
 		const existing = await this.store.get(id);
@@ -215,7 +218,7 @@ export class DocumentsService {
 			document.dateCreated = existing.dateCreated;
 		}
 
-		await this.validate(document, person, skipValidations);
+		await this.validate(document, person, skipValidations, lang);
 		const updated = await this.store.update(document as Document & { id: string });
 		await this.namedPlaceSideEffects(updated, person);
 		return updated;
@@ -330,8 +333,9 @@ export class DocumentsService {
 
 	async validate(
 		document: Populated<Document>,
-		person?: Person,
-		skipValidations = false
+		person: Person | undefined,
+		skipValidations = false,
+		lang: Lang
 	) {
 		if (skipValidations) {
 			if (person?.isImporter()) {
@@ -362,7 +366,7 @@ export class DocumentsService {
 			}
 		}
 
-		await this.documentValidatorService.validate(document, person);
+		await this.documentValidatorService.validate(document, person, undefined, lang);
 	}
 
 	async namedPlaceSideEffects(document: Document & { id: string }, person?: Person) {

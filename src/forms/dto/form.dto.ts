@@ -1,4 +1,4 @@
-import { QueryWithPagingDto } from "src/common.dto";
+import { Lang, QueryWithPagingDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { JSONSchemaObject } from "src/json-schema.utils";
@@ -41,12 +41,12 @@ type FormOptions = NonNullable<FormI["options"]> & {
 type ValidatorLeaf = Record<string, JSONObjectSerializable | boolean>;
 export type Validators = { [prop: string]: Validators | ValidatorLeaf };
 
-export type Form = FormI & {
+export type Form = Omit<FormI, "translations"> & {
 	id: string;
 	options?: FormOptions;
 	validators: Validators;
 	warnings?: Validators;
-};
+}
 
 export type FormSchemaFormat = Form & { schema: JSONSchemaObject };
 

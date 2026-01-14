@@ -5,6 +5,7 @@ import { PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocume
 	isSecondaryDocument, isSecondaryDocumentDelete, isSecondaryDocumentOperation } from "./documents.dto";
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
+import { Lang } from "src/common.dto";
 
 @Injectable()
 export class SecondaryDocumentsService {
@@ -15,15 +16,15 @@ export class SecondaryDocumentsService {
 		private config: ConfigService
 	) {}
 
-	async create(createOrDelete: SecondaryDocumentDelete, person: Person)
+	async create(createOrDelete: SecondaryDocumentDelete, person: Person, lang: Lang)
 		: Promise<SecondaryDocumentDelete>
-	async create(createOrDelete: SecondaryDocument, person: Person)
+	async create(createOrDelete: SecondaryDocument, person: Person, lang: Lang)
 		: Promise<SecondaryDocument>
-	async create(createOrDelete: SecondaryDocumentOperation, person: Person)
+	async create(createOrDelete: SecondaryDocumentOperation, person: Person, lang: Lang)
 		: Promise<SecondaryDocument | SecondaryDocumentOperation>
 	{
 		const populatedCreateOrDelete = await this.populateMutably(createOrDelete, person);
-		await this.validate(populatedCreateOrDelete, person);
+		await this.validate(populatedCreateOrDelete, person, lang);
 		await (isSecondaryDocumentDelete(populatedCreateOrDelete)
 			? this.warehouseService.pushDelete(populatedCreateOrDelete.id, populatedCreateOrDelete.collectionID)
 			: this.warehouseService.push(populatedCreateOrDelete));
@@ -50,12 +51,12 @@ export class SecondaryDocumentsService {
 		return populated;
 	}
 
-	async validate(createOrDelete: PopulatedSecondaryDocumentOperation, person: Person) {
+	async validate(createOrDelete: PopulatedSecondaryDocumentOperation, person: Person, lang: Lang) {
 		if (!isSecondaryDocumentOperation(createOrDelete)) {
 			throw new HttpException("Secondary document must have id", 422);
 		}
 		if (isSecondaryDocument(createOrDelete)) {
-			await this.documentsService.validate(createOrDelete, person);
+			await this.documentsService.validate(createOrDelete, person, undefined, lang);
 		}
 	}
 

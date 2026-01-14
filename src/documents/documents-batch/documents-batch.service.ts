@@ -41,7 +41,8 @@ export class DocumentsBatchService {
 	async start(
 		documents: Document[],
 		person: Person,
-		apiUser: ApiUserEntity
+		apiUser: ApiUserEntity,
+		lang: Lang
 	): Promise<BatchJobValidationStatusResponse>  {
 		if (!documents.length) {
 			throw new HttpException("Send at least one document", 422);
@@ -60,7 +61,7 @@ export class DocumentsBatchService {
 
 		const processes = asChunks(job.documents, CHUNK_SIZE).map(async (chunkDocuments, idx) => {
 			const chunkErrors = await Promise.all(
-				await this.createValidationProcess(chunkDocuments, job, person, apiUser)
+				await this.createValidationProcess(chunkDocuments, job, person, apiUser, lang)
 			);
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
@@ -155,7 +156,8 @@ export class DocumentsBatchService {
 		documents: (Document | SecondaryDocumentOperation)[],
 		job: BatchJob,
 		person: Person,
-		apiUser: ApiUserEntity
+		apiUser: ApiUserEntity,
+		lang: Lang
 	) {
 		const formIDs = new Set();
 		return documents.map(async document => {
@@ -178,9 +180,9 @@ export class DocumentsBatchService {
 				}
 
 				if (!isSecondaryDocumentDelete(populatedDocument) && !isSecondaryDocument(populatedDocument)) {
-					await this.documentValidatorService.validate(populatedDocument, person);
+					await this.documentValidatorService.validate(populatedDocument, person, undefined, lang);
 				} else {
-					await this.secondaryDocumentsService.validate(populatedDocument, person);
+					await this.secondaryDocumentsService.validate(populatedDocument, person, lang);
 				}
 				job.status.processed++;
 				return null;
@@ -313,7 +315,11 @@ const asChunks = <T>(items: T[], chunkSize: number) => {
 
 const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, jobID].join(":");
 
-const exposeJobStatus = (job: BatchJob, validationErrorFormat?: ValidationErrorFormat, lang?: Lang) => {
+const exposeJobStatus = (
+	job: BatchJob,
+	validationErrorFormat?: ValidationErrorFormat,
+	lang?: Lang
+) => {
 	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(job);
 
 	if (exposedJob.phase !== BatchJobPhase.completed) {

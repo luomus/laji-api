@@ -5,7 +5,8 @@ import { LocalizedException } from "src/utils";
 import * as translations from "src/translations.json";
 import { ErrorSignatureBackwardCompatibilityFilter }
 	from "src/filters/error-signature-backward-compatibility.filter";
-import { ValidationException } from "src/documents/document-validator/document-validator.utils";
+import { FormValidationException, ValidationException }
+	from "src/documents/document-validator/document-validator.utils";
 import { Lang } from "src/common.dto";
 
 @Catch(LocalizedException)
@@ -42,4 +43,5 @@ export const localizeException = (exception: LocalizedException, lang: Lang) => 
 	return exception;
 };
 
-const isValidationException = (e: any): e is ValidationException => e.details && !e.pretranslated;
+const isValidationException = (e: any): e is (ValidationException | FormValidationException) =>
+	e.details && !e.pretranslated;
