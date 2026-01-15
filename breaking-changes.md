@@ -9,7 +9,7 @@ The OpenAPI specification (JSON) is available at https://api.laji.fi/openapi-jso
 
 # Migration
 
-The old API will remain available for one year to provide a migration window. 
+The old API will remain available until 17.1.2027 to provide a migration window. 
 
 Most requests you are doing right now already use the new API. However, some endpoints include breaking changes and are still served by the old API. To migrate those endpoints to the new API, add the `API-Version: 1` header to your requests.
 
