@@ -283,8 +283,9 @@ export class DocumentsController {
 		return this.documentsService.create(
 			document as Document,
 			apiUser,
-			lang,
-			person
+			person,
+			undefined,
+			lang
 		);
 	}
 

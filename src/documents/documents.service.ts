@@ -169,9 +169,9 @@ export class DocumentsService {
 	async create(
 		unpopulatedDocument: Document,
 		apiUser: ApiUserEntity,
+		person: Person | undefined,
+		skipValidations: boolean | undefined,
 		lang: Lang,
-		person?: Person,
-		skipValidations?: boolean
 	) {
 		const document = await this.populateMutably(unpopulatedDocument, apiUser, person);
 		if (person) {

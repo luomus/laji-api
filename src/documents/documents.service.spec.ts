@@ -9,6 +9,7 @@ import { DocumentValidatorService } from "./document-validator/document-validato
 import { Person } from "src/persons/person.dto";
 import { StoreService } from "src/store/store.service";
 import { documentsStoreConfig } from "./documents.module";
+import { Lang } from "src/common.dto";
 
 const mockPerson = (person: Partial<Person>) => ({ ...person, isImporter: () => false }) as Person;
 
@@ -110,7 +111,9 @@ describe("DocumentsService caching", () => {
 		await service.create(
 			document as any,
 			{ systemID: "foo" } as any,
-			{ id: "anybody", isImporter: () => false } as Person
+			{ id: "anybody", isImporter: () => false } as Person,
+			undefined,
+			Lang.en
 		);
 		const result2 = await service.getPage({ collectionID: "foo" }, mockPerson({ id: ADMIN }));
 		expect(result1).not.toBe(result2);
@@ -137,7 +140,9 @@ describe("DocumentsService caching", () => {
 		await service.create(
 			{ creator: "FRIEND", editors: ["PERSON"], formID: "foo" } as any,
 			{ systemID: "foo" } as any,
-			{ id: FRIEND, isImporter: () => false } as Person
+			{ id: FRIEND, isImporter: () => false } as Person,
+			undefined,
+			Lang.en
 		);
 		const result2 = await service.getPage({ }, { id: PERSON } as Person);
 		expect(result1).not.toBe(result2);
