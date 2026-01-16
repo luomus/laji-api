@@ -152,7 +152,7 @@ export async function createApp(useLogger = true) {
 
 	// Redirect from / to /openapi is done by AppController.
 	SwaggerModule.setup("openapi", app, patchedDocument, {
-		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
+		customSiteTitle: "Laji API" + (configService.get("STAGING") === "true" ? " (STAGING)" : ""),
 		customCssUrl: "/swagger.css",
 		swaggerOptions: {
 			persistAuthorization: true,
