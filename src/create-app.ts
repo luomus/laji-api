@@ -52,17 +52,13 @@ export async function createApp(useLogger = true) {
 	// // ProxyToOldApiService handles redirection to old API. We just check that people don't try to access the new API with API-Version: 1.
 	app.use("/v0", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}`,
-		pathRewrite: {
-			"^/v0": "/"
+		pathRewrite: function (path: string, req: Request) {
+			if (req.headers["api-version"] === "1") {
+				// eslint-disable-next-line max-len
+				throw `Shouldn't use '/v0' in path when using API-Version: 1. Use ${configService.get("MAIL_API_BASE")}${path} instead.`;
+			}
+			return path.replace(/^\/v0/, "/");
 		},
-		// pathRewrite: function (path: string) {
-		// // pathRewrite: function (path: string, req: Request) {
-		// 	// if (req.headers["api-version"] === "1") {
-		// 	// 	// eslint-disable-next-line max-len
-		// 	// 	throw `Shouldn't use '/v0' in path when using API-Version: 1. Use ${configService.get("MAIL_API_BASE")}${path} instead.`;
-		// 	// }
-		// 	return path;
-		// },
 		on: {
 			proxyReq: fixRequestBody
 		},
