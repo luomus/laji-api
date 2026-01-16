@@ -152,7 +152,7 @@ Also, `POST /documents` and `PUT /documents` can return validation exceptions. T
 
 The new API's /taxa endpoints introduce many breaking changes. Key design changes in the API include:
 
-* All query parameters used for filtering are now moved to the request body.
+* All query parameters used for filtering are now moved to the request body. Use `POST` instead of `GET`.
 * Data can now be filtered using any property from the response model. (The old filter query parameters only allowed filtering by a limited set of fields.)
 * Old filter parameter names are no longer supported. Use the corresponding property names from the model. For example, `informalGroupFilters` -> `informalTaxonGroups`
 * Aggregate queries have been moved to their own endpoints: for example  `/taxa/{id}/species/aggregate`.
@@ -160,7 +160,7 @@ The new API's /taxa endpoints introduce many breaking changes. Key design change
 
 Note that the above design changes __DO NOT__ apply to `/taxa/search` and `/autocomplete/taxa`. For taxon name search, filtering is still done using query parameters, but they have changed. See details in `/autocomplete/taxa` section of this document.
 
-Here's the list of all parameters moved from request query parameters to the body:
+Here's the list of all filter parameters moved from query parameters to `POST` `body`:
 
 
 * `species`
@@ -297,3 +297,9 @@ The following filters have been renamed (these changes also apply to `/taxa/sear
 ### Organizations
 
 * `/organization/by-id/{id}` -> `/organizations/{id}`
+
+### Warehouse
+
+* `personToken` parameter -> `Person-Token` header
+* `permissionToken` parameter -> `Permission-Token` header
+
