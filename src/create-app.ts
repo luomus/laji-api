@@ -11,7 +11,7 @@ import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
 import { joinOnlyStrings } from "./utils";
 import { RedisCacheService } from "./redis-cache/redis-cache.service";
-import { Request } from "express";
+import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
 import { fixRequestBody } from "http-proxy-middleware";
 
@@ -49,20 +49,22 @@ export async function createApp(useLogger = true) {
 
 	const port = configService.get("PORT") || 3004;
 
+	app.use("/v0", (req: Request, res: Response, next: NextFunction) => {
+		if (req.headers["api-version"] === "1") {
+			return res.status(422).send(
+				"Shouldn't use '/v0' in path when using API-Version: 1. " +
+				`Use ${configService.get("MAIL_API_BASE")}${req.originalUrl} instead.`
+			);
+		}
+		next();
+	});
+
 	// // ProxyToOldApiService handles redirection to old API. We just check that people don't try to access the new API with API-Version: 1.
 	app.use("/v0", createProxyMiddleware({
 		target: `http://127.0.0.1:${port}`,
 		pathRewrite: {
-			"^/v0": "/"
+			"^/v0": "",
 		},
-		// pathRewrite: function (path: string) {
-		// // pathRewrite: function (path: string, req: Request) {
-		// 	// if (req.headers["api-version"] === "1") {
-		// 	// 	// eslint-disable-next-line max-len
-		// 	// 	throw `Shouldn't use '/v0' in path when using API-Version: 1. Use ${configService.get("MAIL_API_BASE")}${path} instead.`;
-		// 	// }
-		// 	return path;
-		// },
 		on: {
 			proxyReq: fixRequestBody
 		},
@@ -156,7 +158,7 @@ export async function createApp(useLogger = true) {
 
 	// Redirect from / to /openapi is done by AppController.
 	SwaggerModule.setup("openapi", app, patchedDocument, {
-		customSiteTitle: "Laji API" + (configService.get("STAGING") ? " (STAGING)" : ""),
+		customSiteTitle: "Laji API" + (configService.get("STAGING") === "true" ? " (STAGING)" : ""),
 		customCssUrl: "/swagger.css",
 		swaggerOptions: {
 			persistAuthorization: true,
