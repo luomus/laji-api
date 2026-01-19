@@ -185,7 +185,9 @@ export class DocumentsController {
 					422);
 			}
 			const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
-			return this.secondaryDocumentsService.validate(populated, person, lang) as unknown as Promise<Document>;
+			await this.secondaryDocumentsService.validate(populated, person, lang) as unknown as Promise<Document>;
+			response.status(204);
+			return;
 		}
 
 		const populatedDocument = await this.documentsService.populateMutably(document, apiUser);
