@@ -1,6 +1,6 @@
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { allowedQueryKeysForExternalAPI, DocumentsService } from "./documents.service";
-import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query } from "@nestjs/common";
+import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Res } from "@nestjs/common";
 import {
 	BatchJobQueryDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto, isSecondaryDocument,
 	isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument, SecondaryDocumentOperation,
@@ -24,6 +24,7 @@ import { ApiUser } from "src/decorators/api-user.decorator";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { Lang } from "src/common.dto";
+import { Response } from "express";
 
 @ApiTags("Documents")
 @ApiExtraModels(ErrorsObj)
@@ -104,7 +105,7 @@ export class DocumentsController {
 
 	/** Validate a document */
 	@Post("validate")
-	@HttpCode(204)
+	// @HttpCode(204)
 	@ApiResponse({
 		status: 204,
 		description: "Validation raised no errors"
@@ -140,16 +141,19 @@ export class DocumentsController {
 	})
 	async validate(
 		@Body() document: Document,
+		@Res({ passthrough: true }) response: Response,
 		@Query() query: ValidateQueryDto,
 		@ApiUser() apiUser: ApiUserEntity,
 		@RequestLang() lang: Lang,
-		@RequestPerson({ required: false }) person?: Person
+		@RequestPerson({ required: false }) person?: Person,
 	): Promise<unknown> {
 		const { validator, validationErrorFormat = ValidationErrorFormat.object, type } = query as any;
 		if (validator) {
-			return this.documentValidatorService.validateWithValidationStrategy(
+			await this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
+			response.status(204);
+			return;
 		}
 
 		if (!person) {
@@ -181,11 +185,14 @@ export class DocumentsController {
 					422);
 			}
 			const populated = await this.secondaryDocumentsService.populateMutably(document as SecondaryDocument);
-			return this.secondaryDocumentsService.validate(populated, person, lang) as unknown as Promise<Document>;
+			await this.secondaryDocumentsService.validate(populated, person, lang) as unknown as Promise<Document>;
+			response.status(204);
+			return;
 		}
 
 		const populatedDocument = await this.documentsService.populateMutably(document, apiUser);
-		return this.documentValidatorService.validate(populatedDocument, person, type!, lang);
+		await this.documentValidatorService.validate(populatedDocument, person, type!, lang);
+		response.status(204);
 	}
 
 	/** Get count of documents by type (currently just "byYear") */
