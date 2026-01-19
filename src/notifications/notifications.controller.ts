@@ -1,12 +1,13 @@
-import { Body, Delete, Get, Param, Put, Query } from "@nestjs/common";
+import { Body, Delete, Get, Param, Put, Query, UseInterceptors } from "@nestjs/common";
 import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
-import { QueryWithPagingAndLangAndIdIn } from "./notification.dto";
+import { GetNotificationsDto } from "./notification.dto";
 import { Notification } from "@luomus/laji-schema";
 import { NotificationsService } from "./notifications.service";
 import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 @LajiApiController("notifications")
 @ApiTags("Notifications")
@@ -18,7 +19,7 @@ export class NotificationsController {
 	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
 	@Get(":personToken")
 	getAll(
-		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
+		@Query() { page, pageSize, onlyUnSeen }: GetNotificationsDto,
 		@Param("personToken") _: string,
 		@RequestPerson() person: Person
 	) {
@@ -28,8 +29,9 @@ export class NotificationsController {
 	/* Get notifications */
 	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
 	@Get()
+	@UseInterceptors(SelectedFields)
 	getAllV1(
-		@Query() { page, pageSize, onlyUnSeen }: QueryWithPagingAndLangAndIdIn,
+		@Query() { page, pageSize, onlyUnSeen }: GetNotificationsDto,
 		@RequestPerson() person: Person
 	) {
 		return this.notificationsService.getPage(person, onlyUnSeen, page, pageSize);

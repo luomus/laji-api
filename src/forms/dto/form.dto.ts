@@ -1,4 +1,4 @@
-import { Lang, QueryWithPagingDto } from "src/common.dto";
+import { QueryWithPagingDto } from "src/common.dto";
 import { Area, Form as FormI, Taxon } from "@luomus/laji-schema";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { JSONSchemaObject } from "src/json-schema.utils";
@@ -71,10 +71,6 @@ export class GetDto {
 	format?: Format = Format.schema;
 	/** Expand response */
 	expand?: boolean = true;
-}
-
-export class QueryWithPagingAndLangAndIdIn extends QueryWithPagingDto {
-	pageSize?: number = 1000;
 }
 
 export type Hashed<T> = T & { "$id": string }
