@@ -1,7 +1,7 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
-import { PathsObject, ResponseObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
-import { isJSONSchemaRef } from "src/json-schema.utils";
+import { PathsObject, ReferenceObject, ResponseObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
 export type FetchSwagger = () => Promise<OpenAPIObject>;
@@ -86,9 +86,24 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				...document.components!.schemas,
 				...Object.keys(remoteDocument.components!.schemas!).reduce((schemas, name) => {
 					(schemas as any)[modelPrefix + name] = remoteDocument.components!.schemas![name];
+					fixRefsModelPrefix(remoteDocument.components!.schemas![name]! as JSONSchema, modelPrefix);
 					return schemas;
 				}, {})
 			};
 		}
 		return document;
 	};
+
+const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
+	if (isJSONSchemaRef(schema)) {
+		const uriFragments = schema.$ref.split("/");
+		const last = uriFragments.pop() as string;
+		schema.$ref = [...uriFragments, modelPrefix + last].join("/");
+	} else if (isJSONSchemaArray(schema)) {
+		fixRefsModelPrefix(schema.items, modelPrefix);
+	} else if (isJSONSchemaObject(schema) && schema.properties) {
+		Object.keys(schema.properties).forEach(key => {
+			fixRefsModelPrefix(schema.properties![key]!, modelPrefix);
+		});
+	}
+};
