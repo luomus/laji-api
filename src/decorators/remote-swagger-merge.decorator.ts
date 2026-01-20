@@ -60,12 +60,10 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 					for (const statusCode of Object.keys(operation.responses)) {
 						const modelSchema =
 							(operation.responses[statusCode] as ResponseObject)!.content?.["application/json"]?.schema;
-						if (!modelSchema || !isJSONSchemaRef(modelSchema)) {
+						if (!modelSchema) {
 							continue;
 						}
-						const uriFragments = modelSchema.$ref.split("/");
-						const last = uriFragments.pop() as string;
-						modelSchema.$ref = [...uriFragments, modelPrefix + last].join("/");
+						fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
 					}
 				}
 			}
@@ -81,7 +79,7 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				...document.components!.schemas,
 				...remoteDocument.components!.schemas
 			};
-		} else { 
+		} else {
 			document.components!.schemas = {
 				...document.components!.schemas,
 				...Object.keys(remoteDocument.components!.schemas!).reduce((schemas, name) => {
