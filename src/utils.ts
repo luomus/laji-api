@@ -1,6 +1,6 @@
 import { HttpException } from "@nestjs/common";
 import * as crypto from "crypto";
-import { MaybePromise, isObject } from "src/typing.utils";
+import { JSONObjectSerializable, MaybePromise, isObject } from "src/typing.utils";
 import * as translations from "src/translations.json";
 
 export const CACHE_1_SEC = 1000;
@@ -269,7 +269,9 @@ export class LocalizedException extends ErrorCodeException {
 export class ExternalException extends HttpException {
 	context?: Record<string, string>;
 	errorCode = "EXTERNAL";
-	constructor(message: string, statusCode: number)  {
+	json?: JSONObjectSerializable;
+	constructor(message: string, statusCode: number, json?: JSONObjectSerializable)  {
 		super(message, statusCode);
+		this.json = json;
 	}
 }

@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, HttpException } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import { Request, Response } from "express";
 import { JSONObjectSerializable } from "src/typing.utils";
+import { ExternalException } from "src/utils";
 
 /** Maintain backward compatibility of the error signature of the old API. */
 @Catch()
@@ -16,6 +17,12 @@ export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends 
 		let json: JSONObjectSerializable;
 		if (typeof exception === "string") {
 			json = { message: exception };
+		} else if (exception instanceof ExternalException) {
+			json = {
+				errorCode: exception.errorCode,
+				message: exception.message,
+				...(exception.json || {}),
+			}
 		} else if ((exception as any).errorCode) {
 			json = {
 				message: exception.message,
