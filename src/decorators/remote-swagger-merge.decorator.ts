@@ -1,6 +1,6 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
-import { PathsObject, ResponseObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { PathsObject, RequestBodyObject, ResponseObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
@@ -56,14 +56,26 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				if (tag) {
 					operation.tags = [tag];
 				}
-				if (modelPrefix && operation.responses) {
-					for (const statusCode of Object.keys(operation.responses)) {
-						const modelSchema =
-							(operation.responses[statusCode] as ResponseObject)!.content?.["application/json"]?.schema;
-						if (!modelSchema) {
-							continue;
+				if (modelPrefix) {
+					if (operation.responses) {
+						for (const statusCode of Object.keys(operation.responses)) {
+							const modelSchema = (
+								operation.responses[statusCode] as ResponseObject
+							)!.content?.["application/json"]?.schema;
+							if (!modelSchema) {
+								continue;
+							}
+							fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
 						}
-						fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
+					}
+					if ((operation.requestBody as RequestBodyObject)?.content?.["application/json"]?.schema) {
+						fixRefsModelPrefix(
+							(operation.requestBody as RequestBodyObject)
+								?.content
+								?.["application/json"]
+								?.schema as JSONSchema,
+							modelPrefix
+						);
 					}
 				}
 			}
