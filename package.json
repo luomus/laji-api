@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@luomus/laji-schema": "^2.0.270",
-    "@luomus/laji-validate": "^0.0.122",
+    "@luomus/laji-validate": "^0.0.125",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.8",
