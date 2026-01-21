@@ -227,7 +227,7 @@ export class DocumentValidatorService {
 				} catch (error) {
 					return {
 						status: error.status || 500,
-						json: () => ({ error: error }),
+						json: () => error,
 					};
 				}
 			}
