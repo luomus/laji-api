@@ -178,7 +178,7 @@ export class CollectionsService {
 			const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
 			return {
 				id: "gbif-dataset:" + collection.key,
-				"@context": "MY.collection",
+				"@context": "http://schema.laji.fi/context/collection.jsonld",
 				collectionType: "MY.collectionTypeMixed",
 				collectionName: { en: collection.title },
 				longName: { en: collection.title },
