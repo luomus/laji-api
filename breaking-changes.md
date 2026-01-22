@@ -282,8 +282,8 @@ The following filters have been renamed (these changes also apply to `/taxa/sear
 
 ### Person token -> Authentication event
 
-* `GET /person-token/{personToken}` -> `GET /authentication-event` (with person-token as header)
-* `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with person-token as header)
+* `GET /person-token/{personToken}` -> `GET /authentication-event` (with Person-Token as header)
+* `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with Person-Token as header)
 
 ### Metadata
 
