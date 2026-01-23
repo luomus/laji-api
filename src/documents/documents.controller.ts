@@ -254,8 +254,8 @@ export class DocumentsController {
 				throw new HttpException("Can't do batch update without a person token", 422);
 			}
 			const { validationErrorFormat = ValidationErrorFormat.object } = query;
-			// 	 // '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-			// 	// typings a bit awkward.
+			// '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
+			// typings a bit awkward.
 			return this.documentsBatchService.complete(
 				document.id,
 				person,
