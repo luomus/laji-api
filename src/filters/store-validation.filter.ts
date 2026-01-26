@@ -29,7 +29,7 @@ type StoreSchemaErrors = {
 }
 
 export const isStoreSchemaError = (error: any): error is StoreSchemaError => !!error?.instancePath;
-const isStoreSchemaErrors = (error: any): error is StoreSchemaErrors => isStoreSchemaError(error.error?.[0]);
+const isStoreSchemaErrors = (error: any): error is StoreSchemaErrors => isStoreSchemaError(error?.error?.[0]);
 
 export const storeSchemaErrorsToPreTranslatedDetailsValidationException = (error: StoreSchemaErrors) =>
 	new PreTranslatedDetailsValidationException(merge(...error.error.map(toValidationDetail)));
