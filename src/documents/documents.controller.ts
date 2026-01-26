@@ -75,7 +75,6 @@ export class DocumentsController {
 		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		await new Promise(resolve  => setTimeout(resolve, 2000));
 		return this.documentsBatchService.getStatus(jobID, person, ValidationErrorFormat.jsonPointer, lang);
 	}
 
