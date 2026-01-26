@@ -169,28 +169,29 @@ export class CollectionsService {
 	}
 
 	private async getGbifCollections(): Promise<Collection[]> {
-		const gbifCollections = await this.gbifClient.get<GbifCollectionResult>(
-			"installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset",
-			{ params: { limit: 1000 } },
-			{ cache: CACHE_10_MIN }
-		);
-		return gbifCollections.results.map(collection => {
-			const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
-			return {
-				id: "gbif-dataset:" + collection.key,
-				"@context": "http://schema.laji.fi/context/collection.jsonld",
-				collectionType: "MY.collectionTypeMixed",
-				collectionName: { en: collection.title },
-				longName: { en: collection.title },
-				description: { en: collection.description },
-				personResponsible: contact.lastName ? contact.lastName + ", " + contact.firstName : contact.firstName,
-				contactEmail: Array.isArray(contact.email) && contact.email.length > 0
-					? contact.email[0]
-					: "info@laji.fi",
-				intellectualRights: "MY.intellectualRightsCC-BY",
-				isPartOf: GBIF_DATASET_PARENT
-			};
-		});
+		return [];
+		// const gbifCollections = await this.gbifClient.get<GbifCollectionResult>(
+		// 	"installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset",
+		// 	{ params: { limit: 1000 } },
+		// 	{ cache: CACHE_10_MIN }
+		// );
+		// return gbifCollections.results.map(collection => {
+		// 	const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
+		// 	return {
+		// 		id: "gbif-dataset:" + collection.key,
+		// 		"@context": "http://schema.laji.fi/context/collection.jsonld",
+		// 		collectionType: "MY.collectionTypeMixed",
+		// 		collectionName: { en: collection.title },
+		// 		longName: { en: collection.title },
+		// 		description: { en: collection.description },
+		// 		personResponsible: contact.lastName ? contact.lastName + ", " + contact.firstName : contact.firstName,
+		// 		contactEmail: Array.isArray(contact.email) && contact.email.length > 0
+		// 			? contact.email[0]
+		// 			: "info@laji.fi",
+		// 		intellectualRights: "MY.intellectualRightsCC-BY",
+		// 		isPartOf: GBIF_DATASET_PARENT
+		// 	};
+		// });
 	}
 }
 
