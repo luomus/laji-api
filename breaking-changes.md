@@ -154,9 +154,15 @@ Also, `POST /documents` and `PUT /documents` can return validation exceptions. T
 
 The new API's /taxa endpoints introduce many breaking changes. Key design changes in the API include:
 
-* All query parameters used for filtering are now moved to the request body. Use `POST` instead of `GET`.
-* Data can now be filtered using any property from the response model. (The old filter query parameters only allowed filtering by a limited set of fields.)
-* Old filter parameter names are no longer supported. Use the corresponding property names from the model. For example, `informalGroupFilters` -> `informalTaxonGroups`
+* Filters
+    * All query parameters used for filtering are now moved to the request body. Use `POST` instead of `GET`.
+    * Data can now be filtered using any property from the response model. (The old query parameters only allowed filtering by a limited set of fields.)
+    * Old filter parameter names are no longer supported. Use the corresponding property names from the model. For example, `informalGroupFilters` -> `informalTaxonGroups`
+* For the following endpoints, responses are not JSON Arrays, they are now JSON Objects with `results` array.
+    * `/children`
+    * `/parents`
+    * `/media`
+    * `/descriptions`  
 * Aggregate queries have been moved to their own endpoints: for example  `/taxa/{id}/species/aggregate`.
 * Name fields (e.g., `vernacularName`) are now also available as multi-language objects (`vernacularNameMultiLang`), allowing translations to be displayed even though the old `lang` parameter is no longer available and cannot be set to `multi`.
 
@@ -276,8 +282,8 @@ The following filters have been renamed (these changes also apply to `/taxa/sear
 
 ### Person token -> Authentication event
 
-* `GET /person-token/{personToken}` -> `GET /authentication-event` (with person-token as header)
-* `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with person-token as header)
+* `GET /person-token/{personToken}` -> `GET /authentication-event` (with Person-Token as header)
+* `DELETE /person-token/{personToken}` -> `DELETE /authentication-event` (with Person-Token as header)
 
 ### Metadata
 
