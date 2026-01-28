@@ -146,7 +146,6 @@ export class DocumentsBatchService {
 	}
 
 	private async process(processes: Promise<void>[], job: BatchJob) {
-		await new Promise(resolve  => setTimeout(resolve, 3000));
 		for (const process of processes) {
 			await process;
 			await this.updateJobInCache(job);
