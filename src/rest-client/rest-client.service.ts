@@ -194,14 +194,14 @@ export class RestClientService<T = unknown> {
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<S>
 	) { return async (request: Promise<S>): Promise<S> => {
-		const url = this.getURL(path, this.getRequestConfig(config));
 		const cacheTTL = this.getCacheTTL(options);
-		const hostAndPath = this.getHostAndPath(path);
 
 		if (!cacheTTL) {
 			return request;
 		}
 
+		const url = this.getURL(path, this.getRequestConfig(config));
+		const hostAndPath = this.getHostAndPath(path);
 		const cacheForHostAndPath = (await this.cache!.get<Record<string, SWRCacheEntry<S>>>(hostAndPath))
 			|| {} as Record<string, SWRCacheEntry<S>>;
 		const staleWhileRevalidateEntry = url in cacheForHostAndPath
