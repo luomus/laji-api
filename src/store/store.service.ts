@@ -169,12 +169,7 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, e.stack, {
-				reason: "Store client failed to create resource",
-				type: this.config.resource,
-				resource: item,
-				remoteError: e.response.data
-			});
+			this.logRemoteError(e, "Store client failed to create resource");
 			throw e;
 		}
 		await this.flushCache(result);
@@ -207,15 +202,22 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, e.stack, {
-				reason: "Store client failed to update resource",
-				type: this.config.resource,
-				resource: item
-			});
+			this.logRemoteError(e, "Store client failed to update resource");
 			throw e;
 		}
 		await this.flushCache(result);
 		return result;
+	}
+
+	logRemoteError(e: any, reason: string) {
+		this.logger.fatal(e, e.stack, {
+			reason,
+			type: this.config.resource,
+			resource: e.config?.data,
+			remoteError: e.response?.data,
+			remoteMethod: e.config?.method,
+			remoteUrl: e.config?.url
+		});
 	}
 
 	async delete(id: string) {
@@ -237,7 +239,7 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 				this.restClientOptions(this.config)
 			);
 		} catch (e) {
-			this.logger.fatal(e, e.stack, { reason: "Store client failed to delete resource", type: path });
+			this.logRemoteError(e, "Store client failed to delete resource");
 			throw e;
 		}
 
