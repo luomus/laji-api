@@ -1,9 +1,9 @@
 import { RestClientService, RestClientOptions, HasMaybeSerializeInto }  from "src/rest-client/rest-client.service";
 import { getAllFromPagedResource, paginateAlreadyPaginated } from "src/pagination.utils";
-import { JSONObjectSerializable, KeyOf, MaybeArray, hasKey, omitForKeys } from "src/typing.utils";
+import { JSONObjectSerializable, KeyOf, MaybeArray, hasKey, isObject, omitForKeys } from "src/typing.utils";
 import { PaginatedDto } from "src/pagination.dto";
 import { parseQuery, Query } from "./store-query";
-import { asArray, doForDefined, getCacheTTL } from "src/utils";
+import { asArray, doForDefined } from "src/utils";
 import { Injectable, Logger } from "@nestjs/common";
 import { QueryCacheOptions, StoreCacheOptions, getCacheKeyForQuery, getCacheKeyForResource } from "./store-cache";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -263,8 +263,7 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 	}
 
 	post<Out = Resource, In = Resource>(path = "", body?: any, config?: AxiosRequestConfig) {
-		const pathWithResource = `${this.config.resource}/${path}`;
-		return this.client.post<Out, In>(pathWithResource, body, config);
+		return this.client.post<Out, In>(`${this.config.resource}/${path}`, body, config);
 	}
 
 	private withCachePrefix(key: string) {
@@ -374,3 +373,10 @@ const cachingIsEnabled = (cache?: StoreCacheOptions<never>) => cache && cache.en
 export type Sort<ResourceQuery> = KeyOf<ResourceQuery> | { key: KeyOf<ResourceQuery>, desc: true };
 
 const parseSorts = <T>(sorts: Sort<T>[]) => sorts.map(s => typeof s === "string" ? s : `${s.key} desc`).join(",");
+
+const getCacheTTL = (cache?: { ttl?: number }): undefined | number =>
+	isObject(cache)
+		? cache.ttl ?? undefined
+		: typeof cache === "number"
+			? cache
+			: undefined;

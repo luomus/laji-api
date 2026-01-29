@@ -1,6 +1,6 @@
 import { HttpException } from "@nestjs/common";
 import * as crypto from "crypto";
-import { JSONObjectSerializable, MaybePromise, isObject } from "src/typing.utils";
+import { JSONObjectSerializable, MaybePromise } from "src/typing.utils";
 import * as translations from "src/translations.json";
 
 export const CACHE_1_SEC = 1000;
@@ -10,18 +10,6 @@ export const CACHE_10_MIN = CACHE_1_MIN * 10;
 export const CACHE_30_MIN = CACHE_1_MIN * 30;
 export const CACHE_1_H = CACHE_1_MIN * 60;
 export const CACHE_1_D = CACHE_1_H * 24;
-
-export type CacheOptions = {
-	/** Milliseconds for the cache TTL, true for no TTL (does not expire). */
-	cache?: number | true;
-}
-
-export const getCacheTTL = (cache: CacheOptions["cache"] | { ttl?: number }): undefined | number =>
-	isObject(cache)
-		? cache.ttl ?? undefined
-		: typeof cache === "number"
-			? cache
-			: undefined;
 
 type Op<T, R> = {
 	(value: T): R;

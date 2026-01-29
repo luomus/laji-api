@@ -44,8 +44,7 @@ export class FormsService {
 				}
 				return form;
 			}
-		}
-		);
+		});
 	}
 
 	update(id: string, form: Form) {

@@ -5,19 +5,21 @@ import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { of } from "rxjs";
 import { JSONSerializable } from "src/typing.utils";
 import { AxiosResponse } from "axios";
+import { CACHE_1_D } from "src/utils";
 
 const mockAxiosOkResponse = (data: JSONSerializable) => of({ data } as AxiosResponse);
 
 describe("RestClientService", () => {
-	describe("caching", () => {
+	describe("flushing", () => {
 		describe("when singleResourceEndpoint = false", () => {
 			let restClientService: RestClientService<unknown>;
 			let httpService: HttpService;
 
+			// singleResourceEndpoint should be false by default
 			const config: RestClientConfig<unknown> = {
 				name: "TestClient",
 				host: "http://localhost",
-				cache: true // singleResourceEndpoint should be false by default
+				cache: CACHE_1_D
 			};
 
 			beforeEach(async () => {
@@ -101,7 +103,7 @@ describe("RestClientService", () => {
 			const mockConfig: RestClientConfig<any> = {
 				name: "TestClient",
 				host: "https://test.api",
-				cache: { singleResourceEndpoint: true },
+				singleResourceEndpoint: true
 			};
 
 			beforeEach(async () => {
@@ -194,10 +196,11 @@ describe("RestClientService", () => {
 			let restClientService: RestClientService<unknown>;
 			let httpService: HttpService;
 
+			// singleResourceEndpoint should be false by default
 			const config: RestClientConfig<unknown> = {
 				name: "TestClient",
 				host: "http://localhost",
-				cache: true // singleResourceEndpoint should be false by default
+				cache: CACHE_1_D
 			};
 
 			beforeEach(async () => {
@@ -289,6 +292,89 @@ describe("RestClientService", () => {
 				expect(reqAgainResult).not.toBe(req1Result);
 				expect(req2AgainResult).not.toBe(req2Result);
 			});
+		});
+	});
+
+	describe("stale-while-revalidate", () => {
+		let restClientService: RestClientService<any>;
+		let httpService: HttpService;
+
+		const ttl = 1000;
+
+		const config: RestClientConfig<any> = {
+			name: "TestClient",
+			host: "http://localhost",
+			cache: ttl
+		};
+
+		beforeEach(async () => {
+			jest.spyOn(Date, "now").mockReturnValue(0);
+
+			const mockCache: Record<string, any> = {};
+			const mockCacheService = {
+				set: jest.fn((key: string, value: unknown) => {
+					mockCache[key] = value;
+				}),
+				get: jest.fn((key: string) => {
+					return mockCache[key] ?? null;
+				}),
+				del: jest.fn((key: string) => {
+					delete mockCache[key];
+				})
+			};
+
+			const module: TestingModule = await Test.createTestingModule({
+				providers: [
+					RestClientService,
+					{
+						provide: HttpService,
+						useValue: {
+							get: jest.fn(),
+							post: jest.fn(),
+							put: jest.fn(),
+							delete: jest.fn()
+						}
+					},
+					{ provide: RedisCacheService, useValue: mockCacheService },
+					{ provide: "REST_CLIENT_CONFIG", useValue: config }
+				]
+			}).compile();
+
+			restClientService = module.get(RestClientService);
+			httpService = module.get(HttpService);
+		});
+
+		afterEach(() => {
+			jest.restoreAllMocks();
+		});
+
+		it("returns cached value and does NOT revalidate when cache is fresh", async () => {
+			jest.spyOn(httpService, "get").mockReturnValue(mockAxiosOkResponse({ data: "foo" }));
+			const result = await restClientService.get("path");
+			jest.spyOn(Date, "now").mockReturnValue(ttl - 10);
+			jest.spyOn(httpService, "get").mockReturnValue(mockAxiosOkResponse({ data: "bar" }));
+			const result2 = await restClientService.get("path");
+			expect(result).toBe(result2);
+		});
+
+		it("returns cached value and revalidates in background when cache is stale", async () => {
+			jest.spyOn(httpService, "get").mockReturnValue(mockAxiosOkResponse({ data: "foo" }));
+			const result = await restClientService.get("path");
+			jest.spyOn(Date, "now").mockReturnValue(ttl + 1);
+			jest.spyOn(httpService, "get").mockReturnValue(mockAxiosOkResponse({ data: "bar" }));
+			const result2 = await restClientService.get("path");
+			expect(result2).toBe(result); // Immediate response is stale value
+			const result3 = await restClientService.get("path"); // Returns fresh after revalidated in background
+			expect(result3).not.toBe(result);
+		});
+
+		it("does not use stale-while-revalidate when cache is 0", async () => {
+			jest.spyOn(httpService, "get").mockImplementation(() => mockAxiosOkResponse({ data: "foo" }));
+			const result = await restClientService.get("path");
+			jest.spyOn(httpService, "get").mockImplementation(() => mockAxiosOkResponse({ data: "bar" }));
+			const result2 = await restClientService.get("path", undefined, { cache: 0 });
+			expect(result).not.toEqual(result2);
+			expect(httpService.get).toHaveBeenCalledTimes(2);
 		});
 	});
 });

@@ -4,7 +4,7 @@ import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
-import { CacheOptions, asArray, nthFromNonEmptyArr, promisePipe } from "src/utils";
+import { asArray, nthFromNonEmptyArr, promisePipe } from "src/utils";
 import { ClassProperties, MetadataService } from "src/metadata/metadata.service";
 import { HasJsonLdContext, MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -33,7 +33,9 @@ export type TriplestoreSearchQuery = {
 	subject?: string;
 }
 
-type TriplestoreQueryOptions = CacheOptions;
+type TriplestoreQueryOptions = {
+	cache?: number;
+};
 
 type SWRCacheEntry<S> = {
 	data: S,
@@ -88,10 +90,10 @@ export class TriplestoreService {
 
 	private async withStaleWhileRevalidate<S>(
 		cacheKey: string,
-		cache: TriplestoreQueryOptions["cache"],
+		cacheTTL: TriplestoreQueryOptions["cache"],
 		createAndCacheRequest: () => Promise<S>
 	): Promise<S> {
-		if (!cache) {
+		if (!cacheTTL) {
 			return createAndCacheRequest();
 		}
 		const staleWhileRevalidateEntry = await this.cache.get<SWRCacheEntry<S>>(cacheKey);
@@ -99,12 +101,7 @@ export class TriplestoreService {
 			return createAndCacheRequest();
 		}
 
-		// cache === true would be cached without TTL, hence never stale.
-		if (cache === true) {
-			return staleWhileRevalidateEntry.data;
-		}
-
-		const isFresh = staleWhileRevalidateEntry.timestamp + cache > Date.now();
+		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh) {
 			void createAndCacheRequest();
 		}
