@@ -1,6 +1,7 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
-import { PathsObject, RequestBodyObject, ResponseObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { PathsObject, RequestBodyObject, ResponseObject }
+	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
