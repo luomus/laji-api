@@ -89,4 +89,16 @@ describe("/metadata", function() {
 		firstAlt.should.have.property("value");
 		firstAlt.should.have.property("id");
 	});
+
+	it("GET /alts/:alt returns single alt translated", async function() {
+		const res = await apiRequest(this.server, { accessToken, lang: "fi" })
+			.get(url("/metadata/alts/MM.keywordEnum"));
+
+		res.should.have.status(200);
+		res.body.should.be.an("object");
+		const { results } = res.body;
+		results[0].should.be.an("object");
+		results[0].should.have.property("value").equal("Laji");
+		results[0].should.have.property("id");
+	});
 });

@@ -114,6 +114,15 @@ export class MetadataService {
 		return alts[range];
 	}
 
+	async getAlt(altName: string) {
+		const alts = await this.getAlts();
+		const alt = alts[altName];
+		if (!alt) {
+			throw new HttpException("Alt not found", 404);
+		}
+		return alt;
+	}
+
 	private getAlts() {
 		return this.triplestoreRestClient.get<{ [propertyName: string]: Alt[] }>("schema/alt");
 	}
