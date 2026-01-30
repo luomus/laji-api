@@ -1,6 +1,5 @@
 import { MaybePromise } from "src/typing.utils";
 import { Document } from "@luomus/laji-schema";
-import { ValidationErrorFormat } from "../documents.dto";
 import { LocalizedException, isJSONPointer } from "src/utils";
 import * as translations from "src/translations.json";
 
@@ -65,21 +64,6 @@ export class PreTranslatedDetailsValidationException extends ValidationException
 
 export const isValidationExceptionBase = (e: any): e is ValidationExceptionBase => !!e?.details;
 
-const jsonPointerFormatToObjectFormat = (errors: Record<string, string[]>) =>
-	Object.keys(errors).reduce((result, path) => {
-		const parts = path.split(/\//).filter(value => value !== "");
-		const last = parts.pop() as string;
-		let pointer = result;
-		parts.forEach(part => {
-			if (!pointer[part]) {
-				pointer[part] = {};
-			}
-			pointer = pointer[part] as ErrorsObj;
-		});
-		pointer[last] = errors[path]!;
-		return result;
-	}, {} as ErrorsObj);
-
 export const JSONPointerToOldApiJSONPath = (pointer: string) => {
 	const splits = pointer.split("/");
 	splits.shift();
@@ -89,26 +73,4 @@ export const JSONPointerToOldApiJSONPath = (pointer: string) => {
 		}
 		return path + `.${item}`;
 	}, "");
-};
-
-const jsonPointerFormatToJsonPathFormat = (errors: Record<string, string[]>) =>
-	Object.keys(errors).reduce((result, path) => {
-		result[JSONPointerToOldApiJSONPath(path)] = errors[path] as string[];
-		return result;
-	}, {} as Record<string, string[]>);
-
-export const formatErrorDetails = (
-	errors: Record<string, string[]>,
-	targetType: ValidationErrorFormat = ValidationErrorFormat.jsonPointer
-) => {
-	switch (targetType) {
-	case "jsonPointer":
-		return errors;
-	case "dotNotation":
-	// Inherited from the old API. It's not really JSON path but dot notation. Should be removed.
-	case "jsonPath":
-		return jsonPointerFormatToJsonPathFormat(errors);
-	default:
-		return jsonPointerFormatToObjectFormat(errors);
-	}
 };

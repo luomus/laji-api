@@ -37,7 +37,6 @@ export class ApiUsersService {
 
 	async create(email: string): Promise<void> {
 		const apiUser = serializeInto(ApiUserEntity)({ email });
-
 		apiUser.accessToken = uuid(64);
 
 		try {

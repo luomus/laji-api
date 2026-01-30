@@ -5,10 +5,10 @@ import { DocumentsService, populateCreatorAndEditorMutably } from "../documents.
 import { PersonsService } from "src/persons/persons.service";
 import {
 	BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
-	ValidationErrorFormat, BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument,
-	PublicityRestrictions, DataOrigin, BatchJobPhase, BatchJobStep
+	BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument, PublicityRestrictions,
+	DataOrigin, BatchJobPhase, BatchJobStep
 } from "../documents.dto";
-import { PreTranslatedDetailsValidationException, ValidationException, formatErrorDetails, isValidationExceptionBase }
+import { PreTranslatedDetailsValidationException, ValidationException, isValidationExceptionBase }
 	from "../document-validator/document-validator.utils";
 import { firstFromNonEmptyArr, uuid } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -65,8 +65,7 @@ export class DocumentsBatchService {
 			);
 			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
 		});
-		// The validation error format parameter (2nd parameter) doesn't matter, since there are no errors yet.
-		const status = exposeJobStatus(job);
+		const status = exposeJobStatus(job, lang);
 		void this.process(processes, job);
 		return status;
 	}
@@ -74,21 +73,19 @@ export class DocumentsBatchService {
 	async getStatus(
 		jobID: string,
 		person: Person,
-		validationErrorFormat: ValidationErrorFormat,
 		lang: Lang
 	): Promise<BatchJobValidationStatusResponse> {
 		const job = await this.getJobFromCache(jobID, person);
 		if (!job) {
 			throw new HttpException("Job not found", 404);
 		}
-		return exposeJobStatus(job, validationErrorFormat, lang);
+		return exposeJobStatus(job, lang);
 	}
 
 	/** Creates the documents of a given job if it's processed and valid, sending them to store or warehouse. */
 	async complete(
 		jobID: string,
 		person: Person,
-		validationErrorFormat: ValidationErrorFormat,
 		lang: Lang,
 		publicityRestrictions?: PublicityRestrictions,
 		dataOrigin?: DataOrigin
@@ -103,21 +100,14 @@ export class DocumentsBatchService {
 			throw new HttpException("The job is still processing validation", 422);
 		}
 
-		// TODO REMOVE_AFTER_#36 - we must keep this for now to keep bw compatibility {
-		if (job.phase === BatchJobPhase.completing || job.phase === BatchJobPhase.completed) {
-			return exposeJobStatus(job, validationErrorFormat, lang);
+		if (job.phase === BatchJobPhase.completing) {
+			throw new HttpException("The job is still processing the sending", 422);
+		} else if (job.phase === BatchJobPhase.completed) {
+			throw new HttpException("The job is already completed", 422);
 		}
-		// } TODO REPLACE_WITH_AFTER_#36 {
-		// throw new HttpException("The job is still processing the sending", 422);
-		// }
-		// if (job.phase === BatchJobPhase.completed) {
-		// 	throw new HttpException("The job is already completed", 422);
-		// }
-		// }
 
 		if (job.errors.some(e => e !== null)) {
-			return exposeJobStatus(job, validationErrorFormat, lang);
-			// throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
+			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
 		}
 
 		job = serializeInto(BatchJob)({
@@ -142,7 +132,7 @@ export class DocumentsBatchService {
 
 		await this.updateJobInCache(job);
 		void this.createSendProcess(job, person);
-		return exposeJobStatus(job, validationErrorFormat);
+		return exposeJobStatus(job, lang);
 	}
 
 	private async process(processes: Promise<void>[], job: BatchJob) {
@@ -317,8 +307,7 @@ const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, job
 
 const exposeJobStatus = (
 	job: BatchJob,
-	validationErrorFormat?: ValidationErrorFormat,
-	lang?: Lang
+	lang: Lang
 ) => {
 	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(job);
 
@@ -329,7 +318,7 @@ const exposeJobStatus = (
 	if (job.status.processed === job.documents.length) {
 		exposedJob.errors = job.errors.map(e => e === null
 			? e
-			: formatErrorDetails((lang ? localizeException(e, lang) as any : e).details, validationErrorFormat)
+			: (lang ? localizeException(e, lang) as any : e).details
 		);
 		return exposedJob;
 	}

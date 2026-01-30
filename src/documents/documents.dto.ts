@@ -41,15 +41,6 @@ export class GetDocumentsDto extends IntersectionType(
 	@CommaSeparatedStrings() selectedFields?: (keyof Document)[];
 }
 
-// TODO to be removed
-export enum ValidationErrorFormat {
-	remote = "remote",
-	object = "object",
-	jsonPointer = "jsonPointer",
-	jsonPath = "jsonPath",
-	dotNotation = "dotNotation"
-}
-
 export class UpdateDocumentDto {
 	/** Skip validations. Only available for the importer token */
 	@IsOptionalBoolean() skipValidations?: boolean = false;
@@ -231,9 +222,6 @@ export class BatchJobValidationStatusResponse extends OmitType(BatchJob, ["error
 	})
 	errors?: (ErrorsObj | null)[] = [];
 }
-
-export const isBatchJobDto = (job: any): job is { id: string, status: BatchJobValidationStatus } =>
-	job.id && job.status;
 
 export class QueryWithNamedPlaceDto {
 	/** Limit the list of documents to a certain named place */
