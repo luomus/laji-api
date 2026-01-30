@@ -210,10 +210,16 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 	}
 
 	logRemoteError(e: any, reason: string) {
+		let resource;
+		try {
+			resource = JSON.parse(e.config?.data);
+		} catch (e) {
+			resource = e.config?.data;
+		}
 		this.logger.fatal(e, e.stack, {
 			reason,
 			type: this.config.resource,
-			resource: e.config?.data,
+			resource,
 			remoteError: e.response?.data,
 			remoteMethod: e.config?.method,
 			remoteUrl: e.config?.url
