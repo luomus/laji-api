@@ -105,7 +105,7 @@ export class MetadataController {
 		ResultsArray,
 		Serializer(Alt)
 	)
-	@ApiOkResponse({ schema: { type: "array", items: { $ref: getSchemaPath(Alt) } } })
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(Alt) }) })
 	async getAlt(@Param("alt") alt: string) {
 		return this.metadataService.getAlt(alt);
 	}
