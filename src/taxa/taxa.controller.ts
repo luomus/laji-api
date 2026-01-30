@@ -214,7 +214,7 @@ export class TaxaController {
 		return this.taxaService.getChildren(id, query);
 	}
 
-	/** Get children of a taxon with filters */
+	/** Get children of a taxon */
 	@Version("1")
 	@Post(":id/children")
 	@SwaggerRemoteRef({
