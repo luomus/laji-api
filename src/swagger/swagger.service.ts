@@ -152,46 +152,11 @@ export class SwaggerService {
 							}
 
 							if (entry.applyToResponse !== false) {
-								const responseCode = deduceResponseCode(
-									operation,
-									httpMethod,
-									methodName,
-									entry.instance
-								);
-								const existingSchema = getOperationResponseCodeSchemaOrCreateIfNotExists(
-									operation,
-									httpMethod,
-									methodName,
-									entry.instance);
-								const schema: SchemaItem = pipe(
-									applyEntryToResponse(entry, document),
-									paginateAsNeededWith(operation)
-								)(existingSchema);
-								(operation.responses as any)[responseCode].content = {
-									"application/json": { schema }
-								};
+								this.patchResponseSchema(operation, httpMethod, methodName, entry, document);
 							}
 
 							if (["post", "put"].includes(httpMethod) && entry.applyToRequest !== false) {
-								let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
-									? { "$ref": `#/components/schemas${entry.ref}` }
-									: (operation.requestBody as any)!.content["application/json"].schema;
-								if (entry.customizeRequestBodySchema) {
-									schema = entry.customizeRequestBodySchema(
-										schema,
-										document,
-										isSwaggerRemoteRefEntry(entry)
-											? await this.getRemoteSwaggerDoc(entry)
-											: undefined
-									);
-								}
-								operation.requestBody = {
-									required: true,
-									...(operation.requestBody || {}),
-									content: {
-										"application/json": { schema }
-									}
-								};
+								await this.patchRequestSchema(operation, entry, document);
 							}
 						}
 					}
@@ -199,6 +164,55 @@ export class SwaggerService {
 			}
 		}
 		return document;
+	}
+
+	patchResponseSchema(
+		operation: OperationObject,
+		httpMethod: "get" | "put" | "post" | "delete",
+		methodName: string,
+		entry: SwaggerCustomizationEntry,
+		document: OpenAPIObject
+	) {
+		const responseCode = deduceResponseCode(
+			operation,
+			httpMethod,
+			methodName,
+			entry.instance
+		);
+		const existingSchema = getOperationResponseCodeSchemaOrCreateIfNotExists(
+			operation,
+			httpMethod,
+			methodName,
+			entry.instance);
+		const schema: SchemaItem = pipe(
+			applyEntryToResponse(entry, document),
+			paginateAsNeededWith(operation)
+		)(existingSchema);
+		(operation.responses as any)[responseCode].content = {
+			"application/json": { schema }
+		};
+	}
+
+	async patchRequestSchema(operation: OperationObject, entry: SwaggerCustomizationEntry, document: OpenAPIObject) {
+		let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
+			? { "$ref": `#/components/schemas${entry.ref}` }
+			: (operation.requestBody as any)!.content["application/json"].schema;
+		if (entry.customizeRequestBodySchema) {
+			schema = entry.customizeRequestBodySchema(
+				schema,
+				document,
+				isSwaggerRemoteRefEntry(entry)
+					? await this.getRemoteSwaggerDoc(entry)
+					: undefined
+			);
+		}
+		operation.requestBody = {
+			required: true,
+			...(operation.requestBody || {}),
+			content: {
+				"application/json": { schema }
+			}
+		};
 	}
 
 	private patchMultiLangs(document: OpenAPIObject) {
