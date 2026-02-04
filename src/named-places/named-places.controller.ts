@@ -4,7 +4,7 @@ import { GetNamedPlacePageDto, NamedPlace, ReservationDto } from "./named-places
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { FilterUnitsInterceptor } from "./filter-units.interceptor";
 import { ApiTags } from "@nestjs/swagger";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { pickAndSerialize } from "src/serialization/serialization.utils";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
@@ -16,7 +16,7 @@ export class NamedPlacesController {
 
 	/** Reserve an existing named place */
 	@Post(":id/reservation")
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace", applyToRequest: false })
+	@SwaggerRemote({ source: "store", ref: "/namedPlace", applyToRequest: false })
 	reserve(
 		@Param("id") id: string,
 		@Query() { personID, until }: ReservationDto,
@@ -27,7 +27,7 @@ export class NamedPlacesController {
 
 	/** Cancel a reservation for a named place */
 	@Delete(":id/reservation")
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
+	@SwaggerRemote({ source: "store", ref: "/namedPlace" })
 	cancelReservation(
 		@Param("id") id: string,
 		@RequestPerson() person: Person
@@ -37,7 +37,7 @@ export class NamedPlacesController {
 
 	/** Get a page of named places */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
+	@SwaggerRemote({ source: "store", ref: "/namedPlace" })
 	@UseInterceptors(FilterUnitsInterceptor)
 	getPage(
 		@Query() query: GetNamedPlacePageDto,
@@ -61,7 +61,7 @@ export class NamedPlacesController {
 
 	/** Get a named place by id */
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
+	@SwaggerRemote({ source: "store", ref: "/namedPlace" })
 	@UseInterceptors(FilterUnitsInterceptor)
 	get(
 		@Param("id") id: string,
@@ -75,7 +75,7 @@ export class NamedPlacesController {
 
 	/** Create a new named place */
 	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
+	@SwaggerRemote({ source: "store", ref: "/namedPlace" })
 	create(
 		@Body() place: NamedPlace,
 		@RequestPerson() person: Person
@@ -85,7 +85,7 @@ export class NamedPlacesController {
 
 	/** Update an existing named place */
 	@Put(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/namedPlace" })
+	@SwaggerRemote({ source: "store", ref: "/namedPlace" })
 	update(
 		@Param("id") id: string,
 		@Body() place: NamedPlace,

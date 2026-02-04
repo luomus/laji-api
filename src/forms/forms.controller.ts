@@ -4,7 +4,7 @@ import { Form, Format, GetDto } from "./dto/form.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
 import { Lang } from "src/common.dto";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Person } from "src/persons/person.dto";
 import { RequestPerson }from "src/decorators/request-person.decorator";
@@ -29,7 +29,7 @@ export class FormsController {
 
 	/** Get a page of forms */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "/form", customizeResponseSchema: swaggerResponseAsResultsArray })
+	@SwaggerRemote({ source: "store", ref: "/form", customizeResponseSchema: swaggerResponseAsResultsArray })
 	@UseInterceptors(ResultsArray)
 	getListing(@RequestLang() lang: Lang) {
 		return this.formsService.getListing(lang);
@@ -37,7 +37,7 @@ export class FormsController {
 
 	/** Get a form by id */
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/form" })
+	@SwaggerRemote({ source: "store", ref: "/form" })
 	getOne(
 		@Param("id") id: string,
 		@Query() { format = Format.schema, expand = true }: GetDto,
@@ -49,7 +49,7 @@ export class FormsController {
 	/** Create a new form */
 	@Post()
 	@UseGuards(IctAdminGuard)
-	@SwaggerRemoteRef({ source: "store", ref: "/form" })
+	@SwaggerRemote({ source: "store", ref: "/form" })
 	create(@Body() form: Form) {
 		return this.formsService.create(form);
 	}
@@ -57,7 +57,7 @@ export class FormsController {
 	/** Update an existing form */
 	@Put(":id")
 	@UseGuards(IctAdminGuard)
-	@SwaggerRemoteRef({ source: "store", ref: "/form" })
+	@SwaggerRemote({ source: "store", ref: "/form" })
 	update(@Param("id") id: string, @Body() form: Form) {
 		return this.formsService.update(id, form);
 	}
@@ -72,7 +72,7 @@ export class FormsController {
 	/** Get preview of form transformed from json format to schema format */
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
-	@SwaggerRemoteRef({ source: "store", ref: "/form" })
+	@SwaggerRemote({ source: "store", ref: "/form" })
 	transform(@Body() form: Form, @RequestLang() lang: Lang) {
 		return this.formsService.transform(form, lang);
 	}

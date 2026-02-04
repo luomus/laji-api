@@ -3,14 +3,14 @@ import { RedListEvaluationGroupsService } from "./red-list-evaluation-groups.ser
 import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
-import { SwaggerRemoteRef, SwaggerRemoteRefEntry } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote, SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Lang, QueryWithPagingAndIdIn } from "src/common.dto";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { swaggerResponseAsResultsArray, ResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 
-const fromStoreWithJSONLdContextFixed: SwaggerRemoteRefEntry = {
+const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
 	ref: "/iucnRedListTaxonGroup",
 	customizeResponseSchema: swaggerResponseAsResultsArray
@@ -24,14 +24,14 @@ export class RedListEvaluationGroupsController {
 	/** Get a page of red list evaluation groups */
 	@Get()
 	@UseInterceptors(Translator, Paginator)
-	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
+	@SwaggerRemote({ source: "store", ref: "/iucnRedListTaxonGroup" })
 	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
 		return this.redListEvaluationGroupsService.find(idIn);
 	}
 
 	/** Get the red list evaluation group tree */
 	@Get("tree")
-	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
+	@SwaggerRemote(fromStoreWithJSONLdContextFixed)
 	async getTree(@RequestLang() lang: Lang) {
 		return applyLangToJsonLdContext({
 			results: await this.redListEvaluationGroupsService.getTranslatedTree(lang),
@@ -42,7 +42,7 @@ export class RedListEvaluationGroupsController {
 	/** Get first level of the red list evaluation group tree */
 	@Get("roots")
 	@UseInterceptors(Translator, ResultsArray)
-	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
+	@SwaggerRemote(fromStoreWithJSONLdContextFixed)
 	getRoots() {
 		return this.redListEvaluationGroupsService.getRoots();
 	}
@@ -50,7 +50,7 @@ export class RedListEvaluationGroupsController {
 	/** Get an red list evaluation group by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
+	@SwaggerRemote({ source: "store", ref: "/iucnRedListTaxonGroup" })
 	get(@Param("id") id: string) {
 		return this.redListEvaluationGroupsService.get(id);
 	}
@@ -58,7 +58,7 @@ export class RedListEvaluationGroupsController {
 	/** Get an red list evaluation group's immediate children */
 	@Get(":id/children")
 	@UseInterceptors(Translator, ResultsArray)
-	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
+	@SwaggerRemote(fromStoreWithJSONLdContextFixed)
 	getChildren(@Param("id") id: string) {
 		return this.redListEvaluationGroupsService.getChildren(id);
 	}
@@ -66,7 +66,7 @@ export class RedListEvaluationGroupsController {
 	/** Get red list evaluation group's parents */
 	@Get(":id/parent")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/iucnRedListTaxonGroup" })
+	@SwaggerRemote({ source: "store", ref: "/iucnRedListTaxonGroup" })
 	getParent(@Param("id") id: string) {
 		return this.redListEvaluationGroupsService.getParent(id);
 	}
@@ -74,7 +74,7 @@ export class RedListEvaluationGroupsController {
 	/** Get red list evaluation group's siblings */
 	@Get(":id/siblings")
 	@UseInterceptors(Translator, ResultsArray)
-	@SwaggerRemoteRef(fromStoreWithJSONLdContextFixed)
+	@SwaggerRemote(fromStoreWithJSONLdContextFixed)
 	getSiblings(@Param("id") id: string) {
 		return this.redListEvaluationGroupsService.getSiblings(id);
 	}

@@ -1,12 +1,11 @@
 import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { CACHE_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, pipe,
-	promisePipe,
+import { CACHE_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, promisePipe,
 	updateWithJSONPointer, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
-import { SwaggerRemoteRefEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
+import { SwaggerRemoteEntry, isSwaggerRemoteEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
 import { Interval } from "@nestjs/schedule";
 import { SerializeEntry, entryHasWhiteList, isSerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaObjectFactory } from "@nestjs/swagger/dist/services/schema-object-factory";
@@ -14,7 +13,7 @@ import { ModelPropertiesAccessor } from "@nestjs/swagger/dist/services/model-pro
 import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-mapper";
 import { SwaggerCustomizationEntry, swaggerCustomizationEntries } from "./swagger-scanner";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
-import { JSONSerializable, Newable, isObject } from "src/typing.utils";
+import { JSONSerializable, Newable, WithNonNullableKeys, isObject } from "src/typing.utils";
 import { GLOBAL_CLIENT, STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
 import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
@@ -76,12 +75,12 @@ export class SwaggerService {
 		);
 	}
 
-	getRemoteSwaggerDoc(entry: SwaggerRemoteRefEntry): Promise<OpenAPIObject> {
+	async getRemoteSwaggerDoc(entry: SwaggerRemoteEntry): Promise<{ document: OpenAPIObject, prefix: string }> {
 		switch (entry.source) {
 		case "store":
-			return this.getStoreSwaggerDoc();
+			return { document: await this.getStoreSwaggerDoc(), prefix: "store-" };
 		case "laji-backend":
-			return this.getLajiBackendSwaggerDoc();
+			return { document: await this.getLajiBackendSwaggerDoc(), prefix: "LajiBackend" };
 		}
 	}
 
@@ -152,7 +151,7 @@ export class SwaggerService {
 							}
 
 							if (entry.applyToResponse !== false) {
-								this.patchResponseSchema(operation, httpMethod, methodName, entry, document);
+								await this.patchResponseSchema(operation, httpMethod, methodName, entry, document);
 							}
 
 							if (["post", "put"].includes(httpMethod) && entry.applyToRequest !== false) {
@@ -166,7 +165,7 @@ export class SwaggerService {
 		return document;
 	}
 
-	patchResponseSchema(
+	async patchResponseSchema(
 		operation: OperationObject,
 		httpMethod: "get" | "put" | "post" | "delete",
 		methodName: string,
@@ -184,8 +183,8 @@ export class SwaggerService {
 			httpMethod,
 			methodName,
 			entry.instance);
-		const schema: SchemaItem = pipe(
-			applyEntryToResponse(entry, document),
+		const schema: SchemaItem = await promisePipe(
+			this.applyEntryToResponse(entry, document),
 			paginateAsNeededWith(operation)
 		)(existingSchema);
 		(operation.responses as any)[responseCode].content = {
@@ -194,15 +193,15 @@ export class SwaggerService {
 	}
 
 	async patchRequestSchema(operation: OperationObject, entry: SwaggerCustomizationEntry, document: OpenAPIObject) {
-		let schema: SchemaItem | undefined = isSwaggerRemoteRefEntry(entry)
+		let schema: SchemaItem | undefined = isSwaggerRemoteEntry(entry)
 			? { "$ref": `#/components/schemas${entry.ref}` }
 			: (operation.requestBody as any)!.content["application/json"].schema;
 		if (entry.customizeRequestBodySchema) {
 			schema = entry.customizeRequestBodySchema(
 				schema,
 				document,
-				isSwaggerRemoteRefEntry(entry)
-					? await this.getRemoteSwaggerDoc(entry)
+				isSwaggerRemoteEntry(entry)
+					? (await this.getRemoteSwaggerDoc(entry)).document
 					: undefined
 			);
 		}
@@ -213,6 +212,41 @@ export class SwaggerService {
 				"application/json": { schema }
 			}
 		};
+	}
+
+	applyEntryToResponse(entry: SwaggerCustomizationEntry, document: OpenAPIObject) {
+		return async (schema: SchemaItem): Promise<SchemaItem> => {
+			if (isSwaggerRemoteRefEntry(entry)) {
+				schema = await this.replaceWithRemote(entry, schema, document);
+			}
+			if (hasSwaggerSchemaDefinitionName(entry)) {
+				schema = replaceWithRefToCustomSwaggerSchemaDefinitionName(entry, schema);
+			}
+			if (entry.customizeResponseSchema) {
+				schema = entry.customizeResponseSchema(schema, document);
+			}
+			return schema;
+		};
+	}
+
+	async replaceWithRemote(
+		entry: WithNonNullableKeys<SwaggerRemoteEntry, "ref">,
+		schema: SchemaItem,
+		document: OpenAPIObject
+	) {
+		const { prefix } = await this.getRemoteSwaggerDoc(entry);
+		const refParts = entry.ref.split("/");
+		const firstRefParts = refParts;
+		const lastRefPart = firstRefParts.pop();
+		const prefixedRef = [...firstRefParts, prefix + lastRefPart].join("/");
+		const replacement = { "$ref": `#/components/schemas${prefixedRef}` };
+		if (entry.replacePointer) {
+			const schemaDef = getSchemaDefinition(document, schema);
+			updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
+			return schemaDef;
+		} else {
+			return replacement;
+		}
 	}
 
 	private patchMultiLangs(document: OpenAPIObject) {
@@ -292,8 +326,8 @@ export class SwaggerService {
 		}
 	}
 
-	private async remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteRefEntry) {
-		const remoteDoc = await this.getRemoteSwaggerDoc(entry);
+	private async remoteRefEntrySideEffectForSchema(schema: SwaggerSchema, entry: SwaggerRemoteEntry) {
+		const { document: remoteDoc, prefix } = await this.getRemoteSwaggerDoc(entry);
 		const remoteSchemas = (remoteDoc.components!.schemas as Record<string, SchemaObject>);
 		if (!entry.ref) {
 			return;
@@ -302,7 +336,7 @@ export class SwaggerService {
 		if (!remoteSchema) {
 			throw new Error(`Badly configured SwaggerRemoteRef. Remote schema didn't contain the ref ${entry.ref}`);
 		}
-		const name = entry.swaggerSchemaDefinitionName || lastFromNonEmptyArr(entry.ref.split("/"));
+		const name = entry.swaggerSchemaDefinitionName || (prefix + lastFromNonEmptyArr(entry.ref.split("/")));
 		if (!schema[name]) {
 			schema[name] = remoteSchema;
 		}
@@ -330,9 +364,10 @@ export class SwaggerService {
 	 * */
 	private async mergeRefsFromRemote(
 		schema: SwaggerSchema,
-		entry: SwaggerRemoteRefEntry,
+		entry: SwaggerRemoteEntry,
 		referencedRemoteSchema: SchemaObject
 	) {
+		const { document: remoteDocument, prefix } = await this.getRemoteSwaggerDoc(entry);
 		const traverseAndMerge = async (iteratedRemoteSchema: SchemaObject | ReferenceObject) => {
 			if (isSchemaObject(iteratedRemoteSchema)) {
 				if (iteratedRemoteSchema.items) {
@@ -352,13 +387,11 @@ export class SwaggerService {
 			} else {
 				const { $ref: ref } = iteratedRemoteSchema;
 				const referencedSchemaRefName = lastFromNonEmptyArr(ref.split("/"));
-				if (!schema[referencedSchemaRefName]) {
+				if (!schema[prefix + referencedSchemaRefName]) {
 					const referencedSchema = parseURIFragmentIdentifierRepresentation<SchemaObject>(
-						await this.getRemoteSwaggerDoc(entry), ref
+						remoteDocument, ref
 					);
-					if (!schema[referencedSchemaRefName]) {
-						schema[referencedSchemaRefName] = referencedSchema;
-					}
+					schema[prefix + referencedSchemaRefName] = referencedSchema;
 					await traverseAndMerge(referencedSchema);
 				}
 			}
@@ -367,8 +400,8 @@ export class SwaggerService {
 		await traverseAndMerge(referencedRemoteSchema);
 	}
 
-	async getSchemaForEntry(entry: SwaggerRemoteRefEntry) {
-		const remoteSwagger = await this.getRemoteSwaggerDoc(entry);
+	async getSchemaForEntry(entry: SwaggerRemoteEntry) {
+		const remoteSwagger = (await this.getRemoteSwaggerDoc(entry)).document;
 		return parseJSONPointer<JSONSchema>(
 			remoteSwagger,
 			`/components/schemas${entry.ref}`
@@ -397,31 +430,6 @@ const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | Ref
 
 const hasSwaggerSchemaDefinitionName = (entry: unknown): entry is { swaggerSchemaDefinitionName: string } =>
 	isObject(entry) && !!entry.swaggerSchemaDefinitionName;
-
-const applyEntryToResponse = (entry: SwaggerCustomizationEntry, document: OpenAPIObject) =>
-	(schema: SchemaItem): SchemaItem => {
-		if (isSwaggerRemoteRefEntry(entry)) {
-			schema = replaceWithRemote(entry, schema, document);
-		}
-		if (hasSwaggerSchemaDefinitionName(entry)) {
-			schema = replaceWithRefToCustomSwaggerSchemaDefinitionName(entry, schema);
-		}
-		if (entry.customizeResponseSchema) {
-			schema = entry.customizeResponseSchema(schema, document);
-		}
-		return schema;
-	};
-
-const replaceWithRemote = (entry: SwaggerRemoteRefEntry, schema: SchemaItem, document: OpenAPIObject) => {
-	const replacement = { "$ref": `#/components/schemas${entry.ref}` };
-	if (entry.replacePointer) {
-		const schemaDef = getSchemaDefinition(document, schema);
-		updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
-		return schemaDef;
-	} else {
-		return replacement;
-	}
-};
 
 const replaceWithRefToCustomSwaggerSchemaDefinitionName =
 	(entry: { swaggerSchemaDefinitionName: string }, schema: SchemaItem) => (

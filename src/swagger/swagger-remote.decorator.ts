@@ -1,18 +1,16 @@
-import { isObject } from "src/typing.utils";
+import { WithNonNullableKeys, isObject } from "src/typing.utils";
 import { SwaggerCustomizationCommon, createSwaggerScanner } from "./swagger-scanner";
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor, UseInterceptors, applyDecorators,
 	mixin } from "@nestjs/common";
 import { Observable, switchMap } from "rxjs";
 import { applyToResult } from "src/pagination.utils";
-import { localJsonLdContextToRemoteSwaggerRefEntry } from "src/json-ld/json-ld.service";
+import { localJsonLdContextToRemoteSwaggerEntry } from "src/json-ld/json-ld.service";
 import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
+
 //The name of the schema object in the remote OpenAPI document's schemas */
-export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
+export type SwaggerRemoteEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
 	source: "store" | "laji-backend",
-	/** JSON pointer for the schema in the remote OpenAPI document that will be used as the response schema. The pointer
-	 * is relative to the remote document's component schemas (#/components/schemas) */
-	ref?: string,
 	/**
 	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
 	 * Uses JSON pointer notation. Has lower precedence than `customizeResponseSchema`.
@@ -20,9 +18,15 @@ export type SwaggerRemoteRefEntry = SwaggerCustomizationCommon & {
 	replacePointer?: string;
 	/** The local json-ld context name that is given to the result */
 	localJsonLdContext?: string;
+	/** JSON pointer for the schema in the remote OpenAPI document that will be used as the response schema. The pointer
+	 * is relative to the remote document's component schemas (#/components/schemas) */
+	ref?: string;
 };
 
-export const isSwaggerRemoteRefEntry = (entry: unknown): entry is SwaggerRemoteRefEntry =>
+export const isSwaggerRemoteEntry = (entry: unknown): entry is SwaggerRemoteEntry =>
+	isObject(entry) && "source" in entry;
+
+export const isSwaggerRemoteRefEntry = (entry: unknown): entry is WithNonNullableKeys<SwaggerRemoteEntry, "ref"> =>
 	isObject(entry) && "source" in entry && "ref" in entry;
 
 const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
@@ -35,18 +39,18 @@ const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
  *
  * Note that the controller must be decorated with either `@LajiApiController()` or `@SwaggerRemoteScanner()`!
  * */
-export function SwaggerRemoteRef(entry: SwaggerRemoteRefEntry) {
+export function SwaggerRemote(entry: SwaggerRemoteEntry | SwaggerRemoteEntry) {
 	return applyDecorators(
-		bindSwaggerRemoteRefMetadata(entry),
-		UseInterceptors(AddLocalJsonLdContextFromEntry, BindSwaggerRemoteRefMetadata(entry))
+		bindSwaggerRemoteMetadata(entry),
+		UseInterceptors(AddLocalJsonLdContextFromEntry, BindSwaggerRemoteMetadata(entry))
 	);
 }
 
-function bindSwaggerRemoteRefMetadata(entry: SwaggerRemoteRefEntry) {
+function bindSwaggerRemoteMetadata(entry: SwaggerRemoteEntry) {
 	return function (target: any, propertyKey: any) {
 		Reflect.defineMetadata(SWAGGER_REMOTE_METADATA + propertyKey, entry, target);
 		if (entry.localJsonLdContext) {
-			localJsonLdContextToRemoteSwaggerRefEntry[entry.localJsonLdContext] = entry;
+			localJsonLdContextToRemoteSwaggerEntry[entry.localJsonLdContext] = entry;
 		}
 	};
 }
@@ -54,19 +58,19 @@ function bindSwaggerRemoteRefMetadata(entry: SwaggerRemoteRefEntry) {
 export const SWAGGER_REMOTE_METADATA_ITEM = "SWAGGER_REMOTE_METADATA_ITEM";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-const bindSwaggerRemoteRefMetadataToItem = (entry: SwaggerRemoteRefEntry) => (item: Object) => {
+const bindSwaggerRemoteMetadataToItem = (entry: SwaggerRemoteEntry) => (item: Object) => {
 	Reflect.defineMetadata(SWAGGER_REMOTE_METADATA_ITEM, entry, item);
 	return item;
 };
 
-function BindSwaggerRemoteRefMetadata(entry: SwaggerRemoteRefEntry) {
+function BindSwaggerRemoteMetadata(entry: SwaggerRemoteEntry) {
 	@Injectable()
-	class BindSwaggerRemoteRefMetadataInterceptor implements NestInterceptor {
+	class BindSwaggerRemoteMetadataInterceptor implements NestInterceptor {
 		intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-			return next.handle().pipe(switchMap(applyToResult(bindSwaggerRemoteRefMetadataToItem(entry))));
+			return next.handle().pipe(switchMap(applyToResult(bindSwaggerRemoteMetadataToItem(entry))));
 		}
 	}
-	return mixin(BindSwaggerRemoteRefMetadataInterceptor);
+	return mixin(BindSwaggerRemoteMetadataInterceptor);
 }
 
 @Injectable()
@@ -77,7 +81,7 @@ export class AddLocalJsonLdContextFromEntry implements NestInterceptor {
 	}
 
 	addLocalJsonLdContext(result: any) {
-		const entry: SwaggerRemoteRefEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
+		const entry: SwaggerRemoteEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
 		return addLocalJsonLdContext(entry?.localJsonLdContext)(result);
 	}
 }

@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { jsonSchemaToEmbeddedJsonLdContext } from "src/json-ld/json-ld.utils";
-import { SwaggerRemoteRefEntry } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { SwaggerService } from "src/swagger/swagger.service";
 import * as jsonld from "jsonld";
 import { JSONObjectSerializable } from "src/typing.utils";
@@ -13,7 +13,7 @@ import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.inte
 import { JSONSchema } from "src/json-schema.utils";
 import { localJsonLdContextToClass } from "src/decorators/local-json-ld-context.decorator";
 
-export const localJsonLdContextToRemoteSwaggerRefEntry: Record<string, SwaggerRemoteRefEntry> = {};
+export const localJsonLdContextToRemoteSwaggerEntry: Record<string, SwaggerRemoteEntry> = {};
 
 @Injectable()
 export class JsonLdService {
@@ -29,12 +29,12 @@ export class JsonLdService {
 	}
 
 	private async getEmbeddedContextFromRemoteSwagger(name: string, lang?: Lang) {
-		const entry = localJsonLdContextToRemoteSwaggerRefEntry[name];
+		const entry = localJsonLdContextToRemoteSwaggerEntry[name];
 		if (!entry) {
 			return;
 		}
 
-		const remoteSwagger = await this.swaggerService.getRemoteSwaggerDoc(entry);
+		const remoteSwagger = (await this.swaggerService.getRemoteSwaggerDoc(entry)).document;
 		const remoteComponentSchema = await this.swaggerService.getSchemaForEntry(entry);
 		return { "@context": jsonSchemaToEmbeddedJsonLdContext(remoteComponentSchema, remoteSwagger, lang) };
 	}

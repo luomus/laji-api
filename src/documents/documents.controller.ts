@@ -9,7 +9,7 @@ import {
 } from "./documents.dto";
 import { PaginatedDto } from "src/pagination.dto";
 import { Document } from "@luomus/laji-schema";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
@@ -43,7 +43,7 @@ export class DocumentsController {
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
 	 * */
 	@Post("batch")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "store",
 		ref: "/document",
 		replacePointer: "/items",
@@ -68,7 +68,7 @@ export class DocumentsController {
 	// Makes the BatchJobValidationStatusResponse use store documents' swagger def. Modifies the definition which is
 	// referenced by other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only
 	// once.
-	@SwaggerRemoteRef({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
+	@SwaggerRemote({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
@@ -200,7 +200,7 @@ export class DocumentsController {
 
 	/** Get a page of documents */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	getPage(@Query() query: GetDocumentsDto, @RequestPerson() person: Person): Promise<PaginatedDto<Document>> {
 		const { page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
@@ -215,7 +215,7 @@ export class DocumentsController {
 
 	/** Get a document */
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	get(@Param("id") id: string,
 		@RequestPerson() person: Person
 	): Promise<Document> {
@@ -224,7 +224,7 @@ export class DocumentsController {
 
 	/** Create a new document */
 	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	async create(
 		@Body() document: Document,
 		@ApiUser() apiUser: ApiUserEntity,
@@ -264,7 +264,7 @@ export class DocumentsController {
 
 	/** Update an existing document */
 	@Put(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	async update(
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,

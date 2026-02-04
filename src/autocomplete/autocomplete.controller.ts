@@ -8,7 +8,7 @@ import { Person } from "src/persons/person.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { TaxaSearchDto } from "src/taxa/taxa.dto";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SchemaItem } from "src/swagger/swagger.service";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
@@ -50,7 +50,7 @@ export class AutocompleteController {
 
 	@Version("1")
 	@Get("/taxa")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/TaxonSearchResponse/items",
 		customizeResponseSchema: (schema, document) => pipe(

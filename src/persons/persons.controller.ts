@@ -7,7 +7,7 @@ import { PersonsService } from "./persons.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Serialize } from "src/serialization/serialize.decorator";
 import { RequestPerson } from "src/decorators/request-person.decorator";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote} from "src/swagger/swagger-remote.decorator";
 
 @LajiApiController("person")
 @ApiTags("Person")
@@ -20,7 +20,7 @@ export class PersonsController {
 	/** Get profile */
 	@Version("1")
 	@Get("profile")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	@SwaggerRemote({ source: "store", ref: "/profile", applyToRequest: false })
 	findProfileByPersonToken(@RequestPerson() person: Person) {
 		return this.profileService.getByPersonOrCreate(person);
 	}
@@ -51,7 +51,7 @@ export class PersonsController {
 	/** Create profile */
 	@Version("1")
 	@Post("profile")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
+	@SwaggerRemote({ source: "store", ref: "/profile" })
 	async createProfile(@RequestPerson() person: Person, @Body() profile: Profile) {
 		return this.profileService.create(person, profile);
 	}
@@ -59,7 +59,7 @@ export class PersonsController {
 	/** Accept friend request */
 	@Version("1")
 	@Put("friends/:id")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	@SwaggerRemote({ source: "store", ref: "/profile", applyToRequest: false })
 	async acceptFriendRequest(@RequestPerson() person: Person, @Param("id") friendPersonID: string) {
 		return this.profileService.acceptFriendRequest(person, await this.personsService.get(friendPersonID));
 	}
@@ -67,7 +67,7 @@ export class PersonsController {
 	/** Remove a friend request or a friend */
 	@Version("1")
 	@Delete("friends/:id")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	@SwaggerRemote({ source: "store", ref: "/profile", applyToRequest: false })
 	async removeFriend(
 		@RequestPerson() person: Person,
 		@Param("id") friendPersonID: string,
@@ -118,7 +118,7 @@ export class PersonsController {
 	/** Update profile */
 	@Version("1")
 	@Put("profile")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile" })
+	@SwaggerRemote({ source: "store", ref: "/profile" })
 	async updateProfile(@RequestPerson() person: Person, @Body() profile: Profile) {
 		return this.profileService.update(person, profile);
 	}
@@ -137,7 +137,7 @@ export class PersonsController {
 	/** Request person to be your friend */
 	@Version("1")
 	@Post("friends/:id")
-	@SwaggerRemoteRef({ source: "store", ref: "/profile", applyToRequest: false })
+	@SwaggerRemote({ source: "store", ref: "/profile", applyToRequest: false })
 	async addFriendRequest(@RequestPerson() person: Person, @Param("id") friendPersonID: string) {
 		return this.profileService.addFriendRequest(person, await this.personsService.get(friendPersonID));
 	}

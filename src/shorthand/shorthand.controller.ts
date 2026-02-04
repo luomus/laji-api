@@ -4,7 +4,7 @@ import { GetTripReportUnitShorthandDto, GetWaterBirdPairCountUnitShorthandDto, L
 	from "./shorthand.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote} from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { CommonAutocompleteDto } from "src/autocomplete/autocomplete.dto";
 import { ShorthandService } from "./shorthand.service";
@@ -19,7 +19,7 @@ export class ShorthandController {
 	@UseInterceptors(SelectedFields)
 	// The json-ld typing is actually more than just taxon response, but this is sufficient to get the taxon search
 	// results translated.
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/TaxonSearchResponse",
 		customizeResponseSchema: swaggerResponseAsResultsArray,

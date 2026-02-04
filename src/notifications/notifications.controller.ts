@@ -3,7 +3,7 @@ import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
 import { GetNotificationsDto } from "./notification.dto";
 import { Notification } from "@luomus/laji-schema";
 import { NotificationsService } from "./notifications.service";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
@@ -16,7 +16,7 @@ export class NotificationsController {
 
 	/* Get notifications */
 	@ApiExcludeEndpoint()
-	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
+	@SwaggerRemote({ source: "store", ref: "/notification" })
 	@Get(":personToken")
 	getAll(
 		@Query() { page, pageSize, onlyUnSeen }: GetNotificationsDto,
@@ -27,7 +27,7 @@ export class NotificationsController {
 	}
 
 	/* Get notifications */
-	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
+	@SwaggerRemote({ source: "store", ref: "/notification" })
 	@Get()
 	@UseInterceptors(SelectedFields)
 	getAllV1(
@@ -39,7 +39,7 @@ export class NotificationsController {
 
 	/* Update notification */
 	@Put(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/notification" })
+	@SwaggerRemote({ source: "store", ref: "/notification" })
 	update(
 		@Param("id") id: string,
 		@Body() notification: Notification & { id: string },

@@ -4,7 +4,7 @@ import { GetAnnotationsDto } from "./annotations.dto";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { PaginatedDto } from "src/pagination.dto";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Annotation } from "@luomus/laji-schema/models";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
@@ -21,7 +21,7 @@ export class AnnotationsController {
 
 	/** Fetch all annotation tags */
 	@Get("tags")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "store",
 		ref: "/tag",
 		customizeResponseSchema: swaggerResponseAsResultsArray
@@ -43,7 +43,7 @@ export class AnnotationsController {
 
 	/** Get a page of annotations */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
+	@SwaggerRemote({ source: "store", ref: "/annotation" })
 	getPage(
 		@Query() { rootID, page, pageSize }: GetAnnotationsDto,
 		@RequestPerson() person: Person
@@ -58,7 +58,7 @@ export class AnnotationsController {
 
 	/** Create a new annotation */
 	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
+	@SwaggerRemote({ source: "store", ref: "/annotation" })
 	async create(
 		@Body() annotation: Annotation,
 		@RequestPerson() person: Person
@@ -68,7 +68,7 @@ export class AnnotationsController {
 
 	/** Delete an annotation. It's a soft delete, a succesful delete returns the updated annotation */
 	@Delete(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/annotation" })
+	@SwaggerRemote({ source: "store", ref: "/annotation" })
 	async delete(
 		@Param("id") id: string,
 		@RequestPerson() person: Person
