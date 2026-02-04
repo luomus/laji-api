@@ -18,7 +18,7 @@ export type RemoteSwaggerEntry = {
 
 export const instancesWithRemoteSwagger: RemoteSwaggerEntry[] = [];
 
-export const ConnectToSwaggerService = (target: any) => {
+const ConnectToSwaggerService = (target: any) => {
 	instancesWithRemoteSwagger.push({ name: target.name, instance: target });
 };
 

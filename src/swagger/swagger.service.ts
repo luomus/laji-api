@@ -109,7 +109,7 @@ export class SwaggerService {
 		)(JSON.parse(JSON.stringify(document)));
 	}
 
-	/** Patches the Swagger document with controllers decorated with `@ProxyWithSwaggerMerge()` */
+	/** Patches the Swagger document with controllers decorated with `@RemoteSwaggerMerge()` */
 	private patchRemoteSwaggers(document: OpenAPIObject) {
 		return Object.values(this.remoteSwaggers).reduce(
 			(patchedDocument, entry) => {
