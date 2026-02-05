@@ -441,7 +441,7 @@ const replaceWithRefToCustomSwaggerSchemaDefinitionName =
 export const isPagedOperation = (operation: OperationObject) =>
 	(operation.parameters || []).some(param => (param as ParameterObject).name === "page") || false;
 
-const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
+export const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	type: "object",
 	properties: {
 		currentPage: { type: "number" },

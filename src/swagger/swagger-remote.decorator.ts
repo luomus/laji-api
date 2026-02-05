@@ -35,11 +35,11 @@ const SWAGGER_REMOTE_METADATA = "SWAGGER_REMOTE_METADATA";
  * Allows defining a remote Swagger schema ref for a controller method. The referred schema is merged into our own
  *   OpenAPI document. The result will be magically paginated also.
  *
- *   It adds also interceptors to the controller method if it has `localJsonLdContext` option.
+ * It adds also interceptors to the controller method if it has `localJsonLdContext` option.
  *
  * Note that the controller must be decorated with either `@LajiApiController()` or `@SwaggerRemoteScanner()`!
  * */
-export function SwaggerRemote(entry: SwaggerRemoteEntry | SwaggerRemoteEntry) {
+export function SwaggerRemote(entry: SwaggerRemoteEntry) {
 	return applyDecorators(
 		bindSwaggerRemoteMetadata(entry),
 		UseInterceptors(AddLocalJsonLdContextFromEntry, BindSwaggerRemoteMetadata(entry))
