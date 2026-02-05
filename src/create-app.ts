@@ -154,6 +154,7 @@ export async function createApp(useLogger = true) {
 	// These need to be initialized before SwaggerService can patch the document.
 	await app.get(RedisCacheService).onModuleInit();
 	await app.get(SwaggerService).warmup();
+
 	let patchedDocument = await app.get(SwaggerService).patchMutably(document);
 	setInterval(async () => {
 		patchedDocument = await app.get(SwaggerService).patchMutably(document);
