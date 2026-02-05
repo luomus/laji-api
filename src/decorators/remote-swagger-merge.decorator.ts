@@ -60,23 +60,26 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				if (modelPrefix) {
 					if (operation.responses) {
 						for (const statusCode of Object.keys(operation.responses)) {
-							const modelSchema = (
-								operation.responses[statusCode] as ResponseObject
-							)!.content?.["application/json"]?.schema;
-							if (!modelSchema) {
+							const { content } = operation.responses[statusCode] as ResponseObject;
+							if (!content) {
 								continue;
 							}
-							fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
+							for (const responseType of Object.keys(content)) {
+								const modelSchema = content[responseType]!.schema;
+								if (!modelSchema) {
+									continue;
+								}
+								fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
+							}
 						}
 					}
-					if ((operation.requestBody as RequestBodyObject)?.content?.["application/json"]?.schema) {
-						fixRefsModelPrefix(
-							(operation.requestBody as RequestBodyObject)
-								?.content
-								?.["application/json"]
-								?.schema as JSONSchema,
-							modelPrefix
-						);
+					const { content } = operation.requestBody as RequestBodyObject || {};
+					if (content) {
+						for (const responseType of Object.keys(content)) {
+							if (content[responseType]!.schema) {
+								fixRefsModelPrefix(content[responseType]!.schema as JSONSchema, modelPrefix);
+							}
+						}
 					}
 				}
 			}
