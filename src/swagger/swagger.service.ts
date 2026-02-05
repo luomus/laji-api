@@ -16,7 +16,7 @@ import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-c
 import { JSONSerializable, Newable, WithNonNullableKeys, isObject } from "src/typing.utils";
 import { GLOBAL_CLIENT, STORE_CLIENT } from "src/provider-tokens";
 import { ModuleRef } from "@nestjs/core";
-import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, instancesWithRemoteSwagger }
+import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, fixRefsModelPrefix, instancesWithRemoteSwagger }
 	from "src/decorators/remote-swagger-merge.decorator";
 import { ConfigService } from "@nestjs/config";
 import { JSONSchema } from "src/json-schema.utils";
@@ -339,8 +339,8 @@ export class SwaggerService {
 		const name = entry.swaggerSchemaDefinitionName || (prefix + lastFromNonEmptyArr(entry.ref.split("/")));
 		if (!schema[name]) {
 			schema[name] = remoteSchema;
+			await this.mergeRefsFromRemote(schema, entry, remoteSchema);
 		}
-		await this.mergeRefsFromRemote(schema, entry, remoteSchema);
 	}
 
 	private serializeEntrySideEffectForSchema(
@@ -398,6 +398,7 @@ export class SwaggerService {
 		};
 
 		await traverseAndMerge(referencedRemoteSchema);
+		fixRefsModelPrefix(referencedRemoteSchema as JSONSchema, prefix);
 	}
 
 	async getSchemaForEntry(entry: SwaggerRemoteEntry) {

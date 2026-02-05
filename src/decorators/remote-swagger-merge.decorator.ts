@@ -108,7 +108,7 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 		return document;
 	};
 
-const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
+export const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
 	if (isJSONSchemaRef(schema)) {
 		const uriFragments = schema.$ref.split("/");
 		const last = uriFragments.pop() as string;
