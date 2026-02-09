@@ -18,6 +18,8 @@ const sensitiveProps = ["collectionLocation", "dataLocation", "inMustikka", "edi
 const filterSensitiveProps = (schema: JSONSchemaRef, document: OpenAPIObject) => {
 	const referredSchema = parseURIFragmentIdentifierRepresentation(document, schema.$ref) as JSONSchemaObject;
 	referredSchema.properties = omit(referredSchema.properties!, ...sensitiveProps);
+	referredSchema.properties.hasChildren = { type: "boolean" };
+	referredSchema.required!.push("hasChildren");
 	return schema;
 };
 
