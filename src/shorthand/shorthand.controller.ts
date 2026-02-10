@@ -4,7 +4,7 @@ import { GetTripReportUnitShorthandDto, GetWaterBirdPairCountUnitShorthandDto, L
 	from "./shorthand.dto";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
-import { SwaggerRemote} from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { CommonAutocompleteDto } from "src/autocomplete/autocomplete.dto";
 import { ShorthandService } from "./shorthand.service";

@@ -111,8 +111,12 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 export const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
 	if (isJSONSchemaRef(schema)) {
 		const uriFragments = schema.$ref.split("/");
-		const last = uriFragments.pop() as string;
-		schema.$ref = [...uriFragments, modelPrefix + last].join("/");
+		const lastRefPart = uriFragments.pop() as string;
+		// There can be multiple identical refs, and `fixRefsModelPrefix()` mutates the schema so need to prevent adding a duplicate prefix
+		if (lastRefPart.startsWith(modelPrefix)) {
+			return;
+		}
+		schema.$ref = [...uriFragments, modelPrefix + lastRefPart].join("/");
 	} else if (isJSONSchemaArray(schema)) {
 		fixRefsModelPrefix(schema.items, modelPrefix);
 	} else if (isJSONSchemaObject(schema) && schema.properties) {

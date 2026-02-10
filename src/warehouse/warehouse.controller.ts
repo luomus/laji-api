@@ -1,5 +1,5 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { All, Inject, Logger, Next, Req, Res } from "@nestjs/common";
+import { All, Controller, Inject, Logger, Next, Req, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NextFunction, Request, Response } from "express";
 import { OpenAPIObject } from "@nestjs/swagger";
@@ -13,6 +13,7 @@ import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-bo
 import { CACHE_30_MIN } from "src/utils";
 
 @RemoteSwaggerMerge("warehouse")
+@Controller()
 export class WarehouseController implements MergesRemoteSwagger {
 
 	private logger = new Logger(WarehouseController.name);

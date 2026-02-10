@@ -7,7 +7,7 @@ import { PersonsService } from "./persons.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Serialize } from "src/serialization/serialize.decorator";
 import { RequestPerson } from "src/decorators/request-person.decorator";
-import { SwaggerRemote} from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 
 @LajiApiController("person")
 @ApiTags("Person")
