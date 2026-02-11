@@ -8,6 +8,11 @@ export class ProxyToOldApiFilter implements ExceptionFilter {
 
 	async catch(exception: NotFoundException, host: ArgumentsHost) {
 		const request = host.switchToHttp().getRequest<Request>();
+
+		if (request.headers["api-version"] === "1") {
+			throw exception;
+		}
+
 		const response = host.switchToHttp().getResponse<Response>();
 		const next = host.switchToHttp().getNext<NextFunction>();
 		void this.proxyToOldApiService.redirectToOldApi(request, response, next);
