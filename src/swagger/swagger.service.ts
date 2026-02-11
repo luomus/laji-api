@@ -197,7 +197,7 @@ export class SwaggerService {
 		if (isSwaggerRemoteRefEntry(entry)) {
 			const lastRefPart = lastFromNonEmptyArr(entry.ref.split("/"));
 			const { prefix } = await this.getRemoteSwaggerDoc(entry);
-			schema = { "$ref": `#/components/schemas/${prefix}${lastRefPart}` }
+			schema = { "$ref": `#/components/schemas/${prefix}${lastRefPart}` };
 		} else {
 			schema = (operation.requestBody as any)!.content["application/json"].schema;
 		}

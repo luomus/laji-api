@@ -8,7 +8,6 @@ import { BypassAccessTokenAuth } from "src/decorators/bypass-access-token-auth.d
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ErrorCodeException } from "src/utils";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
-import { RequestPersonToken } from "src/decorators/request-person-token.decorator";
 
 @ApiTags("API user")
 @Controller("api-user")
