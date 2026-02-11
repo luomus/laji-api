@@ -11,3 +11,7 @@
 .topbar-wrapper:before {
 	content: "API.LAJI.FI"
 }
+
+select[multiple] {
+	resize: both;
+}
