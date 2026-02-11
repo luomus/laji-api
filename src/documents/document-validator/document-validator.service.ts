@@ -2,7 +2,7 @@ import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { FormSchemaFormat, Format, Hashed } from "src/forms/dto/form.dto";
 import { JSONSchema, JSONSchemaArray, JSONSchemaObject } from "src/json-schema.utils";
 import { JSONObjectSerializable, isObject } from "src/typing.utils";
-import { Populated, ValidationErrorFormat, ValidationStrategy, ValidationType } from "../documents.dto";
+import { Populated, ValidationStrategy, ValidationType } from "../documents.dto";
 import { Document } from "@luomus/laji-schema";
 import Ajv from "ajv";
 import { FormsService } from "src/forms/forms.service";
@@ -196,7 +196,6 @@ export class DocumentValidatorService {
 		validator: ValidationStrategy,
 		field?: string,
 		informalTaxonGroup?: string[],
-		validationErrorFormat?: ValidationErrorFormat,
 		type?: ValidationType
 	}) {
 		const  { validator, field, ...validatorOptions } = options;
@@ -215,7 +214,6 @@ export class DocumentValidatorService {
 				path: string,
 				query: {
 					validator: ValidationStrategy,
-					validationErrorFormat: ValidationErrorFormat,
 					field?: string
 				}
 				& JSONObjectSerializable,

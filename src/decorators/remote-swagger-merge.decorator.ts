@@ -1,6 +1,7 @@
 import { Controller, applyDecorators } from "@nestjs/common";
 import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
-import { PathsObject, RequestBodyObject, ResponseObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { PathsObject, RequestBodyObject, ResponseObject }
+	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
@@ -17,7 +18,7 @@ export type RemoteSwaggerEntry = {
 
 export const instancesWithRemoteSwagger: RemoteSwaggerEntry[] = [];
 
-export const ConnectToSwaggerService = (target: any) => {
+const ConnectToSwaggerService = (target: any) => {
 	instancesWithRemoteSwagger.push({ name: target.name, instance: target });
 };
 
@@ -52,30 +53,33 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				if (!operation) {
 					continue;
 				}
-				operation.security = [ { access_token: [] } ];
+				operation.security = [
+					{ "Access token": [] },
+					{ "Lang": [] },
+					{ "Person token": [] }
+				];
 				if (tag) {
 					operation.tags = [tag];
 				}
 				if (modelPrefix) {
-					if (operation.responses) {
-						for (const statusCode of Object.keys(operation.responses)) {
-							const modelSchema = (
-								operation.responses[statusCode] as ResponseObject
-							)!.content?.["application/json"]?.schema;
+					if (operation.responses) for (const statusCode of Object.keys(operation.responses)) {
+						const { content } = operation.responses[statusCode] as ResponseObject;
+						if (!content) {
+							continue;
+						}
+						for (const responseType of Object.keys(content)) {
+							const modelSchema = content[responseType]!.schema;
 							if (!modelSchema) {
 								continue;
 							}
 							fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
 						}
 					}
-					if ((operation.requestBody as RequestBodyObject)?.content?.["application/json"]?.schema) {
-						fixRefsModelPrefix(
-							(operation.requestBody as RequestBodyObject)
-								?.content
-								?.["application/json"]
-								?.schema as JSONSchema,
-							modelPrefix
-						);
+					const { content } = operation.requestBody as RequestBodyObject || {};
+					if (content) for (const responseType of Object.keys(content)) {
+						if (content[responseType]!.schema) {
+							fixRefsModelPrefix(content[responseType]!.schema as JSONSchema, modelPrefix);
+						}
 					}
 				}
 			}
@@ -104,11 +108,15 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 		return document;
 	};
 
-const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
+export const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
 	if (isJSONSchemaRef(schema)) {
 		const uriFragments = schema.$ref.split("/");
-		const last = uriFragments.pop() as string;
-		schema.$ref = [...uriFragments, modelPrefix + last].join("/");
+		const lastRefPart = uriFragments.pop() as string;
+		// There can be multiple identical refs, and `fixRefsModelPrefix()` mutates the schema so need to prevent adding a duplicate prefix
+		if (lastRefPart.startsWith(modelPrefix)) {
+			return;
+		}
+		schema.$ref = [...uriFragments, modelPrefix + lastRefPart].join("/");
 	} else if (isJSONSchemaArray(schema)) {
 		fixRefsModelPrefix(schema.items, modelPrefix);
 	} else if (isJSONSchemaObject(schema) && schema.properties) {

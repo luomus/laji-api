@@ -9,7 +9,7 @@ import { LogLevel, Logger, NestApplicationOptions, VersioningType } from "@nestj
 import { ConsoleLoggerService } from "./console-logger/console-logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
-import { joinOnlyStrings } from "./utils";
+import { CACHE_30_MIN, joinOnlyStrings } from "./utils";
 import { RedisCacheService } from "./redis-cache/redis-cache.service";
 import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
@@ -154,10 +154,14 @@ export async function createApp(useLogger = true) {
 	// These need to be initialized before SwaggerService can patch the document.
 	await app.get(RedisCacheService).onModuleInit();
 	await app.get(SwaggerService).warmup();
-	const patchedDocument = await app.get(SwaggerService).patchMutably(document);
+
+	let patchedDocument = await app.get(SwaggerService).patchMutably(document);
+	setInterval(async () => {
+		patchedDocument = await app.get(SwaggerService).patchMutably(document);
+	}, CACHE_30_MIN);
 
 	// Redirect from / to /openapi is done by AppController.
-	SwaggerModule.setup("openapi", app, patchedDocument, {
+	SwaggerModule.setup("openapi", app, () => patchedDocument, {
 		customSiteTitle: "Laji API" + (configService.get("STAGING") === "true" ? " (STAGING)" : ""),
 		customCssUrl: "/swagger.css",
 		swaggerOptions: {
@@ -169,8 +173,9 @@ export async function createApp(useLogger = true) {
 			requestInterceptor: (req: any) => {
 				req.headers["API-Version"] = "1";
 				return req;
-			},
+			}
 		},
+		patchDocumentOnRequest: () => patchedDocument
 	});
 
 	return app;

@@ -1,5 +1,5 @@
 import { PATH_METADATA } from "@nestjs/common/constants";
-import { SwaggerRemoteRefEntry } from "./swagger-remote.decorator";
+import { SwaggerRemoteEntry } from "./swagger-remote.decorator";
 import { SerializeEntry } from "src/serialization/serialize.decorator";
 import { SchemaItem } from "./swagger.service";
 import { OpenAPIObject } from "@nestjs/swagger";
@@ -23,7 +23,7 @@ export type SwaggerCustomizationCommon = Partial<HasSchemaDefinitionName> & {
 	applyToRequest?: boolean;
 }
 
-export type SwaggerCustomizationEntry = (SwaggerRemoteRefEntry | SerializeEntry) & {
+export type SwaggerCustomizationEntry = (SwaggerRemoteEntry | SerializeEntry) & {
 	controller: string;
 	instance: Newable<unknown>;
 };

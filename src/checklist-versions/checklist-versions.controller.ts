@@ -2,7 +2,7 @@ import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ChecklistVersionsService } from "./checklist-versions.service";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { QueryWithPagingAndIdIn } from "src/common.dto";
@@ -16,7 +16,7 @@ export class ChecklistVersionsController {
 	/** Get a checklist by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/checklistVersion" })
+	@SwaggerRemote({ source: "store", ref: "/checklistVersion" })
 	get(@Param("id") id: string) {
 		return this.checklistService.get(id);
 	}
@@ -24,7 +24,7 @@ export class ChecklistVersionsController {
 	/** Get a page of checklists */
 	@Get()
 	@UseInterceptors(Paginator, Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/checklistVersion" })
+	@SwaggerRemote({ source: "store", ref: "/checklistVersion" })
 	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
 		return this.checklistService.find(idIn);
 	}

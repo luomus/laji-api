@@ -7,10 +7,11 @@ import { Interval } from "@nestjs/schedule";
 import { CACHE_10_MIN, joinOnlyStrings } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { GBIF_CLIENT } from "src/provider-tokens";
+import { GLOBAL_CLIENT } from "src/provider-tokens";
+import { JSONSerializable } from "src/typing.utils";
+import { ConfigService } from "@nestjs/config";
 
 const GBIF_DATASET_PARENT = "HR.3777";
-
 
 class CollectionNotFoundError extends HttpException {
 	constructor(id: string) {
@@ -23,8 +24,9 @@ class CollectionNotFoundError extends HttpException {
 export class CollectionsService {
 
 	constructor(
-		@Inject(GBIF_CLIENT) private gbifClient: RestClientService<unknown>,
-		private triplestoreService: TriplestoreService
+		private triplestoreService: TriplestoreService,
+		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<JSONSerializable>,
+		private config: ConfigService
 	) { }
 
 	@Interval(CACHE_10_MIN)
@@ -169,29 +171,28 @@ export class CollectionsService {
 	}
 
 	private async getGbifCollections(): Promise<Collection[]> {
-		return [];
-		// const gbifCollections = await this.gbifClient.get<GbifCollectionResult>(
-		// 	"installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset",
-		// 	{ params: { limit: 1000 } },
-		// 	{ cache: CACHE_10_MIN }
-		// );
-		// return gbifCollections.results.map(collection => {
-		// 	const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
-		// 	return {
-		// 		id: "gbif-dataset:" + collection.key,
-		// 		"@context": "http://schema.laji.fi/context/collection.jsonld",
-		// 		collectionType: "MY.collectionTypeMixed",
-		// 		collectionName: { en: collection.title },
-		// 		longName: { en: collection.title },
-		// 		description: { en: collection.description },
-		// 		personResponsible: contact.lastName ? contact.lastName + ", " + contact.firstName : contact.firstName,
-		// 		contactEmail: Array.isArray(contact.email) && contact.email.length > 0
-		// 			? contact.email[0]
-		// 			: "info@laji.fi",
-		// 		intellectualRights: "MY.intellectualRightsCC-BY",
-		// 		isPartOf: GBIF_DATASET_PARENT
-		// 	};
-		// });
+		const gbifCollections = await this.globalClient.get<GbifCollectionResult>(
+			`${this.config.get<string>("GBIF_HOST")}/installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset`,
+			{ params: { limit: 1000 } },
+			{ cache: CACHE_10_MIN }
+		);
+		return gbifCollections.results.map(collection => {
+			const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
+			return {
+				id: "gbif-dataset:" + collection.key,
+				"@context": "http://schema.laji.fi/context/collection.jsonld",
+				collectionType: "MY.collectionTypeMixed",
+				collectionName: { en: collection.title },
+				longName: { en: collection.title },
+				description: { en: collection.description },
+				personResponsible: contact.lastName ? contact.lastName + ", " + contact.firstName : contact.firstName,
+				contactEmail: Array.isArray(contact.email) && contact.email.length > 0
+					? contact.email[0]
+					: "info@laji.fi",
+				intellectualRights: "MY.intellectualRightsCC-BY",
+				isPartOf: GBIF_DATASET_PARENT
+			};
+		});
 	}
 }
 

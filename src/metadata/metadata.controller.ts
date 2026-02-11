@@ -96,4 +96,17 @@ export class MetadataController {
 	async getAlts(@RequestLang() lang: Lang) {
 		return this.metadataService.getAltsTranslated(lang);
 	}
+
+	/** Get alt values by alt name */
+	@Version("1")
+	@Get("alts/:alt")
+	@UseInterceptors(
+		Translator,
+		ResultsArray,
+		Serializer(Alt)
+	)
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(Alt) }) })
+	async getAlt(@Param("alt") alt: string) {
+		return this.metadataService.getAlt(alt);
+	}
 }

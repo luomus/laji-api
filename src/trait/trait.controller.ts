@@ -55,6 +55,6 @@ export class TraitController implements MergesRemoteSwagger {
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {
-		return patchSwaggerWith("/trait", undefined, undefined, "Trait")(document, remoteDoc);
+		return patchSwaggerWith("/trait", undefined, undefined, "LajiBackend")(document, remoteDoc);
 	};
 }

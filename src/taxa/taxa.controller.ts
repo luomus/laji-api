@@ -8,7 +8,7 @@ import {
 import { TaxaService, getFiltersSchema } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifierRepresentation } from "src/utils";
@@ -38,7 +38,7 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 	return schema;
 };
 
-const addFiltersSchema = (document: OpenAPIObject, remoteDoc: OpenAPIObject) =>
+const addFiltersSchema = (schema: never, document: never, remoteDoc: OpenAPIObject) =>
 	getFiltersSchema(remoteDoc);
 
 /* eslint-disable max-len */
@@ -78,7 +78,7 @@ export class TaxaController {
 	/** Search taxons by name */
 	@Version("1")
 	@Get("search")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/TaxonSearchResponse",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
@@ -92,7 +92,7 @@ export class TaxaController {
 	/** Get a page of taxa */
 	@Version("1")
 	@Get()
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic"
@@ -107,7 +107,7 @@ export class TaxaController {
 	@Post()
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@HttpCode(200)
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
@@ -128,7 +128,7 @@ export class TaxaController {
 	@Post("aggregate")
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@HttpCode(200)
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		customizeRequestBodySchema: addFiltersSchema
 	})
@@ -139,7 +139,7 @@ export class TaxaController {
 	/** Get a page of species */
 	@Version("1")
 	@Get("species")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "/Taxon", localJsonLdContext: "taxon-elastic" })
+	@SwaggerRemote({ source: "laji-backend", ref: "/Taxon", localJsonLdContext: "taxon-elastic" })
 	@UseInterceptors(AddContextToPageLikeResult, AddIntellectualRights, Translator, Serializer(TaxonElastic))
 	getSpeciesPage(@Query() query: GetTaxaPageDto) {
 		return this.taxaService.getSpeciesPage(query);
@@ -150,7 +150,7 @@ export class TaxaController {
 	@Post("species")
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@HttpCode(200)
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
@@ -170,7 +170,7 @@ export class TaxaController {
 
 	/** Get a species aggregate with filters */
 	@Post("species/aggregate")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
@@ -184,7 +184,7 @@ export class TaxaController {
 	/** Get a taxon by id */
 	@Version("1")
 	@Get(":id")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we need to do it just once here.
@@ -198,7 +198,7 @@ export class TaxaController {
 	/** Get children of a taxon */
 	@Version("1")
 	@Get(":id/children")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
@@ -214,10 +214,10 @@ export class TaxaController {
 		return this.taxaService.getChildren(id, query);
 	}
 
-	/** Get children of a taxon with filters */
+	/** Get children of a taxon */
 	@Version("1")
 	@Post(":id/children")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
@@ -240,7 +240,7 @@ export class TaxaController {
 	/** Get parents of a taxon */
 	@Version("1")
 	@Get(":id/parents")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
@@ -255,7 +255,7 @@ export class TaxaController {
 	@Version("1")
 	@Post(":id/parents")
 	@HttpCode(200)
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
@@ -275,7 +275,7 @@ export class TaxaController {
 	/** Get species and subspecies of a taxon */
 	@Version("1")
 	@Get(":id/species")
-	@SwaggerRemoteRef({ source: "laji-backend", ref: "/Taxon", localJsonLdContext: "taxon-elastic" })
+	@SwaggerRemote({ source: "laji-backend", ref: "/Taxon", localJsonLdContext: "taxon-elastic" })
 	@UseInterceptors(AddContextToPageLikeResult, AddIntellectualRights, Translator, Serializer(TaxonElastic))
 	getTaxonSpeciesPage(@Param("id") id: string, @Query() query: GetTaxaPageDto) {
 		return this.taxaService.getTaxonSpeciesPage(id, query);
@@ -286,7 +286,7 @@ export class TaxaController {
 	@Post(":id/species")
 	@ApiBody({ required: false, description: BODY_DESCRIPTION })
 	@HttpCode(200)
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
@@ -309,7 +309,7 @@ export class TaxaController {
 
 	/** Get an aggregate of species and subspecies of a taxon with filters */
 	@Post(":id/species/aggregate")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
 		localJsonLdContext: "taxon-elastic",
@@ -327,7 +327,7 @@ export class TaxaController {
 	/** Get description texts of a taxon */
 	@Version("1")
 	@Get(":id/descriptions")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Content",
 		customizeResponseSchema: swaggerResponseAsResultsArray,
@@ -341,7 +341,7 @@ export class TaxaController {
 	/** Get media objects of a taxon */
 	@Version("1")
 	@Get(":id/media")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Image",
 		customizeResponseSchema: swaggerResponseAsResultsArray,

@@ -3,7 +3,7 @@ import { AreaService } from "./area.service";
 import { AreaTypeDto, GetAreaPageDto } from "./area.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Request } from "src/request";
@@ -17,7 +17,7 @@ export class AreaController {
 	/** Get an area by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/area" })
+	@SwaggerRemote({ source: "store", ref: "/area" })
 	get(@Param("id") id: string) {
 		return this.areaService.get(id);
 	}
@@ -25,7 +25,7 @@ export class AreaController {
 	/** Get a page of areas */
 	@Get()
 	@UseInterceptors(Paginator, Translator)
-	@SwaggerRemoteRef({ source: "store", ref: "/area" })
+	@SwaggerRemote({ source: "store", ref: "/area" })
 	getPage(@Query() query: GetAreaPageDto, @Req() request: Request) {
 		const { type, areaType, idIn } = query as any;
 		let typeQName: AreaTypeDto | undefined = areaType;

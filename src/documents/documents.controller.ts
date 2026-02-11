@@ -4,12 +4,12 @@ import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, Re
 import {
 	BatchJobQueryDto, DocumentCountItemResponse, GetCountDto, GetDocumentsDto, isSecondaryDocument,
 	isSecondaryDocumentDelete, QueryWithNamedPlaceDto, SecondaryDocument, SecondaryDocumentOperation,
-	StatisticsResponse, ValidateQueryDto, ValidationErrorFormat, BatchJobValidationStatusResponse,
-	ValidationStrategy, isBatchJobDto, UpdateDocumentDto
+	StatisticsResponse, ValidateQueryDto, BatchJobValidationStatusResponse,
+	ValidationStrategy, UpdateDocumentDto
 } from "./documents.dto";
 import { PaginatedDto } from "src/pagination.dto";
 import { Document } from "@luomus/laji-schema";
-import { SwaggerRemoteRef } from "src/swagger/swagger-remote.decorator";
+import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { whitelistKeys } from "src/utils";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { FormsService } from "src/forms/forms.service";
@@ -43,7 +43,7 @@ export class DocumentsController {
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
 	 * */
 	@Post("batch")
-	@SwaggerRemoteRef({
+	@SwaggerRemote({
 		source: "store",
 		ref: "/document",
 		replacePointer: "/items",
@@ -68,14 +68,14 @@ export class DocumentsController {
 	// Makes the BatchJobValidationStatusResponse use store documents' swagger def. Modifies the definition which is
 	// referenced by other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only
 	// once.
-	@SwaggerRemoteRef({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
+	@SwaggerRemote({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
 		@RequestLang() lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
-		return this.documentsBatchService.getStatus(jobID, person, ValidationErrorFormat.jsonPointer, lang);
+		return this.documentsBatchService.getStatus(jobID, person, lang);
 	}
 
 	/**
@@ -96,7 +96,6 @@ export class DocumentsController {
 		return this.documentsBatchService.complete(
 			jobID,
 			person,
-			ValidationErrorFormat.jsonPointer,
 			lang,
 			publicityRestrictions,
 			dataOrigin
@@ -145,31 +144,15 @@ export class DocumentsController {
 		@Query() query: ValidateQueryDto,
 		@ApiUser() apiUser: ApiUserEntity,
 		@RequestLang() lang: Lang,
-		@RequestPerson({ required: false }) person?: Person,
+		@RequestPerson() person: Person,
 	): Promise<unknown> {
-		const { validator, validationErrorFormat = ValidationErrorFormat.object, type } = query as any;
+		const { validator, type } = query as any;
 		if (validator) {
 			await this.documentValidatorService.validateWithValidationStrategy(
 				document, query as ValidateQueryDto & { validator: ValidationStrategy }
 			);
 			response.status(204);
 			return;
-		}
-
-		if (!person) {
-			throw new HttpException("Person token is required for document validation", 422);
-		}
-
-		// Backward compatibility with old API, where batch jobs are handled by this endpoint.
-		if (document instanceof Array) {
-			return this.documentsBatchService.start(document, person, apiUser, lang);
-		} else if (isBatchJobDto(document)) {
-			return this.documentsBatchService.getStatus(
-				document.id,
-				person,
-				validationErrorFormat,
-				lang
-			);
 		}
 
 		if (!document.formID) {
@@ -217,7 +200,7 @@ export class DocumentsController {
 
 	/** Get a page of documents */
 	@Get()
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	getPage(@Query() query: GetDocumentsDto, @RequestPerson() person: Person): Promise<PaginatedDto<Document>> {
 		const { page, pageSize, selectedFields, observationYear, ...q } = fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
@@ -232,7 +215,7 @@ export class DocumentsController {
 
 	/** Get a document */
 	@Get(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	get(@Param("id") id: string,
 		@RequestPerson() person: Person
 	): Promise<Document> {
@@ -241,30 +224,13 @@ export class DocumentsController {
 
 	/** Create a new document */
 	@Post()
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	async create(
 		@Body() document: Document,
-		@Query() query: any,
 		@ApiUser() apiUser: ApiUserEntity,
 		@RequestLang() lang: Lang,
 		@RequestPerson({ required: false }) person?: Person
 	): Promise<Document> {
-		if (isBatchJobDto(document)) {
-			if (!person) {
-				throw new HttpException("Can't do batch update without a person token", 422);
-			}
-			const { validationErrorFormat = ValidationErrorFormat.object } = query;
-			// '!' is valid here, because DTO classes must have '?' modifier for properties with defaults, making the
-			// typings a bit awkward.
-			return this.documentsBatchService.complete(
-				document.id,
-				person,
-				validationErrorFormat!,
-				lang,
-				document.publicityRestrictions as any,
-				document.dataOrigin?.[0] as any,
-			) as any;
-		}
 		if (!document.formID) {
 			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
 		}
@@ -298,7 +264,7 @@ export class DocumentsController {
 
 	/** Update an existing document */
 	@Put(":id")
-	@SwaggerRemoteRef({ source: "store", ref: "/document" })
+	@SwaggerRemote({ source: "store", ref: "/document" })
 	async update(
 		@Param("id") id: string,
 		@Body() document: Document | SecondaryDocumentOperation,

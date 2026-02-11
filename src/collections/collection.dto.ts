@@ -76,6 +76,7 @@ export class Collection extends OmitType(TriplestoreCollection, [
 
 	hasChildren?: boolean;
 
+	// If these are updated, remember to fix the Swagger also (look for `sensitiveProps` in collections controller).
 	@Exclude() collectionLocation?: MultiLang;
 	@Exclude() dataLocation?: MultiLang;
 	@Exclude() inMustikka?: boolean;

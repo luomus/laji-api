@@ -17,7 +17,7 @@ export const TriplestoreReadonlyRestClient: FactoryProvider<RestClientService<ne
 				name: "triplestore-readonly",
 				host: config.get<string>("TRIPLESTORE_READONLY_HOST"),
 				auth: config.get<string>("TRIPLESTORE_READONLY_AUTH"),
-				cache: { ttl: CACHE_1_H }
+				cache: CACHE_1_H
 			}, cache),
 	inject: [HttpService, ConfigService, RedisCacheService],
 };

@@ -22,7 +22,7 @@ export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends 
 				errorCode: exception.errorCode,
 				message: exception.message,
 				...(exception.json || {}),
-			}
+			};
 		} else if ((exception as any).errorCode) {
 			json = {
 				message: exception.message,

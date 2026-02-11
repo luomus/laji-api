@@ -7,10 +7,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 const GlobalRestClient: FactoryProvider<RestClientService<never>> = {
 	provide: GLOBAL_CLIENT,
 	useFactory: (httpService: HttpService, cache: RedisCacheService) =>
-		new RestClientService(httpService, {
-			name: "global",
-			cache: true
-		}, cache),
+		new RestClientService(httpService, { name: "global" }, cache),
 	inject: [HttpService, RedisCacheService],
 };
 

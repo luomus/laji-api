@@ -82,13 +82,14 @@ export class GeoConvertController implements MergesRemoteSwagger {
 	@All("*all")
 	@ApiExcludeEndpoint()
 	async proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
-		if (req.method === "POST") {
+		const pathParam = lastFromNonEmptyArr(req.path.split("/"));
+		const downloadRequestId = firstFromNonEmptyArr(pathParam.match(/HBF\.\d+/) as string[]);
+		const { createdFileVersion, downloadType } =
+			await this.triplestoreService.get<DownloadRequest>(downloadRequestId as string);
+		if (["LIGHTWEIGHT", "AUTHORITIES_LIGHTWEIGHT"].includes(downloadType)) {
 			void this.oldGeoConvertProxy(req, res, next);
 			return;
 		}
-		const pathParam = lastFromNonEmptyArr(req.path.split("/"));
-		const downloadRequestId = firstFromNonEmptyArr(pathParam.match(/HBF\.\d+/) as string[]);
-		const { createdFileVersion } = await this.triplestoreService.get<DownloadRequest>(downloadRequestId as string);
 		if (createdFileVersion) {
 			void this.geoConvertProxy(req, res, next);
 		} else {
