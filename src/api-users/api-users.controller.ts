@@ -50,7 +50,7 @@ export class ApiUsersController {
 	@Put(":email")
 	@UseGuards(IctAdminGuard)
 	@BypassAccessTokenAuth()
-	update(@Param("email") email: string, @Body() { systemID }: ApiUserUpdateDto, @RequestPersonToken() _: string) {
+	update(@Param("email") email: string, @Body() { systemID }: ApiUserUpdateDto) {
 		if (!systemID) {
 			throw new HttpException("systemID is required", 400);
 		}
