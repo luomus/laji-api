@@ -53,32 +53,32 @@ export const patchSwaggerWith = (pathMatcher?: string, pathPrefix: string = "", 
 				if (!operation) {
 					continue;
 				}
-				operation.security = [ { access_token: [] } ];
+				operation.security = [
+					{ "Access token": [] },
+					{ "Lang": [] },
+					{ "Person token": [] }
+				];
 				if (tag) {
 					operation.tags = [tag];
 				}
 				if (modelPrefix) {
-					if (operation.responses) {
-						for (const statusCode of Object.keys(operation.responses)) {
-							const { content } = operation.responses[statusCode] as ResponseObject;
-							if (!content) {
+					if (operation.responses) for (const statusCode of Object.keys(operation.responses)) {
+						const { content } = operation.responses[statusCode] as ResponseObject;
+						if (!content) {
+							continue;
+						}
+						for (const responseType of Object.keys(content)) {
+							const modelSchema = content[responseType]!.schema;
+							if (!modelSchema) {
 								continue;
 							}
-							for (const responseType of Object.keys(content)) {
-								const modelSchema = content[responseType]!.schema;
-								if (!modelSchema) {
-									continue;
-								}
-								fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
-							}
+							fixRefsModelPrefix(modelSchema as JSONSchema, modelPrefix);
 						}
 					}
 					const { content } = operation.requestBody as RequestBodyObject || {};
-					if (content) {
-						for (const responseType of Object.keys(content)) {
-							if (content[responseType]!.schema) {
-								fixRefsModelPrefix(content[responseType]!.schema as JSONSchema, modelPrefix);
-							}
+					if (content) for (const responseType of Object.keys(content)) {
+						if (content[responseType]!.schema) {
+							fixRefsModelPrefix(content[responseType]!.schema as JSONSchema, modelPrefix);
 						}
 					}
 				}
