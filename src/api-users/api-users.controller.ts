@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, Param, Post, Put, Query, UseGuards, UseInterceptors }
+import { Body, Get, HttpException, Param, Post, Put, Query, UseGuards, UseInterceptors }
 	from "@nestjs/common";
 import { ApiBody, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiUsersService } from "./api-users.service";
@@ -8,9 +8,11 @@ import { BypassAccessTokenAuth } from "src/decorators/bypass-access-token-auth.d
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ErrorCodeException } from "src/utils";
 import { IctAdminGuard } from "src/persons/ict-admin/ict-admin.guard";
+import { RequestPerson } from "src/decorators/request-person.decorator";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @ApiTags("API user")
-@Controller("api-user")
+@LajiApiController("api-user")
 export class ApiUsersController {
 	constructor(
 		private readonly apiUsersService: ApiUsersService,
@@ -30,7 +32,7 @@ export class ApiUsersController {
 	/**
 	 * Register as an api user. The access token will be sent to your email. You can use this endpoint to create a new
 	 * access token in case you forget it. Note that it won't delete existing tokens.
-	 * */
+	 */
 	@Post()
 	@BypassAccessTokenAuth()
 	@ApiBody({
@@ -40,7 +42,6 @@ export class ApiUsersController {
 			},
 		},
 	})
-
 	register(@Body() user: ApiUserCreateDto) {
 		return this.apiUsersService.create(user.email);
 	}
@@ -49,7 +50,7 @@ export class ApiUsersController {
 	@Put(":email")
 	@UseGuards(IctAdminGuard)
 	@BypassAccessTokenAuth()
-	update(@Param("email") email: string, @Body() { systemID }: ApiUserUpdateDto) {
+	update(@Param("email") email: string, @Body() { systemID }: ApiUserUpdateDto, @RequestPerson() _: never) {
 		if (!systemID) {
 			throw new HttpException("systemID is required", 400);
 		}
