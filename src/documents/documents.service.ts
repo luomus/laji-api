@@ -503,25 +503,23 @@ export class DocumentsService {
 
 }
 
-const getDateCounted = (document: Pick<Document, "gatheringEvent" | "gatherings">): Date | undefined  => {
+const getDateCounted = (document: Pick<Document, "gatheringEvent" | "gatherings">): Date | undefined => {
 	if (document.gatheringEvent) {
 		const date = document.gatheringEvent.dateEnd || document.gatheringEvent.dateBegin;
 		if (date) {
 			return new Date(Date.parse(date));
 		}
 	}
-	if (document.gatherings && document.gatherings.length > 0) {
-		return document.gatherings.reduce<Date | undefined>((prevDate, gathering) => {
-			const current = gathering.dateEnd || gathering.dateBegin;
-			if (!current) {
-				return prevDate;
-			}
-			const currentDate = new Date(Date.parse(current));
-			if (!prevDate || currentDate > prevDate) {
-				return currentDate;
-			}
-		}, undefined);
-	}
+	return document.gatherings.reduce<Date | undefined>((prevDate, gathering) => {
+		const current = gathering.dateEnd || gathering.dateBegin;
+		if (!current) {
+			return prevDate;
+		}
+		const currentDate = new Date(Date.parse(current));
+		if (!prevDate || currentDate > prevDate) {
+			return currentDate;
+		}
+	}, undefined);
 };
 
 const documentHasNewNamedPlaceNote = (document: Document, place: NamedPlace) => {
