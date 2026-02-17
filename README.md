@@ -16,7 +16,7 @@ Check the [wiki](https://github.com/luomus/laji-api/wiki) for a more technically
 
 Fill in `.env` file, using `.env.example` as a template.
 
-Note that access tokens are not read from a remote source, but a local file instead. Either generate tokens with the 'API User' endpoints or grab the `api-users.db` from staging machine.
+Note that access tokens are not read from a remote source, but a local file instead. Either generate tokens with the 'API User' endpoints or grab the `api-users.db` from the staging machine.
  
 The app can be ran inside a docker, or directly on the host machine.
 
@@ -56,7 +56,7 @@ The app will be running at http://localhost:3004
 
 ### Test
 
-*Hint*: The npm command works also with the aforementioned Docker container. These examples run `npm` directly for simplicity.
+*Hint*: The npm commands in the following examples work also with the aforementioned Docker container. These examples run `npm` directly for simplicity.
 
 #### Unit tests
 
@@ -76,7 +76,7 @@ npm test
 
 #### Integration tests
 
-Currently we rely on the e2e tests from the old api. Fill in `e2e/config.json` and then you can run the tests:
+Fill in `e2e/config.json` and then you can run the tests:
 
 With Docker:
 
