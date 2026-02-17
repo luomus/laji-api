@@ -11,14 +11,9 @@
     }
   ],
   "paths": {
-    "/maps/api/geocode/json": {
+    "/geocode/json": {
       "get": {
         "operationId": "geocode",
-        "servers": [
-          {
-            "url": "https://maps.googleapis.com"
-          }
-        ],
         "tags": [
           "Geocoding API"
         ],
