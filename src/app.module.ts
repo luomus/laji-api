@@ -64,6 +64,7 @@ import { RedListEvaluationGroupsModule } from "./red-list-evaluation-groups/red-
 import { LoginModule } from "./login/login.module";
 import { PublicationsModule } from "./publications/publications.module";
 import { NewsModule } from "./news/news.module";
+import { GoogleModule } from "./google/google.module";
 
 
 @Module({
@@ -128,7 +129,8 @@ import { NewsModule } from "./news/news.module";
 		RedListEvaluationGroupsModule,
 		LoginModule,
 		PublicationsModule,
-		NewsModule
+		NewsModule,
+		GoogleModule
 	],
 	controllers: [AppController],
 	providers: [

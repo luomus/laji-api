@@ -1,0 +1,185 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Google Maps Platform",
+    "description": "API Specification for Google Maps Platform",
+    "version": "1.22.5"
+  },
+  "servers": [
+    {
+      "url": "https://www.googleapis.com"
+    }
+  ],
+  "paths": {
+    "/maps/api/geocode/json": {
+      "get": {
+        "operationId": "geocode",
+        "servers": [
+          {
+            "url": "https://maps.googleapis.com"
+          }
+        ],
+        "tags": [
+          "Geocoding API"
+        ],
+        "description": "The Geocoding API is a service that provides geocoding and reverse geocoding of addresses.",
+        "parameters": [
+					{
+						"name": "address",
+						"description": "The street address or plus code that you want to geocode.",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "latlng",
+						"description": "The latitude and longitude of the location to geocode.",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "components",
+						"description": "A components filter with elements separated by a pipe (|).",
+						"in": "query",
+						"schema": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						}
+					}
+        ],
+        "responses": {
+          "200": {
+            "description": "200 OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GeocodingResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "results"
+        ],
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GeocodingResult"
+            }
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "GeocodingResult": {
+        "type": "object",
+        "required": [
+          "address_components",
+          "formatted_address",
+          "geometry",
+          "place_id",
+          "types"
+        ],
+        "properties": {
+          "address_components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddressComponent"
+            }
+          },
+          "formatted_address": {
+            "type": "string"
+          },
+          "geometry": {
+            "type": "object",
+            "required": [
+              "location"
+            ],
+            "properties": {
+              "location": {
+                "type": "object",
+                "required": [
+                  "lat",
+                  "lng"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "place_id": {
+            "type": "string"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AddressComponent": {
+        "type": "object",
+        "required": [
+          "long_name",
+          "short_name",
+          "types"
+        ],
+        "properties": {
+          "long_name": {
+            "type": "string"
+          },
+          "short_name": {
+            "type": "string"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "key"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Geocoding",
+      "description": "The Geocoding API is a service that provides geocoding and reverse geocoding of addresses."
+    }
+  ]
+}

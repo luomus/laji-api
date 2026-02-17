@@ -3,9 +3,10 @@ import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
 import { PathsObject, RequestBodyObject, ResponseObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
+import { MaybePromise } from "src/typing.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
-export type FetchSwagger = () => Promise<OpenAPIObject>;
+export type FetchSwagger = () => MaybePromise<OpenAPIObject>;
 
 export type RemoteSwaggerEntry = {
 	name: string,
