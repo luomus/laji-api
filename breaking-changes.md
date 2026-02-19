@@ -310,4 +310,7 @@ The following filters have been renamed (these changes also apply to `/taxa/sear
 
 * `personToken` parameter -> `Person-Token` header
 * `permissionToken` parameter -> `Permission-Token` header
+* `editorPersonToken=<token>` -> `selfAsEditor=true` with `Person-Token` as header
+* `observerPersonToken=<token>` -> `selfAsObserver=true` with `Person-Token` as header
+* `editorOrObserverPersonToken=<token>` -> `selfAsEditorOrObserver=true` with `Person-Token` as header
 
