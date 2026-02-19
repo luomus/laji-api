@@ -104,7 +104,6 @@ export class DocumentsController {
 
 	/** Validate a document */
 	@Post("validate")
-	// @HttpCode(204)
 	@ApiResponse({
 		status: 204,
 		description: "Validation raised no errors"
