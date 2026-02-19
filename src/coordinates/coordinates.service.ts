@@ -25,7 +25,6 @@ export const FINLAND_BOUNDS: Polygon = {
 	]]
 };
 
-
 @Injectable()
 export class CoordinatesService {
 
