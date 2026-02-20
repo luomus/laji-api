@@ -51,19 +51,23 @@ export type FormSchemaFormat = Form & { schema: JSONSchemaObject };
 
 export const isFormSchemaFormat = (form: Form | FormSchemaFormat): form is FormSchemaFormat => !!(form as any).schema;
 
+export const FORM_LISTING_KEYS = [
+	"id"
+	, "logo"
+	, "title"
+	, "description"
+	, "shortDescription"
+	, "supportedLanguage"
+	, "category"
+	, "collectionID"
+	, "name"
+	, "options"
+] as const;
+
 export type FormListing = Pick<Form & {
 	options: FormOptions
 },
-	"id"
-	| "logo"
-	| "title"
-	| "description"
-	| "shortDescription"
-	| "supportedLanguage"
-	| "category"
-	| "collectionID"
-	| "name"
-	| "options"
+	typeof FORM_LISTING_KEYS[number]
 >;
 
 export class GetDto {

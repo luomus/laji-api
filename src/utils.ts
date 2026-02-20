@@ -263,3 +263,7 @@ export class ExternalException extends HttpException {
 		this.json = json;
 	}
 }
+
+
+export const asTuple = <T, P>(first: T, second: P) =>
+	[first, second] as [T, P];
