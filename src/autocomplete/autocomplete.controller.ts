@@ -10,13 +10,9 @@ import { TaxaSearchDto } from "src/taxa/taxa.dto";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
-import { SchemaItem } from "src/swagger/swagger.service";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
-import { parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
+import { asTuple, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 import { Limit } from "src/interceptors/limit.interceptor";
-
-const asTuple = (schema: SchemaItem, document: OpenAPIObject) =>
-	[schema, document] as [JSONSchemaRef, OpenAPIObject];
 
 const swaggerResponseWithKeyAndValue = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
 	const schema: JSONSchemaObject = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
@@ -56,7 +52,7 @@ export class AutocompleteController {
 		customizeResponseSchema: (schema, document) => pipe(
 			swaggerResponseWithKeyAndValue,
 			swaggerResponseAsResultsArray
-		)(asTuple(schema, document)),
+		)(asTuple(schema as JSONSchemaRef, document)),
 		localJsonLdContext: "taxon-search",
 		swaggerSchemaDefinitionName: "TaxonAutocompleteResponse"
 	})
