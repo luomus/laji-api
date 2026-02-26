@@ -45,7 +45,7 @@ export class TraitController implements MergesRemoteSwagger {
 		}
 	});
 
-	@All("*all")
+	@All()
 	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
 		void this.warehouseProxy(req, res, next);
 	}
