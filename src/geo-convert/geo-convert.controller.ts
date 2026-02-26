@@ -39,7 +39,7 @@ export class GeoConvertController implements MergesRemoteSwagger {
 		}
 	});
 
-	@All()
+	@All("*")
 	@ApiExcludeEndpoint()
 	async proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
 		void this.geoConvertProxy(req, res, next);

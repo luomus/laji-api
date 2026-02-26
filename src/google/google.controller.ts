@@ -36,7 +36,7 @@ export class GoogleController implements MergesRemoteSwagger {
 		}
 	});
 
-	@All()
+	@All("*")
 	proxy(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
 		void this.googleMapsProxy(req, res, next);
 	}
