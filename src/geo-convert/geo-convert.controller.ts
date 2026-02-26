@@ -45,6 +45,12 @@ export class GeoConvertController implements MergesRemoteSwagger {
 		void this.geoConvertProxy(req, res, next);
 	}
 
+	@All()
+	@ApiExcludeEndpoint()
+	async proxyRoot(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
+		void this.geoConvertProxy(req, res, next);
+	}
+
 	fetchSwagger() {
 		return this.globalClient.get<OpenAPIObject>(
 			`${this.config.get<string>("GEOCONVERT_HOST")}/openapi.json`,

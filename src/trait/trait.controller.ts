@@ -50,6 +50,11 @@ export class TraitController implements MergesRemoteSwagger {
 		void this.warehouseProxy(req, res, next);
 	}
 
+	@All()
+	proxyRoot(@Req() req: Request, @Res() res: Response, @Next() next: NextFunction) {
+		void this.warehouseProxy(req, res, next);
+	}
+
 	fetchSwagger() {
 		return this.traitClient.get<OpenAPIObject>("openapi-v3.json", undefined, { cache: CACHE_30_MIN });
 	}
