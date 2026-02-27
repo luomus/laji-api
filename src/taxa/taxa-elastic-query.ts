@@ -56,7 +56,11 @@ const mapAs = (elasticQParam: keyof ElasticQuery) =>
 	mapToElasticParamAs(elasticQParam)((query, queryParam) => query[queryParam] as any);
 
 const removeFromExclude = <T extends ElasticQuery>(...keys: string[])
-	: QueryParamStrategy<T> => (_, __, elasticQ) => {
+	: QueryParamStrategy<T> => (query, queryParam, elasticQ) => {
+		const arg = query[queryParam];
+		if (arg === false) {
+			return elasticQ;
+		}
 		// The defaults 'excludes' has been overridden by some other query param, so exclusion wouldn't make sense.
 		if (!elasticQ._source || Array.isArray(elasticQ._source)) {
 			return elasticQ;
