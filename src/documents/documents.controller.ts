@@ -243,8 +243,6 @@ export class DocumentsController {
 			if (!person) {
 				throw new HttpException("Secondary data must be sent with a person token", 422);
 			}
-			// The return type for secondary document deletion isn't actually Document. This remains undocumented by our
-			// Swagger document.
 			return this.secondaryDocumentsService.create(
 				document as SecondaryDocument,
 				person,
