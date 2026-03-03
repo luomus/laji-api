@@ -66,7 +66,7 @@ const inSchemaFormat = (schemaRef: ReferenceObject, document: OpenAPIObject) => 
 			additionalProperties: true
 		}
 	};
-	return schema;
+	return schemaRef;
 };
 
 const pickFormListingKeys = ([schemaRef, document]: [ReferenceObject, OpenAPIObject]) => {
