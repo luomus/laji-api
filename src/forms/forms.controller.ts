@@ -21,6 +21,8 @@ const inSchemaFormat = (schemaRef: ReferenceObject, document: OpenAPIObject) => 
 		$ref: "#/components/schemas/JSONSchema"
 	};
 	schema.properties!.excludeFromCopy = { type: "array", items: { type: "string" } };
+	schema.properties!.validators = { type: "object", additionalProperties: true };
+	schema.properties!.warnings = { type: "object", additionalProperties: true };
 	delete schema.properties!.fields;
 
 	document.components!.schemas = {
