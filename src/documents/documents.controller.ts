@@ -137,6 +137,8 @@ export class DocumentsController {
 			]
 		}
 	})
+	@SwaggerRemote({ source: "store", ref: "/document", applyToResponse: false })
+	@HttpCode(204)
 	async validate(
 		@Body() document: Document,
 		@Res({ passthrough: true }) response: Response,
