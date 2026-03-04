@@ -35,7 +35,7 @@ const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: Ope
 			_patchMultiLang: false
 		} as any;
 	});
-	return schema;
+	return schemaRef;
 };
 
 const addFiltersSchema = (schema: never, document: never, remoteDoc: OpenAPIObject) =>
