@@ -59,7 +59,9 @@ export const SWAGGER_REMOTE_METADATA_ITEM = "SWAGGER_REMOTE_METADATA_ITEM";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const bindSwaggerRemoteMetadataToItem = (entry: SwaggerRemoteEntry) => (item: Object) => {
-	Reflect.defineMetadata(SWAGGER_REMOTE_METADATA_ITEM, entry, item);
+	if (item) {
+		Reflect.defineMetadata(SWAGGER_REMOTE_METADATA_ITEM, entry, item);
+	}
 	return item;
 };
 
@@ -81,6 +83,9 @@ export class AddLocalJsonLdContextFromEntry implements NestInterceptor {
 	}
 
 	addLocalJsonLdContext(result: any) {
+		if (!result) {
+			return result;
+		}
 		const entry: SwaggerRemoteEntry | undefined = Reflect.getMetadata(SWAGGER_REMOTE_METADATA_ITEM, result);
 		return addLocalJsonLdContext(entry?.localJsonLdContext)(result);
 	}
