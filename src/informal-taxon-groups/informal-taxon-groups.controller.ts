@@ -9,6 +9,10 @@ import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { RequestLang } from "src/decorators/request-lang.decorator";
+import { pipe } from "rxjs";
+import { idAlwaysPresent } from "src/collections/collections.controller";
+import { JSONSchemaRef } from "src/json-schema.utils";
+import { asTuple, firstFromNonEmptyArr } from "src/utils";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
@@ -25,7 +29,14 @@ export class InformalTaxonGroupsController {
 	/** Get a page of informal taxon groups */
 	@Get()
 	@UseInterceptors(Translator, Paginator)
-	@SwaggerRemote({ source: "store", ref: "/informalTaxonGroup" })
+	@SwaggerRemote({
+		source: "store",
+		ref: "/informalTaxonGroup",
+		customizeResponseSchema: (schema, document) => pipe(
+			idAlwaysPresent,
+			firstFromNonEmptyArr
+		)(asTuple(schema as JSONSchemaRef, document)),
+	})
 	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
 		return this.informalTaxonGroupsService.find(idIn);
 	}

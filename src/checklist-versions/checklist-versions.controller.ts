@@ -6,6 +6,10 @@ import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { idAlwaysPresent } from "src/collections/collections.controller";
+import { pipe } from "rxjs";
+import { JSONSchemaRef } from "src/json-schema.utils";
+import { firstFromNonEmptyArr, asTuple } from "src/utils";
 
 @ApiTags("Checklist Versions")
 @LajiApiController("checklist-versions")
@@ -16,7 +20,14 @@ export class ChecklistVersionsController {
 	/** Get a checklist by id */
 	@Get(":id")
 	@UseInterceptors(Translator)
-	@SwaggerRemote({ source: "store", ref: "/checklistVersion" })
+	@SwaggerRemote({
+		source: "store",
+		ref: "/checklistVersion",
+		customizeResponseSchema: (schema, document) => pipe(
+			idAlwaysPresent,
+			firstFromNonEmptyArr
+		)(asTuple(schema as JSONSchemaRef, document)),
+	})
 	get(@Param("id") id: string) {
 		return this.checklistService.get(id);
 	}

@@ -7,6 +7,10 @@ import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Request } from "src/request";
+import { pipe } from "rxjs";
+import { idAlwaysPresent } from "src/collections/collections.controller";
+import { JSONSchemaRef } from "src/json-schema.utils";
+import { firstFromNonEmptyArr, asTuple } from "src/utils";
 
 @ApiTags("Areas")
 @LajiApiController("areas")
@@ -25,7 +29,14 @@ export class AreaController {
 	/** Get a page of areas */
 	@Get()
 	@UseInterceptors(Paginator, Translator)
-	@SwaggerRemote({ source: "store", ref: "/area" })
+	@SwaggerRemote({
+		source: "store",
+		ref: "/area",
+		customizeResponseSchema: (schema, document) => pipe(
+			idAlwaysPresent,
+			firstFromNonEmptyArr
+		)(asTuple(schema as JSONSchemaRef, document)),
+	})
 	getPage(@Query() query: GetAreaPageDto, @Req() request: Request) {
 		const { type, areaType, idIn } = query as any;
 		let typeQName: AreaTypeDto | undefined = areaType;

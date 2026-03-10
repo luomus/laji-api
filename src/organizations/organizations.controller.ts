@@ -2,7 +2,6 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { ApiTags } from "@nestjs/swagger";
 import { OrganizationsService } from "./organizations.service";
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
-import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
@@ -29,7 +28,6 @@ export class OrganizationsController {
 		"abbreviation",
 		"fullName",
 	], }, "SensitiveOrganization")
-	@SwaggerRemote({ source: "store", ref: "/organization" })
 	async getAll(@Query() _: GetAllOrganizationsDto) {
 		return this.organizationsService.getAll();
 	}
@@ -47,7 +45,6 @@ export class OrganizationsController {
 		"abbreviation",
 		"fullName",
 	], }, "SensitiveOrganization")
-	@SwaggerRemote({ source: "store", ref: "/organization" })
 	async get(@Param("id") id: string) {
 		return this.organizationsService.get(id);
 	}

@@ -11,9 +11,18 @@ import { Serializer } from "src/serialization/serializer.interceptor";
 import { LANGS, QueryWithPagingAndIdIn, QueryWithPagingDto } from "src/common.dto";
 import { omit } from "src/typing.utils";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
-import { asTuple, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
+import { asTuple, firstFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 import { asPagedResponse } from "src/swagger/swagger.service";
 import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+
+export const idAlwaysPresent = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
+	const referredSchema = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref) as JSONSchemaObject;
+	if (!referredSchema.required) {
+		referredSchema.required = [];
+	}
+	referredSchema.required.push("id");
+	return [refSchema, document];
+};
 
 const sensitiveProps = ["collectionLocation", "dataLocation", "inMustikka", "editor", "creator"];
 const filterSensitiveProps = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
@@ -40,7 +49,7 @@ const addMultiLangs = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) =>
 			_patchMultiLang: false
 		} as any;
 	});
-	return refSchema;
+	return [refSchema, document];
 };
 
 @LajiApiController("collections")
@@ -58,8 +67,10 @@ export class CollectionsController {
 		ref: "/collection",
 		// This needs to be done only once, because it mutates the Swagger model, creating the new "SensitiveCollection".
 		customizeResponseSchema: (schema, document) => pipe(
+			idAlwaysPresent,
 			filterSensitiveProps,
-			addMultiLangs
+			addMultiLangs,
+			firstFromNonEmptyArr
 		)(asTuple(schema as JSONSchemaRef, document)),
 		swaggerSchemaDefinitionName: "SensitiveCollection"
 	})

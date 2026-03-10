@@ -9,6 +9,10 @@ import { Lang, QueryWithPagingAndIdIn } from "src/common.dto";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { swaggerResponseAsResultsArray, ResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
+import { pipe } from "rxjs";
+import { idAlwaysPresent } from "src/collections/collections.controller";
+import { JSONSchemaRef } from "src/json-schema.utils";
+import { firstFromNonEmptyArr, asTuple } from "src/utils";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
@@ -31,7 +35,14 @@ export class RedListEvaluationGroupsController {
 
 	/** Get the red list evaluation group tree */
 	@Get("tree")
-	@SwaggerRemote(fromStoreWithJSONLdContextFixed)
+	@SwaggerRemote({
+		...fromStoreWithJSONLdContextFixed,
+		customizeResponseSchema: (schema, document) => pipe(
+			idAlwaysPresent,
+			firstFromNonEmptyArr,
+			swaggerResponseAsResultsArray
+		)(asTuple(schema as JSONSchemaRef, document)),
+	})
 	async getTree(@RequestLang() lang: Lang) {
 		return applyLangToJsonLdContext({
 			results: await this.redListEvaluationGroupsService.getTranslatedTree(lang),
