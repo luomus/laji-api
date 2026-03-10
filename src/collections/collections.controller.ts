@@ -8,19 +8,39 @@ import { CollectionMultiLangHackInterceptor } from "./collection-multi-lang-hack
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
-import { QueryWithPagingAndIdIn, QueryWithPagingDto } from "src/common.dto";
+import { LANGS, QueryWithPagingAndIdIn, QueryWithPagingDto } from "src/common.dto";
 import { omit } from "src/typing.utils";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
-import { parseURIFragmentIdentifierRepresentation } from "src/utils";
+import { asTuple, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
 import { asPagedResponse } from "src/swagger/swagger.service";
+import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 
 const sensitiveProps = ["collectionLocation", "dataLocation", "inMustikka", "editor", "creator"];
-const filterSensitiveProps = (schema: JSONSchemaRef, document: OpenAPIObject) => {
-	const referredSchema = parseURIFragmentIdentifierRepresentation(document, schema.$ref) as JSONSchemaObject;
+const filterSensitiveProps = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
+	const referredSchema = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref) as JSONSchemaObject;
 	referredSchema.properties = omit(referredSchema.properties!, ...sensitiveProps);
 	referredSchema.properties.hasChildren = { type: "boolean" };
 	referredSchema.required!.push("hasChildren");
-	return schema;
+	return [refSchema, document];
+};
+
+const addMultiLangs = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
+	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
+	[
+		"longName",
+		"description",
+		"onlineUrl"
+	].forEach(property => {
+		const origProperty = schema.properties![property] as SchemaObject;
+		schema.properties![`${property}MultiLang`] = {
+			type: "object",
+			properties: LANGS.reduce(
+				(properties, lang) => ({ ...properties, [lang]: origProperty }),
+				{}),
+			_patchMultiLang: false
+		} as any;
+	});
+	return refSchema;
 };
 
 @LajiApiController("collections")
@@ -37,7 +57,10 @@ export class CollectionsController {
 		source: "store",
 		ref: "/collection",
 		// This needs to be done only once, because it mutates the Swagger model, creating the new "SensitiveCollection".
-		customizeResponseSchema: filterSensitiveProps,
+		customizeResponseSchema: (schema, document) => pipe(
+			filterSensitiveProps,
+			addMultiLangs
+		)(asTuple(schema as JSONSchemaRef, document)),
 		swaggerSchemaDefinitionName: "SensitiveCollection"
 	})
 	async getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {

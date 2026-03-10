@@ -82,6 +82,10 @@ export class Collection extends OmitType(TriplestoreCollection, [
 	@Exclude() inMustikka?: boolean;
 	@Exclude() editor?: string;
 	@Exclude() creator?: string;
+
+	longNameMultiLang?: MultiLang;
+	descriptionMultiLang?: MultiLang;
+	onlineUrlMultiLang?: MultiLang;
 }
 
 export type GbifContact = {

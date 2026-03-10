@@ -121,7 +121,7 @@ export class CollectionsService {
 
 	@IntelligentMemoize()
 	private async getAll(): Promise<Collection[]> {
-		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections());
+		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections()).map(addMultiLangs);
 	}
 
 	private async getTriplestoreCollections(): Promise<Collection[]> {
@@ -251,3 +251,10 @@ const getLongName = (
 		return multiLang;
 	}, {});
 };
+
+const addMultiLangs = (collection: Collection): Collection => ({
+	...collection,
+	longNameMultiLang: collection.longName,
+	descriptionMultiLang: collection.description,
+	onlineUrlMultiLang: collection.onlineUrl
+});
