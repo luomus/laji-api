@@ -36,7 +36,6 @@ export class Translator implements NestInterceptor {
 		}
 
 		const langPreferences = getLangPreferences(request);
-		console.log(langPreferences);
 		const { selectedFields } = plainToClass(HasSelectedFields, request.query);
 
 		const translated = await applyToResult(
