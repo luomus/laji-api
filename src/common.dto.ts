@@ -42,10 +42,6 @@ export class MultiLangDto {
 	@IsString() @IsOptional() sv?: string;
 }
 
-export const pickFromMultiLang = (multiLangItem: MultiLang, lang: Exclude<Lang, Lang.multi>): (string | undefined) => {
-	return multiLangItem[lang];
-};
-
 export class HasJsonLdContext {
 	"@context": string;
 }

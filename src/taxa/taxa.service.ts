@@ -225,7 +225,7 @@ const pageAdapter = ({ hits }: ElasticResponse<TaxonElastic>, query: GetTaxaPage
 	}, false);
 
 const arrayAdapter = ({ hits }: ElasticResponse<TaxonElastic>, query: Partial<TaxaBaseQuery>) =>
-	hits.hits.map(({ _source }) =>  mapTaxon(_source, query));
+	hits.hits.map(({ _source }) => mapTaxon(_source, query));
 
 const mapTaxonParents = (query: Partial<AllQueryParams>) => (taxon: TaxonElastic): TaxonElastic =>
 	query.includeHidden

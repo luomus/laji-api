@@ -9,16 +9,17 @@ import * as memoize from "memoizee";
  */
 export function IntelligentMemoize(options: memoize.Options<any> = { promise: true }) {
 	return function(target: any, key: PropertyKey, descriptor: PropertyDescriptor) {
-		const oldFunction = descriptor.value;
-		const newFunction = memoize(oldFunction, options);
-		descriptor.value = function () {
-			// eslint-disable-next-line prefer-rest-params
-			return newFunction.apply(this, arguments);
+		const originalMethod = descriptor.value;
+
+		descriptor.value = function (...args: any[]) {
+			// Create a hidden memoized version stored on the instance
+			if (!this.__memoizedFns) this.__memoizedFns = {};
+			if (!this.__memoizedFns[key]) {
+				this.__memoizedFns[key] = memoize(originalMethod.bind(this), options);
+			}
+
+			return this.__memoizedFns[key](...args);
 		};
-		if (!target._memoizedFns) {
-			target._memoizedFns = [];
-		}
-		target._memoizedFns.push(newFunction);
 	};
 };
 

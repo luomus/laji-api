@@ -5,7 +5,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SwaggerRemote, SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
-import { Lang, QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdIn } from "src/common.dto";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { swaggerResponseAsResultsArray, ResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
@@ -13,6 +13,7 @@ import { pipe } from "rxjs";
 import { idAlwaysPresent } from "src/collections/collections.controller";
 import { JSONSchemaRef } from "src/json-schema.utils";
 import { firstFromNonEmptyArr, asTuple } from "src/utils";
+import { LangPreference } from "src/lang/lang.utils";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
@@ -43,11 +44,11 @@ export class RedListEvaluationGroupsController {
 			swaggerResponseAsResultsArray
 		)(asTuple(schema as JSONSchemaRef, document)),
 	})
-	async getTree(@RequestLang() lang: Lang) {
+	async getTree(@RequestLang() langPreferences: LangPreference[]) {
 		return applyLangToJsonLdContext({
-			results: await this.redListEvaluationGroupsService.getTranslatedTree(lang),
+			results: await this.redListEvaluationGroupsService.getTranslatedTree(langPreferences),
 			"@context": await this.redListEvaluationGroupsService.getJsonLdContext()
-		}, lang);
+		}, langPreferences);
 	}
 
 	/** Get first level of the red list evaluation group tree */

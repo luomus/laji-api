@@ -14,7 +14,7 @@ export class NewsController {
 
 	/** Get a page of news */
 	@Get()
-	getPage(@Query() { tag, page, pageSize }: GetNewsPageDto, @RequestLang() lang: Lang) {
+	getPage(@Query() { tag, page, pageSize }: GetNewsPageDto, @RequestLang({ single: true }) lang: Lang) {
 		return this.newsService.getPage(page!, pageSize!, lang, tag);
 	}
 

@@ -7,14 +7,21 @@ import { OpenAPIObject } from "@nestjs/swagger";
 import { HttpException } from "@nestjs/common";
 import { instanceToInstance } from "class-transformer";
 import { LOCAL_JSON_LD_CONTEXT_METADATA_KEY } from "src/decorators/local-json-ld-context.decorator";
+import { getDominantLang, LangPreference } from "src/lang/lang.utils";
 
-export const applyLangToJsonLdContext = <T extends Record<string, unknown>>(item: T, lang?: Lang) => {
+export const applyLangToJsonLdContext = <T extends Record<string, unknown>>(
+	item: T,
+	langPreferences: LangPreference[] = [{ lang: Lang.en }]
+) => {
 	if ((item as any).constructor === Object) { // Slight optimization to prevent deeply copying if it's just a simple object.
 		item = { ...item };
 	} else {
 		item = instanceToInstance(item);
 	}
-	(item as any)["@context"] = getJsonLdContextForLang(getJsonLdContextFromSample(item), lang);
+	(item as any)["@context"] = getJsonLdContextForLang(
+		getJsonLdContextFromSample(item),
+		getDominantLang(langPreferences)
+	);
 	return item;
 };
 

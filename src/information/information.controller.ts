@@ -13,7 +13,7 @@ export class InformationController {
 
 	/** Returns id of the index page. Allowed languages are 'fi', 'sv', 'en'.  */
 	@Get("index")
-	getIndex(@RequestLang({ allowMulti: false }) lang: Omit<Lang, "multi">) {
+	getIndex(@RequestLang({ single: true }) lang: Lang) {
 		return this.informationService.getIndex(lang);
 	}
 
@@ -25,7 +25,7 @@ export class InformationController {
 
 	/** Get information page contents. Allowed languages are 'fi', 'sv', 'en'. */
 	@Get()
-	getAll(@RequestLang({ allowMulti: false }) lang: Omit<Lang, "multi">) {
+	getAll(@RequestLang({ single: true }) lang: Lang) {
 		return this.informationService.getAll(lang);
 	}
 

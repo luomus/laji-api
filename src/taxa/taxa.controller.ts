@@ -187,7 +187,7 @@ export class TaxaController {
 	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/Taxon",
-		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we need to do it just once here.
+		customizeResponseSchema: addVernacularNameTranslations, // It's done mutably, so we do it just once here.
 		localJsonLdContext: "taxon-elastic"
 	})
 	@UseInterceptors(AddIntellectualRights, Translator, Serializer(TaxonElastic))

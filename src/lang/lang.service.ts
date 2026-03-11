@@ -6,13 +6,15 @@ import { JSONPath } from "jsonpath-plus";
 import { JsonLdService } from "src/json-ld/json-ld.service";
 import { JsonLdDocument } from "jsonld";
 import { instanceToInstance } from "class-transformer";
-import { dictionarify, lastFromNonEmptyArr, updateWithJSONPointer } from "src/utils";
-
-const LANG_FALLBACKS: (Lang.en | Lang.fi)[] = [Lang.en, Lang.fi];
+import { dictionarify, firstFromNonEmptyArr, lastFromNonEmptyArr, updateWithJSONPointer } from "src/utils";
+import { LangPreference, getDefaultLangPreferences } from "./lang.utils";
 
 const JSON_LD_KEYWORDS = new Set(["@id", "@type", "@value", "@language", "@list", "@set", "@context"]);
 
 export const getFirstTermOfJSONPath = (path: string) => path.match(/\$\.([^.[]+)/)![1] as string;
+
+const sortLangPreferences = (langPreferences: LangPreference[]) =>
+	langPreferences.sort(({ weight: a }, { weight: b }) => (b ?? 1) - (a ?? 1));
 
 @Injectable()
 export class LangService {
@@ -20,18 +22,15 @@ export class LangService {
 	constructor(private jsonLdService: JsonLdService) {}
 
 	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang?: Exclude<Lang, Lang.multi>, selectedFields?: string[]
-	) : Promise<(item: T) => MultiLangAsString<T>>
-	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang: Lang.multi, selectedFields?: string[]
-	) : Promise<(item: T) => T>
-	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang?: Lang, selectedFields?: string[]
-	) : Promise<(item: T) => (T | MultiLangAsString<T>)>
-	async contextualTranslateWith<T>(
-		jsonLdContext: string, lang: Lang = Lang.en, selectedFields?: string[]
+		jsonLdContext: string,
+		langPreferences: LangPreference[] = [{ lang: Lang.en }],
+		selectedFields?: string[]
 	) {
-		if (lang === Lang.multi) {
+		langPreferences = sortLangPreferences(langPreferences);
+		if (!langPreferences.length) {
+			langPreferences = getDefaultLangPreferences();
+		}
+		if (firstFromNonEmptyArr(langPreferences).lang === Lang.multi) {
 			return (item: T) => item;
 		}
 
@@ -54,7 +53,7 @@ export class LangService {
 						updateWithJSONPointer(
 							parent,
 							`/${lastFromNonEmptyArr(pointer.split("/"))}`,
-							getLangValue(value, lang)
+							getLangValue(value, langPreferences)
 						);
 					}
 				});
@@ -63,10 +62,7 @@ export class LangService {
 		};
 	}
 
-	async translate<T extends HasJsonLdContext>(item: T, lang: Exclude<Lang, Lang.multi>): Promise<MultiLangAsString<T>>
-	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang.multi): Promise<T>
-	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang): Promise<T | MultiLangAsString<T>>
-	async translate<T extends HasJsonLdContext>(item: T, lang?: Lang) : Promise<T | MultiLangAsString<T>> {
+	async translate<T extends HasJsonLdContext>(item: T, lang?: LangPreference[]) : Promise<T | MultiLangAsString<T>> {
 		return (
 			await this.contextualTranslateWith<T>(item["@context"], lang)
 		)(item);
@@ -78,32 +74,60 @@ export class LangService {
 	}
 }
 
-const getLangValueWithFallback = (multiLangValue?: MultiLang): string | undefined => {
+const getLangValueWithFallback = (
+	multiLangValue: MultiLang | undefined,
+	langPreferences: (Omit<LangPreference, "lang"> & { lang: Lang })[]
+): string | undefined | MultiLang => {
 	if (!multiLangValue) {
 		return undefined;
 	}
-	const langIdx = LANG_FALLBACKS.findIndex(lang => multiLangValue[lang]);
+	const langIdx = langPreferences.findIndex(LangPreference =>
+		multiLangValue[LangPreference.lang as Exclude<Lang, Lang.multi>]
+	);
 	if (langIdx >= 0) {
-		const fallbackLang = LANG_FALLBACKS[langIdx]!;
+		const fallbackLang = langPreferences[langIdx]!.lang;
+		if (fallbackLang === Lang.multi) {
+			return multiLangValue;
+		}
 		return multiLangValue[fallbackLang];
 	}
 };
 
-function getLangValue(multiLangValue: MultiLang | undefined, lang: Lang.multi): MultiLang;
-function getLangValue(multiLangValue?: MultiLang, lang?: Exclude<Lang, Lang.multi>): string | undefined;
-function getLangValue(multiLangValue?: MultiLang, lang: Lang = Lang.en) : MultiLang | string | undefined {
-	if (lang === Lang.multi) {
+function getLangValue(
+	multiLangValue: MultiLang | undefined,
+	langPreferences: LangPreference[]
+): MultiLang | string | undefined {
+	if (firstFromNonEmptyArr(langPreferences).lang === Lang.multi) {
 		return multiLangValue;
 	}
 	if (!multiLangValue) {
 		return undefined;
 	}
-	const langValue = multiLangValue[lang];
+	const fallback = shouldFallback(langPreferences);
+	if (fallback) {
+		langPreferences = [
+			...langPreferences,
+			{ lang: Lang.en, weight: -Infinity },
+			{ lang: Lang.fi, weight: -Infinity },
+			{ lang: Lang.sv, weight: -Infinity },
+		];
+	}
+	const langValue = multiLangValue[firstFromNonEmptyArr(langPreferences).lang as Exclude<Lang, Lang.multi>];
 	if (langValue !== undefined) {
 		return langValue;
 	}
-	return getLangValueWithFallback(multiLangValue);
+	if (!fallback) {
+		return undefined;
+	}
+	return getLangValueWithFallback(
+		multiLangValue,
+		// Omit '*' from lang because handled already
+		langPreferences as (Omit<LangPreference, "lang"> & { lang: Lang })[]
+	);
 }
+
+const shouldFallback = (langPreferences: LangPreference[]) =>
+	langPreferences.every(lp => lp.lang !== "*" || lp.weight !== 0);
 
 interface TranslateMaybeMultiLang {
 	(value: MultiLang, lang: Lang): string | undefined;

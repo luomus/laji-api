@@ -124,7 +124,7 @@ export class PrepopulatedDocumentService {
 			const idToArea = await this.areaService.getDictByType(type);
 			const municipalityIds = asArray(pointedValue);
 			return (await Promise.all(
-				municipalityIds.map(id => this.langService.translate(idToArea[id]!, Lang.fi))
+				municipalityIds.map(id => this.langService.translate(idToArea[id]!, [{ lang: Lang.fi }]))
 			)).map(m => m[key]).join(delimiter);
 		}
 	};

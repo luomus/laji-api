@@ -1,10 +1,11 @@
 import { IucnRedListTaxonGroup as _IucnRedListTaxonGroup } from "@luomus/laji-schema/models";
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
-import { Lang, MultiLangAsString } from "src/common.dto";
+import { MultiLangAsString } from "src/common.dto";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { LangService } from "src/lang/lang.service";
+import { LangPreference } from "src/lang/lang.utils";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { WithNonNullableKeys, omitForKeys } from "src/typing.utils";
 import { CACHE_10_MIN, dictionarifyByKey, firstFromNonEmptyArr, promisePipe } from "src/utils";
@@ -80,9 +81,9 @@ export class RedListEvaluationGroupsService {
 		return (await this.getExpandedTreeAndParentLookup())[0];
 	}
 
-	async getTranslatedTree(lang: Lang) {
+	async getTranslatedTree(langPreferences: LangPreference[]) {
 		const removeJsonLDContext = omitForKeys<IucnRedListTaxonGroupExpanded, "@context">("@context");
-		const translate = (item: IucnRedListTaxonGroupExpanded) => this.langService.translate(item, lang);
+		const translate = (item: IucnRedListTaxonGroupExpanded) => this.langService.translate(item, langPreferences);
 		return walkTreeWith(promisePipe(translate, removeJsonLDContext))(await this.getTree());
 	}
 

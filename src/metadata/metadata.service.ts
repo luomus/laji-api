@@ -6,10 +6,10 @@ import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
 import { RedisMemoize } from "src/decorators/redis-memoize.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { Alt, MetadataClass, Property } from "./metadata.dto";
-import { Lang } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { omit } from "src/typing.utils";
 import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
+import { LangPreference } from "src/lang/lang.utils";
 
 export type ClassProperties = { [ propertyName: string ]: Property };
 type DomainsToClassProperties = { [domain: string]: ClassProperties };
@@ -128,14 +128,14 @@ export class MetadataService {
 	}
 
 	@RedisMemoize()
-	async getAltsTranslated(lang: Lang) {
+	async getAltsTranslated(langPreferences: LangPreference[]) {
 		const alts = await this.getAlts();
 		const translatedAlts: any = {};
 		for (const altName of Object.keys(alts)) {
 			translatedAlts[altName] = [];
 			for (const alt of alts[altName]!) {
 				translatedAlts[altName].push(omit(
-					await this.langService.translate(addLocalJsonLdContext("metadata-alt")(alt), lang),
+					await this.langService.translate(addLocalJsonLdContext("metadata-alt")(alt), langPreferences),
 					"@context"
 				));
 			}

@@ -1,5 +1,4 @@
 import { Catch, ArgumentsHost } from "@nestjs/common";
-import { getLang } from "src/interceptors/translator.interceptor";
 import { Request } from "src/request";
 import { LocalizedException } from "src/utils";
 import * as translations from "src/translations.json";
@@ -8,6 +7,7 @@ import { ErrorSignatureBackwardCompatibilityFilter }
 import { FormValidationException, ValidationException }
 	from "src/documents/document-validator/document-validator.utils";
 import { Lang } from "src/common.dto";
+import { getDominantLang, getLangPreferences } from "src/lang/lang.utils";
 
 @Catch(LocalizedException)
 export class LocalizerExceptionFilter extends ErrorSignatureBackwardCompatibilityFilter<LocalizedException> {
@@ -15,7 +15,7 @@ export class LocalizerExceptionFilter extends ErrorSignatureBackwardCompatibilit
 	catch(exception: LocalizedException, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
 		const request = ctx.getRequest<Request>();
-		const lang = getLang(request);
+		const lang = getDominantLang(getLangPreferences(request));
 		localizeException(exception, lang);
 		super.catch(exception, host);
 	}

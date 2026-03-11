@@ -2,7 +2,7 @@ import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { InformalTaxonGroupsService } from "./informal-taxon-groups.service";
-import { Lang, QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdIn } from "src/common.dto";
 import { SwaggerRemote, SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
@@ -13,6 +13,7 @@ import { pipe } from "rxjs";
 import { idAlwaysPresent } from "src/collections/collections.controller";
 import { JSONSchemaRef } from "src/json-schema.utils";
 import { asTuple, firstFromNonEmptyArr } from "src/utils";
+import { LangPreference } from "src/lang/lang.utils";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
@@ -44,11 +45,11 @@ export class InformalTaxonGroupsController {
 	/** Get the informal taxon group tree */
 	@Get("tree")
 	@SwaggerRemote(fromStoreWithJSONLdContextFixed)
-	async getTree(@RequestLang() lang: Lang) {
+	async getTree(@RequestLang() langPreferences: LangPreference[]) {
 		return applyLangToJsonLdContext({
-			results: await this.informalTaxonGroupsService.getTranslatedTree(lang),
+			results: await this.informalTaxonGroupsService.getTranslatedTree(langPreferences),
 			"@context": await this.informalTaxonGroupsService.getJsonLdContext()
-		}, lang);
+		}, langPreferences);
 	}
 
 	/** Get first level of the informal taxon group tree */

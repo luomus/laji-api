@@ -105,7 +105,7 @@ export class FormsController {
 		)(asTuple(schema as ReferenceObject, document))
 	})
 	@UseInterceptors(ResultsArray)
-	getListing(@RequestLang() lang: Lang) {
+	getListing(@RequestLang({ single: true }) lang: Lang) {
 		return this.formsService.getListing(lang);
 	}
 
@@ -120,7 +120,7 @@ export class FormsController {
 	getOne(
 		@Param("id") id: string,
 		@Query() { format = Format.schema, expand = true }: GetDto,
-		@RequestLang() lang: Lang
+		@RequestLang({ single: true }) lang: Lang
 	) {
 		return this.formsService.get(id, format, lang, expand);
 	}
@@ -152,7 +152,7 @@ export class FormsController {
 	@Post("transform")
 	@UseGuards(IctAdminGuard)
 	@SwaggerRemote({ source: "store", ref: "/form" })
-	transform(@Body() form: Form, @RequestLang() lang: Lang) {
+	transform(@Body() form: Form, @RequestLang({ single: true }) lang: Lang) {
 		return this.formsService.transform(form, lang);
 	}
 }

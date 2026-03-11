@@ -3,9 +3,10 @@ import { Observable, map } from "rxjs";
 import { Request } from "express";
 import { Collection } from "./collection.dto";
 import { dictionarify } from "src/utils";
-import { Lang, pickFromMultiLang } from "src/common.dto";
+import { Lang } from "src/common.dto";
 import { isPaginatedDto } from "src/pagination.utils";
 import { PaginatedDto } from "src/pagination.dto";
+import { pickFromMultiLang } from "src/lang/lang.utils";
 
 const notReallyMultiLangKeys = dictionarify([
 	"temporalCoverage", "taxonomicCoverage", "collectionLocation",

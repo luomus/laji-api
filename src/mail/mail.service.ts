@@ -103,7 +103,7 @@ export class MailService {
 		// template. The 'text' argument is in effect here really instead.
 		const message = getFeedbacMessage(
 			feedback,
-			await this.langService.translate(system, Lang.fi),
+			await this.langService.translate(system, [{ lang: Lang.fi }]) as MultiLangAsString<InformationSystem>,
 			person ? decoratePerson(person) : undefined
 		);
 		return this.send({

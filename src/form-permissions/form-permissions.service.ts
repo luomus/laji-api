@@ -1,6 +1,6 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { CollectionsService } from "src/collections/collections.service";
-import { CompleteMultiLang, Lang } from "src/common.dto";
+import { CompleteMultiLang, Lang, MultiLangAsString } from "src/common.dto";
 import { LangService } from "src/lang/lang.service";
 import { MailService } from "src/mail/mail.service";
 import { Person, Role } from "src/persons/person.dto";
@@ -10,6 +10,7 @@ import { FormListing, Format } from "src/forms/dto/form.dto";
 import { FormsService } from "src/forms/forms.service";
 import { FormPermissionDto, FormPermissionEntity, FormPermissionEntityType, FormPermissionPersonDto, RestrictAccess
 } from "./dto/form-permission.dto";
+import { Collection } from "src/collections/collection.dto";
 
 @Injectable()
 export class FormPermissionsService {
@@ -253,7 +254,10 @@ export class FormPermissionsService {
 		lang: Exclude<Lang, Lang.multi>
 	): Promise<string> {
 		if (form?.options.shortTitleFromCollectionName && collectionID) {
-			const collection = await this.langService.translate(await this.collectionsService.get(collectionID), lang);
+			const collection = await this.langService.translate(
+				await this.collectionsService.get(collectionID),
+				[{ lang }]
+			) as MultiLangAsString<Collection>;
 			if (collection.collectionName) {
 				return collection.collectionName;
 			}

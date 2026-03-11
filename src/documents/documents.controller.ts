@@ -55,7 +55,7 @@ export class DocumentsController {
 		@Body() documents: Document[],
 		@RequestPerson() person: Person,
 		@ApiUser() apiUser: ApiUserEntity,
-		@RequestLang() lang: Lang
+		@RequestLang({ single: true }) lang: Lang
 	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.start(documents, person, apiUser, lang);
 	}
@@ -72,7 +72,7 @@ export class DocumentsController {
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,
-		@RequestLang() lang: Lang,
+		@RequestLang({ single: true }) lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
 		return this.documentsBatchService.getStatus(jobID, person, lang);
@@ -86,7 +86,7 @@ export class DocumentsController {
 	async completeBatchJob(
 		@Param("jobID") jobID: string,
 		@Query() query: BatchJobQueryDto,
-		@RequestLang() lang: Lang,
+		@RequestLang({ single: true }) lang: Lang,
 		@RequestPerson() person: Person
 	): Promise<BatchJobValidationStatusResponse> {
 		const {
@@ -144,7 +144,7 @@ export class DocumentsController {
 		@Res({ passthrough: true }) response: Response,
 		@Query() query: ValidateQueryDto,
 		@ApiUser() apiUser: ApiUserEntity,
-		@RequestLang() lang: Lang,
+		@RequestLang({ single: true }) lang: Lang,
 		@RequestPerson() person: Person,
 	): Promise<unknown> {
 		const { validator, type } = query as any;
@@ -229,7 +229,7 @@ export class DocumentsController {
 	async create(
 		@Body() document: Document,
 		@ApiUser() apiUser: ApiUserEntity,
-		@RequestLang() lang: Lang,
+		@RequestLang({ single: true }) lang: Lang,
 		@RequestPerson({ required: false }) person?: Person
 	): Promise<Document> {
 		if (!document.formID) {
@@ -270,7 +270,7 @@ export class DocumentsController {
 		@Query() { skipValidations }: UpdateDocumentDto,
 		@RequestPerson() person: Person,
 		@ApiUser() apiUser: ApiUserEntity,
-		@RequestLang() lang: Lang,
+		@RequestLang({ single: true }) lang: Lang,
 	): Promise<Document> {
 		if (!document.formID) {
 			throw new ValidationException({ "/formID": ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });

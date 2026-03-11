@@ -7,7 +7,7 @@ import { Alt, MetadataClass, Property } from "./metadata.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { RequestLang } from "src/decorators/request-lang.decorator";
-import { Lang } from "src/common.dto";
+import { LangPreference } from "src/lang/lang.utils";
 
 @ApiTags("Metadata")
 @LajiApiController("metadata")
@@ -93,8 +93,8 @@ export class MetadataController {
 	@Version("1")
 	@Get("alts")
 	@ApiOkResponse({ schema: { type: "object", additionalProperties: { $ref: getSchemaPath(Alt) } } })
-	async getAlts(@RequestLang() lang: Lang) {
-		return this.metadataService.getAltsTranslated(lang);
+	async getAlts(@RequestLang() langPreferences: LangPreference[]) {
+		return this.metadataService.getAltsTranslated(langPreferences);
 	}
 
 	/** Get alt values by alt name */

@@ -31,7 +31,7 @@ export class CoordinatesController {
 			example: { type: "Point", coordinates: [25, 60] },
 		},
 	})
-	getLocationInformation(@Body() geoJSON: GeoJSON, @RequestLang() lang: Lang) {
+	getLocationInformation(@Body() geoJSON: GeoJSON, @RequestLang({ single: true }) lang: Lang) {
 		return this.coordinatesService.getLocationInformation(geoJSON, lang);
 	}
 }
