@@ -6,7 +6,7 @@ export const RequestLang = createParamDecorator((
 	{ single = false }: { single?: boolean } = {},
 	ctx: ExecutionContext
 ) => {
-	const langPreferences = getLangPreferences(ctx.switchToHttp().getRequest())
+	const langPreferences = getLangPreferences(ctx.switchToHttp().getRequest());
 	return single ? firstFromNonEmptyArr(langPreferences).lang : langPreferences;
 }
 );

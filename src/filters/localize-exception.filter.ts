@@ -2,15 +2,14 @@ import { Catch, ArgumentsHost } from "@nestjs/common";
 import { Request } from "src/request";
 import { LocalizedException } from "src/utils";
 import * as translations from "src/translations.json";
-import { ErrorSignatureBackwardCompatibilityFilter }
-	from "src/filters/error-signature-backward-compatibility.filter";
+import { ErrorNormalizerFilter } from "src/filters/error-normalizer.filter";
 import { FormValidationException, ValidationException }
 	from "src/documents/document-validator/document-validator.utils";
 import { Lang } from "src/common.dto";
 import { getDominantLang, getLangPreferences } from "src/lang/lang.utils";
 
 @Catch(LocalizedException)
-export class LocalizerExceptionFilter extends ErrorSignatureBackwardCompatibilityFilter<LocalizedException> {
+export class LocalizerExceptionFilter extends ErrorNormalizerFilter<LocalizedException> {
 
 	catch(exception: LocalizedException, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();

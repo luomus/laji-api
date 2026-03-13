@@ -98,12 +98,12 @@ export class SwaggerService {
 		return this.rawDocument;
 	}
 
-	patchMutably(document: OpenAPIObject) {
+	patchMutably(document: OpenAPIObject, patchMultiLangs = true) {
 		this.rawDocument = document;
 		return promisePipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs,
-			this.patchMultiLangs,
+			patchMultiLangs ?  this.patchMultiLangs : _ => _,
 			this.patchPersonToken
 		)(JSON.parse(JSON.stringify(document)));
 	}

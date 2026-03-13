@@ -1,12 +1,12 @@
 import { ArgumentsHost, Catch } from "@nestjs/common";
 import { AxiosError } from "axios";
 import { ExternalException } from "src/utils";
-import { ErrorSignatureBackwardCompatibilityFilter } from "./error-signature-backward-compatibility.filter";
+import { ErrorNormalizerFilter } from "./error-normalizer.filter";
 import { JSONObjectSerializable, isObject } from "src/typing.utils";
 
 /** Adds external errors to the response */
 @Catch(AxiosError<any>)
-export class AxiosErrorFilter extends ErrorSignatureBackwardCompatibilityFilter<any> {
+export class AxiosErrorFilter extends ErrorNormalizerFilter<any> {
 	catch(exception: AxiosError<any>, host: ArgumentsHost) {
 		super.catch(
 			new ExternalException(

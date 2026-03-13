@@ -4,9 +4,9 @@ import { Request, Response } from "express";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { ExternalException } from "src/utils";
 
-/** Maintain backward compatibility of the error signature of the old API. */
+/** Normalizes the error format for all errors */
 @Catch()
-export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends BaseExceptionFilter<T> {
+export class ErrorNormalizerFilter<T extends Error> extends BaseExceptionFilter<T> {
 	catch(exception: T, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
 		const request = ctx.getRequest<Request>();
@@ -44,6 +44,6 @@ export class ErrorSignatureBackwardCompatibilityFilter<T extends Error> extends 
 		};
 
 		response.status(status).json(responseBody);
-		super.catch(exception, host); // Handles logging.
+		super.catch(exception, host);
 	}
 }

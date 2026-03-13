@@ -32,8 +32,7 @@ import { DocumentsModule } from "./documents/documents.module";
 import { TriplestoreReadonlyModule } from "./triplestore/triplestore-readonly.module";
 import { RedisCacheModule } from "./redis-cache/redis-cache.module";
 import { TraitModule } from "./trait/trait.module";
-import { ErrorSignatureBackwardCompatibilityFilter }
-	from "./filters/error-signature-backward-compatibility.filter";
+import { ErrorNormalizerFilter } from "./filters/error-normalizer.filter";
 import { PersonTokenInterceptor } from "./interceptors/person-token.interceptor";
 import { AnnotationsModule } from "./annotations/annotations.module";
 import { InformationModule } from "./information/information.module";
@@ -43,7 +42,6 @@ import { OrganizationsModule } from "./organizations/organizations.module";
 import { LoggerInterceptor } from "./interceptors/logger.interceptor";
 import { ConsoleLoggerModule } from "./console-logger/console-logger.module";
 import { InformalTaxonGroupsModule } from "./informal-taxon-groups/informal-taxon-groups.module";
-import { ErrorLoggerFilter } from "./filters/error-logger.filter";
 import { GlobalRestClientModule } from "./rest-client/global-rest-client.module";
 import { InstanceToPlainInterceptor } from "./interceptors/instance-to-plain.interceptor";
 import { JsonLdModule } from "./json-ld/json-ld.module";
@@ -152,11 +150,7 @@ import { GoogleModule } from "./google/google.module";
 		},
 		{
 			provide: APP_FILTER,
-			useClass: ErrorLoggerFilter
-		},
-		{
-			provide: APP_FILTER,
-			useClass: ErrorSignatureBackwardCompatibilityFilter
+			useClass: ErrorNormalizerFilter
 		},
 		{
 			provide: APP_FILTER,

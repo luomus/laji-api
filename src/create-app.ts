@@ -178,6 +178,30 @@ export async function createApp(useLogger = true) {
 		patchDocumentOnRequest: () => patchedDocument
 	});
 
+
+	let patchedMultiLangDocument = await app.get(SwaggerService).patchMutably(document, false);
+	setInterval(async () => {
+		patchedMultiLangDocument = await app.get(SwaggerService).patchMutably(document, false);
+	}, CACHE_30_MIN);
+
+	// Redirect from / to /openapi is done by AppController.
+	SwaggerModule.setup("openapi-multilang", app, () => patchedDocument, {
+		customSiteTitle: "Laji API" + (configService.get("STAGING") === "true" ? " (STAGING)" : ""),
+		customCssUrl: "/swagger.css",
+		swaggerOptions: {
+			persistAuthorization: true,
+			docExpansion: "none",
+			tagsSorter: "alpha",
+			operationsSorter: "alpha",
+			tryItOutEnabled: true,
+			requestInterceptor: (req: any) => {
+				req.headers["API-Version"] = "1";
+				return req;
+			}
+		},
+		patchDocumentOnRequest: () => patchedDocument
+	});
+
 	return app;
 }
 
