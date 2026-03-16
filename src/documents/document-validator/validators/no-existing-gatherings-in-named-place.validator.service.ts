@@ -32,7 +32,10 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 			);
 		}
 		const form = await this.formsService.get(formID, Format.schema);
-		const dateRange = getExpandedDateRange(getPeriod(form, document, path), nocturnal);
+		const rawDateRange = getPeriod(form, document, path);
+		const dateRange = rawDateRange
+			? getExpandedDateRange(rawDateRange, nocturnal)
+			: undefined;
 
 		const namedPlaceHasDocuments =
 			await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange);
@@ -75,7 +78,10 @@ const getExpandedDateRange = (dateRange: { from: string, to: string }, nocturnal
 	};
 };
 
-const getPeriod = (form: FormSchemaFormat, document: Document, path?: string): { from: string, to: string } => {
+const getPeriod = (
+	form: FormSchemaFormat,
+	document: Document, path?: string
+) : { from: string, to: string } | undefined => {
 	const errorPath = joinJSONPointers(path, "/gatheringEvent/dateBegin");
 	if (!document.gatheringEvent || !document.gatheringEvent.dateBegin) {
 		throw new ValidationException({ [errorPath]: ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
@@ -130,5 +136,5 @@ const getPeriod = (form: FormSchemaFormat, document: Document, path?: string): {
 		}
 	}
 
-	throw new HttpException("Couldn't interpret date range", 500);
+	return undefined;
 };
