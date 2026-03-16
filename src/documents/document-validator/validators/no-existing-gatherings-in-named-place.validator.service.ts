@@ -2,9 +2,14 @@ import { DocumentsService } from "src/documents/documents.service";
 import { Document } from "@luomus/laji-schema";
 import { FormSchemaFormat, Format } from "src/forms/dto/form.dto";
 import { isValidDate } from "src/utils";
-import { Inject, Injectable, forwardRef } from "@nestjs/common";
+import { HttpException, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { DocumentValidator, ValidationException, joinJSONPointers } from "../document-validator.utils";
 import { FormsService } from "src/forms/forms.service";
+
+type Options = {
+	/** False by default. If the date span are interpreted in nocturnal mode, the validator will allow one overlapping night between date ranges. */
+	nocturnal?: boolean
+}
 
 @Injectable()
 export class NoExistingGatheringsInNamedPlaceValidatorService implements DocumentValidator {
@@ -14,7 +19,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		private formsService: FormsService
 	) {}
 
-	async validate(document: Document, path = "/gatheringEvent/dateBegin") {
+	async validate(document: Document, path = "/gatheringEvent/dateBegin", { nocturnal = false }: Options = {}) {
 		const { formID, namedPlaceID } = document;
 		if (!formID) {
 			throw new ValidationException(
@@ -27,7 +32,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 			);
 		}
 		const form = await this.formsService.get(formID, Format.schema);
-		const dateRange = this.getPeriod(form, document, path);
+		const dateRange = getExpandedDateRange(getPeriod(form, document, path), nocturnal);
 
 		const namedPlaceHasDocuments =
 			await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange);
@@ -53,59 +58,77 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		}
 	}
 
-	getPeriod(form: FormSchemaFormat, document: Document, path?: string) {
-		const errorPath = joinJSONPointers(path, "/gatheringEvent/dateBegin");
-		if (!document.gatheringEvent || !document.gatheringEvent.dateBegin) {
-			throw new ValidationException({ [errorPath]: ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
+}
+
+
+const getExpandedDateRange = (dateRange: { from: string, to: string }, nocturnal: boolean) => {
+	if (!nocturnal) return dateRange;
+
+	const fromDate = new Date(dateRange.from);
+	const toDate = new Date(dateRange.to);
+
+	const day = 24 * 60 * 60 * 1000;
+
+	return {
+		from: new Date(fromDate.getTime() - day).toISOString(),
+		to: new Date(toDate.getTime() + day).toISOString()
+	};
+};
+
+const getPeriod = (form: FormSchemaFormat, document: Document, path?: string): { from: string, to: string } => {
+	const errorPath = joinJSONPointers(path, "/gatheringEvent/dateBegin");
+	if (!document.gatheringEvent || !document.gatheringEvent.dateBegin) {
+		throw new ValidationException({ [errorPath]: ["DOCUMENT_VALIDATION_REQUIRED_PROPERTY"] });
+	}
+	const start =  new Date(document.gatheringEvent.dateBegin);
+	if (!isValidDate(start)) {
+		throw new ValidationException(
+			{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_MISSING"] }
+		);
+	}
+
+	const periods = form.options?.periods;
+
+	const comp = ((start.getMonth() + 1) * 100) + start.getDate();
+
+	if (!periods) {
+		const end = new Date(document.gatheringEvent.dateEnd as string); // TS is wrong, Date accepts undefined.
+		if (!isValidDate(end)) {
+			return { from: start.toISOString(), to: start.toISOString() };
 		}
-		const start =  new Date(document.gatheringEvent.dateBegin);
-		if (!isValidDate(start)) {
+		return { from: start.toISOString(), to: end.toISOString() };
+	}
+
+	for (const period of periods.slice().sort()) {
+		const ranges = period.split("/");
+		if (ranges.length !== 2) {
 			throw new ValidationException(
-				{ "/namedPlaceID": ["DOCUMENT_VALIDATION_NAMED_PLACE_MISSING"] }
+				{ [errorPath]: ["DOCUMENT_VALIDATION_FORM_HAS_INVALID_PERIOD"] }
 			);
 		}
-
-		const periods = form.options?.periods;
-
-		const comp = ((start.getMonth() + 1) * 100) + start.getDate();
-
-		if (!periods) {
-			const end = new Date(document.gatheringEvent.dateEnd as string); // TS is wrong, Date accepts undefined.
-			if (!isValidDate(end)) {
-				return { from: start.toISOString(), to: start.toISOString() };
-			}
-			return { from: start.toISOString(), to: end.toISOString() };
-		}
-
-		for (const period of periods.slice().sort()) {
-			const ranges = period.split("/");
-			if (ranges.length !== 2) {
-				throw new ValidationException(
-					{ [errorPath]: ["DOCUMENT_VALIDATION_FORM_HAS_INVALID_PERIOD"] }
-				);
-			}
-			const periodStart = +ranges[0]!.replace(/\D/g, "");
-			const periodEnd = +ranges[1]!.replace(/\D/g, "");
-			if (periodEnd < periodStart) {
-				if (periodStart <= comp) {
-					return {
-						from: start.getFullYear() + "-" + ranges[0],
-						to: (start.getFullYear() + 1) + "-" + ranges[1]
-					};
-				}
-				else if (periodEnd >= comp) {
-					return {
-						from: (start.getFullYear() - 1) + "-" + ranges[0],
-						to: start.getFullYear() + "-" + ranges[1]
-					};
-				}
-			}
-			else if (periodStart <= comp && periodEnd >= comp) {
+		const periodStart = +ranges[0]!.replace(/\D/g, "");
+		const periodEnd = +ranges[1]!.replace(/\D/g, "");
+		if (periodEnd < periodStart) {
+			if (periodStart <= comp) {
 				return {
 					from: start.getFullYear() + "-" + ranges[0],
+					to: (start.getFullYear() + 1) + "-" + ranges[1]
+				};
+			}
+			else if (periodEnd >= comp) {
+				return {
+					from: (start.getFullYear() - 1) + "-" + ranges[0],
 					to: start.getFullYear() + "-" + ranges[1]
 				};
 			}
 		}
+		else if (periodStart <= comp && periodEnd >= comp) {
+			return {
+				from: start.getFullYear() + "-" + ranges[0],
+				to: start.getFullYear() + "-" + ranges[1]
+			};
+		}
 	}
-}
+
+	throw new HttpException("Couldn't interpret date range", 500);
+};

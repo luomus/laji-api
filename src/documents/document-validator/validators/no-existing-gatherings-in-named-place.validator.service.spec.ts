@@ -140,7 +140,75 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 
 				await expect(service.validate(document)).rejects.toThrow(ValidationException);
 			});
+		});
 
+
+		describe("nocturnal mode", () => {
+			it("should expand dateRange by 1 day when nocturnal = true", async () => {
+				const document = {
+					namedPlaceID: "place",
+					formID: "formID",
+					gatheringEvent: {
+						dateBegin: "2024-06-14",
+						dateEnd: "2024-06-20"
+					}
+				} as Document;
+
+				formsServiceMock.get.mockResolvedValue({} as any);
+
+				// Pretend no conflict after expansion
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
+
+				await service.validate(document, "/gatheringEvent/dateBegin", { nocturnal: true });
+
+				// Extract actual call arguments
+				const call = documentsServiceMock.existsByNamedPlaceID.mock.calls[0]!;
+
+				const passedRange = call[1]!; // { from, to }
+
+				// Expected expanded dates
+				const expectedFrom = new Date("2024-06-14T00:00:00.000Z");
+				expectedFrom.setUTCDate(expectedFrom.getUTCDate() - 1); // 1-day earlier
+
+				const expectedTo = new Date("2024-06-20T00:00:00.000Z");
+				expectedTo.setUTCDate(expectedTo.getUTCDate() + 1); // 1-day later
+
+				expect(passedRange.from).toBe(expectedFrom.toISOString());
+				expect(passedRange.to).toBe(expectedTo.toISOString());
+			});
+
+			it("should still detect overlaps beyond 1 night even after expansion", async () => {
+				const document = {
+					namedPlaceID: "place",
+					formID: "formID",
+					gatheringEvent: {
+						dateBegin: "2024-06-14",
+						dateEnd: "2024-06-20"
+					}
+				} as Document;
+
+				formsServiceMock.get.mockResolvedValue({} as any);
+
+				// Service reports overlap even after expansion → means >1 night overlap
+				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
+
+				await expect(
+					service.validate(document, "/gatheringEvent/dateBegin", { nocturnal: true })
+				).rejects.toThrow(ValidationException);
+
+				// Verify expanded dates were passed
+				const call = documentsServiceMock.existsByNamedPlaceID.mock.calls[0]!;
+				const passedRange = call[1]!;
+
+				const expectedFrom = new Date("2024-06-14T00:00:00.000Z");
+				expectedFrom.setUTCDate(expectedFrom.getUTCDate() - 1);
+
+				const expectedTo = new Date("2024-06-20T00:00:00.000Z");
+				expectedTo.setUTCDate(expectedTo.getUTCDate() + 1);
+
+				expect(passedRange.from).toBe(expectedFrom.toISOString());
+				expect(passedRange.to).toBe(expectedTo.toISOString());
+			});
 		});
 	});
 });
