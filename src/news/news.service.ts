@@ -1,8 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { NEWS_CLIENT } from "src/provider-tokens";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { NewsPagedDto, NewsDto } from "./news.dto";
+import { NewsPagedDto } from "./news.dto";
 import { Lang } from "src/common.dto";
+import { LajiBackendCMSNode } from "src/information/information.dto";
 
 @Injectable()
 export class NewsService {
@@ -16,7 +17,7 @@ export class NewsService {
 	}
 
 	get(id: string) {
-		return this.newsClient.get<NewsDto>(id);
+		return this.newsClient.get<LajiBackendCMSNode>(id);
 	}
 
 }

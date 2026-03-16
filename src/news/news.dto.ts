@@ -1,5 +1,6 @@
 import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { QueryWithPagingDto } from "src/common.dto";
+import { LajiBackendCMSNode } from "src/information/information.dto";
 import { PaginatedDto } from "src/pagination.dto";
 
 export class GetNewsPageDto extends IntersectionType(QueryWithPagingDto) {
@@ -7,18 +8,6 @@ export class GetNewsPageDto extends IntersectionType(QueryWithPagingDto) {
 	tag?: string;
 }
 
-export class NewsDto {
-	id: string;
-	featuredImage: string;
-	external: boolean;
-	externalURL?: boolean;
-	title: boolean;
-	content: boolean;
-	posted: boolean;
-	modified?: boolean;
-	tag: boolean;
-}
-
 export class NewsPagedDto extends IntersectionType(OmitType(PaginatedDto, ["results"])) {
-	results: NewsDto[];
+	results: LajiBackendCMSNode[];
 }

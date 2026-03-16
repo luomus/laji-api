@@ -7,19 +7,22 @@ class InformationChild {
 class FeaturedImage {
 	url: string;
 	caption: string;
+	alt?: string;
 }
 
+export class LajiBackendCMSNode {
+	id: string;
+	content?: string;
+	title?: string;
+	author?: string;
+	posted?: string;
+	tags?: string[];
+	featuredImage?: FeaturedImage;
+	modified?: string;
+};
+
 export type RemoteInformation = {
-	page?: {
-		id: string;
-		content?: string;
-		title?: string;
-		author?: string;
-		posted?: string;
-		tags?: string[];
-		featuredImage?: FeaturedImage;
-		modified?: string;
-	}
+	page?: LajiBackendCMSNode;
 	children?: InformationChild[];
 	breadcrumb?: InformationChild[];
 }
