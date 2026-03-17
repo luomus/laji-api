@@ -7,8 +7,8 @@ import { DocumentValidator, ValidationException, joinJSONPointers } from "../doc
 import { FormsService } from "src/forms/forms.service";
 
 type Options = {
-	/** False by default. If the date span are interpreted in nocturnal mode, the validator will allow one overlapping night between date ranges. */
-	nocturnal?: boolean
+	/** Buffer for detecting overlapping gatherings */
+	bufferDays?: number;
 }
 
 @Injectable()
@@ -19,7 +19,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		private formsService: FormsService
 	) {}
 
-	async validate(document: Document, path = "/gatheringEvent/dateBegin", { nocturnal = false }: Options = {}) {
+	async validate(document: Document, path = "/gatheringEvent/dateBegin", { bufferDays }: Options = {}) {
 		const { formID, namedPlaceID } = document;
 		if (!formID) {
 			throw new ValidationException(
@@ -34,7 +34,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const form = await this.formsService.get(formID, Format.schema);
 		const rawDateRange = getPeriod(form, document, path);
 		const dateRange = rawDateRange
-			? getExpandedDateRange(rawDateRange, nocturnal)
+			? getExpandedDateRange(rawDateRange, bufferDays)
 			: undefined;
 
 		const namedPlaceHasDocuments =
@@ -64,17 +64,18 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 }
 
 
-const getExpandedDateRange = (dateRange: { from: string, to: string }, nocturnal: boolean) => {
-	if (!nocturnal) return dateRange;
+const getExpandedDateRange = (dateRange: { from: string, to: string }, bufferDays?: number) => {
+	if (!bufferDays) return dateRange;
 
 	const fromDate = new Date(dateRange.from);
 	const toDate = new Date(dateRange.to);
 
 	const day = 24 * 60 * 60 * 1000;
+	const buffer = bufferDays * day;
 
 	return {
-		from: new Date(fromDate.getTime() - day).toISOString(),
-		to: new Date(toDate.getTime() + day).toISOString()
+		from: new Date(fromDate.getTime() - buffer).toISOString(),
+		to: new Date(toDate.getTime() + buffer).toISOString()
 	};
 };
 
