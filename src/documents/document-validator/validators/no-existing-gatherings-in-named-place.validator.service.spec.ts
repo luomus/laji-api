@@ -143,7 +143,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 		});
 
 
-		describe("nocturnal mode", () => {
+		describe("bufferDays", () => {
 			it("should expand dateRange by 1 day when bufferDays = 1", async () => {
 				const document = {
 					namedPlaceID: "place",
@@ -168,16 +168,16 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 
 				// Expected expanded dates
 				const expectedFrom = new Date("2024-06-14T00:00:00.000Z");
-				expectedFrom.setUTCDate(expectedFrom.getUTCDate() - 1); // 1-day earlier
+				expectedFrom.setUTCDate(expectedFrom.getUTCDate() + 1); // 1-day later
 
 				const expectedTo = new Date("2024-06-20T00:00:00.000Z");
-				expectedTo.setUTCDate(expectedTo.getUTCDate() + 1); // 1-day later
+				expectedTo.setUTCDate(expectedTo.getUTCDate() - 1); // 1-day earlier
 
 				expect(passedRange.from).toBe(expectedFrom.toISOString());
 				expect(passedRange.to).toBe(expectedTo.toISOString());
 			});
 
-			it("should still detect overlaps beyond 1 night even after expansion", async () => {
+			it("should still detect overlaps beyond 1 day even after expansion", async () => {
 				const document = {
 					namedPlaceID: "place",
 					formID: "formID",
@@ -189,7 +189,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 
 				formsServiceMock.get.mockResolvedValue({} as any);
 
-				// Service reports overlap even after expansion → means >1 night overlap
+				// Service reports overlap even after expansion → means >1 day overlap
 				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
 
 				await expect(
@@ -201,10 +201,10 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 				const passedRange = call[1]!;
 
 				const expectedFrom = new Date("2024-06-14T00:00:00.000Z");
-				expectedFrom.setUTCDate(expectedFrom.getUTCDate() - 1);
+				expectedFrom.setUTCDate(expectedFrom.getUTCDate() + 1);
 
 				const expectedTo = new Date("2024-06-20T00:00:00.000Z");
-				expectedTo.setUTCDate(expectedTo.getUTCDate() + 1);
+				expectedTo.setUTCDate(expectedTo.getUTCDate() - 1);
 
 				expect(passedRange.from).toBe(expectedFrom.toISOString());
 				expect(passedRange.to).toBe(expectedTo.toISOString());

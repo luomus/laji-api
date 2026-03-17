@@ -34,7 +34,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 		const form = await this.formsService.get(formID, Format.schema);
 		const rawDateRange = getPeriod(form, document, path);
 		const dateRange = rawDateRange
-			? getExpandedDateRange(rawDateRange, bufferDays)
+			? getBufferedDateRange(rawDateRange, bufferDays)
 			: undefined;
 
 		const namedPlaceHasDocuments =
@@ -64,7 +64,7 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 }
 
 
-const getExpandedDateRange = (dateRange: { from: string, to: string }, bufferDays?: number) => {
+const getBufferedDateRange = (dateRange: { from: string, to: string }, bufferDays?: number) => {
 	if (!bufferDays) return dateRange;
 
 	const fromDate = new Date(dateRange.from);
@@ -74,8 +74,8 @@ const getExpandedDateRange = (dateRange: { from: string, to: string }, bufferDay
 	const buffer = bufferDays * day;
 
 	return {
-		from: new Date(fromDate.getTime() - buffer).toISOString(),
-		to: new Date(toDate.getTime() + buffer).toISOString()
+		from: new Date(fromDate.getTime() + buffer).toISOString(),
+		to: new Date(toDate.getTime() - buffer).toISOString()
 	};
 };
 
