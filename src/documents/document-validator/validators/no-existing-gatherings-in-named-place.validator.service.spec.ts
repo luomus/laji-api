@@ -144,7 +144,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 
 
 		describe("nocturnal mode", () => {
-			it("should expand dateRange by 1 day when nocturnal = true", async () => {
+			it("should expand dateRange by 1 day when bufferDays = 1", async () => {
 				const document = {
 					namedPlaceID: "place",
 					formID: "formID",
@@ -159,7 +159,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 				// Pretend no conflict after expansion
 				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(false);
 
-				await service.validate(document, "/gatheringEvent/dateBegin", { nocturnal: true });
+				await service.validate(document, "/gatheringEvent/dateBegin", { bufferDays: 1 });
 
 				// Extract actual call arguments
 				const call = documentsServiceMock.existsByNamedPlaceID.mock.calls[0]!;
@@ -193,7 +193,7 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 				documentsServiceMock.existsByNamedPlaceID.mockResolvedValue(true);
 
 				await expect(
-					service.validate(document, "/gatheringEvent/dateBegin", { nocturnal: true })
+					service.validate(document, "/gatheringEvent/dateBegin", { bufferDays: 1 })
 				).rejects.toThrow(ValidationException);
 
 				// Verify expanded dates were passed
