@@ -1,7 +1,7 @@
 var fs = require("fs");
 var config = require("../config.json");
 var helpers = require("../helpers");
-const { apiRequest } = helpers;
+const { apiRequest, url } = helpers;
 const { accessToken, personToken } = config;
 
 const errorOnlyOwn = "Can only update media uploaded by the user";
@@ -41,6 +41,20 @@ describe("/image", function() {
 		const res = await apiRequest(this.server)
 			.get(`${basePath}/${imageOthers}`);
 		res.should.have.status(401);
+	});
+
+	it("returns a list of images", async function() {
+		this.timeout(6000);
+		const pageSize = 100;
+		const res = await apiRequest(this.server, { accessToken })
+			.get(url(basePath, { pageSize }));
+		console.log(res.body);
+		res.should.have.status(200);
+		helpers.isPagedResult(res.body, pageSize, true);
+		res.body[helpers.params.results].filter((image) => {
+			helpers.toHaveOnlyKeys(image, itemProperties);
+			image.should.have.any.keys("id");
+		});
 	});
 
 	it("returns 400 when no person token specified for post request", async function() {

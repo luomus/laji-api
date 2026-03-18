@@ -1,4 +1,4 @@
-import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Req, Res, UseInterceptors }
+import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Query, Req, Res, UseInterceptors }
 	from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
@@ -9,6 +9,8 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
+import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { PaginatedDto } from "src/pagination.dto";
 
 @LajiApiController("audio")
 @ApiTags("Audio")
@@ -44,6 +46,13 @@ export class AudioController {
 		@Next() next: NextFunction
 	) {
 		void this.abstractMediaService.uploadProxy(req, res, next);
+	}
+
+	/** Get a page of audio. Private/protected audio aren't included. */
+	@Get()
+	@UseInterceptors(Serializer(Audio))
+	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdIn): Promise<PaginatedDto<Audio>> {
+		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}
 
 	/** Get audio by id */

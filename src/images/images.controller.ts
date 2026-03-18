@@ -1,4 +1,4 @@
-import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Req, Res, UseInterceptors }
+import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Query, Req, Res, UseInterceptors }
 	from "@nestjs/common";
 import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { NextFunction, Request, Response } from "express";
@@ -9,6 +9,8 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
+import { PaginatedDto } from "src/pagination.dto";
+import { QueryWithPagingAndIdIn } from "src/common.dto";
 
 @LajiApiController("images")
 @ApiTags("Images")
@@ -42,6 +44,13 @@ export class ImagesController {
 		@Next() next: NextFunction
 	) {
 		void this.abstractMediaService.uploadProxy(req, res, next);
+	}
+
+	/** Get a page of images. Private/protected images aren't included. */
+	@Get()
+	@UseInterceptors(Serializer(Image))
+	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdIn): Promise<PaginatedDto<Image>> {
+		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}
 
 	/** Get image by id */

@@ -1,7 +1,7 @@
 const fs = require("fs");
 const config = require("../config.json");
 const helpers = require("../helpers");
-const { apiRequest } = helpers;
+const { apiRequest, url } = helpers;
 const { accessToken, personToken } = config;
 
 const errorOnlyOwn = "Can only update media uploaded by the user";
@@ -40,6 +40,19 @@ describe("/audio", function() {
 		const res = await apiRequest(this.server)
 			.get(`${basePath}/${audioOthers}`);
 		res.should.have.status(401);
+	});
+
+	it("returns a list of audio", async function() {
+		this.timeout(6000);
+		const pageSize = 100;
+		const res = await apiRequest(this.server, { accessToken })
+			.get(url(basePath, { pageSize }));
+		res.should.have.status(200);
+		helpers.isPagedResult(res.body, pageSize, true);
+		res.body[helpers.params.results].filter(audio => {
+			helpers.toHaveOnlyKeys(audio, wavItemProperties);
+			audio.should.have.any.keys("id");
+		});
 	});
 
 	it("returns 400 when no person token specified for post request", async function() {
