@@ -3,6 +3,7 @@ import { MaybePromise, isObject, omit, omitForKeys } from "src/typing.utils";
 import { pipe } from "src/utils";
 import { getJsonLdContextFromSample } from "./json-ld/json-ld.utils";
 import { PaginatedDto } from "./pagination.dto";
+import { SchemaItem } from "./swagger/swagger.service";
 
 export const isPaginatedDto = <T>(maybePaginated: unknown): maybePaginated is PaginatedDto<T> =>
 	isObject(maybePaginated) && ["results", "currentPage", "pageSize", "total", "lastPage"]
@@ -117,3 +118,8 @@ function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 }
 
 export { applyToResult };
+
+export const paginateSwaggerResponse = (schema: SchemaItem) => ({
+	type: "object",
+	properties: { results: { type: "array", items: schema }, "@context": { type: "string" } }
+});

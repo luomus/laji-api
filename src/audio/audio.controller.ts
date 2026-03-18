@@ -3,7 +3,7 @@ import { Body, Delete, Get, HttpCode, HttpStatus, Next, Param, Post, Put, Query,
 import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
-import { Audio } from "./audio.dto";
+import { Audio, AudioPagedDto } from "./audio.dto";
 import { NextFunction, Request, Response } from "express";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { RequestPerson }from "src/decorators/request-person.decorator";
@@ -51,6 +51,7 @@ export class AudioController {
 	/** Get a page of audio. Private/protected audio aren't included. */
 	@Get()
 	@UseInterceptors(Serializer(Audio))
+	@ApiOkResponse({ type: AudioPagedDto })
 	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdIn): Promise<PaginatedDto<Audio>> {
 		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}

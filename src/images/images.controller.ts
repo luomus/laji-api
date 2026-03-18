@@ -4,7 +4,7 @@ import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { NextFunction, Request, Response } from "express";
 import { AbstractMediaService } from "../abstract-media/abstract-media.service";
 import { FileUploadResponse, MediaType } from "../abstract-media/abstract-media.dto";
-import { Image } from "./image.dto";
+import { Image, ImagesPagedDto } from "./image.dto";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
@@ -49,6 +49,7 @@ export class ImagesController {
 	/** Get a page of images. Private/protected images aren't included. */
 	@Get()
 	@UseInterceptors(Serializer(Image))
+	@ApiOkResponse({ type: ImagesPagedDto })
 	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdIn): Promise<PaginatedDto<Image>> {
 		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}

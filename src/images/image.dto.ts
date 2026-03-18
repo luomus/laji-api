@@ -1,8 +1,9 @@
 import { MultiLang } from "../common.dto";
 import { Image as ImageI } from "@luomus/laji-schema";
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude, Expose } from "class-transformer";
 import { mediaIntellectualRightsValues } from "../abstract-media/abstract-media.dto";
+import { PaginatedDto } from "src/pagination.dto";
 
 @Exclude()
 export class Image implements ImageI {
@@ -37,4 +38,8 @@ export class Image implements ImageI {
 	@ApiHideProperty() type?: ImageI["type"];
 	@ApiHideProperty() uploadDateTime?: string;
 	@Expose() uploadedBy?: string;
+}
+
+export class ImagesPagedDto extends IntersectionType(OmitType(PaginatedDto, ["results"])) {
+	results: Image[];
 }

@@ -1,8 +1,9 @@
 import { MultiLang } from "../common.dto";
 import { Audio as AudioI } from "@luomus/laji-schema";
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude, Expose } from "class-transformer";
 import { mediaIntellectualRightsValues } from "../abstract-media/abstract-media.dto";
+import { PaginatedDto } from "src/pagination.dto";
 
 @Exclude()
 export class Audio implements AudioI {
@@ -37,4 +38,8 @@ export class Audio implements AudioI {
 	@ApiHideProperty() uploadDateTime?: string;
 	@Expose() uploadedBy?: string;
 	@Expose() wavURL?: string;
+}
+
+export class AudioPagedDto extends IntersectionType(OmitType(PaginatedDto, ["results"])) {
+	results: Audio[];
 }
