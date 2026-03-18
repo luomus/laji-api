@@ -48,7 +48,6 @@ describe("/image", function() {
 		const pageSize = 100;
 		const res = await apiRequest(this.server, { accessToken })
 			.get(url(basePath, { pageSize }));
-		console.log(res.body);
 		res.should.have.status(200);
 		helpers.isPagedResult(res.body, pageSize, true);
 		res.body[helpers.params.results].filter((image) => {
