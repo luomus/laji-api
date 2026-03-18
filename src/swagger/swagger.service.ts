@@ -542,7 +542,6 @@ const requiredByDefault = (document: OpenAPIObject) => {
 };
 
 const schemaRequiredByDefault = (schema: JSONSchema, document: OpenAPIObject, handledRefs: string[]) => {
-	console.log(schema);
 	if (isJSONSchemaRef(schema) && !handledRefs.includes(schema.$ref)) {
 		const referredSchema = parseURIFragmentIdentifierRepresentation<JSONSchema>(document, schema.$ref);
 		handledRefs.push(schema.$ref);
