@@ -2,7 +2,7 @@ import { IntersectionType } from "@nestjs/swagger";
 import { IsOptionalBoolean } from "src/serialization/serialization.utils";
 
 export class GetTmpTokenQueryDto {
-	@IsOptionalBoolean() offerPermanent: boolean = true;
+	@IsOptionalBoolean() offerPermanent: boolean = false;
 }
 
 export class CheckTmpTokenQueryDto {
