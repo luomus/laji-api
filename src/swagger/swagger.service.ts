@@ -98,13 +98,13 @@ export class SwaggerService {
 		return this.rawDocument;
 	}
 
-	patchMutably(document: OpenAPIObject, patchMultiLangs = true) {
+	patchMutably(document: OpenAPIObject) {
 		this.rawDocument = document;
 		return promisePipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs,
-			patchMultiLangs ?  this.patchMultiLangs : _ => _,
-			this.patchPersonToken
+			this.patchPersonToken,
+			requiredByDefault
 		)(JSON.parse(JSON.stringify(document)));
 	}
 
@@ -532,4 +532,31 @@ export const getOperationResponseCodeSchemaOrCreateIfNotExists = (
 	}
 	updateWithJSONPointer(operation, jsonPointer, {}, { create: true });
 	return parseJSONPointer<SchemaItem>(operation, jsonPointer);
+};
+
+const requiredByDefault = (document: OpenAPIObject) => {
+	Object.keys(document.components!.schemas!).forEach(schemaName => {
+		schemaRequiredByDefault(document.components!.schemas![schemaName] as JSONSchema, document, []);
+	});
+	return document;
+};
+
+const schemaRequiredByDefault = (schema: JSONSchema, document: OpenAPIObject, handledRefs: string[]) => {
+	console.log(schema);
+	if (isJSONSchemaRef(schema) && !handledRefs.includes(schema.$ref)) {
+		const referredSchema = parseURIFragmentIdentifierRepresentation<JSONSchema>(document, schema.$ref);
+		handledRefs.push(schema.$ref);
+		schemaRequiredByDefault(referredSchema, document, handledRefs);
+	} else if (isJSONSchemaObject(schema)) {
+		const { properties } = schema;
+		if (!schema.required && properties) {
+			schema.required = Object.keys(properties).reduce((required, propertyName) => {
+				required.push(propertyName);
+				schemaRequiredByDefault(properties[propertyName]!, document, handledRefs);
+				return required;
+			}, [] as string[]);
+		}
+	} else if (isJSONSchemaArray(schema)) {
+		schemaRequiredByDefault(schema.items, document, handledRefs);
+	}
 };
