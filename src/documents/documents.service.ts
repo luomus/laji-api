@@ -350,7 +350,12 @@ export class DocumentsService {
 	}
 
 	async getStatistics(namedPlaceID: string): Promise<StatisticsResponse> {
-		const documents = await this.store.getAll({ namedPlaceID }, "id", undefined, { primaryKeys: ["namedPlaceID"] });
+		const documents = await this.store.getAll(
+			{ namedPlaceID },
+			["id","gatheringEvent.dateBegin"] as any,
+			undefined,
+			{ primaryKeys: ["namedPlaceID"]
+			});
 		const dates: string[] = [];
 		documents.forEach(document => {
 			if (document.gatheringEvent?.dateBegin) {
