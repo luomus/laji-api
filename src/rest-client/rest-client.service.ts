@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { AxiosRequestConfig } from "axios";
+import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { JSONObjectSerializable, Newable } from "src/typing.utils";
@@ -212,7 +212,9 @@ export class RestClientService<T = unknown> {
 		}
 		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh) {
-			void request;
+			request.catch(e => {
+				this.logger.error("SWR background refresh failed", e);
+			});
 		}
 		return staleWhileRevalidateEntry.data;
 	}; }

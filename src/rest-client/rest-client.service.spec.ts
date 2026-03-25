@@ -376,5 +376,22 @@ describe("RestClientService", () => {
 			expect(result).not.toEqual(result2);
 			expect(httpService.get).toHaveBeenCalledTimes(2);
 		});
+
+		it("swallows background revalidation errors and does NOT crash app", async () => {
+			jest.spyOn(httpService, "get").mockReturnValue(mockAxiosOkResponse({ data: "initial" }));
+			const cached = await restClientService.get("path");
+			jest.spyOn(Date, "now").mockReturnValue(ttl + 1);
+			const failingGet = jest.spyOn(httpService, "get").mockImplementation(() => {
+				return {
+					toPromise: () => Promise.reject(new Error("Network error")),
+					subscribe: () => {}, // jest mock compatibility
+					pipe: () => ({})
+				} as any;
+			});
+			const result = await restClientService.get("path");
+			expect(result).toEqual(cached);
+			await new Promise(resolve => setImmediate(resolve));
+			expect(failingGet).toHaveBeenCalled();
+		});
 	});
 });

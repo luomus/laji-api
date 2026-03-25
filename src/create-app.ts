@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication }  from "@nestjs/platform-express";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { SwaggerModule, DocumentBuilder, OpenAPIObject } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { ConfigService } from "@nestjs/config";
@@ -155,9 +155,18 @@ export async function createApp(useLogger = true) {
 	await app.get(RedisCacheService).onModuleInit();
 	await app.get(SwaggerService).warmup();
 
-	let patchedDocument = await app.get(SwaggerService).patchMutably(document);
-	setInterval(async () => {
+	let patchedDocument: OpenAPIObject;
+	try {
 		patchedDocument = await app.get(SwaggerService).patchMutably(document);
+	} catch (e) {
+		logger.error("Patching swagger failed!");
+	}
+	setInterval(async () => {
+		try {
+			patchedDocument = await app.get(SwaggerService).patchMutably(document);
+		} catch (e) {
+			logger.error("Patching swagger failed!");
+		}
 	}, CACHE_30_MIN);
 
 	// Redirect from / to /openapi is done by AppController.

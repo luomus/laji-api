@@ -58,8 +58,16 @@ export class SwaggerService {
 
 	@Interval(CACHE_30_MIN)
 	async warmup() {
-		await this.getStoreSwaggerDoc();
-		await this.getLajiBackendSwaggerDoc();
+		try {
+			await this.getStoreSwaggerDoc();
+		} catch {
+			this.logger.fatal("Failed to fetch store swagger. Our swagger document is broken!");
+		}
+		try {
+			await this.getLajiBackendSwaggerDoc();
+		} catch {
+			this.logger.fatal("Failed to fetch laji backend swagger. Our swagger document is broken!");
+		}
 		await Promise.all(instancesWithRemoteSwagger.map(this.fetchRemoteSwagger));
 	}
 
