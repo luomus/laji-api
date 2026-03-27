@@ -18,7 +18,7 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 	// Monkey patch the `warmup()` method to bust memoized methods.
 	const originalWarmup = target.prototype.warmup;
 	target.prototype.warmup = function() {
-		clearMemoization(target.prototype);
+		clearMemoization(this);
 		return originalWarmup?.call(this);
 	};
 
@@ -32,7 +32,7 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 	target.prototype.onApplicationBootstrap = async function() {
 		const start = Date.now();
 		try {
-			await target.prototype.warmup.call(this);
+			await this.warmup();
 		} catch (e) {
 			logger.fatal(`Warming up service ${target.prototype.constructor.name} failed!`, e);
 		}
@@ -42,5 +42,7 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 };
 
 export const clearMemoization = (instance: object) => {
-	((instance as any)._memoizedFns?.forEach((fn: any) => fn.clear()));
+	Object.keys(((instance as any)._memoizedFns || {})).forEach(
+		(key: string) => (instance as any)._memoizedFns[key].clear()
+	);
 };
