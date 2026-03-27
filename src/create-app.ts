@@ -159,7 +159,8 @@ export async function createApp(useLogger = true) {
 	try {
 		patchedDocument = await app.get(SwaggerService).patchMutably(document);
 	} catch (e) {
-		logger.error("Patching swagger failed!");
+		logger.error("Patching swagger failed!", e.stack);
+
 	}
 	setInterval(async () => {
 		try {
