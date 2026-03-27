@@ -10,24 +10,25 @@ export function RedisMemoize(ttl?: number) {
 	return function (target: any, key: PropertyKey, descriptor: PropertyDescriptor) {
 		const originalMethod = descriptor.value;
 
-		const wrappedMethod = async function (...args: any[]) {
-			if (!this.cache || !(this.cache instanceof RedisCacheService)) {
-				throw new Error("RedisMemoize decorator requires \"this.cache\" to be a RedisCacheService instance");
+		const wrappedMethod = function (...args: any[]) {
+			if (!this.cache) {
+				// eslint-disable-next-line max-len
+				throw new Error("RedisMemoize decorator requires \"this.cache\" which should be an instance of RedisCacheService");
 			}
 
 			const argsKey = args.map(arg => JSON.stringify(arg)).join(":");
 			const redisKey = `redisMemoize:${target.constructor.name}:${key.toString()}:${argsKey}`;
-
-			const cached = await this.cache.get(redisKey);
-			if (cached !== null && cached !== undefined) {
-				return cached;
-			}
 
 			if (inflight.has(redisKey)) {
 				return inflight.get(redisKey)!;
 			}
 
 			const promise = (async () => {
+				const cached = await this.cache.get(redisKey);
+				if (cached !== null && cached !== undefined) {
+					return cached;
+				}
+
 				try {
 					const result = await originalMethod.apply(this, args);
 					await this.cache.set(redisKey, result, ttl);
