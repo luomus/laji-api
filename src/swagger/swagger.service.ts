@@ -111,6 +111,7 @@ export class SwaggerService {
 		return promisePipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs,
+			this.patchMultiLangs,
 			this.patchPersonToken,
 			requiredByDefault
 		)(JSON.parse(JSON.stringify(document)));
