@@ -9,5 +9,10 @@ export class GetNewsPageDto extends IntersectionType(QueryWithPagingDto) {
 }
 
 export class NewsPagedDto extends IntersectionType(OmitType(PaginatedDto, ["results"])) {
-	results: LajiBackendCMSNode[];
+	results: LajiBackendNewsNode[];
+}
+
+class LajiBackendNewsNode extends LajiBackendCMSNode {
+	external: boolean;
+	externalURL?: string;
 }
