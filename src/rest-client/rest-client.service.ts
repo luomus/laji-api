@@ -193,11 +193,11 @@ export class RestClientService<T = unknown> {
 		path?: string,
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<S>
-	) { return async (request: Promise<S>): Promise<S> => {
+	) { return async (createRequest: () => Promise<S>): Promise<S> => {
 		const cacheTTL = this.getCacheTTL(options);
 
 		if (!cacheTTL) {
-			return request;
+			return createRequest();
 		}
 
 		const url = this.getURL(path, this.getRequestConfig(config));
@@ -208,11 +208,11 @@ export class RestClientService<T = unknown> {
 			? cacheForHostAndPath[url]
 			: undefined;
 		if (!staleWhileRevalidateEntry) {
-			return request;
+			return createRequest();
 		}
 		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh) {
-			request.catch(e => {
+			createRequest().catch(e => {
 				this.logger.error("SWR background refresh failed", e);
 			});
 		}
@@ -220,8 +220,8 @@ export class RestClientService<T = unknown> {
 	}; }
 
 	async get<S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>): Promise<S> {
-		return this.getWithStaleWhileRevalidate<S>(path, config, options)(
-			this.getWithInFlightDeduplication<S>(path, config)(
+		return this.getWithInFlightDeduplication<S>(path, config)(
+			() => this.getWithStaleWhileRevalidate<S>(path, config, options)(
 				() => this.getAndCache<S>(path, config, options)
 			)
 		);
