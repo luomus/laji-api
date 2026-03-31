@@ -43,13 +43,13 @@ export class DocumentsController {
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
 	 * */
 	@Post("batch")
-	@SwaggerRemote({
-		source: "store",
-		ref: "/document",
-		replacePointer: "/items",
-		applyToResponse: false,
-		customizeRequestBodySchema: schema => ({ type: "array", items: schema })
-	})
+	// @SwaggerRemote({
+	// 	source: "store",
+	// 	ref: "/document",
+	// 	replacePointer: "/items",
+	// 	applyToResponse: false,
+	// 	customizeRequestBodySchema: schema => ({ type: "array", items: schema })
+	// })
 	@HttpCode(200)
 	async startBatchJob(
 		@Body() documents: Document[],
@@ -68,7 +68,7 @@ export class DocumentsController {
 	// Makes the BatchJobValidationStatusResponse use store documents' swagger def. Modifies the definition which is
 	// referenced by other controller methods using it (`startBatchJob`, `completeBatchJob`), so it needs to be done only
 	// once.
-	@SwaggerRemote({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
+	// @SwaggerRemote({ source: "store", ref: "/document", replacePointer: "/properties/documents/items" })
 	@HttpCode(200)
 	async getBatchJobStatus(
 		@Param("jobID") jobID: string,

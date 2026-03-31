@@ -1,85 +1,71 @@
-import { HttpException, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { Document } from "@luomus/laji-schema";
-import { DocumentValidatorService } from "../document-validator/document-validator.service";
-import { DocumentsService, populateCreatorAndEditorMutably } from "../documents.service";
-import { PersonsService } from "src/persons/persons.service";
 import {
-	BatchJob, Populated, PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocumentOperation,
-	BatchJobValidationStatusResponse, isSecondaryDocumentDelete, isSecondaryDocument, PublicityRestrictions,
-	DataOrigin, BatchJobPhase, BatchJobStep
+	BatchJobValidationStatusResponse, isSecondaryDocumentDelete, PublicityRestrictions,
+	DataOrigin, BatchJobPhase, BatchJobStep, JobPayload, JobResult,
+	SecondaryDocumentOperation
 } from "../documents.dto";
-import { PreTranslatedDetailsValidationException, ValidationException, isValidationExceptionBase }
-	from "../document-validator/document-validator.utils";
-import { firstFromNonEmptyArr, uuid } from "src/utils";
+import { CACHE_1_D, LocalizedException, uuid } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { Person } from "src/persons/person.dto";
-import { serializeInto } from "src/serialization/serialization.utils";
-import { FormsService } from "src/forms/forms.service";
-import { SecondaryDocumentsService } from "../secondary-documents.service";
+import { serialize } from "src/serialization/serialization.utils";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { localizeException } from "src/filters/localize-exception.filter";
 import { Lang } from "src/common.dto";
-import { isStoreSchemaError, toValidationDetail } from "src/filters/store-validation.filter";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Job, Queue } from "bullmq";
+import { getValidSystemID } from "src/documents/documents.service";
 
-const CHUNK_SIZE = 10;
+const ONE_HOUR_S = 3600;
+
+const nonNumericUUID = () => {
+	let id = uuid(6);
+	while (!isNaN(+id)) {
+		id = uuid(6);
+	}
+	return id;
+};
 
 @Injectable()
 export class DocumentsBatchService {
 
-	private logger = new Logger(DocumentsBatchService.name);
-
 	constructor(
-		private personsService: PersonsService,
-		private documentsService: DocumentsService,
-		private documentValidatorService: DocumentValidatorService,
 		private cache: RedisCacheService,
-		private formsService: FormsService,
-		private secondaryDocumentsService: SecondaryDocumentsService
+		@InjectQueue("documents-validation") private validationQueue: Queue<JobPayload, JobResult>,
+		@InjectQueue("documents-send") private sendQueue: Queue<JobPayload, JobResult>
 	) {}
 
-	/** Creates a job that validates the given documents, returning a job status. */
+	/** Creates a job that validates the given documents. After validation the job can be completed. */
 	async start(
-		documents: Document[],
+		documents: (Document | SecondaryDocumentOperation)[],
 		person: Person,
 		apiUser: ApiUserEntity,
 		lang: Lang
-	): Promise<BatchJobValidationStatusResponse>  {
+	): Promise<BatchJobValidationStatusResponse> {
 		if (!documents.length) {
 			throw new HttpException("Send at least one document", 422);
 		}
 
-		const job = serializeInto(BatchJob)({
-			id: uuid(6),
+		const systemID = getValidSystemID(apiUser);
+
+		const formIDs = new Set();
+		documents.some(d => {
+			formIDs.add(d.formID);
+			if (formIDs.size > 1) {
+				throw new LocalizedException("DOCUMENT_VALIDATION_BATCH_SAME_FORM_ID", 422);
+			}
+		});
+
+		const job = await this.validationQueue.add("validate", {
+			total: documents.length,
 			personID: person.id,
-			 // 'as' because they'll be populated mutably after job creation.
-			documents: documents as Populated<Document>[],
-			errors: new Array(documents.length),
-			step: BatchJobStep.validate,
-			status: { total: documents.length }
-		});
-		await this.updateJobInCache(job);
+			systemID,
+			lang,
+			step: BatchJobStep.validate
+		}, { jobId: nonNumericUUID(), lifo: true, removeOnComplete: { age: ONE_HOUR_S * 24 }, removeOnFail: true });
+		await this.storeJobDocuments(job.id!, person, documents);
 
-		const processes = asChunks(job.documents, CHUNK_SIZE).map(async (chunkDocuments, idx) => {
-			const chunkErrors = await Promise.all(
-				await this.createValidationProcess(chunkDocuments, job, person, apiUser, lang)
-			);
-			job.errors.splice(idx * CHUNK_SIZE, CHUNK_SIZE, ...chunkErrors);
-		});
-		const status = exposeJobStatus(job, lang);
-		void this.process(processes, job);
-		return status;
-	}
-
-	async getStatus(
-		jobID: string,
-		person: Person,
-		lang: Lang
-	): Promise<BatchJobValidationStatusResponse> {
-		const job = await this.getJobFromCache(jobID, person);
-		if (!job) {
-			throw new HttpException("Job not found", 404);
-		}
-		return exposeJobStatus(job, lang);
+		return exposeJobStatus(job as any, lang);
 	}
 
 	/** Creates the documents of a given job if it's processed and valid, sending them to store or warehouse. */
@@ -90,35 +76,31 @@ export class DocumentsBatchService {
 		publicityRestrictions?: PublicityRestrictions,
 		dataOrigin?: DataOrigin
 	): Promise<BatchJobValidationStatusResponse> {
-		let job = await this.getJobFromCache(jobID, person);
+		const job = await this.validationQueue.getJob(jobID);
 
 		if (!job) {
 			throw new HttpException("No job found", 404);
 		}
 
-		if (job.phase === BatchJobPhase.validating) {
-			throw new HttpException("The job is still processing validation", 422);
-		}
+		const jobStatus = await exposeJobStatus(job, lang);
 
-		if (job.phase === BatchJobPhase.completing) {
+		if (jobStatus.phase === BatchJobPhase.completing) {
 			throw new HttpException("The job is still processing the sending", 422);
-		} else if (job.phase === BatchJobPhase.completed) {
+		} else if (jobStatus.phase === BatchJobPhase.completed) {
 			throw new HttpException("The job is already completed", 422);
 		}
 
-		if (job.errors.some(e => e !== null)) {
+		if (jobStatus.errors.some(e => e !== null)) {
 			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
 		}
 
-		job = serializeInto(BatchJob)({
-			...job,
-			status: { total: job.documents.length },
-			step: BatchJobStep.send,
-		});
-
 		if (publicityRestrictions || dataOrigin) {
-			job.documents.forEach(document => {
-				if (isSecondaryDocumentDelete(document))  {
+			const documents = await this.getJobDocuments(jobID, person);
+			if (!documents) {
+				throw new HttpException("The job is in invalid state. Start again.", 422);
+			}
+			documents.forEach(document => {
+				if (isSecondaryDocumentDelete(document)) {
 					return;
 				}
 				if (dataOrigin) {
@@ -128,201 +110,81 @@ export class DocumentsBatchService {
 					document.publicityRestrictions = publicityRestrictions;
 				}
 			});
+			await this.storeJobDocuments(jobID, person, documents);
 		}
 
-		await this.updateJobInCache(job);
-		void this.createSendProcess(job, person);
+		await this.validationQueue.remove(job.id!);
+		const ONE_HOUR_S = 3600;
+		const newJob = await this.sendQueue.add(
+			"send",
+			{ ...job.data, step: BatchJobStep.send },
+			{ jobId: job.id, lifo: true, removeOnComplete: { age: ONE_HOUR_S }, removeOnFail: { age: ONE_HOUR_S } }
+		);
+
+		return exposeJobStatus(newJob as any, lang);
+	}
+
+	async getStatus(
+		jobID: string,
+		person: Person,
+		lang: Lang
+	): Promise<BatchJobValidationStatusResponse> {
+		const job = await this.getJob(jobID, person);
+		if (!job) {
+			throw new HttpException("Job not found", 404);
+		}
 		return exposeJobStatus(job, lang);
 	}
 
-	private async process(processes: Promise<void>[], job: BatchJob) {
-		for (const process of processes) {
-			await process;
-			await this.updateJobInCache(job);
+	async getJob(id: string, person: Person): Promise<Job | undefined> {
+		let job: Job<JobPayload, JobResult> | undefined;
+
+		for (const queue of [this.sendQueue, this.validationQueue]) {
+			job = await queue.getJob(id);
+			if (!job) {
+				continue;
+			}
+			if (job!.data.personID !== person.id) {
+				throw new HttpException("This job wasn't started by you", 403);
+			}
+			return job;
 		}
 	}
 
-	private async createValidationProcess(
-		documents: (Document | SecondaryDocumentOperation)[],
-		job: BatchJob,
-		person: Person,
-		apiUser: ApiUserEntity,
-		lang: Lang
-	) {
-		const formIDs = new Set();
-		return documents.map(async document => {
-			try {
-				const populatedDocument = await (isSecondaryDocumentDelete(document)
-					? this.secondaryDocumentsService.populateMutably(document, person)
-					: this.documentsService.populateMutably(document, apiUser, person));
-
-				if (!isSecondaryDocumentDelete(populatedDocument) && !populatedDocument.dataOrigin) {
-					populatedDocument.dataOrigin = [DataOrigin.dataOriginSpreadsheetFile];
-				}
-
-				if (!isSecondaryDocumentDelete(populatedDocument)) {
-					populateCreatorAndEditorMutably(populatedDocument, person);
-				}
-
-				formIDs.add(populatedDocument.formID);
-				if (formIDs.size > 1) {
-					throw new ValidationException({ "": ["DOCUMENT_VALIDATION_BATCH_SAME_FORM_ID"] });
-				}
-
-				if (!isSecondaryDocumentDelete(populatedDocument) && !isSecondaryDocument(populatedDocument)) {
-					await this.documentValidatorService.validate(populatedDocument, person, undefined, lang);
-				} else {
-					await this.secondaryDocumentsService.validate(populatedDocument, person, lang);
-				}
-				job.status.processed++;
-				return null;
-			} catch (e) {
-				job.status.processed++;
-				return isValidationExceptionBase(e)
-					? e
-					: new PreTranslatedDetailsValidationException(
-						{ "": [`Failed due to internal error: ${e.message}`] }
-					);
-			}
-		});
+	async storeJobDocuments(id: string, person: Person, documents: (Document | SecondaryDocumentOperation)[]) {
+		return this.cache.set(getDocumentsCacheKey(id, person.id), documents, CACHE_1_D);
 	}
 
-	private async createSendProcess(job: BatchJob, person: Person) {
-		const documentSample = firstFromNonEmptyArr(job.documents);
-		const form = await this.formsService.get(documentSample.formID);
-		if (form.options?.secondaryCopy) {
-			try {
-				await this.secondaryDocumentsService.pushMultiple(
-					job.documents as PopulatedSecondaryDocumentOperation[]
-				);
-			} catch (e) {
-				job.errors = Array(job.documents.length).fill(
-					new ValidationException({ "": ["DOCUMENT_VALIDATION_BATCH_WAREHOUSE_UPLOAD_FAILED"] })
-				);
-			} finally {
-				job.status.processed = job.documents.length;
-			}
-		} else {
-			try {
-				job.documents = await this.documentsService.store.post<Populated<Document>[], Populated<Document>[]>(
-					undefined, job.documents as Populated<Document>[]
-				);
-
-				const docsWithNamedPlace = job.documents.filter(
-					document => (document as Document).namedPlaceID
-				) as (Document | SecondaryDocument)[];
-
-				job.status.processed = job.documents.length - docsWithNamedPlace.length;
-				await this.updateJobInCache(job);
-
-				const processes = asChunks(docsWithNamedPlace, CHUNK_SIZE).map(async chunkDocuments =>
-					await this.createSideEffectProcess(
-						chunkDocuments, job as BatchJob<Populated<Document>>, person
-					)
-				);
-				await this.process(processes, job);
-				await this.flushDocumentsCache(job as BatchJob<Populated<Document>>, docsWithNamedPlace);
-			} catch (e) {
-				job.status.processed = job.status.total;
-				if (
-					e.response?.data
-					&& Array.isArray(e.response.data.error)
-					&& Array.isArray(e.response.data.error[0])
-					&& isStoreSchemaError(e.response.data.error[0][0])
-				) {
-					job.errors = e.response.data.error.map(
-						(e: any) => new PreTranslatedDetailsValidationException(toValidationDetail(e[0]))
-					);
-				} else {
-					let message = "Upload to store failed.";
-					if (e.error) {
-						message += ` Combined error is: ${e.error}`;
-					}
-					job.errors = Array(job.documents.length).fill(
-						new PreTranslatedDetailsValidationException({ "": [message] })
-					);
-				}
-			}
-		}
-
-		await this.updateJobInCache(job);
-	}
-
-	private async flushDocumentsCache(job: BatchJob<Populated<Document>>, docsWithNamedPlace: Document[]) {
-		// Check if there are primary documents in the query, and flush the document cache with one of them. All the
-		// documents have the same collectionID & creator, which are used as `primaryKeySpace`s for the document cache, so
-		// this should sync the cache correct.
-		const documentSample = job.documents.find(d => d.creator) as (Document | undefined);
-		if (documentSample) {
-			const { collectionID, creator } = documentSample;
-			await this.documentsService.store.flushCache({ collectionID, creator });
-		}
-
-		// `namedPlaceID` is also in the `primaryKeySpace` for documents. Unfortunately we must bust the cache for each place.
-		if (docsWithNamedPlace.length) {
-			await Promise.all(docsWithNamedPlace.map(async ({ namedPlaceID, id: isWarehouseDocument }) =>
-				!isWarehouseDocument
-					&& await this.documentsService.store.flushCache({ namedPlaceID, gatherings: [{ }] })
-			));
-		}
-	}
-
-	private async createSideEffectProcess(
-		documents: Document[],
-		job: BatchJob<Populated<Document>>,
-		person: Person
-	) {
-		await Promise.all(documents.map(async document => {
-			try {
-				await this.documentsService.namedPlaceSideEffects(
-					document as Populated<Document> & { id: string },
-					person
-				);
-			} catch (e) {
-				this.logger.error(`Named place side effect failed for ${document.id}`);
-			} finally {
-				job.status.processed++;
-			}
-		}));
-	}
-
-	async updateJobInCache(job: BatchJob) {
-		return this.cache.set(getCacheKey(job.id, await this.personsService.get(job.personID)), job);
-	}
-
-	async getJobFromCache(id: string, person: Person) {
-		return serializeInto(BatchJob)(await this.cache.get<BatchJob | undefined>(getCacheKey(id, person)));
+	async getJobDocuments(id: string, person: Person) {
+		return this.cache.get<(Document | SecondaryDocumentOperation)[]>(
+			getDocumentsCacheKey(id, person.id)
+		);
 	}
 }
 
-const asChunks = <T>(items: T[], chunkSize: number) => {
-	const chunks: T[][] = [];
-	for (let i = 0; i < items.length; i += chunkSize) {
-		chunks.push(items.slice(i, i + chunkSize));
-	}
-	return chunks;
-};
+export const getDocumentsCacheKey = (jobID: string, personID: string) => ["BATCH_DOCUMENTS", personID, jobID].join(":");
 
-const getCacheKey = (jobID: string, person: Person) => ["DOCJOB", person.id, jobID].join(":");
+const exposeJobStatus = async (
+	job: Job<JobPayload, JobResult>,
+	lang: Lang,
+): Promise<BatchJobValidationStatusResponse> => {
+	const { data: { step, total } } = job;
 
-const exposeJobStatus = (
-	job: BatchJob,
-	lang: Lang
-) => {
-	const exposedJob = serializeInto(BatchJobValidationStatusResponse)(job);
+	// Apparently there's some race condition in bullmq that makes it possible for isCompleted() to return true but it's
+	// still missing return value, so we have do double check.
+	const isCompleted = !!job.returnvalue && await job.isCompleted();
 
-	if (exposedJob.phase !== BatchJobPhase.completed) {
-		delete exposedJob.documents;
-	}
-
-	if (job.status.processed === job.documents.length) {
-		exposedJob.errors = job.errors.map(e => e === null
+	const exposedJob = serialize({
+		id: job.id!,
+		step,
+		status: { processed: job.progress, total },
+		isCompleted
+	}, BatchJobValidationStatusResponse);
+	if (isCompleted) {
+		exposedJob.errors = job.returnvalue.map(e => e === null
 			? e
 			: (lang ? localizeException(e, lang) as any : e).details
 		);
-		return exposedJob;
 	}
-
-	// Return only status for job that is still being processed.
 	return exposedJob;
 };

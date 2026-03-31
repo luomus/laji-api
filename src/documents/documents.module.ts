@@ -17,6 +17,10 @@ import { CACHE_10_MIN } from "src/utils";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { DocumentValidatorModule } from "./document-validator/document-validator.module";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
+import { BullModule } from "@nestjs/bullmq";
+import { DocumentsBatchValidationWorker } from "./documents-batch/documents-batch-validation.worker";
+import { DocumentsBatchSendWorker } from "./documents-batch/documents-batch-send.worker";
+import { ApiUsersModule } from "src/api-users/api-users.module";
 
 export const documentsStoreConfig: StoreConfig<DocumentQuery> = {
 	resource: "document",
@@ -41,11 +45,32 @@ const StoreResourceService: FactoryProvider<StoreService<DocumentQuery>> = {
 };
 
 @Module({
-	providers: [DocumentsService, StoreResourceService, SecondaryDocumentsService, DocumentsBatchService],
+	providers: [
+		DocumentsService,
+		StoreResourceService,
+		SecondaryDocumentsService,
+		DocumentsBatchService,
+		DocumentsBatchValidationWorker,
+		DocumentsBatchSendWorker,
+	],
 	imports: [
 		StoreClientModule, PersonsModule, FormPermissionsModule, forwardRef(() => FormsModule), CollectionsModule,
 		WarehouseModule, forwardRef(() => NamedPlacesModule), PrepopulatedDocumentModule,
-		forwardRef(() => DocumentValidatorModule)
+		forwardRef(() => DocumentValidatorModule),
+		BullModule.registerQueue({
+			name: "documents-validation",
+			connection: {
+				host: "localhost",
+				port: 6379,
+			},
+		}, {
+			name: "documents-send",
+			connection: {
+				host: "localhost",
+				port: 6379,
+			},
+		}),
+		ApiUsersModule
 	],
 	exports: [DocumentsService],
 	controllers: [DocumentsController]

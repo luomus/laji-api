@@ -54,8 +54,6 @@ describe("RedisMemoize", () => {
 	it("deduplicates in-flight calls and returns the same promise", async () => {
 		const p1 = service.compute(5);
 		const p2 = service.compute(5);
-		console.log(p1 === p2);
-		// console.log(p1);
 		expect(p2).toBe(p1);
 		await Promise.all([p1, p2]);
 		expect(service.computeSpy).toHaveBeenCalledTimes(1);

@@ -1,8 +1,8 @@
 import { Document } from "@luomus/laji-schema";
-import { ApiHideProperty, ApiProperty, IntersectionType, OmitType, PartialType, getSchemaPath } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, IntersectionType, PartialType, getSchemaPath } from "@nestjs/swagger";
 import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
-import { QueryWithPagingDto } from "src/common.dto";
+import { Lang, QueryWithPagingDto } from "src/common.dto";
 import { CommaSeparatedStrings, IsOptionalBoolean } from "src/serialization/serialization.utils";
 import { PickNonNullableKeys, WithNonNullableKeys } from "src/typing.utils";
 import { ErrorsObj, ValidationExceptionBase } from "./document-validator/document-validator.utils";
@@ -171,45 +171,13 @@ export enum BatchJobPhase {
 	failedUponCompletion = "FAILED_UPON_COMPLETION",
 }
 
-export class BatchJob<
-	T extends Populated<Document> | PopulatedSecondaryDocumentOperation
-	= Populated<Document> | PopulatedSecondaryDocumentOperation
-> {
+export class BatchJobValidationStatusResponse {
 	id: string;
+	@ApiHideProperty() @Exclude({ toPlainOnly: true }) step: BatchJobStep;
+	@ApiHideProperty() @Exclude({ toPlainOnly: true }) isCompleted: boolean;
 
 	@Type(() => BatchJobValidationStatus)
 	status: BatchJobValidationStatus;
-
-	personID: string;
-	documents: T[];
-	errors: (ValidationExceptionBase | null)[] = [];
-	step: BatchJobStep;
-
-	@ApiProperty({ enum: Object.values(BatchJobPhase) }) @Expose() get phase(): BatchJobPhase {
-		const { status } = this;
-		if (this.step === BatchJobStep.validate) {
-			if (this.errors.some(e => e !== null)) {
-				return BatchJobPhase.failedUponValidation;
-			}
-			return status.processed < status.total
-				? BatchJobPhase.validating
-				: BatchJobPhase.readyToComplete;
-		} else {
-			if (this.errors.some(e => e !== null)) {
-				return BatchJobPhase.failedUponCompletion;
-			}
-			return status.processed < status.total
-				? BatchJobPhase.completing
-				: BatchJobPhase.completed;
-		}
-	}
-}
-
-export class BatchJobValidationStatusResponse extends OmitType(BatchJob, ["errors", "documents", "step"]) {
-	id: string;
-	documents?: Document[];
-	@ApiHideProperty() @Exclude() personID: string;
-	@ApiHideProperty() @Exclude() step: BatchJobStep;
 
 	@ApiProperty({
 		type: "array",
@@ -220,7 +188,28 @@ export class BatchJobValidationStatusResponse extends OmitType(BatchJob, ["error
 			]
 		}
 	})
-	errors?: (ErrorsObj | null)[] = [];
+	errors: (ErrorsObj | null)[] = [];
+
+	@ApiProperty({ enum: Object.values(BatchJobPhase) })
+	@Expose()
+	get phase(): BatchJobPhase {
+		const { isCompleted, step } = this;
+		if (step === BatchJobStep.validate) {
+			if (this.errors.some(e => e !== null)) {
+				return BatchJobPhase.failedUponValidation;
+			}
+			return isCompleted
+				? BatchJobPhase.readyToComplete
+				: BatchJobPhase.validating;
+		} else {
+			if (this.errors.some(e => e !== null)) {
+				return BatchJobPhase.failedUponCompletion;
+			}
+			return isCompleted
+				? BatchJobPhase.completed
+				: BatchJobPhase.completing;
+		}
+	}
 }
 
 export class QueryWithNamedPlaceDto {
@@ -244,3 +233,19 @@ export class DocumentCountItemResponse {
 export class StatisticsResponse {
 	dateMedian: string;
 }
+
+export type JobPayload = {
+	personID: string;
+	systemID: string;
+	lang: Lang;
+	total: number;
+	step: BatchJobStep;
+}
+
+export type JobResult = (ValidationExceptionBase | null)[];
+
+// export type JobProgress = {
+// 	processed: number;
+// 	total: number;
+// 	personID: string;
+// }

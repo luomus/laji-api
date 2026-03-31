@@ -130,7 +130,7 @@ describe("/documents/batch", function() {
 			res.body.should.have.property("errors");
 		});
 
-		it("job status can be followed during background completion, and it doesn't contain documents but contains errors while it's processing", async function() {
+		it("job status can be followed during background completion and contains errors while it's processing", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -158,9 +158,7 @@ describe("/documents/batch", function() {
 			expect(res.body.status.processed).to.equal(documents.length);
 		});
 
-		let createdDocuments;
-
-		it("job status contains updated documents and errors after completing creation", async function() {
+		it("job status contains updated errors after completing creation", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -173,13 +171,9 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
-			res.body.documents.forEach(d => expect(d.id).not.to.equal(undefined));
-
-			createdDocuments = res.body.documents;
 		});
 
 		it("created documents are gettable", async function() {
@@ -187,18 +181,11 @@ describe("/documents/batch", function() {
 				this.skip();
 			}
 
-			countAfterSend = (await apiRequest(this.server, { accessToken, personToken })
-				.get("/documents/count/byYear").send()
+			const countAfterSend = (await apiRequest(this.server, { accessToken, personToken })
+				.get("/documents/count/byYear")
 			).body.find(countResponse => countResponse.year === "2024").count;
 
 			expect(countAfterSend).to.equal(countBeforeSend + documents.length);
-
-			// Silently remove documents.
-			createdDocuments.forEach(d => {
-				void request(this.server)
-					.delete(`${batchPath}/${d.id}`).send()
-					.send();
-			});
 		});
 	});
 
@@ -220,7 +207,6 @@ describe("/documents/batch", function() {
 		);
 
 		let id;
-		let createdSecondaryDocuments;
 
 		it("starts job", async function() {
 			const res = await apiRequest(this.server, { accessToken, personToken })
@@ -323,14 +309,13 @@ describe("/documents/batch", function() {
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
 				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
 			expect(res.body.status.processed).to.equal(documents.length);
 		});
 
-		it("job status contains updated documents and errors after completing creation", async function() {
+		it("job status contains errors after completing creation", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -343,122 +328,9 @@ describe("/documents/batch", function() {
 			res.body.status.should.have.property("processed");
 			res.body.status.should.have.property("total").eql(documents.length);
 			res.body.status.should.have.property("percentage");
-			res.body.should.have.property("documents");
 			res.body.should.have.property("errors");
 			expect(res.body.status.processed).to.equal(documents.length);
 			res.body.errors.forEach(e => expect(e).to.equal(null));
-			res.body.documents.forEach(d => expect(d.id).not.to.equal(undefined));
-
-			createdSecondaryDocuments = res.body.documents;
-		});
-
-		it("document publicityRestrictions and dataOrigin are populated", async function() {
-			if (!id) {
-				this.skip();
-			}
-			const res = await apiRequest(this.server, { accessToken, personToken })
-				.get(`${batchPath}/${id}`)
-				.send();
-			res.should.have.status(200);
-			res.body.documents.forEach(d => expect(d.dataOrigin).to.eql(["MY.dataOriginSpreadsheetFile"]));
-			res.body.documents.forEach(d => expect(d.publicityRestrictions).to.equal("MZ.publicityRestrictionsPublic"));
-		});
-
-		it("created secondary docs can be deleted", async function() {
-			this.timeout(10000);
-
-			// Start a job.
-			const res = await apiRequest(this.server, { accessToken, personToken })
-				.post(batchPath)
-				.send(createdSecondaryDocuments.map(({ id }) => ({ id, delete: true, formID: "MHL.618" })));
-
-			res.should.have.status(200);
-			const id = res.body.id;
-			res.body.should.have.property("phase").to.eql("VALIDATING");
-			res.body.should.have.property("status");
-			res.body.status.should.have.property("processed").eql(0);
-			res.body.status.should.have.property("total").eql(documents.length);
-			res.body.status.should.have.property("percentage").eql(0);
-			res.body.should.not.have.property("documents");
-			res.body.should.have.property("errors");
-
-			// Wait until processed.
-			let processed = 0;
-			while (processed < documents.length) {
-				const res = await apiRequest(this.server, { accessToken, personToken })
-					.get(`${batchPath}/${id}`)
-					.send();
-				processed = res.body.status.processed;
-				if (processed === documents.length) {
-					return;
-				}
-
-				res.should.have.status(200);
-				res.body.should.have.property("phase").to.eql("VALIDATING");
-				res.body.should.have.property("status");
-				res.body.status.should.have.property("processed");
-				res.body.status.should.have.property("total").eql(documents.length);
-				res.body.status.should.have.property("percentage");
-				res.body.should.have.property("documents");
-				res.body.should.have.property("errors");
-				await new Promise(resolve => setTimeout(resolve, 500));
-			}
-
-			// Start job completion.
-			const completionRes = await apiRequest(this.server, { accessToken, personToken })
-				.post(`${batchPath}/${id}`)
-				.send();
-
-			completionRes.should.have.status(200);
-			res.body.should.have.property("phase").to.eql("COMPLETING");
-			completionRes.body.should.have.property("status");
-			completionRes.body.status.should.have.property("processed").eql(0);
-			completionRes.body.status.should.have.property("total").eql(documents.length);
-			completionRes.body.status.should.have.property("percentage").eql(0);
-			completionRes.body.should.have.property("documents");
-			completionRes.body.should.have.property("errors");
-
-			// Wait until processed.
-			processed = 0;
-			while (processed < documents.length) {
-				const res = await apiRequest(this.server, { accessToken, personToken })
-					.get(`${batchPath}/${id}`)
-					.send();
-				processed = res.body.status.processed;
-				if (processed === documents.length) {
-					return;
-				}
-
-				res.should.have.status(200);
-				res.body.should.have.property("phase").to.eql("COMPLETING");
-				res.body.should.have.property("status");
-				res.body.status.should.have.property("processed");
-				res.body.status.should.have.property("total").eql(documents.length);
-				res.body.status.should.have.property("percentage");
-				res.body.should.have.property("documents");
-				res.body.should.have.property("errors");
-				await new Promise(resolve => setTimeout(resolve, 500));
-			}
-			expect(res.body.status.processed).to.equal(documents.length);
-
-			const completedRes = await apiRequest(this.server, { accessToken, personToken })
-				.get(`${batchPath}/${id}`)
-				.send();
-			res.body.should.have.property("phase").to.eql("COMPLETED");
-			completedRes.should.have.status(200);
-			completedRes.body.should.have.property("status");
-			completedRes.body.status.should.have.property("processed");
-			completedRes.body.status.should.have.property("total").eql(documents.length);
-			completedRes.body.status.should.have.property("percentage");
-			completedRes.body.should.have.property("documents");
-			completedRes.body.should.have.property("errors");
-			expect(completedRes.body.status.processed).to.equal(documents.length);
-			completedRes.body.errors.forEach(e => expect(e).to.equal(null));
-			completedRes.body.documents.forEach(d => {
-				expect(d.id).not.to.equal(undefined);
-				expect(d.delete).to.equal(true);
-				expect(d.formID).to.equal("MHL.618");
-			});
 		});
 	});
 

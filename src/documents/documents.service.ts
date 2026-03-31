@@ -556,10 +556,7 @@ export const populateCreatorAndEditorMutably = <T extends { creator?: string; ed
 
 const populateSourceIDMutably = <T extends Document>
 	(document: T, apiUser: ApiUserEntity, overwriteSourceID = true) : WithNonNullableKeys<T, "sourceID"> => {
-	const { systemID } = apiUser;
-	if (!systemID) {
-		throw new LocalizedException("DOCUMENT_INVALID_SYSTEM_ID", 422);
-	}
+	const systemID = getValidSystemID(apiUser);
 
 	if (overwriteSourceID) {
 		document.sourceID = systemID;
@@ -567,4 +564,12 @@ const populateSourceIDMutably = <T extends Document>
 		document.sourceID = systemID;
 	}
 	return document as WithNonNullableKeys<T, "sourceID">;
+};
+
+export const getValidSystemID = (apiUser: ApiUserEntity) => {
+	const { systemID } = apiUser;
+	if (!systemID) {
+		throw new LocalizedException("DOCUMENT_INVALID_SYSTEM_ID", 422);
+	}
+	return systemID;
 };

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ApiUserEntity } from "./api-user.entity";
 import { Repository } from "typeorm";
@@ -30,6 +30,17 @@ export class ApiUsersService {
 
 		if (!apiUser) {
 			throw new ErrorCodeException("NO_API_USER_FOUND_FOR_TOKEN", 404);
+		}
+
+		return apiUser;
+	}
+
+	@RedisMemoize(CACHE_30_MIN)
+	async getBySystemID(systemID: string): Promise<ApiUserEntity> {
+		const apiUser = await this.apiUserRepository.findOneBy({ systemID });
+
+		if (!apiUser) {
+			throw new HttpException("No api user found for systemID", 404);
 		}
 
 		return apiUser;

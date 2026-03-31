@@ -12,7 +12,6 @@ export function IntelligentMemoize(options: memoize.Options<any> = { promise: tr
 		const originalMethod = descriptor.value;
 
 		descriptor.value = function (...args: any[]) {
-			// Create a hidden memoized version stored on the instance
 			if (!this._memoizedFns) this._memoizedFns = {};
 			if (!this._memoizedFns[key]) {
 				this._memoizedFns[key] = memoize(originalMethod.bind(this), options);

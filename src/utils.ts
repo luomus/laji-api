@@ -69,13 +69,13 @@ function promisePipe<T, A, B, C, D, E, F, G, H>(op1: PromiseOp<T, A>, op2: Promi
 function promisePipe<T, A, B, C, D, E, F, G, H, I>(op1: PromiseOp<T, A>, op2: PromiseOp<A, B>, op3: PromiseOp<B, C>, op4: PromiseOp<C, D>, op5: PromiseOp<D, E>, op6: PromiseOp<E, F>, op7: PromiseOp<F, G>, op8: PromiseOp<G, H>, op9: PromiseOp<H, I>): PromisePipe<T, I>;
 function promisePipe<T>(...operations: PromiseOp<any, any>[]): PromisePipe<T, any>;
 function promisePipe<T>(...operations: PromiseOp<any, any>[]): PromisePipe<T, any> {
-	return (initialValue: T) => (async () => {
+	return async (initialValue: T) => {
 		let value = await initialValue;
 		for (const fn of operations) {
 			value = await fn(value);
 		}
 		return value;
-	})();
+	};
 }
 /* eslint-enable max-len */
 

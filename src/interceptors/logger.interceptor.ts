@@ -16,7 +16,7 @@ export class LoggerInterceptor implements NestInterceptor {
 		return next.handle().pipe(
 			catchError(e => {
 				this.logger.error(`END ${stringifyRequest(request)}`, { body: request.body });
-				return throwError(e);
+				return throwError(() => e);
 			}),
 			tap(() => {
 				this.logger.verbose(`END ${stringifyRequest(request)}`);
