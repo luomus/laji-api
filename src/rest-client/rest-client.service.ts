@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosRequestConfig } from "axios";
 import { firstValueFrom } from "rxjs";
 import { map } from "rxjs/operators";
 import { JSONObjectSerializable, Newable } from "src/typing.utils";

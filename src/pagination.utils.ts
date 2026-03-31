@@ -1,5 +1,5 @@
 import { HasJsonLdContext } from "src/common.dto";
-import { MaybePromise, isObject, omit, omitForKeys } from "src/typing.utils";
+import { MaybePromise, isObject, omitForKeys } from "src/typing.utils";
 import { pipe } from "src/utils";
 import { getJsonLdContextFromSample } from "./json-ld/json-ld.utils";
 import { PaginatedDto } from "./pagination.dto";

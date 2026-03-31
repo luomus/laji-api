@@ -7,7 +7,6 @@ import { RestClientService } from "../rest-client/rest-client.service";
 import { MEDIA_CLIENT, MEDIA_CONFIG } from "src/provider-tokens";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
-import { PaginatedDto } from "src/pagination.dto";
 import { paginateAlreadyPaginated } from "src/pagination.utils";
 
 export type AbstractMediaServiceConfig = {
