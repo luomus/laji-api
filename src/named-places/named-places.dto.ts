@@ -36,7 +36,7 @@ export class GetNamedPlacePageDto extends IntersectionType(
 	QueryWithPagingDto
 ) {
 	/** Collection id. Child collections are also fetched. */
-	collectionID: string;
+	collectionID?: string;
 
 	/** Include only items with these ids. Multiple values are separated by a comma (,). */
 	@CommaSeparatedStrings() idIn?: string[];
