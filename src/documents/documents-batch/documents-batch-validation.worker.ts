@@ -3,8 +3,9 @@ import { Job } from "bullmq";
 import { Injectable } from "@nestjs/common";
 import { getDocumentsCacheKey } from "./documents-batch.service";
 import {
-	DataOrigin, isSecondaryDocument, isSecondaryDocumentDelete, JobPayload, JobResult, Populated,
-	PopulatedSecondaryDocumentOperation, SecondaryDocumentOperation
+	DataOrigin, isSecondaryDocumentDelete, isSecondaryDocument,
+	ValidationJobPayload, JobResult, Populated, PopulatedSecondaryDocumentOperation,
+	SecondaryDocumentOperation
 } from "../documents.dto";
 import { ApiUsersService } from "src/api-users/api-users.service";
 import { PersonsService } from "src/persons/persons.service";
@@ -18,6 +19,8 @@ import { Person } from "src/persons/person.dto";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { DocumentValidatorService } from "../document-validator/document-validator.service";
 import { Lang } from "src/common.dto";
+
+const CHUNK_SIZE = 25;
 
 @Processor("documents-validation")
 @Injectable()
@@ -34,41 +37,49 @@ export class DocumentsBatchValidationWorker extends WorkerHost {
 		super();
 	}
 
-	async process(job: Job<JobPayload>) {
+	async process(job: Job<ValidationJobPayload>) {
 		const { personID, systemID, lang } = job.data;
-		const documents = (await this.cache.get<(Document | SecondaryDocumentOperation)[]>(
-			getDocumentsCacheKey(job.id!, personID))
-		)!;
+		const cacheKey = getDocumentsCacheKey(job.id!, personID);
+
 		const person = await this.personsService.get(personID);
 		const apiUser = await this.apiUsersService.getBySystemID(systemID);
 
-		const result: JobResult = [];
-		let progress = 0;
+		const total = await this.cache.lLen(cacheKey);
+		let processed = 0;
 
-		for (const idx in documents) {
-			const document = documents[idx]!;
-			const populatedDocument = await this.populateDocument(document, person, apiUser);
-			documents[idx] = populatedDocument;
-			result.push(await this.validate(populatedDocument, person, lang));
-			progress++;
-			if (progress % 10 === 0) {
-				await job.updateProgress(progress);
+		const results: JobResult = [];
+
+		for (let start = 0; start < total; start += CHUNK_SIZE) {
+			const end = start + CHUNK_SIZE - 1;
+
+			const chunkDocs = await this.cache.lRange(cacheKey, start, end);
+
+			for (let i = 0; i < chunkDocs.length; i++) {
+				const docIndex = start + i;
+
+				const populated = await this.populateDocument(chunkDocs[i], person, apiUser);
+				const validation = await this.validate(populated, person, lang);
+
+				results.push(validation);
+
+				await this.cache.lSet(cacheKey, docIndex, populated);
+
+				processed++;
 			}
+			await job.updateProgress(processed);
 		}
-		await job.updateProgress(progress);
-		await this.cache.set(getDocumentsCacheKey(job.id!, personID), documents);
-		
-		return result;
+		await job.updateProgress(processed);
+		return results;
 	}
 
-	private async populateDocument(
+	private populateDocument(
 		document: Document | SecondaryDocumentOperation,
 		person: Person,
 		apiUser: ApiUserEntity
 	) {
-		return await (isSecondaryDocumentDelete(document)
+		return isSecondaryDocumentDelete(document)
 			? this.secondaryDocumentsService.populateMutably(document, person)
-			: this.documentsService.populateMutably(document, apiUser, person));
+			: this.documentsService.populateMutably(document, apiUser, person);
 	}
 
 	private async validate(
@@ -77,6 +88,7 @@ export class DocumentsBatchValidationWorker extends WorkerHost {
 		lang: Lang
 	) {
 		const formIDs = new Set();
+
 		try {
 			if (!isSecondaryDocumentDelete(document) && !document.dataOrigin) {
 				document.dataOrigin = [DataOrigin.dataOriginSpreadsheetFile];
@@ -96,13 +108,15 @@ export class DocumentsBatchValidationWorker extends WorkerHost {
 			} else {
 				await this.secondaryDocumentsService.validate(document, person, lang);
 			}
+
 			return null;
+
 		} catch (e) {
 			return isValidationExceptionBase(e)
 				? e
-				: new PreTranslatedDetailsValidationException(
-					{ "": [`Failed due to internal error: ${e.message}`] }
-				);
+				: new PreTranslatedDetailsValidationException({
+					"": [`Failed due to internal error: ${e.message}`]
+				});
 		}
 	}
 }

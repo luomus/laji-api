@@ -1,11 +1,13 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { Document } from "@luomus/laji-schema";
 import {
-	BatchJobValidationStatusResponse, isSecondaryDocumentDelete, PublicityRestrictions,
-	DataOrigin, BatchJobPhase, BatchJobStep, JobPayload, JobResult,
-	SecondaryDocumentOperation
+	BatchJobValidationStatusResponse, PublicityRestrictions,
+	DataOrigin, BatchJobPhase, BatchJobStep, JobResult,
+	SecondaryDocumentOperation,
+	SendJobPayload,
+	ValidationJobPayload
 } from "../documents.dto";
-import { CACHE_1_D, LocalizedException, uuid } from "src/utils";
+import { LocalizedException, uuid } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { Person } from "src/persons/person.dto";
 import { serialize } from "src/serialization/serialization.utils";
@@ -31,8 +33,8 @@ export class DocumentsBatchService {
 
 	constructor(
 		private cache: RedisCacheService,
-		@InjectQueue("documents-validation") private validationQueue: Queue<JobPayload, JobResult>,
-		@InjectQueue("documents-send") private sendQueue: Queue<JobPayload, JobResult>
+		@InjectQueue("documents-validation") private validationQueue: Queue<ValidationJobPayload, JobResult>,
+		@InjectQueue("documents-send") private sendQueue: Queue<SendJobPayload, JobResult>
 	) {}
 
 	/** Creates a job that validates the given documents. After validation the job can be completed. */
@@ -56,14 +58,15 @@ export class DocumentsBatchService {
 			}
 		});
 
+		const jobId = nonNumericUUID();
+		await this.storeJobDocuments(jobId, person, documents);
 		const job = await this.validationQueue.add("validate", {
 			total: documents.length,
 			personID: person.id,
 			systemID,
 			lang,
 			step: BatchJobStep.validate
-		}, { jobId: nonNumericUUID(), lifo: true, removeOnComplete: { age: ONE_HOUR_S * 24 }, removeOnFail: true });
-		await this.storeJobDocuments(job.id!, person, documents);
+		}, { jobId, lifo: true, removeOnComplete: { age: ONE_HOUR_S * 24 }, removeOnFail: true });
 
 		return exposeJobStatus(job as any, lang);
 	}
@@ -82,6 +85,10 @@ export class DocumentsBatchService {
 			throw new HttpException("No job found", 404);
 		}
 
+		if (job.data.personID !== person.id) {
+			throw new HttpException("This job wasn't started by you", 403);
+		}
+
 		const jobStatus = await exposeJobStatus(job, lang);
 
 		if (jobStatus.phase === BatchJobPhase.completing) {
@@ -94,34 +101,35 @@ export class DocumentsBatchService {
 			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
 		}
 
-		if (publicityRestrictions || dataOrigin) {
-			const documents = await this.getJobDocuments(jobID, person);
-			if (!documents) {
-				throw new HttpException("The job is in invalid state. Start again.", 422);
-			}
-			documents.forEach(document => {
-				if (isSecondaryDocumentDelete(document)) {
-					return;
-				}
-				if (dataOrigin) {
-					document.dataOrigin = [dataOrigin];
-				}
-				if (publicityRestrictions) {
-					document.publicityRestrictions = publicityRestrictions;
-				}
-			});
-			await this.storeJobDocuments(jobID, person, documents);
-		}
+		// job.data = { ...job.data, publicityRestrictions, dataOrigin };
+		// if (publicityRestrictions || dataOrigin) {
+		// 	const documents = await this.getJobDocuments(jobID, person);
+		// 	if (!documents) {
+		// 		throw new HttpException("The job is in invalid state. Start again.", 422);
+		// 	}
+		// 	documents.forEach(document => {
+		// 		if (isSecondaryDocumentDelete(document)) {
+		// 			return;
+		// 		}
+		// 		if (dataOrigin) {
+		// 			document.dataOrigin = [dataOrigin];
+		// 		}
+		// 		if (publicityRestrictions) {
+		// 			document.publicityRestrictions = publicityRestrictions;
+		// 		}
+		// 	});
+		// 	await this.storeJobDocuments(jobID, person, documents);
+		// }
 
 		await this.validationQueue.remove(job.id!);
 		const ONE_HOUR_S = 3600;
 		const newJob = await this.sendQueue.add(
 			"send",
-			{ ...job.data, step: BatchJobStep.send },
+			{ ...job.data, step: BatchJobStep.send, publicityRestrictions, dataOrigin },
 			{ jobId: job.id, lifo: true, removeOnComplete: { age: ONE_HOUR_S }, removeOnFail: { age: ONE_HOUR_S } }
 		);
 
-		return exposeJobStatus(newJob as any, lang);
+		return exposeJobStatus(newJob, lang);
 	}
 
 	async getStatus(
@@ -137,7 +145,7 @@ export class DocumentsBatchService {
 	}
 
 	async getJob(id: string, person: Person): Promise<Job | undefined> {
-		let job: Job<JobPayload, JobResult> | undefined;
+		let job: Job<ValidationJobPayload | SendJobPayload, JobResult> | undefined;
 
 		for (const queue of [this.sendQueue, this.validationQueue]) {
 			job = await queue.getJob(id);
@@ -152,7 +160,9 @@ export class DocumentsBatchService {
 	}
 
 	async storeJobDocuments(id: string, person: Person, documents: (Document | SecondaryDocumentOperation)[]) {
-		return this.cache.set(getDocumentsCacheKey(id, person.id), documents, CACHE_1_D);
+		for (const doc of documents) {
+			await this.cache.rPush(getDocumentsCacheKey(id, person.id), doc);
+		}
 	}
 
 	async getJobDocuments(id: string, person: Person) {
@@ -162,10 +172,12 @@ export class DocumentsBatchService {
 	}
 }
 
-export const getDocumentsCacheKey = (jobID: string, personID: string) => ["BATCH_DOCUMENTS", personID, jobID].join(":");
+export const getDocumentsCacheKey = (jobID: string, personID: string) => {
+	return ["BATCH_DOCUMENTS", personID, jobID].join(":");
+};
 
 const exposeJobStatus = async (
-	job: Job<JobPayload, JobResult>,
+	job: Job<ValidationJobPayload | SendJobPayload, JobResult>,
 	lang: Lang,
 ): Promise<BatchJobValidationStatusResponse> => {
 	const { data: { step, total } } = job;

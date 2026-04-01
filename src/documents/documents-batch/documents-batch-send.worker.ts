@@ -1,8 +1,12 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
-import { Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { getDocumentsCacheKey } from "./documents-batch.service";
-import { JobPayload, Populated, PopulatedSecondaryDocumentOperation } from "../documents.dto";
+import {
+	DataOrigin, isSecondaryDocumentDelete, Populated, PopulatedSecondaryDocumentOperation, PublicityRestrictions,
+	SendJobPayload
+}
+	from "../documents.dto";
 import { PersonsService } from "src/persons/persons.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { isStoreSchemaError, toValidationDetail } from "src/filters/store-validation.filter";
@@ -30,14 +34,17 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 		super();
 	}
 
-	async process(job: Job<JobPayload>) {
-		const { personID } = job.data;
-		const documents = (await this.cache.get<(Populated<Document> | PopulatedSecondaryDocumentOperation)[]>(
-			getDocumentsCacheKey(job.id!, personID))
-		)!;
+	async process(job: Job<SendJobPayload>) {
+		const { personID, publicityRestrictions, dataOrigin } = job.data;
+		const documents = await this.getJobDocuments(job.id!, personID);
+		if (!documents || !documents.length) {
+			throw new HttpException("The job is in invalid state. Start again.", 422);
+		}
+		assignExtrasMutably(documents, publicityRestrictions, dataOrigin);
 
-		const documentSample = firstFromNonEmptyArr(documents);
-		const form = await this.formsService.get(documentSample.formID);
+		// DocumentsBatchService has already validated that all documents are for the same form.
+		const sample = firstFromNonEmptyArr(documents);
+		const form = await this.formsService.get(sample.formID);
 		if (form.options?.secondaryCopy) {
 			return this.sendToWarehouse(job, documents as unknown as PopulatedSecondaryDocumentOperation[]);
 		} else {
@@ -92,11 +99,10 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 			}
 			await job.updateProgress(progress);
 			await this.flushDocumentsCache(sentDocuments, docsWithNamedPlace);
-			void this.cache.del(getDocumentsCacheKey(job.id!, personID));
 			return [];
 		} catch (e) {
 			await job.updateProgress(total);
-			void this.cache.del(getDocumentsCacheKey(job.id!, personID));
+			await this.cache.del(getDocumentsCacheKey(job.id!, personID));
 
 			if (
 				e.response?.data
@@ -116,6 +122,8 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 					new PreTranslatedDetailsValidationException({ "": [message] })
 				);
 			}
+		} finally {
+			await this.cache.del(getDocumentsCacheKey(job.id!, personID));
 		}
 	}
 
@@ -144,4 +152,34 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 			await this.documentsService.store.flushCache({ namedPlaceID, gatherings: [{ }] });
 		}
 	}
+
+	getJobDocuments(
+		id: string,
+		personID: string
+	): Promise<(Populated<Document> | PopulatedSecondaryDocumentOperation)[]>
+	{
+		return this.cache.lRange(getDocumentsCacheKey(id, personID), 0, -1);
+	}
 }
+
+const assignExtrasMutably = (
+	documents: (Populated<Document> | PopulatedSecondaryDocumentOperation)[],
+	publicityRestrictions?: PublicityRestrictions,
+	dataOrigin?: DataOrigin
+) => {
+	if (!publicityRestrictions && !dataOrigin) {
+		return documents;
+	}
+	documents.forEach(document => {
+		if (isSecondaryDocumentDelete(document)) {
+			return;
+		}
+		if (dataOrigin) {
+			document.dataOrigin = [dataOrigin];
+		}
+		if (publicityRestrictions) {
+			document.publicityRestrictions = publicityRestrictions;
+		}
+	});
+	return documents;
+};

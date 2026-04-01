@@ -234,12 +234,17 @@ export class StatisticsResponse {
 	dateMedian: string;
 }
 
-export type JobPayload = {
+export type ValidationJobPayload = {
 	personID: string;
 	systemID: string;
 	lang: Lang;
 	total: number;
 	step: BatchJobStep;
+}
+
+export type SendJobPayload = ValidationJobPayload & {
+	dataOrigin?: DataOrigin;
+	publicityRestrictions?: PublicityRestrictions;
 }
 
 export type JobResult = (ValidationExceptionBase | null)[];

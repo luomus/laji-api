@@ -43,4 +43,20 @@ export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 			await this.client.unlink(key);
 		}
 	}
+
+	async rPush(key: string, value: unknown) {
+		return this.client.rPush(key, JSON.stringify(value));
+	}
+
+	lLen(key: string) {
+		return this.client.lLen(key);
+	}
+
+	async lRange(key: string, start: number, stop: number) {
+		return (await this.client.lRange(key, start, stop)).map(item => JSON.parse(item));
+	}
+
+	async lSet(key: string, index: number, element: unknown) {
+		return this.client.lSet(key, index, JSON.stringify(element));
+	}
 }

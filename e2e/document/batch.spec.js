@@ -65,7 +65,7 @@ describe("/documents/batch", function() {
 			res.body.should.have.property("errors");
 		});
 
-		it("job status can be followed during background validation, and it doesn't contain documents but contains errors while it's processing", async function() {
+		it("job status can be followed during background validation, and it contains errors while it's processing", async function() {
 			if (!id) {
 				this.skip();
 			}
@@ -81,12 +81,12 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
+				console.log(res.body);
 				res.body.should.have.property("phase").to.eql("VALIDATING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
 				res.body.status.should.have.property("total").eql(documents.length);
 				res.body.status.should.have.property("percentage");
-				res.body.should.not.have.property("documents");
 				res.body.should.have.property("errors");
 				await new Promise(resolve => setTimeout(resolve, 500));
 			}
