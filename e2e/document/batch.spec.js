@@ -81,7 +81,6 @@ describe("/documents/batch", function() {
 				}
 
 				res.should.have.status(200);
-				console.log(res.body);
 				res.body.should.have.property("phase").to.eql("VALIDATING");
 				res.body.should.have.property("status");
 				res.body.status.should.have.property("processed");
