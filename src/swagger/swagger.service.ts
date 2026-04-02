@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { CACHE_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, promisePipe,
+import { MS_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, promisePipe,
 	updateWithJSONPointer, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
@@ -56,7 +56,7 @@ export class SwaggerService {
 		this.getLajiBackendSwaggerDoc = this.getLajiBackendSwaggerDoc.bind(this);
 	}
 
-	@Interval(CACHE_30_MIN)
+	@Interval(MS_30_MIN)
 	async warmup() {
 		try {
 			await this.getStoreSwaggerDoc();
@@ -72,14 +72,14 @@ export class SwaggerService {
 	}
 
 	async getStoreSwaggerDoc() {
-		return this.storeClient.get<OpenAPIObject>("documentation-json", undefined, { cache: CACHE_30_MIN });
+		return this.storeClient.get<OpenAPIObject>("documentation-json", undefined, { cache: MS_30_MIN });
 	}
 
 	getLajiBackendSwaggerDoc() {
 		return this.globalClient.get<OpenAPIObject>(
 			`${this.config.get("LAJI_BACKEND_HOST")}/openapi-v3.json`,
 			undefined,
-			{ cache: CACHE_30_MIN }
+			{ cache: MS_30_MIN }
 		);
 	}
 

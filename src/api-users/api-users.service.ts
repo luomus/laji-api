@@ -4,7 +4,7 @@ import { ApiUserEntity } from "./api-user.entity";
 import { Repository } from "typeorm";
 import { MailService } from "src/mail/mail.service";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CACHE_30_MIN, ErrorCodeException, uuid } from "src/utils";
+import { MS_30_MIN, ErrorCodeException, uuid } from "src/utils";
 import { IntelligentInMemoryCache, clearMemoization } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { RedisMemoize, clearRedisMemoization } from "src/decorators/redis-memoize.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
@@ -23,8 +23,8 @@ export class ApiUsersService {
 	) { }
 
 	// Cached in app memory for optimal performance and in redis for reboot survival.
-	@IntelligentMemoize({ maxAge: CACHE_30_MIN })
-	@RedisMemoize(CACHE_30_MIN)
+	@IntelligentMemoize({ maxAge: MS_30_MIN })
+	@RedisMemoize(MS_30_MIN)
 	async getByAccessToken(accessToken: string): Promise<ApiUserEntity> {
 		const apiUser = await this.apiUserRepository.findOneBy({ accessToken });
 
@@ -35,7 +35,7 @@ export class ApiUsersService {
 		return apiUser;
 	}
 
-	@RedisMemoize(CACHE_30_MIN)
+	@RedisMemoize(MS_30_MIN)
 	async getBySystemID(systemID: string): Promise<ApiUserEntity> {
 		const apiUser = await this.apiUserRepository.findOneBy({ systemID });
 

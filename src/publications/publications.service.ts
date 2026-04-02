@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { CACHE_30_MIN } from "src/utils";
+import { MS_30_MIN } from "src/utils";
 
 @Injectable()
 export class PublicationsService {
@@ -9,6 +9,6 @@ export class PublicationsService {
 	) { }
 
 	get(id: string) {
-		return this.triplestoreService.get(id, { cache: CACHE_30_MIN }, "MP.publication");
+		return this.triplestoreService.get(id, { cache: MS_30_MIN }, "MP.publication");
 	}
 }

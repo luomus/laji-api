@@ -6,7 +6,7 @@ import { NotificationsService } from "src/notifications/notifications.service";
 import { Person, Role } from "src/persons/person.dto";
 import { StoreService } from "src/store/store.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { CACHE_10_MIN, LocalizedException } from "src/utils";
+import { MS_10_MIN, LocalizedException } from "src/utils";
 import { WarehouseService } from "src/warehouse/warehouse.service";
 import * as translations from "src/translations.json";
 
@@ -154,7 +154,7 @@ export class AnnotationsService {
 	}
 
 	getTags() {
-		return this.triplestoreService.find<Tag>({ type: "MMAN.tagClass" }, { cache: CACHE_10_MIN });
+		return this.triplestoreService.find<Tag>({ type: "MMAN.tagClass" }, { cache: MS_10_MIN });
 	}
 }
 

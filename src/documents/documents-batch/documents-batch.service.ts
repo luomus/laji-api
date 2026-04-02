@@ -18,7 +18,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Job, Queue } from "bullmq";
 import { getValidSystemID } from "src/documents/documents.service";
 
-const ONE_HOUR_S = 3600;
+const S_ONE_DAY = 3600 * 24;
 
 const nonNumericUUID = () => {
 	let id = uuid(6);
@@ -66,7 +66,7 @@ export class DocumentsBatchService {
 			systemID,
 			lang,
 			step: BatchJobStep.validate
-		}, { jobId, lifo: true, removeOnComplete: { age: ONE_HOUR_S * 24 }, removeOnFail: true });
+		}, { jobId, lifo: true, removeOnComplete: { age: S_ONE_DAY }, removeOnFail: true });
 
 		return exposeJobStatus(job as any, lang);
 	}

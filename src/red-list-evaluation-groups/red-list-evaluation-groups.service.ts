@@ -8,9 +8,9 @@ import { LangService } from "src/lang/lang.service";
 import { LangPreference } from "src/lang/lang.utils";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { WithNonNullableKeys, omitForKeys } from "src/typing.utils";
-import { CACHE_10_MIN, dictionarifyByKey, firstFromNonEmptyArr, promisePipe } from "src/utils";
+import { MS_10_MIN, dictionarifyByKey, firstFromNonEmptyArr, promisePipe } from "src/utils";
 
-const CACHE_TTL = CACHE_10_MIN;
+const CACHE_TTL = MS_10_MIN;
 
 type RedListEvaluationGroup = WithNonNullableKeys<_IucnRedListTaxonGroup, "id" | "@context">
 

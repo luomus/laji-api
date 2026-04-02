@@ -11,7 +11,7 @@ import { StoreClientModule } from "src/store/store-client/store-client.module";
 import { StoreService } from "src/store/store.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { NamedPlace } from "./named-places.dto";
-import { CACHE_1_H } from "src/utils";
+import { MS_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { MailModule } from "src/mail/mail.module";
 import { STORE_CLIENT } from "src/provider-tokens";
@@ -23,7 +23,7 @@ const StoreResourceService: FactoryProvider<StoreService<NamedPlace>> = {
 			resource: "namedPlace",
 			serializeInto: NamedPlace,
 			cache: {
-				ttl: CACHE_1_H * 6,
+				ttl: MS_1_H * 6,
 				keys: [...AllowedPageQueryKeys, "owners", "editors"],
 				primaryKeySpaces: [
 					["collectionID"],

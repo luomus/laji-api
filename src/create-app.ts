@@ -9,7 +9,7 @@ import { LogLevel, Logger, NestApplicationOptions, VersioningType } from "@nestj
 import { ConsoleLoggerService } from "./console-logger/console-logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
-import { CACHE_30_MIN, joinOnlyStrings } from "./utils";
+import { MS_30_MIN, joinOnlyStrings } from "./utils";
 import { RedisCacheService } from "./redis-cache/redis-cache.service";
 import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
@@ -168,7 +168,7 @@ export async function createApp(useLogger = true) {
 		} catch (e) {
 			logger.error("Patching swagger failed!");
 		}
-	}, CACHE_30_MIN);
+	}, MS_30_MIN);
 
 	// Redirect from / to /openapi is done by AppController.
 	SwaggerModule.setup("openapi", app, () => patchedDocument, {

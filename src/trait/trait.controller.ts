@@ -8,7 +8,7 @@ import { HttpService } from "@nestjs/axios";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
-import { CACHE_30_MIN } from "src/utils";
+import { MS_30_MIN } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 
 @RemoteSwaggerMerge("trait")
@@ -56,7 +56,7 @@ export class TraitController implements MergesRemoteSwagger {
 	}
 
 	fetchSwagger() {
-		return this.traitClient.get<OpenAPIObject>("openapi-v3.json", undefined, { cache: CACHE_30_MIN });
+		return this.traitClient.get<OpenAPIObject>("openapi-v3.json", undefined, { cache: MS_30_MIN });
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {

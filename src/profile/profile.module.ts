@@ -7,7 +7,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { Profile } from "./profile.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { STORE_CLIENT } from "src/provider-tokens";
-import { CACHE_10_MIN } from "src/utils";
+import { MS_10_MIN } from "src/utils";
 
 const StoreResourceService: FactoryProvider<StoreService<Profile>> = {
 	provide: "STORE_RESOURCE_SERVICE",
@@ -16,7 +16,7 @@ const StoreResourceService: FactoryProvider<StoreService<Profile>> = {
 			resource: "profile",
 			serializeInto: Profile,
 			cache: {
-				ttl: CACHE_10_MIN,
+				ttl: MS_10_MIN,
 				keys: ["userID"]
 			}
 		}),

@@ -4,7 +4,7 @@ import { PersonTokenService } from "src/authentication-event/authentication-even
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { CACHE_1_D, CACHE_5_MIN, LocalizedException, promisePipe } from "src/utils";
+import { MS_1_D, MS_5_MIN, LocalizedException, promisePipe } from "src/utils";
 import { PersonTokenInfo } from "src/authentication-event/authentication-event.dto";
 
 @Injectable()
@@ -37,7 +37,7 @@ export class PersonsService {
 		return promisePipe(
 			serializeInto(Person),
 			decoratePerson
-		)(this.triplestoreService.get(id, { cache: CACHE_5_MIN }));
+		)(this.triplestoreService.get(id, { cache: MS_5_MIN }));
 	}
 
 	async checkExistsByEmail(email: string) {
@@ -45,7 +45,7 @@ export class PersonsService {
 			type: "MA.person",
 			predicate: "MA.emailAddress",
 			object: email
-		}, { cache: CACHE_5_MIN });
+		}, { cache: MS_5_MIN });
 
 		if (persons === 0) {
 			throw new HttpException("Account not found", 404);
@@ -60,14 +60,14 @@ export class PersonsService {
 	findByIds(ids: string[]) {
 		return this.triplestoreService.find<Person>(
 			{ type: "MA.person", subject: ids.join(",") },
-			{ cache: CACHE_5_MIN }
+			{ cache: MS_5_MIN }
 		);
 	}
 
 	getAll() {
 		return this.triplestoreService.find<Person>(
 			{ type: "MA.person" },
-			{ cache: CACHE_1_D }
+			{ cache: MS_1_D }
 		);
 	}
 }

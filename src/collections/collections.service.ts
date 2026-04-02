@@ -4,7 +4,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { Collection, GbifCollectionResult, GbifContact, MetadataStatus, TriplestoreCollection } from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
-import { CACHE_10_MIN, joinOnlyStrings } from "src/utils";
+import { MS_10_MIN, joinOnlyStrings } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { GLOBAL_CLIENT } from "src/provider-tokens";
@@ -29,7 +29,7 @@ export class CollectionsService {
 		private config: ConfigService
 	) { }
 
-	@Interval(CACHE_10_MIN)
+	@Interval(MS_10_MIN)
 	async warmup() {
 		await this.getIdToChildren();
 	}
@@ -127,7 +127,7 @@ export class CollectionsService {
 	private async getTriplestoreCollections(): Promise<Collection[]> {
 		const collections = await this.triplestoreService.find<TriplestoreCollection>(
 			{ type: "MY.collection" },
-			{ cache: CACHE_10_MIN }
+			{ cache: MS_10_MIN }
 		);
 		const collectionIdToChildIds: Record<string, string[]> = {};
 		function putToCollectionTree(collection: TriplestoreCollection) {
@@ -174,7 +174,7 @@ export class CollectionsService {
 		const gbifCollections = await this.globalClient.get<GbifCollectionResult>(
 			`${this.config.get<string>("GBIF_HOST")}/installation/92a00840-efe1-4b82-9a1d-c655b34c8fce/dataset`,
 			{ params: { limit: 1000 } },
-			{ cache: CACHE_10_MIN }
+			{ cache: MS_10_MIN }
 		);
 		return gbifCollections.results.map(collection => {
 			const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;

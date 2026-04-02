@@ -5,7 +5,7 @@ import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { of } from "rxjs";
 import { JSONSerializable } from "src/typing.utils";
 import { AxiosResponse } from "axios";
-import { CACHE_1_D } from "src/utils";
+import { MS_1_D } from "src/utils";
 
 const mockAxiosOkResponse = (data: JSONSerializable) => of({ data } as AxiosResponse);
 
@@ -19,7 +19,7 @@ describe("RestClientService", () => {
 			const config: RestClientConfig<unknown> = {
 				name: "TestClient",
 				host: "http://localhost",
-				cache: CACHE_1_D
+				cache: MS_1_D
 			};
 
 			beforeEach(async () => {
@@ -200,7 +200,7 @@ describe("RestClientService", () => {
 			const config: RestClientConfig<unknown> = {
 				name: "TestClient",
 				host: "http://localhost",
-				cache: CACHE_1_D
+				cache: MS_1_D
 			};
 
 			beforeEach(async () => {

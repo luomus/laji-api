@@ -3,7 +3,7 @@ import { Interval } from "@nestjs/schedule";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
+import { MS_30_MIN, dictionarifyByKey } from "src/utils";
 import { Checklist } from "./checklist.dto";
 
 @Injectable()
@@ -13,7 +13,7 @@ export class ChecklistService {
 		@Inject("TRIPLESTORE_READONLY_SERVICE") private triplestoreService: TriplestoreService,
 	) { }
 
-	@Interval(CACHE_30_MIN)
+	@Interval(MS_30_MIN)
 	async warmup() {
 		await this.getAllDict();
 	}
@@ -40,7 +40,7 @@ export class ChecklistService {
 			type: "MR.checklist",
 			predicate: "MR.isPublic",
 			objectliteral: true
-		}, { cache: CACHE_30_MIN });
+		}, { cache: MS_30_MIN });
 	}
 
 	@IntelligentMemoize()

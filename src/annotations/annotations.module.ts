@@ -7,7 +7,7 @@ import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { STORE_CLIENT } from "src/provider-tokens";
 import { StoreService } from "src/store/store.service";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { CACHE_10_MIN } from "src/utils";
+import { MS_10_MIN } from "src/utils";
 import { TriplestoreReadonlyModule } from "src/triplestore/triplestore-readonly.module";
 import { FormPermissionsModule } from "src/form-permissions/form-permissions.module";
 import { NotificationsModule } from "src/notifications/notifications.module";
@@ -19,7 +19,7 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 		new StoreService(client, cache, {
 			resource: "annotation",
 			cache: {
-				ttl: CACHE_10_MIN,
+				ttl: MS_10_MIN,
 				keys: ["rootID"],
 				primaryKeys: ["rootID"]
 			}

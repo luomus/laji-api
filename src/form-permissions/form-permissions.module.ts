@@ -7,7 +7,7 @@ import { FormPermissionsService } from "./form-permissions.service";
 import { StoreClientModule } from "src/store/store-client/store-client.module";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { StoreService } from "src/store/store.service";
-import { CACHE_1_H } from "src/utils";
+import { MS_1_H } from "src/utils";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { STORE_CLIENT } from "src/provider-tokens";
 import { FormPermissionsController } from "./form-permissions.controller";
@@ -17,7 +17,7 @@ const StoreResourceService: FactoryProvider<StoreService<never>> = {
 	useFactory: (client: RestClientService<never>, cache: RedisCacheService) =>
 		new StoreService(client, cache, {
 			resource: "formPermissionSingle",
-			cache: { ttl: CACHE_1_H,
+			cache: { ttl: MS_1_H,
 				keys: ["collectionID", "userID"],
 				primaryKeySpaces: [
 					["userID"],

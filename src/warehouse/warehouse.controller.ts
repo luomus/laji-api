@@ -10,7 +10,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { JSONSerializable } from "src/typing.utils";
 import { WAREHOUSE_CLIENT } from "src/provider-tokens";
 import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
-import { CACHE_30_MIN } from "src/utils";
+import { MS_30_MIN } from "src/utils";
 
 @RemoteSwaggerMerge("warehouse")
 export class WarehouseController implements MergesRemoteSwagger {
@@ -49,7 +49,7 @@ export class WarehouseController implements MergesRemoteSwagger {
 	}
 
 	fetchSwagger() {
-		return this.warehouseClient.get<OpenAPIObject>("openapi-v3.json", undefined, { cache: CACHE_30_MIN });
+		return this.warehouseClient.get<OpenAPIObject>("openapi-v3.json", undefined, { cache: MS_30_MIN });
 	}
 
 	patchSwagger(document: OpenAPIObject, remoteDoc: OpenAPIObject) {

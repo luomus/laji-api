@@ -13,7 +13,7 @@ import { CollectionsModule } from "src/collections/collections.module";
 import { WarehouseModule } from "src/warehouse/warehouse.module";
 import { NamedPlacesModule } from "src/named-places/named-places.module";
 import { PrepopulatedDocumentModule } from "src/named-places/prepopulated-document/prepopulated-document.module";
-import { CACHE_10_MIN } from "src/utils";
+import { MS_10_MIN } from "src/utils";
 import { SecondaryDocumentsService } from "./secondary-documents.service";
 import { DocumentValidatorModule } from "./document-validator/document-validator.module";
 import { DocumentsBatchService } from "./documents-batch/documents-batch.service";
@@ -25,7 +25,7 @@ import { ApiUsersModule } from "src/api-users/api-users.module";
 export const documentsStoreConfig: StoreConfig<DocumentQuery> = {
 	resource: "document",
 	cache: {
-		ttl: CACHE_10_MIN,
+		ttl: MS_10_MIN,
 		keys: documentQueryKeys,
 		primaryKeySpaces: [
 			["collectionID", "isTemplate"],

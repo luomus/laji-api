@@ -5,7 +5,7 @@ import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-c
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { RemoteContextual } from "src/typing.utils";
-import { CACHE_1_H, dictionarifyByKey } from "src/utils";
+import { MS_1_H, dictionarifyByKey } from "src/utils";
 
 @Injectable()
 @IntelligentInMemoryCache()
@@ -13,7 +13,7 @@ export class OrganizationsService {
 
 	constructor(private triplestoreService: TriplestoreService) { }
 
-	@Interval(CACHE_1_H)
+	@Interval(MS_1_H)
 	async warmup() {
 		await this.getAllDict();
 	}
@@ -28,7 +28,7 @@ export class OrganizationsService {
 
 	@IntelligentMemoize()
 	getAll() {
-		return this.triplestoreService.find<Organization>({ type: "MOS.organization" }, { cache: CACHE_1_H });
+		return this.triplestoreService.find<Organization>({ type: "MOS.organization" }, { cache: MS_1_H });
 	}
 
 	@IntelligentMemoize()

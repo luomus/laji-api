@@ -4,7 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { fixRequestBodyAndAuthHeader } from "src/proxy-to-old-api/fix-request-body-and-auth-header";
 import { NextFunction, Request, Response } from "express";
-import { CACHE_30_MIN } from "src/utils";
+import { MS_30_MIN } from "src/utils";
 import { MergesRemoteSwagger, RemoteSwaggerMerge, patchSwaggerWith }
 	from "src/decorators/remote-swagger-merge.decorator";
 import { RestClientService } from "src/rest-client/rest-client.service";
@@ -55,7 +55,7 @@ export class GeoConvertController implements MergesRemoteSwagger {
 		return this.globalClient.get<OpenAPIObject>(
 			`${this.config.get<string>("GEOCONVERT_HOST")}/openapi.json`,
 			undefined,
-			{ cache: CACHE_30_MIN }
+			{ cache: MS_30_MIN }
 		);
 	}
 

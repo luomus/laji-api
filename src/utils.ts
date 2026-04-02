@@ -3,13 +3,13 @@ import * as crypto from "crypto";
 import { JSONObjectSerializable, MaybePromise } from "src/typing.utils";
 import * as translations from "src/translations.json";
 
-export const CACHE_1_SEC = 1000;
-export const CACHE_1_MIN = CACHE_1_SEC * 60;
-export const CACHE_5_MIN = 1000 * 60 * 5;
-export const CACHE_10_MIN = CACHE_1_MIN * 10;
-export const CACHE_30_MIN = CACHE_1_MIN * 30;
-export const CACHE_1_H = CACHE_1_MIN * 60;
-export const CACHE_1_D = CACHE_1_H * 24;
+export const MS_1_SEC = 1000;
+export const MS_1_MIN = MS_1_SEC * 60;
+export const MS_5_MIN = 1000 * 60 * 5;
+export const MS_10_MIN = MS_1_MIN * 10;
+export const MS_30_MIN = MS_1_MIN * 30;
+export const MS_1_H = MS_1_MIN * 60;
+export const MS_1_D = MS_1_H * 24;
 
 type Op<T, R> = {
 	(value: T): R;

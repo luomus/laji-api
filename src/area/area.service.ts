@@ -1,12 +1,12 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { CACHE_30_MIN, dictionarifyByKey } from "src/utils";
+import { MS_30_MIN, dictionarifyByKey } from "src/utils";
 import { Interval } from "@nestjs/schedule";
 import { Area, AreaTypeDto } from "./area.dto";
 import { IntelligentMemoize } from "../decorators/intelligent-memoize.decorator";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 
-const CACHE_TTL = CACHE_30_MIN;
+const CACHE_TTL = MS_30_MIN;
 
 @Injectable()
 @IntelligentInMemoryCache()
