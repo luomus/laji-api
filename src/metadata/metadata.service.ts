@@ -10,6 +10,8 @@ import { LangService } from "src/lang/lang.service";
 import { omit } from "src/typing.utils";
 import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
 import { LangPreference } from "src/lang/lang.utils";
+import { clearMemoization } from "src/decorators/intelligent-in-memory-cache.decorator";
+import { Interval } from "@nestjs/schedule";
 
 export type ClassProperties = { [ propertyName: string ]: Property };
 type DomainsToClassProperties = { [domain: string]: ClassProperties };
@@ -23,6 +25,11 @@ export class MetadataService {
 		private cache: RedisCacheService,
 		private langService: LangService
 	) {}
+
+	@Interval(MS_30_MIN)
+	clearMemoization() {
+		clearMemoization(this);
+	}
 
 	/** Get all properties */
 	@RedisMemoize(MS_30_MIN)
@@ -82,8 +89,8 @@ export class MetadataService {
 		return dictionarifyByKey(await this.getProperties(), "property");
 	}
 
-	async getClassProperties(clasclassName: string) {
-		const clazz = await this.getClass(clasclassName);
+	async getClassProperties(className: string) {
+		const clazz = await this.getClass(className);
 		const domain = clazz.class;
 		const properties = (await this.getDomainToProperties())[domain];
 		if (!properties) {
