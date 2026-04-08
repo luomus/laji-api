@@ -6,7 +6,7 @@ const inflight = new Map<string, Promise<any>>();
  * Memoizes the method in Redis with in-flight deduplication. Use `clearRedisMemoization()` to clear all instance's
  * memoized methods.
  */
-export function RedisMemoize(ttl?: number) {
+export function RedisMemoize(ttlMs?: number) {
 	return function (target: any, key: PropertyKey, descriptor: PropertyDescriptor) {
 		const originalMethod = descriptor.value;
 
@@ -31,7 +31,7 @@ export function RedisMemoize(ttl?: number) {
 
 				try {
 					const result = await originalMethod.apply(this, args);
-					await this.cache.set(redisKey, result, ttl);
+					await this.cache.set(redisKey, result, ttlMs);
 					return result;
 				} finally {
 					inflight.delete(redisKey);

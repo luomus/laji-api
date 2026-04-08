@@ -30,8 +30,8 @@ export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 		return JSON.parse(await this.client.get(key) as string) as Promise<T | null>;
 	}
 
-	set(key: string, value: unknown, ttl?: number) {
-		return this.client.set(key, JSON.stringify(value), ttl !== undefined ? { PX: ttl } : undefined);
+	set(key: string, value: unknown, ttlMs?: number) {
+		return this.client.set(key, JSON.stringify(value), ttlMs !== undefined ? { PX: ttlMs } : undefined);
 	}
 
 	del(key: string) {

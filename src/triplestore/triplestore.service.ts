@@ -115,7 +115,7 @@ export class TriplestoreService {
 		cacheKey: string,
 		options?: TriplestoreQueryOptions
 	): Promise<T> {
-		const jsonld = await promisePipe(triplestoreToJsonLd)(rdf);
+		const jsonld = triplestoreToJsonLd(await rdf);
 		const isArrayResult = Array.isArray(jsonld["@graph"]);
 		if (isArrayResult && (jsonld["@graph"] as any).length === 0) {
 			return [] as T;
@@ -162,7 +162,7 @@ const getPathAndQuery = (resource: string, query?: TriplestoreSearchQuery, type?
 	return resource + type + JSON.stringify(query || {});
 };
 
-const triplestoreToJsonLd = (rdf: JSONSerializable): Promise<NodeObject> => {
+const triplestoreToJsonLd = (rdf: JSONSerializable): NodeObject => {
 	const rdfStore = graph();
 	parse(rdf as any, rdfStore, BASE_URL, "application/rdf+xml");
 	const jsonld = serialize(null, rdfStore, BASE_URL, "application/ld+json");
