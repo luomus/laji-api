@@ -16,7 +16,6 @@ export class NamedPlace extends OmitType(NamedPlaceClass, ["geometry", "prepopul
 	editors: string[] = [];
 
 	prepopulatedDocument?: Document;
-	acceptedDocument?: Document;
 }
 
 class GatheringUnitsFiltered {
@@ -29,7 +28,6 @@ class DocumentUnitsFiltered {
 
 export class NamedPlaceUnitsFiltered {
 	@Type(() => DocumentUnitsFiltered) prepopulatedDocument?: DocumentUnitsFiltered;
-	@Type(() => DocumentUnitsFiltered) acceptedDocument?: DocumentUnitsFiltered;
 }
 
 export class GetNamedPlacePageDto extends IntersectionType(
