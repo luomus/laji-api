@@ -423,11 +423,14 @@ export class DocumentsService {
 	}
 
 	private async checkHasReadRightsTo(document: Document, person: Person) {
+		if (person.isImporter()) {
+			return;
+		}
 		if (document.isTemplate && document.creator !== person.id) {
 			throw new HttpException("Cannot access someone elses template", 403);
 		}
 
-		if (document.creator === person.id || document.editors?.includes(person.id) || person.isImporter()) {
+		if (document.creator === person.id || document.editors?.includes(person.id)) {
 			return;
 		}
 
