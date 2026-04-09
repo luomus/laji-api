@@ -394,11 +394,11 @@ export class DocumentsService {
 				!person.isImporter() && !permissions?.admins.includes(person.id)
 				&& (!viewableForAll || !permissions?.editors.includes(person.id))
 			) {
-				storeQuery = and(storeQuery, editorOrCreatorClause(person));
+				storeQuery = and(storeQuery, editorOrCreatorClause(person, !!isTemplate));
 				cacheConfig = { enabled: false };
 			}
 		} else {
-			storeQuery = and(storeQuery, editorOrCreatorClause(person));
+			storeQuery = and(storeQuery, editorOrCreatorClause(person, !!isTemplate));
 			cacheConfig = { enabled: false };
 		}
 
@@ -508,7 +508,6 @@ export class DocumentsService {
 		}
 		throw new HttpException("You are not owner or editor of this document", 403);
 	}
-
 }
 
 const getDateCounted = (document: Pick<Document, "gatheringEvent" | "gatherings">): Date | undefined => {
@@ -546,7 +545,10 @@ const dateRangeClause = (dateRange: { from: string, to: string }) =>
 		})
 	);
 
-const editorOrCreatorClause = (person: Person) => or({ creator: person.id, editors: person.id });
+const editorOrCreatorClause = (person: Person, isTemplate: boolean) =>
+	isTemplate
+		? { creator: person.id }
+		: or({ creator: person.id, editors: person.id });
 
 export const populateCreatorAndEditorMutably = <T extends { creator?: string; editor?: string }>
 	(document: T, person: Person): T => {
