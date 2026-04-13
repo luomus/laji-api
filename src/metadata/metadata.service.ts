@@ -46,7 +46,8 @@ export class MetadataService {
 								? (property as any).range[0]
 								: "rdf:Resource";
 							return property;
-						})
+						}),
+					cache: 0
 				}
 			),
 			...MAGIC_PROPERTIES

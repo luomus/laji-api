@@ -372,7 +372,7 @@ export class DocumentsService {
 		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Document[prop]>},
 		person: Person,
 		observationYear?: number,
-	): Promise<[Query<DocumentQuery>, QueryCacheOptions<DocumentQuery>]>  {
+	): Promise<[Query<DocumentQuery>, QueryCacheOptions<DocumentQuery>]> {
 		// Allow simple search query terms as they are, but remove `isTemplate` & `collectionID` because they are added to
 		// the query with more complex logic.
 		const { collectionID, isTemplate } = query;
