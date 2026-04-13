@@ -26,15 +26,18 @@ export function RedisMemoize(ttlMs?: number) {
 			const promise = (async () => {
 				const cached = await this.cache.get(redisKey);
 				if (cached !== null && cached !== undefined) {
+					inflight.delete(redisKey);
 					return cached;
 				}
 
 				try {
 					const result = await originalMethod.apply(this, args);
 					await this.cache.set(redisKey, result, ttlMs);
-					return result;
-				} finally {
 					inflight.delete(redisKey);
+					return result;
+				} catch (e) {
+					inflight.delete(redisKey);
+					throw e;
 				}
 			})();
 
