@@ -1,6 +1,6 @@
 import { Delete, Get, Param, Version, Headers, HttpCode } from "@nestjs/common";
 import { ApiExcludeEndpoint, ApiTags } from "@nestjs/swagger";
-import { PersonTokenService } from "./authentication-event.service";
+import { AuthenticationEventService } from "./authentication-event.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { BypassPersonTokenInterceptor } from "./bypass-person-token-interceptor.decorator";
 
@@ -8,7 +8,7 @@ import { BypassPersonTokenInterceptor } from "./bypass-person-token-interceptor.
 @ApiTags("Authentication event")
 export class PersonTokenController {
 
-	constructor(private personTokenService: PersonTokenService) {}
+	constructor(private personTokenService: AuthenticationEventService) {}
 
 	@ApiExcludeEndpoint()
 	@Get(":personToken")

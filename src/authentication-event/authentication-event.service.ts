@@ -5,7 +5,7 @@ import { MS_1_SEC } from "src/utils";
 import { LAJI_AUTH_CLIENT } from "src/provider-tokens";
 
 @Injectable()
-export class PersonTokenService {
+export class AuthenticationEventService {
 
 	constructor(
 		@Inject(LAJI_AUTH_CLIENT) private lajiAuthClient: RestClientService<LajiAuthPersonGet>

@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PersonTokenService } from "src/authentication-event/authentication-event.service";
+import { AuthenticationEventService } from "src/authentication-event/authentication-event.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
 import { decoratePerson, Person, Role } from "./person.dto";
 import { serializeInto } from "src/serialization/serialization.utils";
@@ -11,7 +11,7 @@ import { PersonTokenInfo } from "src/authentication-event/authentication-event.d
 export class PersonsService {
 	constructor(
 		private configService: ConfigService,
-		private personTokenService: PersonTokenService,
+		private personTokenService: AuthenticationEventService,
 		private triplestoreService: TriplestoreService
 	) {}
 
