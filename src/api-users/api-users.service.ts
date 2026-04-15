@@ -72,6 +72,14 @@ export class ApiUsersService {
 		await this.clearCache();
 	}
 
+	async delete(accessToken: string) {
+		const apiUser = await this.apiUserRepository.findOneBy({ accessToken });
+		if (!apiUser) {
+			throw new HttpException("No api user found with the token", 404);
+		}
+		await this.apiUserRepository.delete(apiUser.id);
+	}
+
 	private clearCache() {
 		clearMemoization(this);
 		return clearRedisMemoization(this, this.cache);

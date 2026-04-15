@@ -1,4 +1,4 @@
-import { Body, Get, HttpException, Param, Post, Put, Query, UseGuards, UseInterceptors }
+import { Body, Delete, Get, HttpCode, HttpException, Param, Post, Put, Query, UseGuards, UseInterceptors }
 	from "@nestjs/common";
 import { ApiBody, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { ApiUsersService } from "./api-users.service";
@@ -55,5 +55,13 @@ export class ApiUsersController {
 			throw new HttpException("systemID is required", 400);
 		}
 		return this.apiUsersService.assignSystemID(email, systemID);
+	}
+
+	/** Delete API user by access token */
+	@Delete(":accessToken")
+	@BypassAccessTokenAuth()
+	@HttpCode(204)
+	delete(@Param("accessToken") accessToken: string) {
+		return this.apiUsersService.delete(accessToken);
 	}
 }
