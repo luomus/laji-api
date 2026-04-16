@@ -39,7 +39,7 @@ const parseLangPreference = (acceptLanguage?: string) => {
 	}
 	return acceptLanguage.split(",").reduce((langPreferences, langAndMaybeWeight) => {
 		const splitted = langAndMaybeWeight.split(";q=");
-		const lang = firstFromNonEmptyArr(splitted).replace(/-.+/, ""); // Rm region variants.
+		const lang = firstFromNonEmptyArr(splitted).replace(/-.+/, ""); // Rm region variants (en-US -> en).
 		const weight = Number(splitted[1] ?? "1");
 		if (![...LANGS_WITH_MULTI, "*"].includes(lang as any)) {
 			return langPreferences;
