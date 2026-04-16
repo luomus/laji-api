@@ -182,7 +182,7 @@ describe("/named-place", function() {
 		res.should.have.status(401);
 	});
 
-	it("returns list of public namespaces when access token is correct", async function() {
+	it("returns list of public named places when access token is correct", async function() {
 		this.timeout(5000);
 		const res = await apiRequest(this.server, { accessToken })
 			.get(url(basePath));

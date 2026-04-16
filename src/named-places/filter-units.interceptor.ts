@@ -3,8 +3,7 @@ import { Observable, switchMap } from "rxjs";
 import { FormsService } from "src/forms/forms.service";
 import { NamedPlace, NamedPlaceUnitsFiltered } from "./named-places.dto";
 import { serializeInto } from "src/serialization/serialization.utils";
-import { applyToResult } from "src/pagination.utils";
-import { firstFromNonEmptyArr } from "src/utils";
+import { applyToResult, getSampleFromResultLike } from "src/pagination.utils";
 
 @Injectable()
 export class FilterUnitsInterceptor implements NestInterceptor {
@@ -12,19 +11,19 @@ export class FilterUnitsInterceptor implements NestInterceptor {
 	constructor(private formsService: FormsService) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		return next.handle().pipe(switchMap(async (places: NamedPlace[]) => {
-			if (!places.length) {
-				return places;
+		return next.handle().pipe(switchMap(async (placesOrPlace: NamedPlace | NamedPlace[]) => {
+			const sample = getSampleFromResultLike(placesOrPlace);
+			if (!sample) {
+				return placesOrPlace;
 			}
-			const place = firstFromNonEmptyArr(places);
-			const includeUnits = place.collectionID
-				&& await this.formsService.findFor(place.collectionID,
+			const includeUnits = sample.collectionID
+				&& await this.formsService.findFor(sample.collectionID,
 					f => f.options.namedPlaceOptions?.includeUnits
 				);
 			if (includeUnits) {
-				return places;
+				return placesOrPlace;
 			}
-			return applyToResult(serializeInto(NamedPlaceUnitsFiltered))(places);
+			return applyToResult(serializeInto(NamedPlaceUnitsFiltered))(placesOrPlace);
 		}));
 	}
 }
