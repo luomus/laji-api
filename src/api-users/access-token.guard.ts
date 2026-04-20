@@ -14,12 +14,12 @@ export class AccessTokenGuard implements CanActivate {
 	async canActivate(context: ExecutionContext) {
 		const request = context.switchToHttp().getRequest<Request>();
 		const bypass = this.reflector.get<boolean>("BypassAccessTokenAuth", context.getHandler());
-		if (bypass) {
-			return true;
-		}
 
 		const accessToken = findAccessTokenFromRequest(request);
 		if (typeof accessToken !== "string") {
+			if (bypass) {
+				return true;
+			}
 			throw new ErrorCodeException("ACCESS_TOKEN_MISSING", 401);
 		}
 		try {
