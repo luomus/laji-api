@@ -5,6 +5,7 @@ import { Request } from "src/request";
 import { Reflector } from "@nestjs/core";
 import { AuthenticationEventService } from "src/authentication-event/authentication-event.service";
 import { ErrorCodeException } from "src/utils";
+import { ConfigService } from "@nestjs/config";
 
 /**
  * Extracts a person from the request's person token, implanting the person object into the request object so it can be
@@ -16,7 +17,8 @@ export class PersonTokenInterceptor implements NestInterceptor {
 	constructor(
 		private personsService: PersonsService, 
 		private reflector: Reflector,
-		private authenticationEventService: AuthenticationEventService
+		private authenticationEventService: AuthenticationEventService,
+		private config: ConfigService
 	) {}
 
 	async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
@@ -28,11 +30,13 @@ export class PersonTokenInterceptor implements NestInterceptor {
 
 		const personToken = getPersonTokenFromRequest(request);
 		if (personToken && typeof personToken === "string") {
-			const authEvent = await this.authenticationEventService.getInfo(personToken);
-			if (request.apiUser?.systemID !== authEvent.target) {
-				const error = new ErrorCodeException("ACCESS_TOKEN_PERSON_TOKEN_MISMATCH", 401);
-				error.message = "The person token is for a different system than which the access token is for";
-				throw error;
+			if (personToken !== this.config.get("IMPORTER_TOKEN")) {
+				const authEvent = await this.authenticationEventService.getInfo(personToken);
+				if (request.apiUser?.systemID !== authEvent.target) {
+					const error = new ErrorCodeException("ACCESS_TOKEN_PERSON_TOKEN_MISMATCH", 401);
+					error.message = "The person token is for a different system than which the access token is for";
+					throw error;
+				}
 			}
 			(request as any).person = await this.personsService.getByToken(personToken);
 		}
