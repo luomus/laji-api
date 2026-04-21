@@ -11,15 +11,26 @@ import { swaggerResponseAsResultsArray, ResultsArray } from "src/interceptors/re
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 import { pipe } from "rxjs";
 import { idAlwaysPresent } from "src/collections/collections.controller";
-import { JSONSchemaRef } from "src/json-schema.utils";
-import { firstFromNonEmptyArr, asTuple } from "src/utils";
+import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
+import { firstFromNonEmptyArr, asTuple, parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { LangPreference } from "src/lang/lang.utils";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
+import { SchemaItem } from "src/swagger/swagger.service";
+import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
 	ref: "/iucnRedListTaxonGroup",
 	customizeResponseSchema: swaggerResponseAsResultsArray
+};
+
+const expandHasIucnSubGroup = ([schema, document]: [JSONSchemaRef, OpenAPIObject]) => {
+	const referredSchema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schema.$ref);
+
+	(referredSchema as JSONSchemaObject).properties!.hasIucnSubGroup = {
+		$ref: "#/components/schemas/IucnRedListTaxonGroupExpanded"
+	};
+	return [schema, document];
 };
 
 @ApiTags("Red List Evaluation Groups")
@@ -39,10 +50,12 @@ export class RedListEvaluationGroupsController {
 	@Get("tree")
 	@SwaggerRemote({
 		...fromStoreWithJSONLdContextFixed,
+		swaggerSchemaDefinitionName: "IucnRedListTaxonGroupExpanded",
 		customizeResponseSchema: (schema, document) => pipe(
 			idAlwaysPresent,
+			expandHasIucnSubGroup,
 			firstFromNonEmptyArr,
-			swaggerResponseAsResultsArray
+			swaggerResponseAsResultsArray,
 		)(asTuple(schema as JSONSchemaRef, document)),
 	})
 	async getTree(@RequestLang() langPreferences: LangPreference[]) {
