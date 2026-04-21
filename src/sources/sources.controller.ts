@@ -1,5 +1,5 @@
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
-import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdInAndSelectedFields } from "src/common.dto";
 import { SourcesService } from "./sources.service";
 import { Serialize } from "src/serialization/serialize.decorator";
 import { Source } from "./sources.dto";
@@ -7,6 +7,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Paginator } from "src/interceptors/paginator.interceptor";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 @ApiTags("Sources")
 @LajiApiController("sources")
@@ -23,9 +24,9 @@ export class SourcesController {
 
 	/** Get a source by id */
 	@Get()
-	@UseInterceptors(Translator, Paginator)
+	@UseInterceptors(Translator, SelectedFields, Paginator)
 	@Serialize(Source, { whitelist: ["id", "name", "description"] }, "SensitiveSource")
-	getPage(@Query() { idIn }: QueryWithPagingAndIdIn): Promise<Source[]> {
+	getPage(@Query() { idIn }: QueryWithPagingAndIdInAndSelectedFields): Promise<Source[]> {
 		return this.sourcesService.find(idIn);
 	}
 }

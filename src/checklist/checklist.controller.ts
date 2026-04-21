@@ -5,11 +5,12 @@ import { ChecklistService } from "./checklist.service";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
-import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdInAndSelectedFields } from "src/common.dto";
 import { idAlwaysPresent } from "src/collections/collections.controller";
 import { pipe } from "rxjs";
 import { JSONSchemaRef } from "src/json-schema.utils";
 import { firstFromNonEmptyArr, asTuple } from "src/utils";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 @ApiTags("Checklist")
 @LajiApiController("checklists")
@@ -34,9 +35,9 @@ export class ChecklistController {
 
 	/** Get a page of checklists */
 	@Get()
-	@UseInterceptors(Paginator, Translator)
+	@UseInterceptors(Translator, SelectedFields, Paginator)
 	@SwaggerRemote({ source: "store", ref: "/checklist" })
-	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
+	getPage(@Query() { idIn }: QueryWithPagingAndIdInAndSelectedFields) {
 		return this.checklistService.find(idIn);
 	}
 }

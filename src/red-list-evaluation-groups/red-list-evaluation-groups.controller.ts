@@ -5,7 +5,7 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { Translator } from "src/interceptors/translator.interceptor";
 import { SwaggerRemote, SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { Paginator } from "src/interceptors/paginator.interceptor";
-import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdInAndSelectedFields } from "src/common.dto";
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { swaggerResponseAsResultsArray, ResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
@@ -14,6 +14,7 @@ import { idAlwaysPresent } from "src/collections/collections.controller";
 import { JSONSchemaRef } from "src/json-schema.utils";
 import { firstFromNonEmptyArr, asTuple } from "src/utils";
 import { LangPreference } from "src/lang/lang.utils";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
@@ -28,9 +29,9 @@ export class RedListEvaluationGroupsController {
 
 	/** Get a page of red list evaluation groups */
 	@Get()
-	@UseInterceptors(Translator, Paginator)
+	@UseInterceptors(Translator, SelectedFields, Paginator)
 	@SwaggerRemote({ source: "store", ref: "/iucnRedListTaxonGroup" })
-	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
+	getPage(@Query() { idIn }: QueryWithPagingAndIdInAndSelectedFields) {
 		return this.redListEvaluationGroupsService.find(idIn);
 	}
 

@@ -2,7 +2,7 @@ import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { InformalTaxonGroupsService } from "./informal-taxon-groups.service";
-import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdInAndSelectedFields } from "src/common.dto";
 import { SwaggerRemote, SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
@@ -14,6 +14,7 @@ import { idAlwaysPresent } from "src/collections/collections.controller";
 import { JSONSchemaRef } from "src/json-schema.utils";
 import { asTuple, firstFromNonEmptyArr } from "src/utils";
 import { LangPreference } from "src/lang/lang.utils";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
@@ -29,7 +30,7 @@ export class InformalTaxonGroupsController {
 
 	/** Get a page of informal taxon groups */
 	@Get()
-	@UseInterceptors(Translator, Paginator)
+	@UseInterceptors(Translator, SelectedFields, Paginator)
 	@SwaggerRemote({
 		source: "store",
 		ref: "/informalTaxonGroup",
@@ -38,7 +39,7 @@ export class InformalTaxonGroupsController {
 			firstFromNonEmptyArr
 		)(asTuple(schema as JSONSchemaRef, document)),
 	})
-	getPage(@Query() { idIn }: QueryWithPagingAndIdIn) {
+	getPage(@Query() { idIn }: QueryWithPagingAndIdInAndSelectedFields) {
 		return this.informalTaxonGroupsService.find(idIn);
 	}
 

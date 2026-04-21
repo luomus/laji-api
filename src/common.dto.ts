@@ -30,6 +30,17 @@ export class QueryWithPagingAndIdIn extends IntersectionType(QueryWithPagingDto)
 	@CommaSeparatedStrings() idIn?: string[];
 }
 
+
+export class HasSelectedFields {
+	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
+	@CommaSeparatedStrings() selectedFields?: string[];
+}
+
+export class QueryWithPagingAndIdInAndSelectedFields extends IntersectionType(
+	QueryWithPagingAndIdIn,
+	HasSelectedFields
+) {};
+
 export const LANGS: Exclude<Lang, Lang.multi>[] = [Lang.fi, Lang.sv, Lang.en];
 export const LANGS_WITH_MULTI: Lang[] = [Lang.fi, Lang.sv, Lang.en, Lang.multi];
 
@@ -53,9 +64,3 @@ export type MultiLangAsString<T> = {
 	? MultiLangAsString<T[K]>
 	: T[K];
 };
-
-export class HasSelectedFields {
-	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
-	@CommaSeparatedStrings() selectedFields?: string[];
-}
-

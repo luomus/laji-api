@@ -1,6 +1,6 @@
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiOkResponse, ApiTags, OpenAPIObject } from "@nestjs/swagger";
-import { Collection, GetCollectionsDto } from "./collection.dto";
+import { Collection } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -8,7 +8,7 @@ import { CollectionMultiLangHackInterceptor } from "./collection-multi-lang-hack
 import { Paginator } from "src/interceptors/paginator.interceptor";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
-import { LANGS, QueryWithPagingAndIdIn, QueryWithPagingDto } from "src/common.dto";
+import { LANGS, QueryWithPagingAndIdInAndSelectedFields, QueryWithPagingDto } from "src/common.dto";
 import { omit } from "src/typing.utils";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
 import { asTuple, firstFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
@@ -75,7 +75,7 @@ export class CollectionsController {
 		)(asTuple(schema as JSONSchemaRef, document)),
 		swaggerSchemaDefinitionName: "SensitiveCollection"
 	})
-	async getPage(@Query() { idIn }: GetCollectionsDto) {
+	async getPage(@Query() { idIn }: QueryWithPagingAndIdInAndSelectedFields) {
 		return this.collectionsService.findCollections(idIn);
 	}
 

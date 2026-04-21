@@ -10,7 +10,8 @@ import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { PaginatedDto } from "src/pagination.dto";
-import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdInAndSelectedFields } from "src/common.dto";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 @LajiApiController("images")
 @ApiTags("Images")
@@ -48,9 +49,10 @@ export class ImagesController {
 
 	/** Get a page of images. Private/protected images aren't included. */
 	@Get()
-	@UseInterceptors(Serializer(Image))
+	@UseInterceptors(SelectedFields, Serializer(Image))
 	@ApiOkResponse({ type: ImagesPagedDto })
-	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdIn): Promise<PaginatedDto<Image>> {
+	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdInAndSelectedFields)
+		: Promise<PaginatedDto<Image>> {
 		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}
 

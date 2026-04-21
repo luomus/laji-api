@@ -9,8 +9,9 @@ import { LajiApiController } from "src/decorators/laji-api-controller.decorator"
 import { RequestPerson }from "src/decorators/request-person.decorator";
 import { Person } from "src/persons/person.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
-import { QueryWithPagingAndIdIn } from "src/common.dto";
+import { QueryWithPagingAndIdInAndSelectedFields } from "src/common.dto";
 import { PaginatedDto } from "src/pagination.dto";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 @LajiApiController("audio")
 @ApiTags("Audio")
@@ -50,9 +51,10 @@ export class AudioController {
 
 	/** Get a page of audio. Private/protected audio aren't included. */
 	@Get()
-	@UseInterceptors(Serializer(Audio))
+	@UseInterceptors(SelectedFields, Serializer(Audio))
 	@ApiOkResponse({ type: AudioPagedDto })
-	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdIn): Promise<PaginatedDto<Audio>> {
+	async getPage(@Query() { idIn, page, pageSize }: QueryWithPagingAndIdInAndSelectedFields)
+		: Promise<PaginatedDto<Audio>> {
 		return this.abstractMediaService.getPage(idIn, page, pageSize);
 	}
 
