@@ -1,5 +1,5 @@
-import { MultiLang, HasJsonLdContext } from "../common.dto";
-import { OmitType } from "@nestjs/swagger";
+import { MultiLang, HasJsonLdContext, HasSelectedFields, QueryWithPagingAndIdIn } from "../common.dto";
+import { IntersectionType, OmitType } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 
 export enum MetadataStatus {
@@ -104,3 +104,5 @@ export type GbifCollection = {
 export type GbifCollectionResult = {
 	results: GbifCollection[]
 }
+
+export class GetCollectionsDto extends IntersectionType(HasSelectedFields, QueryWithPagingAndIdIn) {}
