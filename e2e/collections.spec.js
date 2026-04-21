@@ -48,14 +48,14 @@ describe("/collections", function() {
 
 	it("returns children item with id", async function() {
 		const res = await apiRequest(this.server, { accessToken })
-			.get(`${basePath}/${collectionParentId}/children`);
+			.get(`${basePath}/HR.61/children`);
 		res.should.have.status(200);
 		helpers.isPagedResult(res.body);
 		res.body.results.filter((collection) => {
 			collection.should.not.have.keys(...excludedKeys);
-			collection.should.not.include({ id: collectionParentId });
+			collection.should.not.include({ id: "HR.173" }); // parent
 			collection.should.not.include({ id: collectionRootId });
-			return collection.id === collectionId;
+			return collection.id === "HR.2692";
 		}).should.have.lengthOf(1);
 		res.body.should.have.any.keys("@context");
 	});
