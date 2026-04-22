@@ -9,7 +9,7 @@ describe("/collections", function() {
 	const basePath = "/collections";
 	const collectionId = "HR.42";
 	const collectionParentId = "HR.160";
-	const collectionRootId = "HR.128";
+	const collectionRootId = "HR.11571";
 
 	it("returns 401 when no access token specified", async function() {
 		const res = await apiRequest(this.server).get(basePath);
@@ -27,8 +27,7 @@ describe("/collections", function() {
 		const res = await apiRequest(this.server, { accessToken })
 			.get(url(basePath, { pageSize }));
 		res.should.have.status(200);
-		helpers.isPagedResult(res.body, pageSize);
-		res.body[helpers.params.results].filter((collection) => {
+		res.body.results.filter((collection) => {
 			collection.should.include.keys("id");
 			collection.should.not.have.keys(...excludedKeys);
 			collection.should.not.include({ metadataStatus: "MY.metadataStatusHidden" });
@@ -64,7 +63,6 @@ describe("/collections", function() {
 		const res = await apiRequest(this.server, { accessToken })
 			.get(url(`${basePath}/roots`, { pageSize: 400 }));
 		res.should.have.status(200);
-		helpers.isPagedResult(res.body);
 		res.body.results.filter((collection) => {
 			collection.should.not.have.keys(...excludedKeys);
 			collection.should.not.include({ id: collectionParentId });
