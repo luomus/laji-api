@@ -79,6 +79,7 @@ export class RestClientService<T = unknown> {
 
 	private readonly logger = new Logger(joinOverflowWithRightSide(RestClientService.name, this.config.name));
 	private readonly hostAndPathToInFlightRequests = new Map<string, Map<string, Promise<any>>>();
+	private swrRefreshInProgress = new Set<string>();
 
 	constructor(
 		private readonly httpService: HttpService,
@@ -211,9 +212,12 @@ export class RestClientService<T = unknown> {
 			return createRequest();
 		}
 		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
-		if (!isFresh) {
-			createRequest().catch(e => {
+		if (!isFresh && !this.swrRefreshInProgress.has(url)) {
+			this.swrRefreshInProgress.add(url);
+			void createRequest().catch(e => {
 				this.logger.error("SWR background refresh failed", e);
+			}).finally(() => {
+				this.swrRefreshInProgress.delete(url);
 			});
 		}
 		return staleWhileRevalidateEntry.data;
