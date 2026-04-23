@@ -205,9 +205,9 @@
 		"fi": "Creator on pakollinen, kun käytetään importer tokenia"
 	},
 	"DOCUMENT_VALIDATION_MA_CODES_UNFAMILIAR": {
-		"en": "Observers and editors must be the author or a friend of the creator!",
-		"sv": "Observatörer och redaktörer måste vara författaren eller en vän till författaren!",
-		"fi": "Havainnoijien ja muokkaajien on oltava tekijän tai tekijän ystävän!"
+		"en": "You can only add people who are your friends as observers",
+		"sv": "Du kan endast lägga till personer som är dina vänner som observatörer",
+		"fi": "Voit lisätä havainnoijiksi vain henkilöitä, jotka ovat kavereitasi"
 	},
 	"DOCUMENT_VALIDATION_NAMED_PLACE_NOT_PART_OF_COLLECTION": {
 		"en": "Named place doesn't belong to the form's collection or its descendants.",
