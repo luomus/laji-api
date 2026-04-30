@@ -44,7 +44,7 @@ export class TaxaService {
 		const matches = (await this.search(query));
 		const [match] = matches;
 		if (!match) {
-			throw new HttpException("Taxon not found", 404);
+			throw new HttpException(`Taxon '${id}' not found`, 404);
 		}
 		return match;
 	}
