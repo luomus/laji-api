@@ -21,7 +21,7 @@ export class NamedPlacesController {
 		@Param("id") id: string,
 		@Query() { personID, until }: ReservationDto,
 		@RequestPerson() person: Person
-	) : Promise<NamedPlace> {
+	){
 		return this.namedPlacesService.reserve(id, person, personID, until);
 	}
 
