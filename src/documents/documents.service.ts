@@ -310,7 +310,7 @@ export class DocumentsService {
 			}
 			try {
 				await this.namedPlacesService.store.update(
-					await this.prepopulatedDocumentService.getAssigned(place, document)
+					{ ...place, prepopulatedDocument: document }
 				);
 			} catch (e) {
 				this.logger.error("Failed to update prepopulatedDocument.",

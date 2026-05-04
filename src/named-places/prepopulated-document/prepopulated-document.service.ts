@@ -27,7 +27,7 @@ export class PrepopulatedDocumentService {
 		const prepopulatedDocument = await this.getAugmentedFor(place);
 		if (prepopulatedDocument) {
 			await this.validate(prepopulatedDocument, place.collectionID);
-			return this.getAssigned(place, prepopulatedDocument);
+			return { ...place, prepopulatedDocument };
 		}
 		return place;
 	}
@@ -44,22 +44,6 @@ export class PrepopulatedDocumentService {
 		}
 		const strictFormSchemaFormat = await this.formsService.get(strictForm.id, Format.schema);
 		checkHasOnlyFieldsInForm(prepopulatedDocument, strictFormSchemaFormat);
-	}
-
-	/** Assigns prepopulated document and accepted document to the place according to form options */
-	async getAssigned(place: NamedPlace, document: Document): Promise<NamedPlace> {
-		const updateAcceptedDocument = place.collectionID
-			&& !place.prepopulatedDocument
-			&& !place.acceptedDocument
-			&& await this.formsService.findFor(
-				place.collectionID,
-				f => f.options.namedPlaceOptions?.useAcceptedDocument
-			);
-		place = { ...place, prepopulatedDocument: document };
-		if (updateAcceptedDocument) {
-			place = { ...place, acceptedDocument: document };
-		}
-		return place;
 	}
 
 	private async getAugmentedFor(place: NamedPlace): Promise<Document | undefined> {
