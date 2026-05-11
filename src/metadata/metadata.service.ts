@@ -135,6 +135,11 @@ export class MetadataService {
 		return this.triplestoreRestClient.get<{ [propertyName: string]: Alt[] }>("schema/alt");
 	}
 
+	public async getAltList(langPreferences: LangPreference[]) {
+		const translatedAlts = await this.getAltsTranslated(langPreferences);
+		return Object.keys(translatedAlts).map(id => ({ id, options: translatedAlts[id] }));
+	}
+
 	@RedisMemoize()
 	async getAltsTranslated(langPreferences: LangPreference[]) {
 		const alts = await this.getAlts();

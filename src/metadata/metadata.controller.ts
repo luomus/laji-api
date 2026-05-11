@@ -25,6 +25,7 @@ export class MetadataController {
 	)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(MetadataClass) }) })
 	getClasses() {
+		console.log('get classes');
 		return this.metadataService.getClasses();
 	}
 
@@ -93,8 +94,19 @@ export class MetadataController {
 	@Version("1")
 	@Get("alts")
 	@ApiOkResponse({ schema: { type: "object", additionalProperties: { $ref: getSchemaPath(Alt) } } })
-	async getAlts(@RequestLang() langPreferences: LangPreference[]) {
+	async getAltsLookup(@RequestLang() langPreferences: LangPreference[]) {
 		return this.metadataService.getAltsTranslated(langPreferences);
+	}
+
+	/** Get all alts as a list where keys are property names and values are alts */
+	@Version("1")
+	@Get("alts-list")
+	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({
+		type: "object",
+		properties: { id: { type: "string" }, options: { type: "array", items: { $ref: getSchemaPath(Alt) } } }
+	}) })
+	async getAltsList(@RequestLang() langPreferences: LangPreference[]) {
+		return this.metadataService.getAltList(langPreferences);
 	}
 
 	/** Get alt values by alt name */
