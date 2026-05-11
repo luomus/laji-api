@@ -1,4 +1,4 @@
-const { createApp } = require("../dist/create-app");
+const { createApp } = require("../dist/src/create-app");
 
 exports.mochaHooks = {
 	beforeAll: async function() {
