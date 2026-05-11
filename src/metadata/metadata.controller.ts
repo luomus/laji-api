@@ -25,7 +25,6 @@ export class MetadataController {
 	)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({ $ref: getSchemaPath(MetadataClass) }) })
 	getClasses() {
-		console.log('get classes');
 		return this.metadataService.getClasses();
 	}
 
