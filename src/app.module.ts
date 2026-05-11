@@ -88,7 +88,7 @@ import { HiveGatewayDriver, HiveGatewayDriverConfig } from "@graphql-hive/nestjs
 			driver: HiveGatewayDriver,
 			inject: [ConfigService],
 			useFactory: async (config: ConfigService): Promise<HiveGatewayDriverConfig> => ({
-				supergraph: "./schema.graphql",
+				supergraph: "./src/schema.graphql",
 				propagateHeaders: {
 					fromClientToSubgraphs({ request }) {
 						return {
