@@ -47,7 +47,7 @@ export async function createApp(useLogger = true) {
 
 	const configService = app.get(ConfigService);
 
-	const port = configService.get("PORT") || 3004;
+	const port = configService.get("PORT") || 3005;
 
 	app.use("/v0", (req: Request, res: Response, next: NextFunction) => {
 		if (req.headers["api-version"] === "1") {
