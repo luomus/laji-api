@@ -124,10 +124,26 @@ export async function createApp(useLogger = true) {
 		}
 	}));
 
+
+	const OLD_GRAPHQL_PORT = configService.get("OLD_GRAPHQL_PORT");
+
+	const oldGraphqlProxy = createProxyMiddleware({
+		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}`,
+		changeOrigin: true,
+	});
+
+	app.use("/graphql", (req: any, res: any, next: any) => {
+		if (req.headers["api-version"] !== "1" && req.method === "POST") {
+			return oldGraphqlProxy(req, res, next);
+		}
+		next();
+	});
+
 	app.useStaticAssets("static");
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("Laji API")
+		.addServer(`http://127.0.0.1:${port}`)
 		.setDescription(swaggerDescription)
 		.setVersion("1")
 		.addBearerAuth({ type: "http", description: "Access token" }, "Access token")

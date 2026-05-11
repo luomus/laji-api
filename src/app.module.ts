@@ -1,6 +1,6 @@
 import { HttpModule } from "@nestjs/axios";
 import { Module, ValidationPipe } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
@@ -63,7 +63,8 @@ import { LoginModule } from "./login/login.module";
 import { PublicationsModule } from "./publications/publications.module";
 import { NewsModule } from "./news/news.module";
 import { GoogleModule } from "./google/google.module";
-
+import { GraphQLModule } from "@nestjs/graphql";
+import { HiveGatewayDriver, HiveGatewayDriverConfig } from "@graphql-hive/nestjs";
 
 @Module({
 	imports: [
@@ -83,6 +84,26 @@ import { GoogleModule } from "./google/google.module";
 		}),
 		RedisCacheModule,
 		ScheduleModule.forRoot(),
+		GraphQLModule.forRootAsync<HiveGatewayDriverConfig>({
+			driver: HiveGatewayDriver,
+			inject: [ConfigService],
+			useFactory: async (config: ConfigService): Promise<HiveGatewayDriverConfig> => ({
+				supergraph: "./schema.graphql",
+				propagateHeaders: {
+					fromClientToSubgraphs({ request }) {
+						return {
+							authorization: request.headers.get("authorization"),
+							"person-token": request.headers.get("person-token"),
+							"api-version": request.headers.get("api-version"),
+						};
+					},
+				},
+				cache: {
+					type: "redis",
+					url: config.get<string>("REDIS_URL") || "redis://localhost:6379",
+				},
+			}),
+		}),
 		FormsModule,
 		FormPermissionsModule,
 		PersonsModule,

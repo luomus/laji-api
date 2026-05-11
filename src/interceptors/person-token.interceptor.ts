@@ -15,7 +15,7 @@ import { ConfigService } from "@nestjs/config";
 export class PersonTokenInterceptor implements NestInterceptor {
 
 	constructor(
-		private personsService: PersonsService, 
+		private personsService: PersonsService,
 		private reflector: Reflector,
 		private authenticationEventService: AuthenticationEventService,
 		private config: ConfigService
