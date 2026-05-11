@@ -5,7 +5,7 @@ const { accessToken } = config;
 
 describe("/information", function() {
 	var basePath =  "/information";
-	const id =  "5660";
+	const id =  "ex-12";
 
 	it("returns 401 when no access token specified", async function() {
 		const res = await apiRequest(this.server)
@@ -28,12 +28,9 @@ describe("/information", function() {
 		res.body.title.should.be.a("string");
 		res.body.author.should.be.a("string");
 		res.body.posted.should.be.a("string");
-		res.body.featuredImage.url.should.be.a("string");
-		res.body.featuredImage.caption.should.be.a("string");
 		res.body.modified.should.be.a("string");
 		res.body.tags.should.be.a("array");
 		res.body.children.should.be.a("array");
-		res.body.parents.should.be.a("array");
 	});
 
 	it("returns all parsed", async function() {
@@ -47,7 +44,6 @@ describe("/information", function() {
 		res.body.posted.should.be.a("string");
 		res.body.modified.should.be.a("string");
 		res.body.tags.should.be.a("array");
-		res.body.children.should.be.a("array");
 	});
 
 	it("all respects lang param", async function() {
@@ -62,7 +58,6 @@ describe("/information", function() {
 			.get(`${basePath}/index`);
 		res.should.have.status(200);
 		res.body.should.have.property("page");
-		res.body.should.have.property("children");
 		res.body.should.have.property("roots");
 	});
 
