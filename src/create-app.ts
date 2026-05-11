@@ -132,7 +132,11 @@ export async function createApp(useLogger = true) {
 		changeOrigin: true,
 	});
 
+	// Backward compatibity with old API graphql.
 	app.use("/graphql", (req: any, res: any, next: any) => {
+		if (req.body?.operationName === "IntrospectionQuery") {
+			return next();
+		}
 		if (req.headers["api-version"] !== "1" && req.method === "POST") {
 			return oldGraphqlProxy(req, res, next);
 		}
