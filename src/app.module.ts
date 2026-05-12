@@ -12,8 +12,6 @@ import { NotificationsModule } from "./notifications/notifications.module";
 import { PersonTokenModule } from "./authentication-event/authentication-event.module";
 import { PersonsModule } from "./persons/persons.module";
 import { ProfileModule } from "./profile/profile.module";
-import { ProxyToOldApiFilter } from "./proxy-to-old-api/proxy-to-old-api.filter";
-import { ProxyToOldApiService } from "./proxy-to-old-api/proxy-to-old-api.service";
 import { TriplestoreModule } from "./triplestore/triplestore.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { LangModule } from "./lang/lang.module";
@@ -65,6 +63,7 @@ import { NewsModule } from "./news/news.module";
 import { GoogleModule } from "./google/google.module";
 import { GraphQLModule } from "@nestjs/graphql";
 import { HiveGatewayDriver, HiveGatewayDriverConfig } from "@graphql-hive/nestjs";
+import { ProxyToOldApiMiddleware } from "./proxy-to-old-api/proxy-to-old-api.middleware";
 
 @Module({
 	imports: [
@@ -185,11 +184,7 @@ import { HiveGatewayDriver, HiveGatewayDriverConfig } from "@graphql-hive/nestjs
 			provide: APP_FILTER,
 			useClass: StoreValidationFilter
 		},
-		ProxyToOldApiService,
-		{
-			provide: APP_FILTER,
-			useClass: ProxyToOldApiFilter
-		},
+		ProxyToOldApiMiddleware,
 		LajiAuthClientService
 	],
 })
