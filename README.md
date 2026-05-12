@@ -12,6 +12,11 @@ Check the [wiki](https://github.com/luomus/laji-api/wiki) for a more technically
 
 [Nest](https://github.com/nestjs/nest)
 
+#### GraphQL
+
+[GraphQL Mesh (OpenAPI -> GraphQL schema generation)](https://the-guild.dev/graphql/mesh/v1)
+[GraphQL Gateway](https://the-guild.dev/graphql/hive/docs/gateway)
+
 ### Installation & running
 
 Fill in `.env` file, using `.env.example` as a template.
@@ -52,7 +57,7 @@ Install the following:
 1. Start Redis
 2. `npm run start:dev`
 
-The app will be running at http://localhost:3004
+The app will be running at http://localhost:3005
 
 ### Test
 
