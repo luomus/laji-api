@@ -14,6 +14,8 @@ import { RedisCacheService } from "./redis-cache/redis-cache.service";
 import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
 import { fixRequestBody } from "http-proxy-middleware";
+import { ProxyToOldApiMiddleware } from "./proxy-to-old-api/proxy-to-old-api.middleware";
+import { createGatewayRuntime } from "@graphql-hive/gateway";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -124,7 +126,6 @@ export async function createApp(useLogger = true) {
 		}
 	}));
 
-
 	const OLD_GRAPHQL_PORT = configService.get("OLD_GRAPHQL_PORT");
 
 	const oldGraphqlProxy = createProxyMiddleware({
@@ -143,7 +144,41 @@ export async function createApp(useLogger = true) {
 		next();
 	});
 
+	app.use(app.get(ProxyToOldApiMiddleware).use);
+
 	app.useStaticAssets("static");
+
+
+	const cache = app.get(RedisCacheService);
+
+	const serveRuntime = createGatewayRuntime({
+		supergraph: "./schema.graphql",
+		propagateHeaders: {
+			fromClientToSubgraphs({ request }) {
+				return {
+					authorization: request.headers.get("authorization"),
+					"person-token": request.headers.get("person-token"),
+					"api-version": request.headers.get("api-version"),
+				};
+			},
+		},
+		cache: {
+			set: async (key, value, { ttl } = {}) => {
+				void cache.set(key, value, typeof ttl === "number" ?  ttl * 1000 : undefined);
+			},
+			get: async (key) => {
+				return cache.get(key);
+			},
+			delete: async (key) => {
+				await cache.del(key);
+				return true;
+			},
+			getKeysByPrefix: (prefix) => {
+				return cache.getKeysByPrefix(prefix);
+			}
+		},
+	});
+	app.use("/graphql", serveRuntime);
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("Laji API")

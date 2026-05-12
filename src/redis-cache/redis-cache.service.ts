@@ -59,4 +59,16 @@ export class RedisCacheService implements OnModuleInit, OnApplicationShutdown {
 	async lSet(key: string, index: number, element: unknown) {
 		return this.client.lSet(key, index, JSON.stringify(element));
 	}
+
+
+	async getKeysByPrefix(prefix: string): Promise<string[]> {
+		const keys: string[] = [];
+		for await (const key of this.client.scanIterator({
+			MATCH: `${prefix}*`,
+		})) {
+			keys.push(key);
+		}
+		return keys;
+	}
+
 }
