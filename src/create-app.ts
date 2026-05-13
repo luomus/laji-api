@@ -159,6 +159,7 @@ export async function createApp(useLogger = true) {
 					authorization: request.headers.get("authorization"),
 					"person-token": request.headers.get("person-token"),
 					"api-version": request.headers.get("api-version"),
+					"accept-language": request.headers.get("accept-language"),
 				};
 			},
 		},
