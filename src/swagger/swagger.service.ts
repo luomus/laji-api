@@ -1,8 +1,8 @@
 import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { MS_30_MIN, lastFromNonEmptyArr, parseJSONPointer, parseURIFragmentIdentifierRepresentation, promisePipe,
-	updateWithJSONPointer, whitelistKeys } from "src/utils";
+import { MS_30_MIN, lastFromNonEmptyArr, omitFromArray, parseJSONPointer, parseURIFragmentIdentifierRepresentation,
+	promisePipe, updateWithJSONPointer, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SwaggerRemoteEntry, isSwaggerRemoteEntry, isSwaggerRemoteRefEntry } from "./swagger-remote.decorator";
@@ -19,10 +19,11 @@ import { ModuleRef } from "@nestjs/core";
 import { FetchSwagger, PatchSwagger, RemoteSwaggerEntry, fixRefsModelPrefix, instancesWithRemoteSwagger }
 	from "src/decorators/remote-swagger-merge.decorator";
 import { ConfigService } from "@nestjs/config";
-import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
+import { JSONSchema, JSONSchemaObject, JSONSchemaRef, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
 import { HTTP_CODE_METADATA, METHOD_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 import { RequestPersonDecoratorConfig, personTokenMethods } from "src/decorators/request-person.decorator";
 import { DECORATORS } from "@nestjs/swagger/dist/constants";
+import { LANGS } from "src/common.dto";
 export type SchemaItem = SchemaObject | ReferenceObject;
 type SwaggerSchema = Record<string, SchemaItem>;
 
@@ -111,9 +112,9 @@ export class SwaggerService {
 		return promisePipe(
 			this.patchRemoteSwaggers,
 			this.patchRemoteRefs,
+			requiredByDefault,
 			this.patchMultiLangs,
 			this.patchPersonToken,
-			requiredByDefault
 		)(JSON.parse(JSON.stringify(document)));
 	}
 
@@ -256,7 +257,7 @@ export class SwaggerService {
 		const prefixedRef = [...firstRefParts, prefix + lastRefPart].join("/");
 		const replacement = { "$ref": `#/components/schemas${prefixedRef}` };
 		if (entry.replacePointer) {
-			const schemaDef = getSchemaDefinition(document, schema);
+			const schemaDef = getSchemaDefinition(document, schema as JSONSchema);
 			updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
 			return schemaDef;
 		} else {
@@ -265,8 +266,16 @@ export class SwaggerService {
 	}
 
 	private patchMultiLangs(document: OpenAPIObject) {
+		const traversedRefs = {};
+		const traversedMultiLangRefs = {}
 		Object.keys(document.components!.schemas!).forEach(key => {
-			document.components!.schemas![key] = multiLangAsString(document.components!.schemas![key]!);
+			document.components!.schemas![key] = multiLangAsString(
+				document.components!.schemas![key]! as JSONSchema,
+				document,
+				key,
+				traversedRefs,
+				traversedMultiLangRefs, 
+			);
 		});
 		return document;
 	}
@@ -441,9 +450,9 @@ function getJsonSchema(targetConstructor: Type<unknown>) {
 	return schema;
 }
 
-const getSchemaDefinition = (document: OpenAPIObject, schema: SchemaObject | ReferenceObject): SchemaObject =>
-	"$ref" in schema
-		? parseURIFragmentIdentifierRepresentation(document, (schema as any).$ref)
+const getSchemaDefinition = (document: OpenAPIObject, schema: JSONSchema): Exclude<JSONSchema, JSONSchemaRef> =>
+	isJSONSchemaRef(schema)
+		? parseURIFragmentIdentifierRepresentation(document, schema.$ref)
 		: schema;
 
 const hasSwaggerSchemaDefinitionName = (entry: unknown): entry is { swaggerSchemaDefinitionName: string } =>
@@ -487,29 +496,78 @@ export const paginateAsNeededWith = (operation: OperationObject) =>
 			? asPagedResponse(schema)
 			: schema;
 
-const multiLangAsString = <T extends SchemaObject | ReferenceObject>(schema: T): T | { type: "string" } => {
-	if (isSchemaObject(schema) && schema.properties && (schema as any)._patchMultiLang !== false) {
-		if (["fi", "sv", "en"].every(lang => Object.keys(schema.properties!).includes(lang))) {
-			return { type: "string" };
-		} else {
-			Object.keys(schema.properties).forEach(property => {
-				schema.properties![property] = multiLangAsString(schema.properties![property]!);
-			});
+const isMultiLangSchema = (schema: JSONSchema) =>
+	isJSONSchemaObject(schema)
+	&& schema.properties
+	&& Object.keys(schema.properties!).length === LANGS.length 
+	&& LANGS.every(lang => (schema.properties![lang] as any)?.type === "string");
+
+const multiLangAsString = (
+	schema: JSONSchema,
+	document: OpenAPIObject,
+	// Relevant only for the root component schema, not for deep traversing anymore. Used for marking the original multi
+	// langs for traversedMultiLangRefs.
+	name: string | undefined,
+	// To prevent circular traversal.
+	traversedRefs: Record<string, boolean>,
+	// Needed because the multi langs are converted to strings during traversal, but at the same time making the multi
+	// langs non-required needs to know if the properties were originally multi lang.
+	traversedMultiLangRefs: Record<string, boolean>,
+): JSONSchema => {
+
+	if ((schema as any)._patchMultiLang === false) {
+		return schema;
+	}
+
+	if (isJSONSchemaRef(schema)) {
+		if (traversedRefs[schema.$ref]) {
 			return schema;
 		}
-	} else if (!isSchemaObject(schema) && (
-		schema.$ref === "#/components/schemas/store-multiLang"
-		|| schema.$ref === "#/components/schemas/MultiLangDto"
-	)) {
-		return { type: "string" };
+		traversedRefs[schema.$ref] = true;
 	}
-	return schema;
+
+	schema = getSchemaDefinition(document, schema);
+	if (!isJSONSchemaObject(schema) || !schema.properties) {
+		return schema;
+	} else if (isMultiLangSchema(schema as JSONSchemaObject)) {
+		traversedMultiLangRefs[`#/components/schemas/${name}`] = true;
+		return { type: "string" };
+	} else {
+		Object.keys(schema.properties).forEach(property => {
+			const propertySchema = schema.properties![property]!;
+			if (isJSONSchemaRef(propertySchema)) {
+				if (traversedRefs[propertySchema.$ref]) {
+					return;
+				}
+				traversedRefs[propertySchema.$ref] = true;
+			}
+			const resolvedPropertySchema = getSchemaDefinition(
+				document,
+				propertySchema as JSONSchema
+			);
+			const isMultiLang = isMultiLangSchema(resolvedPropertySchema);
+			schema.properties![property] = multiLangAsString(
+				schema.properties![property]!,
+				document,
+				property,
+				traversedRefs,
+				traversedMultiLangRefs,
+			);
+			if (schema.required && (
+				isMultiLang || (isJSONSchemaRef(propertySchema) && traversedMultiLangRefs[propertySchema.$ref])
+			)) {
+				schema.required = omitFromArray(schema.required, property);
+			}
+		});
+		return schema;
+	}
 };
 
 const deduceResponseCode = (
 	operation: OperationObject,
 	httpMethod: string,
-	methodName: string, instance: Newable<unknown>
+	methodName: string,
+	instance: Newable<unknown>
 ) => {
 	const manuallySelected = Reflect.getMetadata(HTTP_CODE_METADATA, (instance as any).prototype[methodName]);
 	if (manuallySelected) {
