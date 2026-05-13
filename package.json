@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "build": "nest build",
-    "start": "nest start",
+    "nest:start": "nest start",
+    "start": "npm run start:dev",
     "start:dev": "NODE_ENV=development NODE_TLS_REJECT_UNAUTHORIZED=0 nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",

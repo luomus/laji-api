@@ -33,7 +33,7 @@ Use `docker` to build & start the app:
 npm run docker
 ```
 
-*Hint*: The docker container runs any npm script, `start:dev` being the default. You can run other scripts like so:
+*Hint*: The docker container runs any npm script, `start` being the default. You can run other scripts like so:
 
 ```bash
 npm run docker -- test:e2e
@@ -55,7 +55,7 @@ Install the following:
 ##### Running
 
 1. Start Redis
-2. `npm run start:dev`
+2. `npm run start`
 
 The app will be running at http://localhost:3005
 
