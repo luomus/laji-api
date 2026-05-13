@@ -7786,7 +7786,7 @@ type store_formOptions @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  about: String!
+  about: String
   """
   Form admin can lock documents. Locked documents can't be edited
   """
@@ -9629,7 +9629,7 @@ type MetadataController_getClasses_200_response @join__type(graph: LAJI_API)  {
 
 type MetadataClass @join__type(graph: LAJI_API)  {
   class: String!
-  label: String!
+  label: String
   shortName: String!
 }
 
@@ -10123,7 +10123,7 @@ type LajiBackendTaxon @join__type(graph: LAJI_API)  {
   uncertainSynonyms: [LajiBackendSimpleTaxon]!
   misappliedNames: [LajiBackendSimpleTaxon]!
   alternativeNames: [LajiBackendSimpleTaxon]!
-  vernacularName: String!
+  vernacularName: String
   alternativeVernacularName: [String]!
   obsoleteVernacularName: [String]!
   colloquialVernacularName: [String]!
@@ -11905,7 +11905,7 @@ type WarehouseDwEnumerationLabel @join__type(graph: LAJI_API)  {
 Map of filter name to filter definition
 """
 type WarehouseDwFilter @join__type(graph: LAJI_API)  {
-  label: String!
+  label: String
   type: query_warehouse_filters_by_filter_type!
   resource: String!
   enumerations: [WarehouseDwFilterEnum]!
@@ -13906,7 +13906,7 @@ type Mutation @join__type(graph: LAJI_API)  {
     httpMethod: POST
   )
   """
-  Upload a GIS file (Shapefile, GeoJSON, GPKG, etc.) and get back a CSV file with geometry as WKT
+  Upload a GIS file (GeoJSON, GPKG, KML, GML, or a ZIP archive for Shapefiles) and get back a CSV file with geometry as WKT
   """
   convert_gis_to_table_convert_to_table_post(input: Body_convert_gis_to_table_convert_to_table_post_Input) : JSON @httpOperation(
     subgraph: "Laji-API"
@@ -32692,7 +32692,7 @@ input store_formOptions_Input @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  about: String!
+  about: String
   """
   Form admin can lock documents. Locked documents can't be edited
   """
@@ -36827,7 +36827,7 @@ input LajiBackendTaxon_Input @join__type(graph: LAJI_API)  {
   uncertainSynonyms: [LajiBackendSimpleTaxon_Input]!
   misappliedNames: [LajiBackendSimpleTaxon_Input]!
   alternativeNames: [LajiBackendSimpleTaxon_Input]!
-  vernacularName: String!
+  vernacularName: String
   alternativeVernacularName: [String]!
   obsoleteVernacularName: [String]!
   colloquialVernacularName: [String]!
@@ -39288,7 +39288,7 @@ input LajiBackendTraitEnumerationValue_Input @join__type(graph: LAJI_API)  {
 
 input Body_convert_gis_to_table_convert_to_table_post_Input @join__type(graph: LAJI_API)  {
   """
-  GIS file to convert (SHP, GeoJSON, GPKG, KML, GML, ZIP)
+  GIS file to convert (GeoJSON, GPKG, KML, GML, or ZIP for Shapefiles)
   """
   file: File!
 }
