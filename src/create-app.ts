@@ -178,6 +178,15 @@ export async function createApp(useLogger = true) {
 				return cache.getKeysByPrefix(prefix);
 			}
 		},
+		inboundInflightRequestDeduplication: true,
+		responseCaching: {
+			session: (request) => {
+				const lang = request.headers.get("accept-language") ?? "en";
+				const personToken =
+					request.headers.get("person-token") ?? "";
+				return `${personToken}:${lang}`;
+			}
+		}
 	}));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
