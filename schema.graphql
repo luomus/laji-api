@@ -88,7 +88,7 @@ schema
   
   
 enum join__Graph {
-  LAJI_API @join__graph(name: "Laji-API", url: "http://127.0.0.1:3005") 
+  LAJI_API @join__graph(name: "Laji-API", url: "http://localhost:3005") 
 }
 
 directive @enum(subgraph: String, value: String)  repeatable on ENUM_VALUE
@@ -174,7 +174,7 @@ scalar ObjMap @join__type(graph: LAJI_API)
 scalar _DirectiveExtensions @join__type(graph: LAJI_API) 
 
 type Query @extraSchemaDefinitionDirective(
-  directives: {transport: [{subgraph: "Laji-API", kind: "rest", location: "http://127.0.0.1:3005", headers: [["Person-Token", "{context.headers[\"person-token\"]}"], ["Authorization", "{context.headers[\"authorization\"]}"]]}]}
+  directives: {transport: [{subgraph: "Laji-API", kind: "rest", location: "http://localhost:3005", headers: [["Person-Token", "{context.headers[\"person-token\"]}"], ["Authorization", "{context.headers[\"authorization\"]}"]]}]}
 ) @join__type(graph: LAJI_API)  {
   """
   Get participants of a form. Only for form admins.
@@ -1489,29 +1489,11 @@ type Query @extraSchemaDefinitionDirective(
     queryParamArgMap: "{\"rootID\":\"rootID\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
   )
   """
-  Returns id of the index page. Allowed languages are 'fi', 'sv', 'en'.
-  """
-  InformationController_getIndex: JSON @httpOperation(
-    subgraph: "Laji-API"
-    path: "/information/index"
-    operationSpecificHeaders: [["accept", "application/json"]]
-    httpMethod: GET
-  )
-  """
   Get information page by id
   """
   InformationController_get(id: String!) : Information @httpOperation(
     subgraph: "Laji-API"
     path: "/information/{args.id}"
-    operationSpecificHeaders: [["accept", "application/json"]]
-    httpMethod: GET
-  )
-  """
-  Get information page contents. Allowed languages are 'fi', 'sv', 'en'.
-  """
-  InformationController_getAll: Information @httpOperation(
-    subgraph: "Laji-API"
-    path: "/information"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
   )
@@ -9642,7 +9624,7 @@ type Property @join__type(graph: LAJI_API)  {
   multiLanguage: Boolean!
   shortName: String!
   range: String!
-  label: String!
+  label: String
   hasMany: Boolean!
   sortOrder: Float!
   isEmbeddable: Boolean!
@@ -9660,7 +9642,7 @@ type MetadataController_getPropertyAlt_200_response @join__type(graph: LAJI_API)
 
 type Alt @join__type(graph: LAJI_API)  {
   id: String!
-  value: String!
+  value: String
 }
 
 type MetadataController_getAltsLookup_200_response @join__type(graph: LAJI_API)  {
@@ -9674,7 +9656,7 @@ type Alt2_entry @join__type(graph: LAJI_API)  {
 
 type Alt2 @join__type(graph: LAJI_API)  {
   id: String!
-  value: String!
+  value: String
 }
 
 type MetadataController_getAltsList_200_response @join__type(graph: LAJI_API)  {
@@ -9728,7 +9710,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   Collection code for natural history specimen collection, such as H-BR
   """
   collectionCode: String
-  collectionName: String!
+  collectionName: String
   collectionQuality: Collection_quality!
   """
   How many specimens, records or such does the collection contain? Fill in approximate number, describe more in notes if necessary.
@@ -10240,7 +10222,7 @@ type LajiBackendSimpleTaxon @join__type(graph: LAJI_API)  {
   id: String!
   scientificName: String!
   scientificNameAuthorship: String!
-  vernacularName: String!
+  vernacularName: String
   taxonRank: String!
   cursiveName: Boolean!
   notes: String!
@@ -10290,7 +10272,7 @@ type LajiBackendImage @join__type(graph: LAJI_API)  {
   keywords: [String]!
   largeURL: String!
   licenseAbbreviation: String!
-  licenseFullname: String!
+  licenseFullname: String
   """
   Qname identifier
   """
@@ -10321,7 +10303,7 @@ type LajiBackendImage @join__type(graph: LAJI_API)  {
 
 type LajiBackendContext @join__type(graph: LAJI_API)  {
   id: String!
-  title: String!
+  title: String
   groups: [query_TaxaController_getPage_results_items_descriptions_items_groups_items]!
   speciesCardAuthors: query_TaxaController_getPage_results_items_descriptions_items_speciesCardAuthors!
 }
@@ -10365,7 +10347,7 @@ type LajiBackendOccurrence @join__type(graph: LAJI_API)  {
 }
 
 type LajiBackendHabitatOccurrenceCount @join__type(graph: LAJI_API)  {
-  habitat: String!
+  habitat: String
   id: String!
   occurrenceCount: Int!
 }
@@ -10506,7 +10488,7 @@ type store_area @join__type(graph: LAJI_API)  {
   isPartOfBirdAssociationArea: String
   isPartOfEnvironmentalELY: String
   isPartOfProvince: String
-  name: String!
+  name: String
   previouslyOfficialName: [String]
   provinceCodeAlpha: String
   provinceCodeNumeric: String
@@ -10595,7 +10577,7 @@ type store_tag @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  description: String!
+  description: String
   name: String!
   requiredRolesAdd: [query_AnnotationsController_getTags_results_items_requiredRolesAdd_items]!
   requiredRolesRemove: [query_AnnotationsController_getTags_results_items_requiredRolesRemove_items]!
@@ -10690,7 +10672,7 @@ type OrganizationsController_getAll_200_response @join__type(graph: LAJI_API)  {
 
 type SensitiveOrganization @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
-  organizationLevel1: String!
+  organizationLevel1: String
   organizationLevel2: String
   organizationLevel3: String
   organizationLevel4: String
@@ -10716,7 +10698,7 @@ type store_informalTaxonGroup @join__type(graph: LAJI_API)  {
   """
   explicitlyDefinedRoot: Boolean
   hasSubGroup: [String]
-  name: String!
+  name: String
 }
 
 type InformalTaxonGroupsController_getTree_200_response @join__type(graph: LAJI_API)  {
@@ -10799,7 +10781,7 @@ type TaxonAutocompleteResponse @join__type(graph: LAJI_API)  {
   Is the taxon that has the mathing name species level or lower, or a higher taxon
   """
   species: Boolean!
-  vernacularName: String!
+  vernacularName: String
   informalGroups: [query_AutocompleteController_getTaxa_results_items_informalGroups_items]!
   """
   Scientific name of the kingdom that the matching taxon belongs to
@@ -10857,7 +10839,7 @@ type query_ShorthandController_getLineTransectUnitShorthandAutocomplete_interpre
 
 type SensitiveSource @join__type(graph: LAJI_API)  {
   id: String
-  name: String!
+  name: String
   description: String!
 }
 
@@ -10888,7 +10870,7 @@ type store_iucnRedListTaxonGroup @join__type(graph: LAJI_API)  {
   hasIucnSubGroup: [String]
   includesInformalTaxonGroup: [String]
   includesTaxon: [String]
-  name: String!
+  name: String
 }
 
 type RedListEvaluationGroupsController_getTree_200_response @join__type(graph: LAJI_API)  {
@@ -11898,7 +11880,7 @@ type WarehouseDwEnumerationLabels @join__type(graph: LAJI_API)  {
 type WarehouseDwEnumerationLabel @join__type(graph: LAJI_API)  {
   enumeration: String!
   property: String!
-  label: String!
+  label: String
 }
 
 """
@@ -11913,7 +11895,7 @@ type WarehouseDwFilter @join__type(graph: LAJI_API)  {
 
 type WarehouseDwFilterEnum @join__type(graph: LAJI_API)  {
   name: String!
-  label: String!
+  label: String
 }
 
 type WarehouseDwTeamMembers @join__type(graph: LAJI_API)  {
@@ -14049,7 +14031,7 @@ type Location @join__type(graph: LAJI_API)  {
 }
 
 type AddressComponent @join__type(graph: LAJI_API)  {
-  long_name: String!
+  long_name: String
   short_name: String!
   types: [String]!
 }
@@ -36944,7 +36926,7 @@ input LajiBackendSimpleTaxon_Input @join__type(graph: LAJI_API)  {
   id: String!
   scientificName: String!
   scientificNameAuthorship: String!
-  vernacularName: String!
+  vernacularName: String
   taxonRank: String!
   cursiveName: Boolean!
   notes: String!
@@ -36994,7 +36976,7 @@ input LajiBackendImage_Input @join__type(graph: LAJI_API)  {
   keywords: [String]!
   largeURL: String!
   licenseAbbreviation: String!
-  licenseFullname: String!
+  licenseFullname: String
   """
   Qname identifier
   """
@@ -37025,7 +37007,7 @@ input LajiBackendImage_Input @join__type(graph: LAJI_API)  {
 
 input LajiBackendContext_Input @join__type(graph: LAJI_API)  {
   id: String!
-  title: String!
+  title: String
   groups: [query_TaxaController_getPage_results_items_descriptions_items_groups_items_Input]!
   speciesCardAuthors: query_TaxaController_getPage_results_items_descriptions_items_speciesCardAuthors_Input!
 }
@@ -37069,7 +37051,7 @@ input LajiBackendOccurrence_Input @join__type(graph: LAJI_API)  {
 }
 
 input LajiBackendHabitatOccurrenceCount_Input @join__type(graph: LAJI_API)  {
-  habitat: String!
+  habitat: String
   id: String!
   occurrenceCount: Int!
 }
