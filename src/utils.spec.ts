@@ -51,6 +51,46 @@ describe("utils", () => {
 		it("safely option returns undefined for nonexistent property deeply", () => {
 			expect(parseJSONPointer(obj, "/not/existent", { safely: true })).toBe(undefined);
 		});
+
+		describe("resolveRefs option", () => {
+			const refObj = {
+				definitions: {
+					user: {
+						name: "John",
+						address: {
+							city: "Helsinki"
+						}
+					}
+				},
+				user: {
+					$ref: "#/definitions/user"
+				},
+				nested: {
+					deepRef: {
+						$ref: "#/definitions/user"
+					}
+				}
+			};
+
+			it("resolves top-level $ref when property does not exist", () => {
+				expect(
+					parseJSONPointer(refObj, "/user/name", { resolveRefs: true })
+				).toBe("John");
+			});
+
+			it("resolves nested $ref", () => {
+				expect(
+					parseJSONPointer(refObj, "/nested/deepRef/address/city", { resolveRefs: true })
+				).toBe("Helsinki");
+			});
+
+			it("does not resolve refs when resolveRefs is false", () => {
+				expect(
+					parseJSONPointer(refObj, "/user/name", { safely: true })
+				).toBe(undefined);
+			});
+
+		});
 	});
 
 	describe("updateWithJSONPointer()", () => {
@@ -99,6 +139,37 @@ describe("utils", () => {
 			const obj = { "m~n": 8 };
 			updateWithJSONPointer(obj, "/m~0n", 8);
 			expect(obj).toStrictEqual({ "m~n": 8 });
+		});
+
+		it("respects resolveRefs option", () => {
+			const obj = {
+				cont: {
+					foo: {
+						bar: "foobar"
+					}
+				},
+				cont2: {
+					$ref: "#/cont/foo"
+				}
+			};
+
+			updateWithJSONPointer(
+				obj,
+				"/cont2/bar",
+				"barbar",
+				{ resolveRefs: true }
+			);
+
+			expect(obj).toStrictEqual({
+				cont: {
+					foo: {
+						bar: "barbar"
+					}
+				},
+				cont2: {
+					$ref: "#/cont/foo"
+				}
+			});
 		});
 	});
 

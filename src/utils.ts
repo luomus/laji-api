@@ -2,6 +2,7 @@ import { HttpException } from "@nestjs/common";
 import * as crypto from "crypto";
 import { JSONObjectSerializable, MaybePromise } from "src/typing.utils";
 import * as translations from "src/translations.json";
+import { isJSONSchemaRef } from "./json-schema.utils";
 
 export const MS_1_SEC = 1000;
 export const MS_1_MIN = MS_1_SEC * 60;
@@ -107,13 +108,16 @@ export const whitelistKeys = <T extends Record<string, unknown>>(obj: T, whiteli
 };
 
 type ParseJSONPointerOptions = {
-	/** If a property is undefined and the pointer isn't yet parsed fully, undefined is returned. */
+	/** If a property is undefined and the pointer isn't yet parsed fully, undefined is returned. Defaults to false. */
 	safely?: boolean;
 	/**
 	 * If a property is undefined and the pointer isn't yet parsed fully, the missing properties will be created. This is
-	 * a mutable operation. It adds an array if the token is numeric, and an object for a non-numeric token
+	 * a mutable operation. It adds an array if the token is numeric, and an object for a non-numeric token. Defaults to
+	 * false.
 	 * **/
 	create?: boolean;
+	/** If a token in the JSON pointer is a ref, it is resolved before continuing parsing */
+	resolveRefs?: boolean;
 }
 
 const validateJSONPointer = (pointer: string) => {
@@ -127,7 +131,7 @@ const parseJSONPointerToken = (token: string) => token.replace(/~1/g, "/").repla
 export const parseJSONPointer = <T = unknown>(
 	obj: object,
 	pointer: string,
-	{ safely, create }: ParseJSONPointerOptions = {}
+	{ safely, create, resolveRefs }: ParseJSONPointerOptions = {}
 ) : T => {
 	if (pointer === "") {
 		return obj as T;
@@ -137,6 +141,9 @@ export const parseJSONPointer = <T = unknown>(
 	splits.shift();
 	return splits.reduce((pointedObj, token, i) => {
 		token = parseJSONPointerToken(token);
+		if (resolveRefs && pointedObj && !(token in pointedObj) && isJSONSchemaRef(pointedObj)) {
+			pointedObj = parseURIFragmentIdentifierRepresentation(obj, pointedObj.$ref);
+		}
 		if ((create || safely) && (!pointedObj || !(token in pointedObj))) {
 			if (create) {
 				const nextSplit = splits[i + 1]!;
@@ -162,7 +169,18 @@ export const updateWithJSONPointer = (
 	const lastToken = parseJSONPointerToken(splits.pop() as string);
 	const lastContainerPointer = splits.length ? `/${splits.join("/")}` : undefined;
 
-	const lastContainer = parseJSONPointer(obj, lastContainerPointer ?? "", options);
+	let lastContainer = parseJSONPointer(obj, lastContainerPointer ?? "", options);
+
+	if (
+		options?.resolveRefs &&
+		lastContainer &&
+		isJSONSchemaRef(lastContainer)
+	) {
+		lastContainer = parseURIFragmentIdentifierRepresentation(
+			obj,
+			lastContainer.$ref
+		);
+	}
 	if (options?.safely && !lastContainer) {
 		return;
 	}
