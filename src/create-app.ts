@@ -151,7 +151,7 @@ export async function createApp(useLogger = true) {
 
 	const cache = app.get(RedisCacheService);
 
-	const serveRuntime = createGatewayRuntime({
+	app.use("/graphql", createGatewayRuntime({
 		supergraph: "./schema.graphql",
 		propagateHeaders: {
 			fromClientToSubgraphs({ request }) {
@@ -178,12 +178,11 @@ export async function createApp(useLogger = true) {
 				return cache.getKeysByPrefix(prefix);
 			}
 		},
-	});
-	app.use("/graphql", serveRuntime);
+	}));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
 		.setTitle("Laji API")
-		.addServer(`http://127.0.0.1:${port}`)
+		.addServer(configService.get("SELF_HOST") as string)
 		.setDescription(swaggerDescription)
 		.setVersion("1")
 		.addBearerAuth({ type: "http", description: "Access token" }, "Access token")
