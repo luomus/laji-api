@@ -15,8 +15,7 @@ import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
 import { firstFromNonEmptyArr, asTuple, parseURIFragmentIdentifierRepresentation } from "src/utils";
 import { LangPreference } from "src/lang/lang.utils";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
-import { SchemaItem } from "src/swagger/swagger.service";
-import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
+import { OpenAPIObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 
 const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 	source: "store",
