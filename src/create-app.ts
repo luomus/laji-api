@@ -149,9 +149,6 @@ export async function createApp(useLogger = true) {
 
 	app.useStaticAssets("static");
 
-
-	const cache = app.get(RedisCacheService);
-
 	app.use("/graphql", createGatewayRuntime({
 		supergraph: "./schema.graphql",
 		propagateHeaders: {
@@ -164,29 +161,7 @@ export async function createApp(useLogger = true) {
 				};
 			},
 		},
-		cache: {
-			set: async (key, value, { ttl } = {}) => {
-				void cache.set(key, value, typeof ttl === "number" ?  ttl * 1000 : undefined);
-			},
-			get: async (key) => {
-				return cache.get(key);
-			},
-			delete: async (key) => {
-				await cache.del(key);
-				return true;
-			},
-			getKeysByPrefix: (prefix) => {
-				return cache.getKeysByPrefix(prefix);
-			}
-		},
 		inboundInflightRequestDeduplication: true,
-		responseCaching: {
-			session: (request) => {
-				const lang = request.headers.get("accept-language") ?? "en";
-				const personToken = request.headers.get("person-token") ?? "";
-				return `${personToken}:${lang}`;
-			}
-		}
 	}));
 
 	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
