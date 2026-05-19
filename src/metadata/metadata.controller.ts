@@ -3,7 +3,7 @@ import { MetadataService } from "./metadata.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { Translator } from "src/interceptors/translator.interceptor";
-import { Alt, MetadataClass, Property } from "./metadata.dto";
+import { Alt, AltListing, MetadataClass, Property } from "./metadata.dto";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { RequestLang } from "src/decorators/request-lang.decorator";
@@ -93,18 +93,21 @@ export class MetadataController {
 	@Version("1")
 	@Get("alts")
 	@ApiOkResponse({ schema: { type: "object", additionalProperties: { $ref: getSchemaPath(Alt) } } })
-	async getAltsLookup(@RequestLang() langPreferences: LangPreference[]) {
+	getAltsLookup(@RequestLang() langPreferences: LangPreference[]) {
 		return this.metadataService.getAltsTranslated(langPreferences);
 	}
 
-	/** Get all alts as a list where keys are property names and values are alts */
-	@Version("1")
+	/** Get all alts as a list */
 	@Get("alts-list")
+	@UseInterceptors(
+		ResultsArray,
+		Serializer(AltListing)
+	)
 	@ApiOkResponse({ schema: swaggerResponseAsResultsArray({
 		type: "object",
 		properties: { id: { type: "string" }, options: { type: "array", items: { $ref: getSchemaPath(Alt) } } }
 	}) })
-	async getAltsList(@RequestLang() langPreferences: LangPreference[]) {
+	getAltsList(@RequestLang() langPreferences: LangPreference[]) {
 		return this.metadataService.getAltList(langPreferences);
 	}
 

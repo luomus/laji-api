@@ -137,7 +137,7 @@ export class MetadataService {
 
 	public async getAltList(langPreferences: LangPreference[]) {
 		const translatedAlts = await this.getAltsTranslated(langPreferences);
-		return Object.keys(translatedAlts).map(id => ({ id, options: translatedAlts[id] }));
+		return Object.keys(omit(translatedAlts, "@context")).map(id => ({ id, options: translatedAlts[id] }));
 	}
 
 	@RedisMemoize()

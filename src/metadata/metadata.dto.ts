@@ -29,3 +29,9 @@ export class Alt {
 	id: string;
 	value: MultiLangDto;
 }
+
+@LocalJsonLdContext("metadata-alt-listing")
+export class AltListing {
+	id: string;
+	options: Alt[];
+}

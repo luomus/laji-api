@@ -16,6 +16,7 @@ import { swaggerDescription } from "./swagger-description";
 import { fixRequestBody } from "http-proxy-middleware";
 import { ProxyToOldApiMiddleware } from "./proxy-to-old-api/proxy-to-old-api.middleware";
 import { createGatewayRuntime } from "@graphql-hive/gateway";
+import { personTokenMethods } from "./decorators/request-person.decorator";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -182,8 +183,7 @@ export async function createApp(useLogger = true) {
 		responseCaching: {
 			session: (request) => {
 				const lang = request.headers.get("accept-language") ?? "en";
-				const personToken =
-					request.headers.get("person-token") ?? "";
+				const personToken = request.headers.get("person-token") ?? "";
 				return `${personToken}:${lang}`;
 			}
 		}

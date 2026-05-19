@@ -326,7 +326,6 @@ export class SwaggerService {
 		return document;
 	}
 
-
 	private async entrySideEffectForSchema(schemas: Record<string, SchemaItem>, entry: SwaggerCustomizationEntry) {
 		if (isSwaggerRemoteRefEntry(entry)) {
 			await this.remoteRefEntrySideEffectForSchema(schemas, entry);
@@ -487,16 +486,14 @@ const isMultiLangSchema = (schema: JSONSchema) =>
 	&& Object.keys(schema.properties!).length === LANGS.length
 	&& LANGS.every(lang => (schema.properties![lang] as any)?.type === "string");
 
-
 const patchMultiLangs = (document: OpenAPIObject) => {
-	const multiLangRefs = Object.keys(document.components!.schemas!).reduce((refs, key) => {
-		return refs.concat(collectMultiLangRefs(
+	const multiLangRefs = Object.keys(document.components!.schemas!).reduce((refs, key) =>
+		refs.concat(collectMultiLangRefs(
 			document.components!.schemas![key]! as JSONSchema,
 			document,
 			`#/components/schemas/${key}`,
 			{}
-		));
-	}, [] as string[]);
+		)), [] as string[]);
 	multiLangRefs.forEach(uriFragmentIdentifier => {
 		const jsonPointer = uriFragmentIdentifier.slice(1);
 		updateWithJSONPointer(document, jsonPointer, { type: "string" }, { resolveRefs: true });

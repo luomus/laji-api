@@ -119,8 +119,8 @@ function applyToResult<T, R>(predicate: (r: T) => MaybePromise<R>)
 
 export { applyToResult };
 
-export const getSampleFromResultLike = <T>(maybeResultLike: T | T[] | { results: T[] }): T | undefined => 
-	Array.isArray(maybeResultLike) 
+export const getSampleFromResultLike = <T>(maybeResultLike: T | T[] | { results: T[] }): T | undefined =>
+	Array.isArray(maybeResultLike)
 		? maybeResultLike[0]
 		: isPageLikeResult(maybeResultLike)
 			? maybeResultLike.results[0]
