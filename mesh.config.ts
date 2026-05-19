@@ -10,8 +10,7 @@ export const composeConfig = defineConfig({
 			sourceHandler: loadOpenAPISubgraph("Laji-API", {
 				source: `http://localhost:${PORT}/openapi-json`,
 				operationHeaders: {
-					"Person-Token": "{context.headers[\"person-token\"]}",
-					"Authorization": "{context.headers[\"authorization\"]}",
+					"Accept": "application/json",
 				},
 				ignoreErrorResponses: true,
 			}),
