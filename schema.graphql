@@ -277,7 +277,7 @@ type Query @extraSchemaDefinitionDirective(
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
   )
-  NotificationsController_getAll(
+  NotificationsController_getPage(
     """
     Person's authentication token. It is required.
     """
@@ -292,7 +292,7 @@ type Query @extraSchemaDefinitionDirective(
     Return only notifications that have not been marked as seen.
     """
     onlyUnSeen: Boolean
-  ): NotificationsController_getAll_200_response @httpOperation(
+  ): NotificationsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/notifications"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
@@ -1552,14 +1552,14 @@ type Query @extraSchemaDefinitionDirective(
   """
   Get all organizations
   """
-  OrganizationsController_getAll(
+  OrganizationsController_getPage(
     """
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
     page: Int = 1
     pageSize: Int = 20
-  ): OrganizationsController_getAll_200_response @httpOperation(
+  ): OrganizationsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/organizations"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -9532,7 +9532,7 @@ type PersonTokenInfo @join__type(graph: LAJI_API)  {
   target: String!
 }
 
-type NotificationsController_getAll_200_response @join__type(graph: LAJI_API)  {
+type NotificationsController_getPage_200_response @join__type(graph: LAJI_API)  {
   currentPage: Int!
   pageSize: Int!
   total: Int!
@@ -9565,20 +9565,20 @@ type store_annotation @join__type(graph: LAJI_API)  {
   annotationClass: My_evaluation_of_the_observation
   atlasCode: Overriding_Breeding_Index
   byRole: Annotators_role
-  censusAnnotation: [query_NotificationsController_getAll_results_items_annotation_censusAnnotation_items]
+  censusAnnotation: [query_NotificationsController_getPage_results_items_annotation_censusAnnotation_items]
   created: DateTime
   createdTimestamp: NonNegativeInt
   deletedTimestamp: NonNegativeInt
   identification: store_identification
   invasiveControlEffectiveness: Annotation_type_for_invasive_control
-  lineTransectAnnotation: [query_NotificationsController_getAll_results_items_annotation_lineTransectAnnotation_items]
+  lineTransectAnnotation: [query_NotificationsController_getPage_results_items_annotation_lineTransectAnnotation_items]
   notes: String
   occurrenceAtTimeOfAnnotation: store_annotationOccurrence
   opinion: String
   removedTags: [String]
   rootID: String!
   targetID: String
-  type: query_NotificationsController_getAll_results_items_annotation_type
+  type: query_NotificationsController_getPage_results_items_annotation_type
   createdBySystem: String
   deleted: Boolean
   deletedByPerson: String
@@ -10656,7 +10656,7 @@ type ChecklistVersionsController_getPage_200_response @join__type(graph: LAJI_AP
   results: [store_checklistVersion]!
 }
 
-type OrganizationsController_getAll_200_response @join__type(graph: LAJI_API)  {
+type OrganizationsController_getPage_200_response @join__type(graph: LAJI_API)  {
   currentPage: Int!
   pageSize: Int!
   total: Int!
@@ -29103,7 +29103,7 @@ enum Annotators_role @join__type(graph: LAJI_API)  {
   MMAN_ictAdmin @enum(subgraph: "Laji-API", value: "\"MMAN.ictAdmin\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_NotificationsController_getAll_results_items_annotation_censusAnnotation_items @join__type(graph: LAJI_API)  {
+enum query_NotificationsController_getPage_results_items_annotation_censusAnnotation_items @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MAN_countError @enum(subgraph: "Laji-API", value: "\"MAN.countError\"")  @join__enumValue(graph: LAJI_API) 
   MAN_innerCountError @enum(subgraph: "Laji-API", value: "\"MAN.innerCountError\"")  @join__enumValue(graph: LAJI_API) 
@@ -29118,14 +29118,14 @@ enum Annotation_type_for_invasive_control @join__type(graph: LAJI_API)  {
   MY_invasiveControlEffectivenessNotFound @enum(subgraph: "Laji-API", value: "\"MY.invasiveControlEffectivenessNotFound\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_NotificationsController_getAll_results_items_annotation_lineTransectAnnotation_items @join__type(graph: LAJI_API)  {
+enum query_NotificationsController_getPage_results_items_annotation_lineTransectAnnotation_items @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MAN_birdCountError @enum(subgraph: "Laji-API", value: "\"MAN.birdCountError\"")  @join__enumValue(graph: LAJI_API) 
   MAN_innerCountError @enum(subgraph: "Laji-API", value: "\"MAN.innerCountError\"")  @join__enumValue(graph: LAJI_API) 
   MAN_otherError @enum(subgraph: "Laji-API", value: "\"MAN.otherError\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_NotificationsController_getAll_results_items_annotation_type @join__type(graph: LAJI_API)  {
+enum query_NotificationsController_getPage_results_items_annotation_type @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MAN_typeOpinion @enum(subgraph: "Laji-API", value: "\"MAN.typeOpinion\"")  @join__enumValue(graph: LAJI_API) 
   MAN_typeInvasiveControlEffectiveness @enum(subgraph: "Laji-API", value: "\"MAN.typeInvasiveControlEffectiveness\"")  @join__enumValue(graph: LAJI_API) 
@@ -34377,20 +34377,20 @@ input store_annotation_Input @join__type(graph: LAJI_API)  {
   annotationClass: My_evaluation_of_the_observation
   atlasCode: Overriding_Breeding_Index
   byRole: Annotators_role
-  censusAnnotation: [query_NotificationsController_getAll_results_items_annotation_censusAnnotation_items]
+  censusAnnotation: [query_NotificationsController_getPage_results_items_annotation_censusAnnotation_items]
   created: DateTime
   createdTimestamp: NonNegativeInt
   deletedTimestamp: NonNegativeInt
   identification: store_identification_Input
   invasiveControlEffectiveness: Annotation_type_for_invasive_control
-  lineTransectAnnotation: [query_NotificationsController_getAll_results_items_annotation_lineTransectAnnotation_items]
+  lineTransectAnnotation: [query_NotificationsController_getPage_results_items_annotation_lineTransectAnnotation_items]
   notes: String
   occurrenceAtTimeOfAnnotation: store_annotationOccurrence_Input
   opinion: String
   removedTags: [String]
   rootID: String!
   targetID: String
-  type: query_NotificationsController_getAll_results_items_annotation_type
+  type: query_NotificationsController_getPage_results_items_annotation_type
   createdBySystem: String
   deleted: Boolean
   deletedByPerson: String
