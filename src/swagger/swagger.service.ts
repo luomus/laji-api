@@ -455,12 +455,12 @@ export const isPagedOperation = (operation: OperationObject) =>
 export const asPagedResponse = (schema: SchemaItem): SchemaObject => ({
 	type: "object",
 	properties: {
-		currentPage: { type: "number" },
-		pageSize: { type: "number" },
-		total: { type: "number" },
-		lastPage: { type: "number" },
-		prevPage: { type: "number" },
-		nextPage: { type: "number" },
+		currentPage: { type: "integer" },
+		pageSize: { type: "integer" },
+		total: { type: "integer" },
+		lastPage: { type: "integer" },
+		prevPage: { type: "integer" },
+		nextPage: { type: "integer" },
 		results: { type: "array", items: schema },
 	},
 	required: [ "currentPage", "pageSize", "total", "lastPage", "results"]

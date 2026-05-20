@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsInt, IsOptional, IsString, isObject } from "class-validator";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
-import { IntersectionType } from "@nestjs/swagger";
+import { ApiPropertyOptional, IntersectionType } from "@nestjs/swagger";
 
 export enum Lang {
 	fi = "fi",
@@ -11,10 +11,12 @@ export enum Lang {
 }
 
 export class QueryWithPagingDto {
+	@ApiPropertyOptional({ type: "integer" })
 	@Type(() => Number)
 	@IsInt()
 	page?: number = 1;
 
+	@ApiPropertyOptional({ type: "integer" })
 	@Type(() => Number)
 	@IsInt()
 	pageSize?: number = 20;
