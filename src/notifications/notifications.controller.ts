@@ -18,7 +18,7 @@ export class NotificationsController {
 	@ApiExcludeEndpoint()
 	@SwaggerRemote({ source: "store", ref: "/notification" })
 	@Get(":personToken")
-	getAllV0(
+	getPageV0(
 		@Query() { page, pageSize, onlyUnSeen }: GetNotificationsDto,
 		@Param("personToken") _: string,
 		@RequestPerson() person: Person
@@ -30,7 +30,7 @@ export class NotificationsController {
 	@SwaggerRemote({ source: "store", ref: "/notification" })
 	@Get()
 	@UseInterceptors(SelectedFields)
-	getAll(
+	getPage(
 		@Query() { page, pageSize, onlyUnSeen }: GetNotificationsDto,
 		@RequestPerson() person: Person
 	) {

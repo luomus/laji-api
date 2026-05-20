@@ -28,7 +28,7 @@ export class OrganizationsController {
 		"abbreviation",
 		"fullName",
 	], }, "SensitiveOrganization")
-	async getAll(@Query() _: GetAllOrganizationsDto) {
+	async getPage(@Query() _: GetAllOrganizationsDto) {
 		return this.organizationsService.getAll();
 	}
 
