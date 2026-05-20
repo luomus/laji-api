@@ -14,9 +14,7 @@ import { RedisCacheService } from "./redis-cache/redis-cache.service";
 import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
 import { fixRequestBody } from "http-proxy-middleware";
-import { ProxyToOldApiMiddleware } from "./proxy-to-old-api/proxy-to-old-api.middleware";
 import { createGatewayRuntime } from "@graphql-hive/gateway";
-import { personTokenMethods } from "./decorators/request-person.decorator";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -144,8 +142,6 @@ export async function createApp(useLogger = true) {
 		}
 		next();
 	});
-
-	app.use(app.get(ProxyToOldApiMiddleware).use);
 
 	app.useStaticAssets("static");
 
