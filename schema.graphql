@@ -160,21 +160,21 @@ Integers that will have a value greater than 0.
 scalar PositiveInt @join__type(graph: LAJI_API) 
 
 """
-The `File` scalar type represents a file upload.
-"""
-scalar File @join__type(graph: LAJI_API) 
-
-"""
 A field whose value conforms to the standard internet email address format as specified in HTML Spec: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address.
 """
 scalar EmailAddress @join__type(graph: LAJI_API)  @specifiedBy(url: "https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address") 
+
+"""
+The `File` scalar type represents a file upload.
+"""
+scalar File @join__type(graph: LAJI_API) 
 
 scalar ObjMap @join__type(graph: LAJI_API) 
 
 scalar _DirectiveExtensions @join__type(graph: LAJI_API) 
 
 type Query @extraSchemaDefinitionDirective(
-  directives: {transport: [{subgraph: "Laji-API", kind: "rest", location: "http://localhost:3005", headers: [["Person-Token", "{context.headers[\"person-token\"]}"], ["Authorization", "{context.headers[\"authorization\"]}"]]}]}
+  directives: {transport: [{subgraph: "Laji-API", kind: "rest", location: "http://localhost:3005", headers: [["Accept", "application/json"]]}]}
 ) @join__type(graph: LAJI_API)  {
   """
   Get participants of a form. Only for form admins.
@@ -271,7 +271,7 @@ type Query @extraSchemaDefinitionDirective(
   """
   Information about the authentication event of a person token
   """
-  PersonTokenController_getInfo(Person_Token: String) : PersonTokenInfo @httpOperation(
+  PersonTokenController_getInfo(Person_Token: String!) : PersonTokenInfo @httpOperation(
     subgraph: "Laji-API"
     path: "/authentication-event"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
@@ -363,7 +363,7 @@ type Query @extraSchemaDefinitionDirective(
     httpMethod: GET
   )
   """
-  Get all alts as a list where keys are property names and values are alts
+  Get all alts as a list
   """
   MetadataController_getAltsList: MetadataController_getAltsList_200_response @httpOperation(
     subgraph: "Laji-API"
@@ -1988,7 +1988,7 @@ type Query @extraSchemaDefinitionDirective(
   ): WarehouseDwSingle_Document @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/document"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"format\":\"format\",\"documentId\":\"documentId\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\"}"
   )
@@ -2145,10 +2145,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfAsEditor: Boolean
     format: queryInput_warehouse_query_document_aggregate_format
-  ): warehouse_query_document_aggregate_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/document/aggregate"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"onlyCount\":\"onlyCount\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"formId\":\"formId\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"createdDateYear\":\"createdDateYear\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasMedia\":\"hasMedia\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"selfAsEditor\":\"selfAsEditor\",\"format\":\"format\"}"
   )
@@ -2444,10 +2444,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_gathering_aggregate_format
-  ): warehouse_query_gathering_aggregate_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/gathering/aggregate"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"onlyCount\":\"onlyCount\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasMedia\":\"hasMedia\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonCensus\":\"taxonCensus\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -2545,10 +2545,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     taxonCensus: String
     format: queryInput_warehouse_query_gathering_statistics_format
-  ): warehouse_query_gathering_statistics_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/gathering/statistics"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"onlyCount\":\"onlyCount\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"countryId\":\"countryId\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"includeSubCollections\":\"includeSubCollections\",\"qualityIssues\":\"qualityIssues\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonCensus\":\"taxonCensus\",\"format\":\"format\"}"
   )
@@ -3031,7 +3031,7 @@ type Query @extraSchemaDefinitionDirective(
   ): WarehouseDwQuery_CountResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/unit/count"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"format\":\"format\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"hasSample\":\"hasSample\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\"}"
   )
@@ -3529,10 +3529,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_unit_list_format
-  ): warehouse_query_unit_list_200_response @httpOperation(
+  ): WarehouseDwQuery_ListResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/unit/list"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"selected\":\"selected\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"hasSample\":\"hasSample\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -4058,10 +4058,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_unit_aggregate_format
-  ): warehouse_query_unit_aggregate_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/unit/aggregate"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"onlyCount\":\"onlyCount\",\"taxonCounts\":\"taxonCounts\",\"gatheringCounts\":\"gatheringCounts\",\"pairCounts\":\"pairCounts\",\"atlasCounts\":\"atlasCounts\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"hasSample\":\"hasSample\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -4220,10 +4220,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     taxonCensus: String
     format: queryInput_warehouse_query_unit_statistics_format
-  ): warehouse_query_unit_statistics_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/unit/statistics"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"onlyCount\":\"onlyCount\",\"taxonCounts\":\"taxonCounts\",\"gatheringCounts\":\"gatheringCounts\",\"pairCounts\":\"pairCounts\",\"atlasCounts\":\"atlasCounts\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"countryId\":\"countryId\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"includeSubCollections\":\"includeSubCollections\",\"individualCountMin\":\"individualCountMin\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"wild\":\"wild\",\"qualityIssues\":\"qualityIssues\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonCensus\":\"taxonCensus\",\"format\":\"format\"}"
   )
@@ -4734,10 +4734,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_annotation_list_format
-  ): warehouse_query_annotation_list_200_response @httpOperation(
+  ): WarehouseDwQuery_ListResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/annotation/list"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"selected\":\"selected\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"annotationType\":\"annotationType\",\"includeSystemAnnotations\":\"includeSystemAnnotations\",\"annotatedSameOrAfter\":\"annotatedSameOrAfter\",\"annotatedSameOrBefore\":\"annotatedSameOrBefore\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"hasSample\":\"hasSample\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -5260,10 +5260,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_annotation_aggregate_format
-  ): warehouse_query_annotation_aggregate_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/annotation/aggregate"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"onlyCount\":\"onlyCount\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"annotationType\":\"annotationType\",\"includeSystemAnnotations\":\"includeSystemAnnotations\",\"annotatedSameOrAfter\":\"annotatedSameOrAfter\",\"annotatedSameOrBefore\":\"annotatedSameOrBefore\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"hasSample\":\"hasSample\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -5761,10 +5761,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_unitMedia_list_format
-  ): warehouse_query_unitMedia_list_200_response @httpOperation(
+  ): WarehouseDwQuery_ListResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/unitMedia/list"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"selected\":\"selected\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"hasSample\":\"hasSample\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -6279,7 +6279,7 @@ type Query @extraSchemaDefinitionDirective(
   ): WarehouseDwQuery_CountResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/sample/count"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"format\":\"format\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"sampleId\":\"sampleId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"sampleCollectionId\":\"sampleCollectionId\",\"hasSample\":\"hasSample\",\"sampleMultiple\":\"sampleMultiple\",\"sampleType\":\"sampleType\",\"sampleQuality\":\"sampleQuality\",\"sampleStatus\":\"sampleStatus\",\"sampleMaterial\":\"sampleMaterial\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"sampleFact\":\"sampleFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\"}"
   )
@@ -6809,10 +6809,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_sample_list_format
-  ): warehouse_query_sample_list_200_response @httpOperation(
+  ): WarehouseDwQuery_ListResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/sample/list"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"selected\":\"selected\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"sampleId\":\"sampleId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"sampleCollectionId\":\"sampleCollectionId\",\"hasSample\":\"hasSample\",\"sampleMultiple\":\"sampleMultiple\",\"sampleType\":\"sampleType\",\"sampleQuality\":\"sampleQuality\",\"sampleStatus\":\"sampleStatus\",\"sampleMaterial\":\"sampleMaterial\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"sampleFact\":\"sampleFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -7354,10 +7354,10 @@ type Query @extraSchemaDefinitionDirective(
     """
     selfIsNotEditorOrObserver: Boolean
     format: queryInput_warehouse_query_sample_aggregate_format
-  ): warehouse_query_sample_aggregate_200_response @httpOperation(
+  ): WarehouseDwQuery_AggregateResponse @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/query/sample/aggregate"
-    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Permission-Token", "{args.Permission_Token}"], ["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"aggregateBy\":\"aggregateBy\",\"orderBy\":\"orderBy\",\"crs\":\"crs\",\"featureType\":\"featureType\",\"onlyCount\":\"onlyCount\",\"excludeNulls\":\"excludeNulls\",\"pessimisticDateRangeHandling\":\"pessimisticDateRangeHandling\",\"pageSize\":\"pageSize\",\"page\":\"page\",\"cache\":\"cache\",\"taxonId\":\"taxonId\",\"target\":\"target\",\"useIdentificationAnnotations\":\"useIdentificationAnnotations\",\"includeSubTaxa\":\"includeSubTaxa\",\"includeNonValidTaxa\":\"includeNonValidTaxa\",\"onlyNonValidTaxa\":\"onlyNonValidTaxa\",\"informalTaxonGroupId\":\"informalTaxonGroupId\",\"informalTaxonGroupIdNot\":\"informalTaxonGroupIdNot\",\"informalTaxonGroupIdIncludingReported\":\"informalTaxonGroupIdIncludingReported\",\"administrativeStatusId\":\"administrativeStatusId\",\"redListStatusId\":\"redListStatusId\",\"taxonAdminFiltersOperator\":\"taxonAdminFiltersOperator\",\"typeOfOccurrenceId\":\"typeOfOccurrenceId\",\"typeOfOccurrenceIdNot\":\"typeOfOccurrenceIdNot\",\"primaryHabitat\":\"primaryHabitat\",\"anyHabitat\":\"anyHabitat\",\"occurrenceCountMax\":\"occurrenceCountMax\",\"occurrenceCountFinlandMax\":\"occurrenceCountFinlandMax\",\"finnish\":\"finnish\",\"invasive\":\"invasive\",\"sensitive\":\"sensitive\",\"higherTaxon\":\"higherTaxon\",\"taxonRankId\":\"taxonRankId\",\"countryId\":\"countryId\",\"finnishMunicipalityId\":\"finnishMunicipalityId\",\"biogeographicalProvinceId\":\"biogeographicalProvinceId\",\"elyCentreId\":\"elyCentreId\",\"provinceId\":\"provinceId\",\"area\":\"area\",\"namedPlaceId\":\"namedPlaceId\",\"namedPlaceTag\":\"namedPlaceTag\",\"birdAssociationAreaId\":\"birdAssociationAreaId\",\"formId\":\"formId\",\"time\":\"time\",\"timeAccuracy\":\"timeAccuracy\",\"yearMonth\":\"yearMonth\",\"dayOfYear\":\"dayOfYear\",\"season\":\"season\",\"keyword\":\"keyword\",\"collectionId\":\"collectionId\",\"collectionIdExplicit\":\"collectionIdExplicit\",\"collectionIdNot\":\"collectionIdNot\",\"collectionIdExplicitNot\":\"collectionIdExplicitNot\",\"includeSubCollections\":\"includeSubCollections\",\"sourceId\":\"sourceId\",\"recordBasis\":\"recordBasis\",\"superRecordBasis\":\"superRecordBasis\",\"lifeStage\":\"lifeStage\",\"sex\":\"sex\",\"invasiveControl\":\"invasiveControl\",\"invasiveControlled\":\"invasiveControlled\",\"documentId\":\"documentId\",\"documentIdPrefix\":\"documentIdPrefix\",\"gatheringId\":\"gatheringId\",\"unitId\":\"unitId\",\"sampleId\":\"sampleId\",\"individualId\":\"individualId\",\"individualCountMin\":\"individualCountMin\",\"individualCountMax\":\"individualCountMax\",\"loadedSameOrAfter\":\"loadedSameOrAfter\",\"loadedSameOrBefore\":\"loadedSameOrBefore\",\"firstLoadedSameOrAfter\":\"firstLoadedSameOrAfter\",\"firstLoadedSameOrBefore\":\"firstLoadedSameOrBefore\",\"includeNullLoadDates\":\"includeNullLoadDates\",\"createdDateYear\":\"createdDateYear\",\"coordinates\":\"coordinates\",\"polygon\":\"polygon\",\"polygonId\":\"polygonId\",\"coordinateAccuracyMax\":\"coordinateAccuracyMax\",\"wgs84CenterPoint\":\"wgs84CenterPoint\",\"ykj1km\":\"ykj1km\",\"ykj10km\":\"ykj10km\",\"ykj50km\":\"ykj50km\",\"ykj100km\":\"ykj100km\",\"ykj1kmCenter\":\"ykj1kmCenter\",\"ykj10kmCenter\":\"ykj10kmCenter\",\"ykj50kmCenter\":\"ykj50kmCenter\",\"ykj100kmCenter\":\"ykj100kmCenter\",\"sourceOfCoordinates\":\"sourceOfCoordinates\",\"typeSpecimen\":\"typeSpecimen\",\"wild\":\"wild\",\"breedingSite\":\"breedingSite\",\"local\":\"local\",\"alive\":\"alive\",\"identificationBasis\":\"identificationBasis\",\"samplingMethod\":\"samplingMethod\",\"plantStatusCode\":\"plantStatusCode\",\"hasDocumentMedia\":\"hasDocumentMedia\",\"hasGatheringMedia\":\"hasGatheringMedia\",\"hasUnitMedia\":\"hasUnitMedia\",\"hasUnitImages\":\"hasUnitImages\",\"hasUnitAudio\":\"hasUnitAudio\",\"hasUnitVideo\":\"hasUnitVideo\",\"hasUnitModel\":\"hasUnitModel\",\"hasMedia\":\"hasMedia\",\"hasSequenceText\":\"hasSequenceText\",\"teamMember\":\"teamMember\",\"teamMemberId\":\"teamMemberId\",\"secureReason\":\"secureReason\",\"secureLevel\":\"secureLevel\",\"secured\":\"secured\",\"annotated\":\"annotated\",\"qualityIssues\":\"qualityIssues\",\"collectionQuality\":\"collectionQuality\",\"recordQuality\":\"recordQuality\",\"collectionAndRecordQuality\":\"collectionAndRecordQuality\",\"reliability\":\"reliability\",\"effectiveTag\":\"effectiveTag\",\"unidentified\":\"unidentified\",\"needsCheck\":\"needsCheck\",\"completeListTaxonId\":\"completeListTaxonId\",\"completeListType\":\"completeListType\",\"taxonSetId\":\"taxonSetId\",\"taxonCensus\":\"taxonCensus\",\"sampleCollectionId\":\"sampleCollectionId\",\"hasSample\":\"hasSample\",\"sampleMultiple\":\"sampleMultiple\",\"sampleType\":\"sampleType\",\"sampleQuality\":\"sampleQuality\",\"sampleStatus\":\"sampleStatus\",\"sampleMaterial\":\"sampleMaterial\",\"unitFact\":\"unitFact\",\"gatheringFact\":\"gatheringFact\",\"documentFact\":\"documentFact\",\"sampleFact\":\"sampleFact\",\"partition\":\"partition\",\"hasValue\":\"hasValue\",\"atlasCode\":\"atlasCode\",\"atlasClass\":\"atlasClass\",\"onlyNonStateLands\":\"onlyNonStateLands\",\"selfAsEditor\":\"selfAsEditor\",\"selfAsObserver\":\"selfAsObserver\",\"selfAsEditorOrObserver\":\"selfAsEditorOrObserver\",\"selfIsNotEditorOrObserver\":\"selfIsNotEditorOrObserver\",\"format\":\"format\"}"
   )
@@ -7367,7 +7367,7 @@ type Query @extraSchemaDefinitionDirective(
   warehouse_enumeration_labels: WarehouseDwEnumerationLabels @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/enumeration-labels"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
   )
   """
@@ -7379,7 +7379,7 @@ type Query @extraSchemaDefinitionDirective(
   enumeration: String!) : WarehouseDwEnumerationLabel @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/enumeration-labels/{args.enumeration}"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
   )
   """
@@ -7388,7 +7388,7 @@ type Query @extraSchemaDefinitionDirective(
   warehouse_filters: JSON @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/filters"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
   )
   """
@@ -7400,7 +7400,7 @@ type Query @extraSchemaDefinitionDirective(
   filter: String!) : WarehouseDwFilter @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/filters/{args.filter}"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
   )
   """
@@ -7414,7 +7414,7 @@ type Query @extraSchemaDefinitionDirective(
   ): WarehouseDwTeamMembers @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/teamMember"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"query\":\"query\"}"
   )
@@ -7427,7 +7427,7 @@ type Query @extraSchemaDefinitionDirective(
   id: String!) : WarehouseDwTeamMember @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/teamMember/{args.id}"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
   )
   """
@@ -7440,10 +7440,10 @@ type Query @extraSchemaDefinitionDirective(
     id: Int!
     format: queryInput_warehouse_polygon_by_id_format
     crs: queryInput_warehouse_polygon_by_id_crs = EUREF
-  ): String @httpOperation(
+  ): JSON @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/polygon/{args.id}"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
     queryParamArgMap: "{\"format\":\"format\",\"crs\":\"crs\"}"
   )
@@ -7484,7 +7484,7 @@ type Query @extraSchemaDefinitionDirective(
     Example: subject.type=TDF.typeTaxon&trait.id=TDF.1&trait.id=TDF.2&subjectFinBIFTaxon.higherTaxa.kingdom=Animalia
     """
     searchParams: JSON
-  ): File @httpOperation(
+  ): JSON @httpOperation(
     subgraph: "Laji-API"
     path: "/trait/search/download"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -11415,10 +11415,6 @@ type WarehouseDwQuery_AggregateRow @join__type(graph: LAJI_API)  {
   aggregateBy: JSON!
 }
 
-type String_container @join__type(graph: LAJI_API)  {
-  String: String @resolveRoot(subgraph: "Laji-API") 
-}
-
 type WarehouseDwQuery_CountResponse @join__type(graph: LAJI_API)  {
   total: Int!
   cacheTimestamp: Int!
@@ -11446,8 +11442,8 @@ type WarehouseDwQuery_JoinedRow @join__type(graph: LAJI_API)  {
 
 type WarehouseDwQuery_Document @join__type(graph: LAJI_API)  {
   documentId: String!
-  secureLevel: query_warehouse_query_unit_list_oneOf_0_results_items_document_secureLevel!
-  secureReasons: [query_warehouse_query_unit_list_oneOf_0_results_items_document_secureReasons_items]!
+  secureLevel: query_warehouse_query_unit_list_results_items_document_secureLevel!
+  secureReasons: [query_warehouse_query_unit_list_results_items_document_secureReasons_items]!
   partial: Boolean!
   collectionId: String!
   licenseId: String!
@@ -11477,11 +11473,11 @@ type WarehouseDwQuery_Document @join__type(graph: LAJI_API)  {
   referenceURL: String!
   secured: Boolean!
   siteDead: Boolean!
-  sourceTags: [query_warehouse_query_unit_list_oneOf_0_results_items_document_sourceTags_items]!
+  sourceTags: [query_warehouse_query_unit_list_results_items_document_sourceTags_items]!
 }
 
 type WarehouseDwQuery_DocumentDWLinkings @join__type(graph: LAJI_API)  {
-  collectionQuality: query_warehouse_query_unit_list_oneOf_0_results_items_document_linkings_collectionQuality!
+  collectionQuality: query_warehouse_query_unit_list_results_items_document_linkings_collectionQuality!
   editors: [WarehouseDwQuery_Person]!
 }
 
@@ -11496,9 +11492,9 @@ type WarehouseDwQuery_DocumentQuality @join__type(graph: LAJI_API)  {
 }
 
 type WarehouseDwQuery_Quality @join__type(graph: LAJI_API)  {
-  issue: query_warehouse_query_unit_list_oneOf_0_results_items_document_quality_issue_issue!
+  issue: query_warehouse_query_unit_list_results_items_document_quality_issue_issue!
   message: String!
-  source: query_warehouse_query_unit_list_oneOf_0_results_items_document_quality_issue_source!
+  source: query_warehouse_query_unit_list_results_items_document_quality_issue_source!
 }
 
 type WarehouseDwQuery_NamedPlaceEntity @join__type(graph: LAJI_API)  {
@@ -11522,7 +11518,7 @@ type WarehouseDwQuery_SingleCoordinates @join__type(graph: LAJI_API)  {
 }
 
 type WarehouseDwQuery_Annotation @join__type(graph: LAJI_API)  {
-  addedTags: [query_warehouse_query_unit_list_oneOf_0_results_items_document_annotations_items_addedTags_items]!
+  addedTags: [query_warehouse_query_unit_list_results_items_document_annotations_items_addedTags_items]!
   annotationByPerson: String!
   annotationByPersonName: String!
   annotationBySystem: String!
@@ -11538,7 +11534,7 @@ type WarehouseDwQuery_Annotation @join__type(graph: LAJI_API)  {
   identification: WarehouseDwQuery_Identification!
   notes: String!
   occurrenceAtTimeOfAnnotation: WarehouseDwQuery_OccurrenceAtTimeOfAnnotation!
-  removedTags: [query_warehouse_query_unit_list_oneOf_0_results_items_document_annotations_items_removedTags_items]!
+  removedTags: [query_warehouse_query_unit_list_results_items_document_annotations_items_removedTags_items]!
   valid: Boolean!
 }
 
@@ -11625,7 +11621,7 @@ type WarehouseDwQuery_MediaObject @join__type(graph: LAJI_API)  {
   highDetailModelURL: String!
   licenseId: String!
   lowDetailModelURL: String!
-  mediaType: query_warehouse_query_unit_list_oneOf_0_results_items_document_media_items_mediaType!
+  mediaType: query_warehouse_query_unit_list_results_items_document_media_items_mediaType!
   mp3URL: String!
   squareThumbnailURL: String!
   thumbnailURL: String!
@@ -11727,10 +11723,10 @@ type WarehouseDwQuery_GatheringInterpretations @join__type(graph: LAJI_API)  {
   finnishMunicipalities: [String]!
   finnishMunicipality: String!
   municipalityDisplayname: String!
-  sourceOfBiogeographicalProvince: query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfBiogeographicalProvince!
-  sourceOfCoordinates: query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfCoordinates!
-  sourceOfCountry: query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfCountry!
-  sourceOfFinnishMunicipality: query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfFinnishMunicipality!
+  sourceOfBiogeographicalProvince: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfBiogeographicalProvince!
+  sourceOfCoordinates: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfCoordinates!
+  sourceOfCountry: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfCountry!
+  sourceOfFinnishMunicipality: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfFinnishMunicipality!
 }
 
 type WarehouseDwQuery_GatheringQuality @join__type(graph: LAJI_API)  {
@@ -11753,17 +11749,17 @@ type WarehouseDwQuery_Unit @join__type(graph: LAJI_API)  {
   unitOrder: Int!
   taxonVerbatim: String!
   quality: WarehouseDwQuery_UnitQuality!
-  reportedTaxonConfidence: query_warehouse_query_unit_list_oneOf_0_results_items_unit_reportedTaxonConfidence!
+  reportedTaxonConfidence: query_warehouse_query_unit_list_results_items_unit_reportedTaxonConfidence!
   linkings: WarehouseDwQuery_UnitDWLinkings!
   abundanceString: String!
-  abundanceUnit: query_warehouse_query_unit_list_oneOf_0_results_items_unit_abundanceUnit!
+  abundanceUnit: query_warehouse_query_unit_list_results_items_unit_abundanceUnit!
   interpretations: WarehouseDwQuery_UnitInterpretations!
-  superRecordBasis: query_warehouse_query_unit_list_oneOf_0_results_items_unit_superRecordBasis!
-  recordBasis: query_warehouse_query_unit_list_oneOf_0_results_items_unit_recordBasis!
+  superRecordBasis: query_warehouse_query_unit_list_results_items_unit_superRecordBasis!
+  recordBasis: query_warehouse_query_unit_list_results_items_unit_recordBasis!
   typeSpecimen: Boolean!
   det: String!
-  sex: query_warehouse_query_unit_list_oneOf_0_results_items_unit_sex!
-  lifeStage: query_warehouse_query_unit_list_oneOf_0_results_items_unit_lifeStage!
+  sex: query_warehouse_query_unit_list_results_items_unit_sex!
+  lifeStage: query_warehouse_query_unit_list_results_items_unit_lifeStage!
   wild: Boolean!
   alive: Boolean!
   local: Boolean!
@@ -11795,7 +11791,7 @@ type WarehouseDwQuery_Unit @join__type(graph: LAJI_API)  {
   sampleCount: Int!
   samples: [WarehouseDwQuery_Sample]!
   samplingMethod: String!
-  sourceTags: [query_warehouse_query_unit_list_oneOf_0_results_items_unit_sourceTags_items]!
+  sourceTags: [query_warehouse_query_unit_list_results_items_unit_sourceTags_items]!
   types: [WarehouseDwQuery_TypeSpecimen]!
   videoCount: Int!
 }
@@ -11814,16 +11810,16 @@ type WarehouseDwQuery_UnitInterpretations @join__type(graph: LAJI_API)  {
   annotatedTaxonId: String!
   collectionAndRecordQuality: String!
   det: String!
-  effectiveTags: [query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_effectiveTags_items]!
+  effectiveTags: [query_warehouse_query_unit_list_results_items_unit_interpretations_effectiveTags_items]!
   individualCount: Int!
-  invasiveControlEffectiveness: query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_invasiveControlEffectiveness!
+  invasiveControlEffectiveness: query_warehouse_query_unit_list_results_items_unit_interpretations_invasiveControlEffectiveness!
   invasiveControlled: Boolean!
   needsCheck: Boolean!
   needsIdentification: Boolean!
   pairCount: Int!
-  recordQuality: query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_recordQuality!
+  recordQuality: query_warehouse_query_unit_list_results_items_unit_interpretations_recordQuality!
   recordQualityNumeric: Float!
-  reliability: query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_reliability!
+  reliability: query_warehouse_query_unit_list_results_items_unit_interpretations_reliability!
 }
 
 type WarehouseDwQuery_IdentificationEvent @join__type(graph: LAJI_API)  {
@@ -12410,7 +12406,7 @@ type Mutation @join__type(graph: LAJI_API)  {
   """
   Delete authentication session of a person token
   """
-  PersonTokenController_delete(Person_Token: String) : Void @httpOperation(
+  PersonTokenController_delete(Person_Token: String!) : Void @httpOperation(
     subgraph: "Laji-API"
     path: "/authentication-event"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
@@ -13351,7 +13347,7 @@ type Mutation @join__type(graph: LAJI_API)  {
   """
   Convert HTML to PDF
   """
-  HtmlToPdfController_htmlToPdf(input: String) : File @httpOperation(
+  HtmlToPdfController_htmlToPdf(input: String) : JSON @httpOperation(
     subgraph: "Laji-API"
     path: "/html-to-pdf"
     operationSpecificHeaders: [["Content-Type", "text/plain"], ["accept", "application/json"]]
@@ -13388,10 +13384,10 @@ type Mutation @join__type(graph: LAJI_API)  {
     """
     sourceId: String
     input: WarehouseDwETL_DwRoot_Input
-  ): String @httpOperation(
+  ): JSON @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/push"
-    operationSpecificHeaders: [["Content-Type", "application/json"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Content-Type", "application/json"], ["accept", "application/json"]]
     httpMethod: POST
     queryParamArgMap: "{\"sourceId\":\"sourceId\"}"
   )
@@ -13407,10 +13403,10 @@ type Mutation @join__type(graph: LAJI_API)  {
     Normally sourceId is received via the API key. By giving this parameter you can override the sourceId. API key must have permissions to use that sourceId.
     """
     sourceId: String
-  ): String @httpOperation(
+  ): JSON @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/push"
-    operationSpecificHeaders: [["accept", "text/plain"]]
+    operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: DELETE
     queryParamArgMap: "{\"documentId\":\"documentId\",\"sourceId\":\"sourceId\"}"
   )
@@ -13421,7 +13417,7 @@ type Mutation @join__type(graph: LAJI_API)  {
     """
     Person token is required to limit number of created polygon ids per day to 100
     """
-    Person_Token: String
+    Person_Token: String!
     crs: mutationInput_post_warehouse_polygon_crs = EUREF
     """
     Either this or wkt is required. The polygon as GeoJSON.
@@ -13435,7 +13431,7 @@ type Mutation @join__type(graph: LAJI_API)  {
   ): WarehouseDwPolygonId @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/polygon"
-    operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "text/plain"]]
+    operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: POST
     queryParamArgMap: "{\"crs\":\"crs\",\"geoJSON\":\"geoJSON\",\"wkt\":\"wkt\",\"format\":\"format\"}"
   )
@@ -14090,28 +14086,6 @@ union query_FormsController_getListing_results_items_options_prepopulatedDocumen
 union JSONSchema @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "JSONSchemaObject")  @join__unionMember(graph: LAJI_API, member: "JSONSchemaArray")  @join__unionMember(graph: LAJI_API, member: "JSONSchemaPrimitive")  = JSONSchemaObject | JSONSchemaArray | JSONSchemaPrimitive
 
 union query_DocumentsController_getBatchJobStatus_errors_items @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "JSON_container")  @join__unionMember(graph: LAJI_API, member: "Void_container")  = JSON_container | Void_container
-
-union warehouse_query_document_aggregate_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
-
-union warehouse_query_gathering_aggregate_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
-
-union warehouse_query_gathering_statistics_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
-
-union warehouse_query_unit_list_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_ListResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_ListResponse | String_container
-
-union warehouse_query_unit_aggregate_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
-
-union warehouse_query_unit_statistics_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
-
-union warehouse_query_annotation_list_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_ListResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_ListResponse | String_container
-
-union warehouse_query_annotation_aggregate_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
-
-union warehouse_query_unitMedia_list_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_ListResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_ListResponse | String_container
-
-union warehouse_query_sample_list_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_ListResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_ListResponse | String_container
-
-union warehouse_query_sample_aggregate_200_response @join__type(graph: LAJI_API)  @join__unionMember(graph: LAJI_API, member: "WarehouseDwQuery_AggregateResponse")  @join__unionMember(graph: LAJI_API, member: "String_container")  = WarehouseDwQuery_AggregateResponse | String_container
 
 enum queryInput_FormsController_getOne_format @join__type(graph: LAJI_API)  {
   schema @join__enumValue(graph: LAJI_API) 
@@ -29944,7 +29918,7 @@ enum query_warehouse_query_document_gatherings_items_units_items_interpretations
   UNRELIABLE @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_secureLevel @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_secureLevel @join__type(graph: LAJI_API)  {
   NOSHOW @join__enumValue(graph: LAJI_API) 
   HIGHEST @join__enumValue(graph: LAJI_API) 
   KM100 @join__enumValue(graph: LAJI_API) 
@@ -29956,7 +29930,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_document_secureLevel 
   NONE @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_secureReasons_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_secureReasons_items @join__type(graph: LAJI_API)  {
   DEFAULT_TAXON_CONSERVATION @join__enumValue(graph: LAJI_API) 
   BREEDING_SITE_CONSERVATION @join__enumValue(graph: LAJI_API) 
   NATURA_AREA_CONSERVATION @join__enumValue(graph: LAJI_API) 
@@ -29972,7 +29946,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_document_secureReason
   USER_HIDDEN_TIME @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_sourceTags_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_sourceTags_items @join__type(graph: LAJI_API)  {
   ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
@@ -30008,13 +29982,13 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_document_sourceTags_i
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_linkings_collectionQuality @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_linkings_collectionQuality @join__type(graph: LAJI_API)  {
   PROFESSIONAL @join__enumValue(graph: LAJI_API) 
   HOBBYIST @join__enumValue(graph: LAJI_API) 
   AMATEUR @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_quality_issue_issue @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_quality_issue_issue @join__type(graph: LAJI_API)  {
   REPORTED_UNRELIABLE @join__enumValue(graph: LAJI_API) 
   MEDIA_ISSUE @join__enumValue(graph: LAJI_API) 
   INVALID_CREATED_DATE @join__enumValue(graph: LAJI_API) 
@@ -30039,13 +30013,13 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_document_quality_issu
   ETL_ISSUE @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_quality_issue_source @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_quality_issue_source @join__type(graph: LAJI_API)  {
   AUTOMATED_FINBIF_VALIDATION @join__enumValue(graph: LAJI_API) 
   ORIGINAL_DOCUMENT @join__enumValue(graph: LAJI_API) 
   QUALITY_CONTROL @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_annotations_items_addedTags_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_annotations_items_addedTags_items @join__type(graph: LAJI_API)  {
   ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
@@ -30081,7 +30055,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_document_annotations_
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_annotations_items_removedTags_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_annotations_items_removedTags_items @join__type(graph: LAJI_API)  {
   ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
@@ -30117,14 +30091,14 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_document_annotations_
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_document_media_items_mediaType @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_document_media_items_mediaType @join__type(graph: LAJI_API)  {
   IMAGE @join__enumValue(graph: LAJI_API) 
   AUDIO @join__enumValue(graph: LAJI_API) 
   VIDEO @join__enumValue(graph: LAJI_API) 
   MODEL @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfBiogeographicalProvince @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfBiogeographicalProvince @join__type(graph: LAJI_API)  {
   COORDINATES @join__enumValue(graph: LAJI_API) 
   COORDINATE_CENTERPOINT @join__enumValue(graph: LAJI_API) 
   REPORTED_VALUE @join__enumValue(graph: LAJI_API) 
@@ -30132,7 +30106,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretat
   OLD_FINNISH_MUNICIPALITY @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfCoordinates @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfCoordinates @join__type(graph: LAJI_API)  {
   COORDINATES @join__enumValue(graph: LAJI_API) 
   COORDINATE_CENTERPOINT @join__enumValue(graph: LAJI_API) 
   REPORTED_VALUE @join__enumValue(graph: LAJI_API) 
@@ -30140,7 +30114,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretat
   OLD_FINNISH_MUNICIPALITY @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfCountry @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfCountry @join__type(graph: LAJI_API)  {
   COORDINATES @join__enumValue(graph: LAJI_API) 
   COORDINATE_CENTERPOINT @join__enumValue(graph: LAJI_API) 
   REPORTED_VALUE @join__enumValue(graph: LAJI_API) 
@@ -30148,7 +30122,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretat
   OLD_FINNISH_MUNICIPALITY @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretations_sourceOfFinnishMunicipality @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfFinnishMunicipality @join__type(graph: LAJI_API)  {
   COORDINATES @join__enumValue(graph: LAJI_API) 
   COORDINATE_CENTERPOINT @join__enumValue(graph: LAJI_API) 
   REPORTED_VALUE @join__enumValue(graph: LAJI_API) 
@@ -30156,13 +30130,13 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_gathering_interpretat
   OLD_FINNISH_MUNICIPALITY @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_reportedTaxonConfidence @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_reportedTaxonConfidence @join__type(graph: LAJI_API)  {
   SURE @join__enumValue(graph: LAJI_API) 
   UNSURE @join__enumValue(graph: LAJI_API) 
   SUBSPECIES_UNSURE @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_abundanceUnit @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_abundanceUnit @join__type(graph: LAJI_API)  {
   OCCURS_DOES_NOT_OCCUR @join__enumValue(graph: LAJI_API) 
   INDIVIDUAL_COUNT @join__enumValue(graph: LAJI_API) 
   PAIRCOUNT @join__enumValue(graph: LAJI_API) 
@@ -30187,7 +30161,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_abundanceUnit @j
   RELATIVE_DENSITY @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_superRecordBasis @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_superRecordBasis @join__type(graph: LAJI_API)  {
   PRESERVED_SPECIMEN @join__enumValue(graph: LAJI_API) 
   LIVING_SPECIMEN @join__enumValue(graph: LAJI_API) 
   FOSSIL_SPECIMEN @join__enumValue(graph: LAJI_API) 
@@ -30215,7 +30189,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_superRecordBasis
   MATERIAL_SAMPLE_WATER @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_recordBasis @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_recordBasis @join__type(graph: LAJI_API)  {
   PRESERVED_SPECIMEN @join__enumValue(graph: LAJI_API) 
   LIVING_SPECIMEN @join__enumValue(graph: LAJI_API) 
   FOSSIL_SPECIMEN @join__enumValue(graph: LAJI_API) 
@@ -30243,7 +30217,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_recordBasis @joi
   MATERIAL_SAMPLE_WATER @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_sex @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_sex @join__type(graph: LAJI_API)  {
   MALE @join__enumValue(graph: LAJI_API) 
   FEMALE @join__enumValue(graph: LAJI_API) 
   WORKER @join__enumValue(graph: LAJI_API) 
@@ -30254,7 +30228,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_sex @join__type(
   CONFLICTING @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_lifeStage @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_lifeStage @join__type(graph: LAJI_API)  {
   ADULT @join__enumValue(graph: LAJI_API) 
   JUVENILE @join__enumValue(graph: LAJI_API) 
   IMMATURE @join__enumValue(graph: LAJI_API) 
@@ -30284,7 +30258,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_lifeStage @join_
   TRIUNGULIN @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_sourceTags_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_sourceTags_items @join__type(graph: LAJI_API)  {
   ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
@@ -30320,7 +30294,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_sourceTags_items
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_effectiveTags_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_effectiveTags_items @join__type(graph: LAJI_API)  {
   ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
@@ -30356,14 +30330,14 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_invasiveControlEffectiveness @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_invasiveControlEffectiveness @join__type(graph: LAJI_API)  {
   FULL @join__enumValue(graph: LAJI_API) 
   PARTIAL @join__enumValue(graph: LAJI_API) 
   NO_EFFECT @join__enumValue(graph: LAJI_API) 
   NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_recordQuality @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_recordQuality @join__type(graph: LAJI_API)  {
   EXPERT_VERIFIED @join__enumValue(graph: LAJI_API) 
   COMMUNITY_VERIFIED @join__enumValue(graph: LAJI_API) 
   NEUTRAL @join__enumValue(graph: LAJI_API) 
@@ -30371,7 +30345,7 @@ enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_
   ERRONEOUS @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_oneOf_0_results_items_unit_interpretations_reliability @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_reliability @join__type(graph: LAJI_API)  {
   RELIABLE @join__enumValue(graph: LAJI_API) 
   UNDEFINED @join__enumValue(graph: LAJI_API) 
   UNRELIABLE @join__enumValue(graph: LAJI_API) 
