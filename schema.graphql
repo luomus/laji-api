@@ -282,6 +282,8 @@ type Query @extraSchemaDefinitionDirective(
     Person's authentication token. It is required.
     """
     Person_Token: String
+    page: Int = 1
+    pageSize: Int = 20
     """
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
@@ -290,14 +292,12 @@ type Query @extraSchemaDefinitionDirective(
     Return only notifications that have not been marked as seen.
     """
     onlyUnSeen: Boolean
-    page: Float = 1
-    pageSize: Float = 20
   ): NotificationsController_getAll_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/notifications"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"selectedFields\":\"selectedFields\",\"onlyUnSeen\":\"onlyUnSeen\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"selectedFields\":\"selectedFields\",\"onlyUnSeen\":\"onlyUnSeen\"}"
   )
   """
   Get all classes
@@ -384,6 +384,8 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of all collections
   """
   CollectionsController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -392,19 +394,17 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): CollectionsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/collections"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get a page of all root collections
   """
-  CollectionsController_findRoots(page: Float = 1, pageSize: Float = 20) : CollectionsController_findRoots_200_response @httpOperation(
+  CollectionsController_findRoots(page: Int = 1, pageSize: Int = 20) : CollectionsController_findRoots_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/collections/roots"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -423,7 +423,7 @@ type Query @extraSchemaDefinitionDirective(
   """
   Get child collections
   """
-  CollectionsController_findChildren(id: String!, page: Float = 1, pageSize: Float = 20) : CollectionsController_findChildren_200_response @httpOperation(
+  CollectionsController_findChildren(id: String!, page: Int = 1, pageSize: Int = 20) : CollectionsController_findChildren_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/collections/{args.id}/children"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -532,6 +532,8 @@ type Query @extraSchemaDefinitionDirective(
     Person's authentication token. It is required.
     """
     Person_Token: String
+    page: Int = 1
+    pageSize: Int = 20
     """
     Limit the list of documents to a certain named place
     """
@@ -557,14 +559,12 @@ type Query @extraSchemaDefinitionDirective(
     Use this form's features for the request.
     """
     formID: String
-    page: Float = 1
-    pageSize: Float = 20
   ): DocumentsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/documents"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"namedPlace\":\"namedPlace\",\"selectedFields\":\"selectedFields\",\"observationYear\":\"observationYear\",\"templates\":\"templates\",\"collectionID\":\"collectionID\",\"sourceID\":\"sourceID\",\"formID\":\"formID\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"namedPlace\":\"namedPlace\",\"selectedFields\":\"selectedFields\",\"observationYear\":\"observationYear\",\"templates\":\"templates\",\"collectionID\":\"collectionID\",\"sourceID\":\"sourceID\",\"formID\":\"formID\"}"
   )
   """
   Get a document
@@ -589,6 +589,8 @@ type Query @extraSchemaDefinitionDirective(
     Person's authentication token. Necessary for fetching private places
     """
     Person_Token: String
+    page: Int = 1
+    pageSize: Int = 20
     """
     Include only items with these ids. Multiple values are separated by a comma (,).
     """
@@ -622,14 +624,12 @@ type Query @extraSchemaDefinitionDirective(
     Include public named places (used only when Person-Token is given). Defaults to true.
     """
     includePublic: Boolean = true
-    page: Float = 1
-    pageSize: Float = 20
   ): NamedPlacesController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/named-places"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"alternativeIDs\":\"alternativeIDs\",\"municipality\":\"municipality\",\"birdAssociationArea\":\"birdAssociationArea\",\"selectedFields\":\"selectedFields\",\"taxonIDs\":\"taxonIDs\",\"tags\":\"tags\",\"collectionID\":\"collectionID\",\"includePublic\":\"includePublic\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"alternativeIDs\":\"alternativeIDs\",\"municipality\":\"municipality\",\"birdAssociationArea\":\"birdAssociationArea\",\"selectedFields\":\"selectedFields\",\"taxonIDs\":\"taxonIDs\",\"tags\":\"tags\",\"collectionID\":\"collectionID\",\"includePublic\":\"includePublic\"}"
   )
   """
   Get a named place by id
@@ -716,6 +716,8 @@ type Query @extraSchemaDefinitionDirective(
     Include taxa from the specified checklists (defaults to FinBIF master checklist)
     """
     checklist: String = "MR.1"
+    page: Int = 1
+    pageSize: Int = 20
     """
     Filter based on given informal groups. Multiple values are separated by a comma (,).
     """
@@ -729,8 +731,6 @@ type Query @extraSchemaDefinitionDirective(
     """
     selectedFields: String
     checklistVersion: queryInput_TaxaController_getPage_checklistVersion = current
-    page: Float = 1
-    pageSize: Float = 20
     """
     true: Will include only invasive taxa.
     false: Will exclude invasive taxa.
@@ -774,7 +774,7 @@ type Query @extraSchemaDefinitionDirective(
     path: "/taxa"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"checklist\":\"checklist\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
+    queryParamArgMap: "{\"checklist\":\"checklist\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
   )
   """
   Get an aggregate of taxa
@@ -837,6 +837,8 @@ type Query @extraSchemaDefinitionDirective(
     Include taxa from the specified checklists (defaults to FinBIF master checklist)
     """
     checklist: String = "MR.1"
+    page: Int = 1
+    pageSize: Int = 20
     """
     Filter based on given informal groups. Multiple values are separated by a comma (,).
     """
@@ -850,8 +852,6 @@ type Query @extraSchemaDefinitionDirective(
     """
     selectedFields: String
     checklistVersion: queryInput_TaxaController_getSpeciesPage_checklistVersion = current
-    page: Float = 1
-    pageSize: Float = 20
     """
     true: Will include only invasive taxa.
     false: Will exclude invasive taxa.
@@ -895,7 +895,7 @@ type Query @extraSchemaDefinitionDirective(
     path: "/taxa/species"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"checklist\":\"checklist\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
+    queryParamArgMap: "{\"checklist\":\"checklist\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
   )
   """
   Get a species aggregate
@@ -1123,6 +1123,8 @@ type Query @extraSchemaDefinitionDirective(
     Include taxa from the specified checklists (defaults to FinBIF master checklist)
     """
     checklist: String = "MR.1"
+    page: Int = 1
+    pageSize: Int = 20
     """
     Filter based on given informal groups. Multiple values are separated by a comma (,).
     """
@@ -1132,8 +1134,6 @@ type Query @extraSchemaDefinitionDirective(
     """
     selectedFields: String
     checklistVersion: queryInput_TaxaController_getTaxonSpeciesPage_checklistVersion = current
-    page: Float = 1
-    pageSize: Float = 20
     """
     true: Will include only invasive taxa.
     false: Will exclude invasive taxa.
@@ -1177,7 +1177,7 @@ type Query @extraSchemaDefinitionDirective(
     path: "/taxa/{args.id}/species"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"checklist\":\"checklist\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
+    queryParamArgMap: "{\"checklist\":\"checklist\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
   )
   """
   Get an aggregate of species and subspecies of a taxon
@@ -1279,19 +1279,19 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of areas
   """
   AreaController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Include only items with the given ids. Multiple values are separated by a comma (,).
     """
     idIn: String
     areaType: queryInput_AreaController_getPage_areaType
-    page: Float = 1
-    pageSize: Float = 20
   ): AreaController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/areas"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"areaType\":\"areaType\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"areaType\":\"areaType\"}"
   )
   """
   Returns info about an API user
@@ -1312,6 +1312,8 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of images. Private/protected images aren't included.
   """
   ImagesController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -1320,14 +1322,12 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): ImagesPagedDto @httpOperation(
     subgraph: "Laji-API"
     path: "/images"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get image by id
@@ -1381,6 +1381,8 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of audio. Private/protected audio aren't included.
   """
   AudioController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -1389,14 +1391,12 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): AudioPagedDto @httpOperation(
     subgraph: "Laji-API"
     path: "/audio"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get audio by id
@@ -1475,18 +1475,18 @@ type Query @extraSchemaDefinitionDirective(
     Person's authentication token. It is required.
     """
     Person_Token: String
+    page: Int = 1
+    pageSize: Int = 20
     """
     Filter by root ID
     """
     rootID: String!
-    page: Float = 1
-    pageSize: Float = 20
   ): AnnotationsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/annotations"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"rootID\":\"rootID\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"rootID\":\"rootID\"}"
   )
   """
   Get information page by id
@@ -1510,6 +1510,8 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of checklists
   """
   ChecklistController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -1518,14 +1520,12 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): ChecklistController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/checklists"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get a checklist by id
@@ -1539,19 +1539,15 @@ type Query @extraSchemaDefinitionDirective(
   """
   Get a page of checklists
   """
-  ChecklistVersionsController_getPage(
-    """
-    Comma separated ids
-    """
-    idIn: String
-    page: Float = 1
-    pageSize: Float = 20
-  ): ChecklistVersionsController_getPage_200_response @httpOperation(
+  ChecklistVersionsController_getPage(page: Int = 1, pageSize: Int = 20, """
+  Comma separated ids
+  """
+  idIn: String) : ChecklistVersionsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/checklist-versions"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\"}"
   )
   """
   Get all organizations
@@ -1561,8 +1557,8 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
+    page: Int = 1
+    pageSize: Int = 20
   ): OrganizationsController_getAll_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/organizations"
@@ -1583,6 +1579,8 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of informal taxon groups
   """
   InformalTaxonGroupsController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -1591,14 +1589,12 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): InformalTaxonGroupsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/informal-taxon-groups"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get the informal taxon group tree
@@ -1818,6 +1814,8 @@ type Query @extraSchemaDefinitionDirective(
   Get a source by id
   """
   SourcesController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -1826,19 +1824,19 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): SourcesController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/sources"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get a page of red list evaluation groups
   """
   RedListEvaluationGroupsController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Comma separated ids
     """
@@ -1847,14 +1845,12 @@ type Query @extraSchemaDefinitionDirective(
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
-    page: Float = 1
-    pageSize: Float = 20
   ): RedListEvaluationGroupsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/red-list-evaluation-groups"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"idIn\":\"idIn\",\"selectedFields\":\"selectedFields\"}"
   )
   """
   Get the red list evaluation group tree
@@ -1930,18 +1926,18 @@ type Query @extraSchemaDefinitionDirective(
   Get a page of news
   """
   NewsController_getPage(
+    page: Int = 1
+    pageSize: Int = 20
     """
     Show only news with the given tag(s). Multiple values are separated by a comma (,).
     """
     tag: String
-    page: Float = 1
-    pageSize: Float = 20
   ): NewsPagedDto @httpOperation(
     subgraph: "Laji-API"
     path: "/news"
     operationSpecificHeaders: [["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"tag\":\"tag\",\"page\":\"page\",\"pageSize\":\"pageSize\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"tag\":\"tag\"}"
   )
   """
   Get news item
@@ -9537,12 +9533,12 @@ type PersonTokenInfo @join__type(graph: LAJI_API)  {
 }
 
 type NotificationsController_getAll_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_notification]!
 }
 
@@ -9675,12 +9671,12 @@ type MetadataController_getAlt_200_response @join__type(graph: LAJI_API)  {
 }
 
 type CollectionsController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [SensitiveCollection]!
 }
 
@@ -9840,22 +9836,22 @@ type query_CollectionsController_getPage_results_items_onlineUrlMultiLang @join_
 }
 
 type CollectionsController_findRoots_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [SensitiveCollection]!
 }
 
 type CollectionsController_findChildren_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [SensitiveCollection]!
 }
 
@@ -9905,22 +9901,22 @@ type StatisticsResponse @join__type(graph: LAJI_API)  {
 }
 
 type DocumentsController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_document]!
 }
 
 type NamedPlacesController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_namedPlace]!
 }
 
@@ -10046,12 +10042,12 @@ type query_TaxaController_search_results_items_items_informalGroups_items @join_
 }
 
 type TaxaController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [LajiBackendTaxon]!
 }
 
@@ -10432,12 +10428,12 @@ type query_TaxaController_getPage_results_items_tradeNameMultiLang @join__type(g
 }
 
 type TaxaController_getSpeciesPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [LajiBackendTaxon]!
 }
 
@@ -10452,12 +10448,12 @@ type TaxaController_getTaxonParents_200_response @join__type(graph: LAJI_API)  {
 }
 
 type TaxaController_getTaxonSpeciesPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [LajiBackendTaxon]!
 }
 
@@ -10497,12 +10493,12 @@ type store_area @join__type(graph: LAJI_API)  {
 }
 
 type AreaController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_area]!
 }
 
@@ -10585,12 +10581,12 @@ type store_tag @join__type(graph: LAJI_API)  {
 }
 
 type AnnotationsController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_annotation]!
 }
 
@@ -10631,12 +10627,12 @@ type store_checklist @join__type(graph: LAJI_API)  {
 }
 
 type ChecklistController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_checklist]!
 }
 
@@ -10651,22 +10647,22 @@ type store_checklistVersion @join__type(graph: LAJI_API)  {
 }
 
 type ChecklistVersionsController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_checklistVersion]!
 }
 
 type OrganizationsController_getAll_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [SensitiveOrganization]!
 }
 
@@ -10680,12 +10676,12 @@ type SensitiveOrganization @join__type(graph: LAJI_API)  {
 }
 
 type InformalTaxonGroupsController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_informalTaxonGroup]!
 }
 
@@ -10844,22 +10840,22 @@ type SensitiveSource @join__type(graph: LAJI_API)  {
 }
 
 type SourcesController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [SensitiveSource]!
 }
 
 type RedListEvaluationGroupsController_getPage_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [store_iucnRedListTaxonGroup]!
 }
 
@@ -12690,13 +12686,13 @@ type Mutation @join__type(graph: LAJI_API)  {
     Include taxa from the specified checklists (defaults to FinBIF master checklist)
     """
     checklist: String = "MR.1"
+    page: Int = 1
+    pageSize: Int = 20
     """
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
     checklistVersion: mutationInput_TaxaController_getPageWithFilters_checklistVersion = current
-    page: Float = 1
-    pageSize: Float = 20
     """
     Include media objects in the response. Defaults to false.
     """
@@ -12731,7 +12727,7 @@ type Mutation @join__type(graph: LAJI_API)  {
     path: "/taxa"
     operationSpecificHeaders: [["Content-Type", "application/json"], ["accept", "application/json"]]
     httpMethod: POST
-    queryParamArgMap: "{\"checklist\":\"checklist\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
+    queryParamArgMap: "{\"checklist\":\"checklist\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
   )
   """
   Get an aggregate of taxa with filters
@@ -12777,13 +12773,13 @@ type Mutation @join__type(graph: LAJI_API)  {
     Include taxa from the specified checklists (defaults to FinBIF master checklist)
     """
     checklist: String = "MR.1"
+    page: Int = 1
+    pageSize: Int = 20
     """
     Select fields to include in the result. Multiple values are separated by a comma (,)
     """
     selectedFields: String
     checklistVersion: mutationInput_TaxaController_getSpeciesPageWithFilters_checklistVersion = current
-    page: Float = 1
-    pageSize: Float = 20
     """
     Include media objects in the response. Defaults to false.
     """
@@ -12818,7 +12814,7 @@ type Mutation @join__type(graph: LAJI_API)  {
     path: "/taxa/species"
     operationSpecificHeaders: [["Content-Type", "application/json"], ["accept", "application/json"]]
     httpMethod: POST
-    queryParamArgMap: "{\"checklist\":\"checklist\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
+    queryParamArgMap: "{\"checklist\":\"checklist\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
   )
   """
   Get a species aggregate with filters
@@ -13020,6 +13016,8 @@ type Mutation @join__type(graph: LAJI_API)  {
     Include taxa from the specified checklists (defaults to FinBIF master checklist)
     """
     checklist: String = "MR.1"
+    page: Int = 1
+    pageSize: Int = 20
     """
     Filter based on given informal groups. Multiple values are separated by a comma (,).
     """
@@ -13029,8 +13027,6 @@ type Mutation @join__type(graph: LAJI_API)  {
     """
     selectedFields: String
     checklistVersion: mutationInput_TaxaController_getTaxonSpeciesPageWithFilters_checklistVersion = current
-    page: Float = 1
-    pageSize: Float = 20
     """
     true: Will include only invasive taxa.
     false: Will exclude invasive taxa.
@@ -13075,7 +13071,7 @@ type Mutation @join__type(graph: LAJI_API)  {
     path: "/taxa/{args.id}/species"
     operationSpecificHeaders: [["Content-Type", "application/json"], ["accept", "application/json"]]
     httpMethod: POST
-    queryParamArgMap: "{\"checklist\":\"checklist\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
+    queryParamArgMap: "{\"checklist\":\"checklist\",\"page\":\"page\",\"pageSize\":\"pageSize\",\"informalTaxonGroups\":\"informalTaxonGroups\",\"id\":\"id\",\"selectedFields\":\"selectedFields\",\"checklistVersion\":\"checklistVersion\",\"invasiveSpecies\":\"invasiveSpecies\",\"finnish\":\"finnish\",\"includeMedia\":\"includeMedia\",\"includeDescriptions\":\"includeDescriptions\",\"includeRedListEvaluations\":\"includeRedListEvaluations\",\"includeHidden\":\"includeHidden\",\"sortOrder\":\"sortOrder\",\"parentTaxonId\":\"parentTaxonId\"}"
   )
   """
   Get an aggregate of species and subspecies of a taxon with filters
@@ -13968,22 +13964,22 @@ type StoreDeleteResponse @join__type(graph: LAJI_API)  {
 }
 
 type TaxaController_getPageWithFilters_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [LajiBackendTaxon]!
 }
 
 type TaxaController_getSpeciesPageWithFilters_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [LajiBackendTaxon]!
 }
 
@@ -13998,12 +13994,12 @@ type TaxaController_getTaxonParentsWithFilters_200_response @join__type(graph: L
 }
 
 type TaxaController_getTaxonSpeciesPageWithFilters_200_response @join__type(graph: LAJI_API)  {
-  currentPage: Float!
-  pageSize: Float!
-  total: Float!
-  lastPage: Float!
-  prevPage: Float
-  nextPage: Float
+  currentPage: Int!
+  pageSize: Int!
+  total: Int!
+  lastPage: Int!
+  prevPage: Int
+  nextPage: Int
   results: [LajiBackendTaxon]!
 }
 
