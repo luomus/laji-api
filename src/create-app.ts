@@ -15,6 +15,7 @@ import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
 import { fixRequestBody } from "http-proxy-middleware";
 import { createGatewayRuntime } from "@graphql-hive/gateway";
+import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
 
 export async function createApp(useLogger = true) {
 	const appOptions: NestApplicationOptions = {
@@ -128,8 +129,11 @@ export async function createApp(useLogger = true) {
 	const OLD_GRAPHQL_PORT = configService.get("OLD_GRAPHQL_PORT");
 
 	const oldGraphqlProxy = createProxyMiddleware({
-		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}`,
+		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}/graphql`,
 		changeOrigin: true,
+		on: {
+			proxyReq: fixRequestBodyAndAuthHeader
+		},
 	});
 
 	// Backward compatibity with old API graphql.
