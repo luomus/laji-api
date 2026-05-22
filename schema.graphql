@@ -412,6 +412,15 @@ type Query @extraSchemaDefinitionDirective(
     queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\"}"
   )
   """
+  Get collection tree
+  """
+  CollectionsController_getTree: CollectionsController_getTree_200_response @httpOperation(
+    subgraph: "Laji-API"
+    path: "/collections/tree"
+    operationSpecificHeaders: [["accept", "application/json"]]
+    httpMethod: GET
+  )
+  """
   Get collection by id
   """
   CollectionsController_get(id: String!) : SensitiveCollection @httpOperation(
@@ -9707,12 +9716,12 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   """
   collectionCode: String
   collectionName: String
-  collectionQuality: Collection_quality!
+  collectionQuality: Collection_quality
   """
   How many specimens, records or such does the collection contain? Fill in approximate number, describe more in notes if necessary.
   """
   collectionSize: String
-  collectionType: Type!
+  collectionType: Type
   concealmentBasis: String
   """
   Personal or general (e.g. group of people in the organisation) email address to reach the person(s) responsible.
@@ -9811,7 +9820,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   """
   owner: String
   publicityRestrictions: Publicity_restrictions
-  hasChildren: Boolean!
+  hasChildren: Boolean
   longNameMultiLang: query_CollectionsController_getPage_results_items_longNameMultiLang
   descriptionMultiLang: query_CollectionsController_getPage_results_items_descriptionMultiLang
   onlineUrlMultiLang: query_CollectionsController_getPage_results_items_onlineUrlMultiLang
@@ -9843,6 +9852,167 @@ type CollectionsController_findRoots_200_response @join__type(graph: LAJI_API)  
   prevPage: Int
   nextPage: Int
   results: [SensitiveCollection]!
+}
+
+type CollectionsController_getTree_200_response @join__type(graph: LAJI_API)  {
+  results: [ExpandedSensitiveCollection]
+  _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
+}
+
+type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
+  _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
+  id: String!
+  _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  secureLevel: Secure_level
+  """
+  Unofficial abbreviation (or acronym) for this collection
+  """
+  abbreviation: String
+  additionalIdentifier: [String]
+  """
+  Admin field. Is it allowed to use collection with data warehouse /statistic endpoints.
+  """
+  allowedForDwStatistics: Boolean
+  boundingBoxLatMax: String
+  boundingBoxLatMin: String
+  boundingBoxLonMax: String
+  boundingBoxLonMin: String
+  """
+  Example how to cite this collection in a scientific article, if using organization, name and abbreviation is not enough.
+  """
+  citation: String
+  """
+  Collection code for natural history specimen collection, such as H-BR
+  """
+  collectionCode: String
+  collectionName: String
+  collectionQuality: Collection_quality
+  """
+  How many specimens, records or such does the collection contain? Fill in approximate number, describe more in notes if necessary.
+  """
+  collectionSize: String
+  collectionType: Type
+  concealmentBasis: String
+  """
+  Personal or general (e.g. group of people in the organisation) email address to reach the person(s) responsible.
+  """
+  contactEmail: String!
+  coverageBasis: String
+  dataDownloadURL: [String]
+  """
+  Diary-like notes about the data, with date/time. For example "2020-08-19: Changed country names Fönland to Finland", or "Specimens collected during 2019 are missing coordinates due to malfunctioning GPS"
+  """
+  dataNotes: String
+  dataQuality: Data_quality
+  dataQualityDescription: String
+  """
+  Embargo period in years after which data is opened
+  """
+  dataQuarantinePeriod: Int
+  dataUseTerms: String
+  description: String!
+  """
+  How many percent of the collection is in digital form, e.g. in a database or Excel file? Fill in approximate number, describe more in notes if necessary.
+  """
+  digitizedSize: String
+  doi: String
+  """
+  Admin field. The identifier of the person responsible for handling requests for restricted data for this set (typically same person who's responsible for the collection)
+  """
+  downloadRequestHandler: [String]
+  """
+  Reason for this edit or notes about it.
+  """
+  editNotes: String
+  """
+  Admin field. DOI received from GBIF after the collection has been published.
+  """
+  gbifDoi: String
+  geographicCoverage: String
+  hierarchyType: Hierarchical_type!
+  """
+  Institution code for natural history specimen collection holding institution, such as H, MHZ or TUR
+  """
+  institutionCode: String
+  intellectualDescription: String
+  """
+  Name of the institution or organisation publishing the data.
+  """
+  intellectualOwner: String
+  intellectualRights: License_for_use!
+  """
+  Is the data to be used only within Kotka?
+  """
+  internalUseOnly: Boolean
+  """
+  Which parent or larger collection this is part of.
+  """
+  isPartOf: String
+  """
+  Language the data is (mainly) written in, if applicable.
+  """
+  language: String
+  longName: String
+  metadataCreator: String
+  metadataStatus: Status_of_this_metadata
+  methods: String
+  """
+  Additional information to the data in each section.
+  """
+  notes: String
+  onlineUrl: String
+  """
+  Person(s) responsible for the collection (Lastname, Firstname; Lastname, Firstname).
+  """
+  personResponsible: String!
+  """
+  Used for botanic garden collections. Is the collection/garden area accessible to public or not.
+  """
+  publicAccess: Boolean
+  publicationDescription: String
+  publicationTerms: Publication_terms
+  publisherShortname: String
+  shareToFEO: String
+  """
+  Admin field. Can the data be shared to GBIF or not: Given collection ID means data is shared under that collection.
+  """
+  shareToGbif: String
+  taxonomicCoverage: String
+  temporalCoverage: String
+  """
+  How many TYPE specimens does the collection contain?  Fill in approximate number, describe more in notes if necessary.
+  """
+  typesSize: String
+  dateCreated: DateTime
+  dateEdited: DateTime
+  """
+  Team or organisation that owns the record and can edit it.
+  """
+  owner: String
+  publicityRestrictions: Publicity_restrictions
+  hasChildren: Boolean
+  longNameMultiLang: query_CollectionsController_getTree_results_items_longNameMultiLang
+  descriptionMultiLang: query_CollectionsController_getTree_results_items_descriptionMultiLang
+  onlineUrlMultiLang: query_CollectionsController_getTree_results_items_onlineUrlMultiLang
+  children: [ExpandedSensitiveCollection]
+}
+
+type query_CollectionsController_getTree_results_items_longNameMultiLang @join__type(graph: LAJI_API)  {
+  fi: String
+  sv: String
+  en: String
+}
+
+type query_CollectionsController_getTree_results_items_descriptionMultiLang @join__type(graph: LAJI_API)  {
+  fi: String
+  sv: String
+  en: String
+}
+
+type query_CollectionsController_getTree_results_items_onlineUrlMultiLang @join__type(graph: LAJI_API)  {
+  fi: String
+  sv: String
+  en: String
 }
 
 type CollectionsController_findChildren_200_response @join__type(graph: LAJI_API)  {
@@ -29137,6 +29307,7 @@ enum query_NotificationsController_getPage_results_items_annotation_type @join__
 Quality classification for the collection.
 """
 enum Collection_quality @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_collectionQualityEnum3 @enum(subgraph: "Laji-API", value: "\"MY.collectionQualityEnum3\"")  @join__enumValue(graph: LAJI_API) 
   MY_collectionQualityEnum2 @enum(subgraph: "Laji-API", value: "\"MY.collectionQualityEnum2\"")  @join__enumValue(graph: LAJI_API) 
   MY_collectionQualityEnum1 @enum(subgraph: "Laji-API", value: "\"MY.collectionQualityEnum1\"")  @join__enumValue(graph: LAJI_API) 
@@ -29146,6 +29317,7 @@ enum Collection_quality @join__type(graph: LAJI_API)  {
 Type of the collection (specimen, monitoring etc).
 """
 enum Type @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_collectionTypeSpecimens @enum(subgraph: "Laji-API", value: "\"MY.collectionTypeSpecimens\"")  @join__enumValue(graph: LAJI_API) 
   MY_collectionTypeLiving @enum(subgraph: "Laji-API", value: "\"MY.collectionTypeLiving\"")  @join__enumValue(graph: LAJI_API) 
   MY_collectionTypeMonitoring @enum(subgraph: "Laji-API", value: "\"MY.collectionTypeMonitoring\"")  @join__enumValue(graph: LAJI_API) 
