@@ -2,21 +2,29 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { LANGS, MultiLang } from "src/common.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { Collection, GbifCollectionResult, GbifContact, MetadataStatus, TriplestoreCollection } from "./collection.dto";
+import { Collection, GbifCollectionResult, GbifContact, MetadataStatus, TriplestoreCollection }
+	from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
-import { MS_10_MIN, joinOnlyStrings } from "src/utils";
+import { MS_10_MIN, joinOnlyStrings, promisePipe } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { GLOBAL_CLIENT } from "src/provider-tokens";
-import { JSONSerializable } from "src/typing.utils";
+import { JSONSerializable, omitForKeys } from "src/typing.utils";
 import { ConfigService } from "@nestjs/config";
+import { LangPreference } from "src/lang/lang.utils";
+import { LangService } from "src/lang/lang.service";
+import { serializeInto } from "src/serialization/serialization.utils";
 
 const GBIF_DATASET_PARENT = "HR.3777";
 
 class CollectionNotFoundError extends HttpException {
 	constructor(id: string) {
-		super(`Collection ${id} not found`, 404);
+		super(`Collection "${id}" not found`, 404);
 	}
+}
+
+type ExpandedCollection = Collection & {
+	children?: ExpandedCollection[];
 }
 
 @Injectable()
@@ -26,7 +34,8 @@ export class CollectionsService {
 	constructor(
 		private triplestoreService: TriplestoreService,
 		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<JSONSerializable>,
-		private config: ConfigService
+		private config: ConfigService,
+		private langService: LangService
 	) { }
 
 	@Interval(MS_10_MIN)
@@ -122,6 +131,35 @@ export class CollectionsService {
 	@IntelligentMemoize()
 	private async getAll(): Promise<Collection[]> {
 		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections()).map(addMultiLangs);
+	}
+
+	@IntelligentMemoize({ primitive: true })
+	async getTree(langPreferences: LangPreference[])
+		: Promise<ExpandedCollection[]>
+	{
+		const idToChildren = await this.getIdToChildren();
+		const expand = async (collections: Collection[]): Promise<ExpandedCollection[]> => {
+			return collections.reduce(async (collectionsTreePromise, collection) => {
+				const collectionsTree = await collectionsTreePromise;
+
+				const translatedCollection = await promisePipe(
+					serializeInto(Collection),
+					await this.langService.translatorForLang(langPreferences),
+					omitForKeys("@context"),
+				)(collection);
+				if (!idToChildren[collection.id]) {
+					collectionsTree.push(translatedCollection as ExpandedCollection);
+				} else {
+					collectionsTree.push({
+						...translatedCollection,
+						children: await expand(idToChildren[collection.id]!)
+					} as ExpandedCollection);
+				}
+				return collectionsTree;
+			}, Promise.resolve([] as ExpandedCollection[]));
+		};
+
+		return expand(await this.findRoots());
 	}
 
 	private async getTriplestoreCollections(): Promise<Collection[]> {

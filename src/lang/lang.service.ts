@@ -21,7 +21,7 @@ export class LangService {
 
 	constructor(private jsonLdService: JsonLdService) {}
 
-	async contextualTranslateWith<T>(
+	async contextualTranslateWith<T >(
 		jsonLdContext: string,
 		langPreferences: LangPreference[] = [{ lang: Lang.en }],
 		selectedFields?: string[]
@@ -59,6 +59,14 @@ export class LangService {
 				});
 			});
 			return item;
+		};
+	}
+
+	async translatorForLang<T extends HasJsonLdContext>(lang?: LangPreference[]) {
+		return async (item: T): Promise<T | MultiLangAsString<T>> => {
+			return (
+				await this.contextualTranslateWith<T>(item["@context"], lang)
+			)(item);
 		};
 	}
 

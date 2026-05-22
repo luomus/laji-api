@@ -30,7 +30,7 @@ export class TriplestoreCollection extends HasJsonLdContext {
 	downloadRequestHandler?: string[];
 	shareToFEO?: boolean;
 	shareToGbif?: string;
-	collectionType:
+	collectionType?:
 		| "MY.collectionTypeSpecimens"
 		| "MY.collectionTypeLiving"
 		| "MY.collectionTypeMonitoring"

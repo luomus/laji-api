@@ -1,6 +1,6 @@
 import { Get, Param, Query, UseInterceptors } from "@nestjs/common";
 import { ApiOkResponse, ApiTags, OpenAPIObject } from "@nestjs/swagger";
-import { Collection } from "./collection.dto";
+import { Collection, } from "./collection.dto";
 import { CollectionsService } from "./collections.service";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
@@ -15,6 +15,9 @@ import { asTuple, firstFromNonEmptyArr, parseURIFragmentIdentifierRepresentation
 import { asPagedResponse } from "src/swagger/swagger.service";
 import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
+import { RequestLang } from "src/decorators/request-lang.decorator";
+import { LangPreference } from "src/lang/lang.utils";
+import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 
 export const idAlwaysPresent = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
 	const referredSchema = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref) as JSONSchemaObject;
@@ -30,7 +33,6 @@ const filterSensitiveProps = ([refSchema, document]: [JSONSchemaRef, OpenAPIObje
 	const referredSchema = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref) as JSONSchemaObject;
 	referredSchema.properties = omit(referredSchema.properties!, ...sensitiveProps);
 	referredSchema.properties.hasChildren = { type: "boolean" };
-	referredSchema.required!.push("hasChildren");
 	return [refSchema, document];
 };
 
@@ -51,6 +53,20 @@ const addMultiLangs = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) =>
 		} as any;
 	});
 	return [refSchema, document];
+};
+
+const asExpandedSensitiveCollection = (_: any, document: OpenAPIObject) => {
+	document.components!.schemas!.ExpandedSensitiveCollection = {
+		...document.components!.schemas!.SensitiveCollection,
+		properties: {
+			...(document.components!.schemas!.SensitiveCollection as SchemaObject)!.properties,
+			children: {
+				type: "array",
+				items: { $ref: "#/components/schemas/ExpandedSensitiveCollection" }
+			}
+		}
+	};
+	return swaggerResponseAsResultsArray({ $ref: "#/components/schemas/ExpandedSensitiveCollection" });
 };
 
 @LajiApiController("collections")
@@ -85,6 +101,18 @@ export class CollectionsController {
 	@ApiOkResponse({ schema: asPagedResponse({ $ref: "#/components/schemas/SensitiveCollection" }) })
 	async findRoots(@Query() {}: QueryWithPagingDto) {
 		return this.collectionsService.findRoots();
+	}
+
+	/** Get collection tree */
+	@Get("tree")
+	@UseInterceptors(ResultsArray)
+	@SwaggerRemote({
+		source: "store",
+		ref: "/collection",
+		customizeResponseSchema: asExpandedSensitiveCollection
+	})
+	async getTree(@RequestLang() langPreferences: LangPreference[]) {
+		return this.collectionsService.getTree(langPreferences);
 	}
 
 	/** Get collection by id */
