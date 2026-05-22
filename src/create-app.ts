@@ -129,7 +129,7 @@ export async function createApp(useLogger = true) {
 	const OLD_GRAPHQL_PORT = configService.get("OLD_GRAPHQL_PORT");
 
 	const oldGraphqlProxy = createProxyMiddleware({
-		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}/graphql`,
+		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}/v0/graphql`,
 		changeOrigin: true,
 		on: {
 			proxyReq: fixRequestBodyAndAuthHeader
