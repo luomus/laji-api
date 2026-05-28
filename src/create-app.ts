@@ -9,23 +9,48 @@ import { LogLevel, Logger, NestApplicationOptions, VersioningType } from "@nestj
 import { ConsoleLoggerService } from "./console-logger/console-logger.service";
 import { HttpService } from "@nestjs/axios";
 import { AxiosRequestConfig } from "axios";
-import { MS_30_MIN, joinOnlyStrings } from "./utils";
+import { MS_30_MIN, joinOnlyStrings, promisePipe } from "./utils";
 import { RedisCacheService } from "./redis-cache/redis-cache.service";
 import { Request, Response, NextFunction } from "express";
 import { swaggerDescription } from "./swagger-description";
 import { fixRequestBody } from "http-proxy-middleware";
 import { createGatewayRuntime } from "@graphql-hive/gateway";
 import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
+import { IncomingMessage, Server, ServerResponse } from "http";
 
-export async function createApp(useLogger = true) {
+type App = NestExpressApplication<Server<typeof IncomingMessage, typeof ServerResponse>>;
+
+export const createApp = (useLogger = true): Promise<App> => promisePipe(
+	create(useLogger),
+	configure,
+	addLogger(useLogger),
+	addSwagger,
+	addGraphql,
+	addOldApiBwCompatibility,
+)(useLogger);
+
+const create = (useLogger: boolean) => async (): Promise<App> => {
 	const appOptions: NestApplicationOptions = {
 		cors: true,
 	};
 	if (!useLogger) {
 		appOptions.logger = false;
 	}
-	const app = await NestFactory.create<NestExpressApplication>(AppModule, appOptions);
+	return NestFactory.create<NestExpressApplication>(AppModule, appOptions);
+};
 
+const configure = async (app: App) => {
+	app.enableShutdownHooks();
+	app.enableVersioning({
+		type: VersioningType.HEADER,
+		header: "API-Version",
+	});
+	app.useBodyParser("json", { limit: "10mb" });
+	app.useStaticAssets("static");
+	return app;
+};
+
+const addLogger = (useLogger: boolean) => (app: App) => {
 	const logLevels = (process.env.LOG_LEVELS || "fatal,error,warn,log,verbose,debug").split(",");
 	const logger = app.get(ConsoleLoggerService);
 	if (!useLogger) {
@@ -35,18 +60,119 @@ export async function createApp(useLogger = true) {
 		app.useLogger(logLevels as LogLevel[]);
 		logOutgoingRequests(app.get(HttpService));
 	}
-
-	app.enableShutdownHooks();
-
 	new Logger().warn("Old API must be running at localhost:3003\n");
+	return app;
+};
 
-	app.enableVersioning({
-		type: VersioningType.HEADER,
-		header: "API-Version",
+const addSwagger = async (app: App) => {
+	const configService = app.get(ConfigService);
+	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
+		.setTitle("Laji API")
+		.addServer(configService.get("SELF_HOST") as string)
+		.setDescription(swaggerDescription)
+		.setVersion("1")
+		.addBearerAuth({ type: "http", description: "Access token" }, "Access token")
+		.addApiKey({
+			type: "apiKey",
+			name: "Accept-Language",
+			in: "header",
+			description: "Sets the 'Accept-Language' header. One of 'fi', 'sv,' 'en'. Defaults to 'en'."
+		}, "Lang")
+		.addApiKey({ type: "apiKey", name: "Person-Token", in: "header" }, "Person token")
+		.addGlobalResponse(
+			createErrorResponseSwaggerForStatus(400),
+			createErrorResponseSwaggerForStatus(401),
+			createErrorResponseSwaggerForStatus(403),
+			createErrorResponseSwaggerForStatus(404),
+			createErrorResponseSwaggerForStatus(406),
+			createErrorResponseSwaggerForStatus(422),
+			createErrorResponseSwaggerForStatus(500)
+		)
+		.build()
+	);
+
+	// These need to be initialized before SwaggerService can patch the document.
+	await app.get(RedisCacheService).onModuleInit();
+	await app.get(SwaggerService).warmup();
+
+	const logger = app.get(ConsoleLoggerService);
+
+	let patchedDocument: OpenAPIObject;
+	try {
+		patchedDocument = await app.get(SwaggerService).patchMutably(document);
+	} catch (e) {
+		logger.error("Patching swagger failed!", e.stack);
+
+	}
+	setInterval(async () => {
+		try {
+			patchedDocument = await app.get(SwaggerService).patchMutably(document);
+		} catch (e) {
+			logger.error("Patching swagger failed!");
+		}
+	}, MS_30_MIN);
+
+	// Redirect from / to /openapi is done by AppController.
+	SwaggerModule.setup("openapi", app, () => patchedDocument, {
+		customSiteTitle: "Laji API" + (configService.get("STAGING") === "true" ? " (STAGING)" : ""),
+		customCssUrl: "/swagger.css",
+		swaggerOptions: {
+			persistAuthorization: true,
+			docExpansion: "none",
+			tagsSorter: "alpha",
+			operationsSorter: "alpha",
+			tryItOutEnabled: true,
+			requestInterceptor: (req: any) => {
+				req.headers["API-Version"] = "1";
+				return req;
+			}
+		},
+		patchDocumentOnRequest: () => patchedDocument
+	});
+	return app;
+};
+
+const addGraphql = (app: App) => {
+	const configService = app.get(ConfigService);
+	const OLD_GRAPHQL_PORT = configService.get("OLD_GRAPHQL_PORT");
+
+	const oldGraphqlProxy = createProxyMiddleware({
+		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}/v0/graphql`,
+		changeOrigin: true,
+		on: {
+			proxyReq: fixRequestBodyAndAuthHeader
+		},
 	});
 
-	app.useBodyParser("json", { limit: "10mb" });
+	// Backward compatibity with old API graphql.
+	app.use("/graphql", (req: any, res: any, next: any) => {
+		if (req.body?.operationName === "IntrospectionQuery") {
+			return next();
+		}
+		if (req.headers["api-version"] !== "1" && req.method === "POST") {
+			return oldGraphqlProxy(req, res, next);
+		}
+		next();
+	});
 
+	app.use("/graphql", createGatewayRuntime({
+		supergraph: "./schema.graphql",
+		propagateHeaders: {
+			fromClientToSubgraphs({ request }) {
+				return {
+					authorization: request.headers.get("authorization"),
+					"person-token": request.headers.get("person-token"),
+					"api-version": request.headers.get("api-version"),
+					"accept-language": request.headers.get("accept-language")
+				};
+			},
+		},
+		inboundInflightRequestDeduplication: true
+	}));
+	return app;
+};
+
+const addOldApiBwCompatibility = (app: App) => {
 	const configService = app.get(ConfigService);
 
 	const port = configService.get("PORT") || 3005;
@@ -99,7 +225,6 @@ export async function createApp(useLogger = true) {
 			}
 			return path;
 		}
-
 	}));
 
 	// Backward compatibity to old API signature of checklist versions.
@@ -125,110 +250,8 @@ export async function createApp(useLogger = true) {
 			return path;
 		}
 	}));
-
-	const OLD_GRAPHQL_PORT = configService.get("OLD_GRAPHQL_PORT");
-
-	const oldGraphqlProxy = createProxyMiddleware({
-		target: `http://127.0.0.1:${OLD_GRAPHQL_PORT}/v0/graphql`,
-		changeOrigin: true,
-		on: {
-			proxyReq: fixRequestBodyAndAuthHeader
-		},
-	});
-
-	// Backward compatibity with old API graphql.
-	app.use("/graphql", (req: any, res: any, next: any) => {
-		if (req.body?.operationName === "IntrospectionQuery") {
-			return next();
-		}
-		if (req.headers["api-version"] !== "1" && req.method === "POST") {
-			return oldGraphqlProxy(req, res, next);
-		}
-		next();
-	});
-
-	app.useStaticAssets("static");
-
-	app.use("/graphql", createGatewayRuntime({
-		supergraph: "./schema.graphql",
-		propagateHeaders: {
-			fromClientToSubgraphs({ request }) {
-				return {
-					authorization: request.headers.get("authorization"),
-					"person-token": request.headers.get("person-token"),
-					"api-version": request.headers.get("api-version"),
-					"accept-language": request.headers.get("accept-language")
-				};
-			},
-		},
-		inboundInflightRequestDeduplication: true
-	}));
-
-	const document = SwaggerModule.createDocument(app, new DocumentBuilder()
-		.setTitle("Laji API")
-		.addServer(configService.get("SELF_HOST") as string)
-		.setDescription(swaggerDescription)
-		.setVersion("1")
-		.addBearerAuth({ type: "http", description: "Access token" }, "Access token")
-		.addApiKey({
-			type: "apiKey",
-			name: "Accept-Language",
-			in: "header",
-			// eslint-disable-next-line max-len
-			description: "Sets the 'Accept-Language' header. One of 'fi', 'sv,' 'en'. Defaults to 'en'."
-		}, "Lang")
-		.addApiKey({ type: "apiKey", name: "Person-Token", in: "header" }, "Person token")
-		.addGlobalResponse(
-			createErrorResponseSwaggerForStatus(400),
-			createErrorResponseSwaggerForStatus(401),
-			createErrorResponseSwaggerForStatus(403),
-			createErrorResponseSwaggerForStatus(404),
-			createErrorResponseSwaggerForStatus(406),
-			createErrorResponseSwaggerForStatus(422),
-			createErrorResponseSwaggerForStatus(500)
-		)
-		.build()
-	);
-
-	// These need to be initialized before SwaggerService can patch the document.
-	await app.get(RedisCacheService).onModuleInit();
-	await app.get(SwaggerService).warmup();
-
-	let patchedDocument: OpenAPIObject;
-	try {
-		patchedDocument = await app.get(SwaggerService).patchMutably(document);
-	} catch (e) {
-		logger.error("Patching swagger failed!", e.stack);
-
-	}
-	setInterval(async () => {
-		try {
-			patchedDocument = await app.get(SwaggerService).patchMutably(document);
-		} catch (e) {
-			logger.error("Patching swagger failed!");
-		}
-	}, MS_30_MIN);
-
-	// Redirect from / to /openapi is done by AppController.
-	SwaggerModule.setup("openapi", app, () => patchedDocument, {
-		customSiteTitle: "Laji API" + (configService.get("STAGING") === "true" ? " (STAGING)" : ""),
-		customCssUrl: "/swagger.css",
-		swaggerOptions: {
-			persistAuthorization: true,
-			docExpansion: "none",
-			tagsSorter: "alpha",
-			operationsSorter: "alpha",
-			tryItOutEnabled: true,
-			requestInterceptor: (req: any) => {
-				req.headers["API-Version"] = "1";
-				return req;
-			}
-		},
-		patchDocumentOnRequest: () => patchedDocument
-	});
-
 	return app;
-}
+};
 
 type LajiApiAxiosRequestConfig = AxiosRequestConfig & {
 	meta: {
@@ -244,7 +267,7 @@ const getLoggerFromAxiosConfig = (config: AxiosRequestConfig) => {
 	return logger;
 };
 
-function logOutgoingRequests(httpService: HttpService) {
+const logOutgoingRequests = (httpService: HttpService) => {
 	httpService.axiosRef.interceptors.request.use(config => {
 		const logger = getLoggerFromAxiosConfig(config);
 		if (!(config as any).meta) {
@@ -280,7 +303,7 @@ function logOutgoingRequests(httpService: HttpService) {
 		responseLogger(error.config, "error", error?.response?.status);
 		return Promise.reject(error);
 	});
-}
+};
 
 const createErrorResponseSwaggerForStatus = (status: number) => ({
 	status,
@@ -292,5 +315,4 @@ const createErrorResponseSwaggerForStatus = (status: number) => ({
 			localized: { type: "boolean" }
 		}
 	}
-}
-);
+});
