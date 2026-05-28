@@ -119,7 +119,9 @@ describe("NoExistingGatheringsInNamedPlaceValidatorService", () => {
 				expect(documentsServiceMock.existsByNamedPlaceID).toHaveBeenNthCalledWith(
 					1,
 					"namedPlaceId",
-					expect.any(Object)
+					expect.any(Object),
+					undefined,
+					"existing-id"
 				);
 			});
 

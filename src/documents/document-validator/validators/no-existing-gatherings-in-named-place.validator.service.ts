@@ -37,27 +37,17 @@ export class NoExistingGatheringsInNamedPlaceValidatorService implements Documen
 			? getBufferedDateRange(rawDateRange, bufferDays)
 			: undefined;
 
-		const namedPlaceHasDocuments =
-			await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange);
+		const namedPlaceHasDocuments = await this.documentsService.existsByNamedPlaceID(
+			namedPlaceID,
+			dateRange,
+			undefined,
+			document.id // Note that the id in the query is "id is not"
+		);
 
-		if (!namedPlaceHasDocuments) {
-			return;
-		}
-
-		const { id } = document;
-		const isNewDoc = !id;
-		if (isNewDoc) {
+		if (namedPlaceHasDocuments) {
 			throw new ValidationException(
 				{ [path]: ["DOCUMENT_VALIDATION_NAMED_PLACE_HAS_GATHERING_IN_PERIOD_ALREADY"] }
 			);
-		} else {
-			const namedPlaceHasDocumentsForExistingDoc =
-				await this.documentsService.existsByNamedPlaceID(namedPlaceID, dateRange, id);
-			if (!namedPlaceHasDocumentsForExistingDoc) {
-				throw new ValidationException(
-					{ [path]: ["DOCUMENT_VALIDATION_NAMED_PLACE_HAS_GATHERING_IN_PERIOD_ALREADY"] }
-				);
-			}
 		}
 	}
 }
@@ -68,8 +58,8 @@ const getBufferedDateRange = (dateRange: { from: string, to: string }, bufferDay
 	const fromDate = new Date(dateRange.from);
 	const toDate = new Date(dateRange.to);
 
-	const day = 24 * 60 * 60 * 1000;
-	const buffer = bufferDays * day;
+	const dayMs = 24 * 60 * 60 * 1000;
+	const buffer = bufferDays * dayMs;
 
 	return {
 		from: new Date(fromDate.getTime() + buffer).toISOString(),

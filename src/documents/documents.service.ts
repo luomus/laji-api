@@ -101,15 +101,25 @@ export class DocumentsService {
 		 );
 	}
 
-	async existsByNamedPlaceID(namedPlaceID: string, dateRange?: { from: string, to: string }, id?: string) {
+	async existsByNamedPlaceID(
+		namedPlaceID: string,
+		dateRange?: { from: string, to: string },
+		id?: string,
+		idNot?: string
+	) {
 		let query: Query<DocumentQuery> = { namedPlaceID };
+		let cacheConfig: QueryCacheOptions<DocumentQuery> = { primaryKeys: ["namedPlaceID"] };
 		if (id) {
 			query.id = id;
+		}
+		if (idNot) {
+			query = and(query, not({ id: idNot }));
+			cacheConfig = { enabled: false }; // Cache system can't handle such complex query.
 		}
 		if (dateRange) {
 			query = and(query, dateRangeClause(dateRange));
 		}
-		return !!(await this.store.findOne(query, undefined, undefined, { primaryKeys: ["namedPlaceID"] }));
+		return !!(await this.store.findOne(query, undefined, undefined, cacheConfig));
 	}
 
 	async get(id: string, person: Person) {
