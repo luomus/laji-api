@@ -39,6 +39,10 @@ export class GetDocumentsDto extends IntersectionType(
 
 	/** Comma separated list of field names to include in the response */
 	@CommaSeparatedStrings() selectedFields?: (keyof Document)[];
+
+	/** Some collections return all users documents. This makes the result include only documents that the user is owner or editor of. */
+	@IsOptionalBoolean()
+	selfAsEditorOrCreator?: boolean = false;
 }
 
 export class UpdateDocumentDto {

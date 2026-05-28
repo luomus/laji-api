@@ -918,6 +918,15 @@ describe("/documents", function() {
 		assert.equal(constainsNotSelf, true);
 	});
 
+	it("returns only users' own documents for form with MHL.documentsViewableForAll option if selfAsEditorOrCreator is true", async function() {
+		const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
+			.get(url(basePath, { collectionID: "HR.2049", formID: "MHL.33", selfAsEditorOrCreator: true }));
+		res.should.have.status(200);
+		res.body.results.should.have.length.above(2);
+		const constainsOnlySelf = res.body.results.every(document => !(document.editors || []).includes(friend2.id));
+		assert.equal(constainsOnlySelf, true);
+	});
+
 	it("doesn't allow access to other collections when using form with MHL.documentsViewableForAll option", async function() {
 		const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken, })
 			.get(url(basePath, { collectionID: "HR.1747", formID: "MHL.33" }));

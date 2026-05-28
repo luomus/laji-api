@@ -86,11 +86,17 @@ export class DocumentsService {
 		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Partial<Document[prop]>>},
 		person: Person,
 		observationYear?: number,
+		selfAsEditorOrCreator?: boolean,
 		page?: number,
 		pageSize = 20,
 		selectedFields?: (keyof Document)[]
 	) {
-		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(query, person, observationYear);
+		const [storeQuery, cacheConfig] = await this.getClauseForPublicQuery(
+			query,
+			person,
+			observationYear,
+			selfAsEditorOrCreator
+		);
 		return await this.store.getPage(
 			storeQuery,
 			page,
@@ -382,6 +388,7 @@ export class DocumentsService {
 		query: {[prop in AllowedQueryKeysForExternalAPI]?: Flatten<Document[prop]>},
 		person: Person,
 		observationYear?: number,
+		selfAsEditorOrCreator?: boolean
 	): Promise<[Query<DocumentQuery>, QueryCacheOptions<DocumentQuery>]> {
 		// Allow simple search query terms as they are, but remove `isTemplate` & `collectionID` because they are added to
 		// the query with more complex logic.
@@ -398,8 +405,9 @@ export class DocumentsService {
 				person
 			);
 			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
-			const viewableForAll = (await this.formsService.findListedByCollectionID(collectionID))
-				.some(f => f.options?.documentsViewableForAll);
+			const viewableForAll = !selfAsEditorOrCreator
+				&& (await this.formsService.findListedByCollectionID(collectionID))
+					.some(f => f.options?.documentsViewableForAll);
 			if (
 				!person.isImporter() && !permissions?.admins.includes(person.id)
 				&& (!viewableForAll || !permissions?.editors.includes(person.id))
