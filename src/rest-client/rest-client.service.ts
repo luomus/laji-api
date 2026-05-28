@@ -276,6 +276,9 @@ export class RestClientService<T = unknown> {
 	}
 
 	async flushCache(path?: string, options?: RestClientOptions<unknown>) {
+		if (!this.cache) {
+			return;
+		}
 		if (options?.singleResourceEndpoint) {
 			await this.cache!.del(this.getHostAndPath());
 		}
