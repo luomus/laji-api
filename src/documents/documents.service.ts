@@ -405,12 +405,12 @@ export class DocumentsService {
 				person
 			);
 			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
-			const viewableForAll = !selfAsEditorOrCreator
+			const allUsersDocuments = !selfAsEditorOrCreator
 				&& (await this.formsService.findListedByCollectionID(collectionID))
 					.some(f => f.options?.documentsViewableForAll);
 			if (
 				!person.isImporter() && !permissions?.admins.includes(person.id)
-				&& (!viewableForAll || !permissions?.editors.includes(person.id))
+				&& (!allUsersDocuments || !permissions?.editors.includes(person.id))
 			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person, !!isTemplate));
 				cacheConfig = { enabled: false };

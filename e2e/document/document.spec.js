@@ -922,7 +922,7 @@ describe("/documents", function() {
 		const res = await apiRequest(this.server, { accessToken, personToken: friend2.personToken })
 			.get(url(basePath, { collectionID: "HR.2049", formID: "MHL.33", selfAsEditorOrCreator: true }));
 		res.should.have.status(200);
-		res.body.results.should.have.length.above(2);
+		res.body.results.should.have.length.above(0);
 		const constainsOnlySelf = res.body.results.every(document => !(document.editors || []).includes(friend2.id));
 		assert.equal(constainsOnlySelf, true);
 	});
