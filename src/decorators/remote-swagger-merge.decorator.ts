@@ -3,7 +3,7 @@ import { ApiExcludeController, OpenAPIObject } from "@nestjs/swagger";
 import { PathsObject, RequestBodyObject, ResponseObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef } from "src/json-schema.utils";
-import { MaybePromise } from "src/typing.utils";
+import { isObject, MaybePromise } from "src/typing.utils";
 
 export type PatchSwagger = (document: OpenAPIObject, remoteSwaggerDoc: OpenAPIObject) => OpenAPIObject;
 export type FetchSwagger = () => MaybePromise<OpenAPIObject>;
@@ -120,9 +120,21 @@ export const fixRefsModelPrefix = (schema: JSONSchema, modelPrefix: string) => {
 		schema.$ref = [...uriFragments, modelPrefix + lastRefPart].join("/");
 	} else if (isJSONSchemaArray(schema)) {
 		fixRefsModelPrefix(schema.items, modelPrefix);
-	} else if (isJSONSchemaObject(schema) && schema.properties) {
-		Object.keys(schema.properties).forEach(key => {
-			fixRefsModelPrefix(schema.properties![key]!, modelPrefix);
-		});
+	} else if (isJSONSchemaObject(schema)) {
+		const { properties, additionalProperties } = schema;
+		if (properties) {
+			Object.keys(properties).forEach(key => {
+				fixRefsModelPrefix(schema.properties![key]!, modelPrefix);
+			});
+		}
+		if (isObject(additionalProperties)) {
+			if (isJSONSchemaRef(additionalProperties)) {
+				fixRefsModelPrefix(additionalProperties, modelPrefix);
+			} else {
+				Object.keys(additionalProperties).forEach(key => {
+					fixRefsModelPrefix(additionalProperties![key]!, modelPrefix);
+				});
+			}
+		}
 	}
 };

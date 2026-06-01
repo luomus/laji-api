@@ -23,6 +23,7 @@ type JSONShemaTypeCommon<T, D> = {
 
 export type JSONSchemaObject = JSONShemaTypeCommon<"object", Record<string, unknown>> & {
 	properties?: Record<string, JSONSchema>;
+	additionalProperties?: Record<string, JSONSchema> | boolean;
 	required?: string[];
 }
 
