@@ -129,7 +129,15 @@ export class DocumentsService {
 	}
 
 	async get(id: string, person: Person) {
-		const document = await this.store.get(id);
+		let document: Awaited<ReturnType<typeof this.store.get>>;
+		try {
+			document = await this.store.get(id);
+		} catch (e) {
+			if (e.status === 404) {
+				throw new LocalizedException("DOCUMENT_NOT_FOUND", 404, { id });
+			}
+			throw e;
+		}
 		await this.checkHasReadRightsTo(document, person);
 		return document;
 	}

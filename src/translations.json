@@ -288,5 +288,20 @@
 		"en": "No valid systemID could be found for the api user",
 		"sv": "Inget giltigt systemID kunde hittas för API-användaren",
 		"fi": "Kelvollista systemID:tä ei löytynyt API-käyttäjälle"
+	},
+	"DOCUMENT_NOT_FOUND": {
+		"en": "Document '${id}' not found",
+		"sv": "Observationsparti '${id}' hittades inte",
+		"fi": "Havaintoerä '${id}' ei löytynyt"
+	},
+	"FORM_NOT_FOUND": {
+		"en": "Form '${id}' not found",
+		"sv": "Form '${id}' hittades inte",
+		"fi": "Lomaketta '${id}' ei löytynyt"
+	},
+	"NAMED_PLACE_NOT_FOUND": {
+		"en": "Named place '${id}' not found",
+		"sv": "named place '${id}' hittades inte",
+		"fi": "Nimettyä paikkaa '${id}' ei löytynyt"
 	}
 }

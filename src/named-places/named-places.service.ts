@@ -105,7 +105,15 @@ export class NamedPlacesService {
 	}
 
 	async get(id: string, person?: Person) {
-		const place = await this.store.get(id);
+		let place: Awaited<ReturnType<typeof this.store.get>>;
+		try {
+			place = await this.store.get(id);
+		} catch (e) {
+			if (e.status === 404) {
+				throw new LocalizedException("NAMED_PLACE_NOT_FOUND", 404, { id });
+			}
+			throw e;
+		}
 
 		if (place.public) {
 			return place;

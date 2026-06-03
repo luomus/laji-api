@@ -6,6 +6,7 @@ import { Person, Role } from "src/persons/person.dto";
 import { CollectionsService } from "src/collections/collections.service";
 import { FORM_CLIENT } from "src/provider-tokens";
 import { createHash } from "crypto";
+import { LocalizedException } from "src/utils";
 
 @Injectable()
 export class FormsService {
@@ -22,29 +23,37 @@ export class FormsService {
 		return this.formClient.post(undefined, form);
 	}
 
-	get(id: string): Promise<Form>
-	get(id: string, format: Format.json, lang?: Lang, expand?: boolean): Promise<Form>
-	get(id: string, format: Format.schema, lang?: Lang, expand?: boolean): Promise<Hashed<FormSchemaFormat>>
-	get(id: string, format?: Format, lang?: Lang, expand?: boolean): Promise<Form | Hashed<FormSchemaFormat>>
-	get(id: string, format: Format = Format.json, lang: Lang = Lang.en, expand = true)
+	async get(id: string): Promise<Form>
+	async get(id: string, format: Format.json, lang?: Lang, expand?: boolean): Promise<Form>
+	async get(id: string, format: Format.schema, lang?: Lang, expand?: boolean): Promise<Hashed<FormSchemaFormat>>
+	async get(id: string, format?: Format, lang?: Lang, expand?: boolean): Promise<Form | Hashed<FormSchemaFormat>>
+	async get(id: string, format: Format = Format.json, lang: Lang = Lang.en, expand = true)
 		: Promise<Form | Hashed<FormSchemaFormat>> {
-		return this.formClient.get<Form | FormSchemaFormat>(id, { params: {
-			format,
-			lang: formatLangParam(lang),
-			expand
-		} }, {
-			// We add $id property, which is a hash of the schema so document validation knows when to compile a new
-			// validator.
-			transformer: (form) => {
-				if (isFormSchemaFormat(form)) {
-					(form as Hashed<FormSchemaFormat>).$id =
-						createHash("md5")
-							.update(JSON.stringify(form.schema))
-							.digest("hex");
+		try {
+			const result = await this.formClient.get<Form | FormSchemaFormat>(id, { params: {
+				format,
+				lang: formatLangParam(lang),
+				expand
+			} }, {
+				// We add $id property, which is a hash of the schema so document validation knows when to compile a new
+				// validator.
+				transformer: (form) => {
+					if (isFormSchemaFormat(form)) {
+						(form as Hashed<FormSchemaFormat>).$id =
+							createHash("md5")
+								.update(JSON.stringify(form.schema))
+								.digest("hex");
+					}
+					return form;
 				}
-				return form;
+			});
+			return result;
+		} catch (e) {
+			if (e.status === 404) {
+				throw new LocalizedException("FORM_NOT_FOUND", 404, { id });
 			}
-		});
+			throw e;
+		}
 	}
 
 	update(id: string, form: Form) {
