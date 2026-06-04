@@ -199,7 +199,6 @@ export class DocumentsController {
 	@Get()
 	@SwaggerRemote({ source: "store", ref: "/document" })
 	getPage(@Query() query: GetDocumentsDto, @RequestPerson() person: Person): Promise<PaginatedDto<Document>> {
-		console.log(query);
 		const { page, pageSize, selectedFields, observationYear, selfAsEditorOrCreator, ...q }
 			= fixTemplatesQueryParam(query);
 		return this.documentsService.getPage(
