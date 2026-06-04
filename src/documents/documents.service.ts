@@ -414,10 +414,10 @@ export class DocumentsService {
 			);
 			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
 			if (
-				!selfAsEditorOrCreator
+				selfAsEditorOrCreator
 				|| (
 					!person.isImporter() && !permissions?.admins.includes(person.id)
-					&& (!this.isCollectionViewableForAll(collectionID) || !permissions?.editors.includes(person.id))
+					&& (!permissions?.editors.includes(person.id) || !this.isCollectionViewableForAll(collectionID))
 				)
 			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person, !!isTemplate));

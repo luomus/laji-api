@@ -122,7 +122,7 @@ describe("DocumentsService caching", () => {
 	it("doesn't cache for collectionID if person is not admin (fetches with person clause)", async () => {
 		const PERSON = "PERSON";
 		jest.spyOn(formPermissionsService, "findByCollectionIDAndPerson").mockResolvedValue(
-			{ admins: [] } as any
+			{ admins: [], editors: [] } as any
 		);
 		jest.spyOn(mockCollectionsService, "findDescendants").mockResolvedValue([]);
 		jest.spyOn(mockFormsService, "findListedByCollectionID").mockResolvedValue([]);
