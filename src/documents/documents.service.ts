@@ -413,12 +413,12 @@ export class DocumentsService {
 				person
 			);
 			cacheConfig = { primaryKeys: ["collectionID", "isTemplate"] };
-			const allUsersDocuments = !selfAsEditorOrCreator
-				&& (await this.formsService.findListedByCollectionID(collectionID))
-					.some(f => f.options?.documentsViewableForAll);
 			if (
-				!person.isImporter() && !permissions?.admins.includes(person.id)
-				&& (!allUsersDocuments || !permissions?.editors.includes(person.id))
+				!selfAsEditorOrCreator
+				|| (
+					!person.isImporter() && !permissions?.admins.includes(person.id)
+					&& (!this.isCollectionViewableForAll(collectionID) || !permissions?.editors.includes(person.id))
+				)
 			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person, !!isTemplate));
 				cacheConfig = { enabled: false };
@@ -533,6 +533,11 @@ export class DocumentsService {
 			return;
 		}
 		throw new HttpException("You are not owner or editor of this document", 403);
+	}
+
+	private async isCollectionViewableForAll(collectionID: string) {
+		return (await this.formsService.findListedByCollectionID(collectionID))
+			.some(f => f.options?.documentsViewableForAll);
 	}
 }
 
