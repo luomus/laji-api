@@ -17,6 +17,10 @@ Once the old API is removed, the `API-Version: 1` header will no longer be requi
 
 Additional migration guide for 3rd party apps using login: https://github.com/luomus/laji-api/blob/master/breaking-changes-user-auth.md
 
+## Api version
+
+Add `API-Version: 1` header to your requests.
+
 ## Base path
 
 Previously, all endpoints were served under `https://api.laji.fi/v0`. The base path is now `https://api.laji.fi`.
