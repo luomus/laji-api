@@ -12,7 +12,8 @@ export class NewsPagedDto extends IntersectionType(OmitType(PaginatedDto, ["resu
 	results: LajiBackendNewsNode[];
 }
 
-class LajiBackendNewsNode extends LajiBackendCMSNode {
+class LajiBackendNewsNode extends OmitType(LajiBackendCMSNode, ["tags"]) {
 	external: boolean;
 	externalURL?: string;
+	tag?: string;
 }
