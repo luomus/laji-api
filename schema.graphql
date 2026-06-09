@@ -568,12 +568,16 @@ type Query @extraSchemaDefinitionDirective(
     Use this form's features for the request.
     """
     formID: String
+    """
+    Some collections return all users documents. This makes the result include only documents that the user is owner or editor of.
+    """
+    selfAsEditorOrCreator: Boolean
   ): DocumentsController_getPage_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/documents"
     operationSpecificHeaders: [["Person-Token", "{args.Person_Token}"], ["accept", "application/json"]]
     httpMethod: GET
-    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"namedPlace\":\"namedPlace\",\"selectedFields\":\"selectedFields\",\"observationYear\":\"observationYear\",\"templates\":\"templates\",\"collectionID\":\"collectionID\",\"sourceID\":\"sourceID\",\"formID\":\"formID\"}"
+    queryParamArgMap: "{\"page\":\"page\",\"pageSize\":\"pageSize\",\"namedPlace\":\"namedPlace\",\"selectedFields\":\"selectedFields\",\"observationYear\":\"observationYear\",\"templates\":\"templates\",\"collectionID\":\"collectionID\",\"sourceID\":\"sourceID\",\"formID\":\"formID\",\"selfAsEditorOrCreator\":\"selfAsEditorOrCreator\"}"
   )
   """
   Get a document
@@ -7390,7 +7394,7 @@ type Query @extraSchemaDefinitionDirective(
   """
   Get descriptions of filters used in queries.
   """
-  warehouse_filters: JSON @httpOperation(
+  warehouse_filters: WarehouseDwFilters @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/filters"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -7402,7 +7406,7 @@ type Query @extraSchemaDefinitionDirective(
   warehouse_filters_by_filter("""
   Name of the filter
   """
-  filter: String!) : WarehouseDwFilter @httpOperation(
+  filter: String!) : WarehouseDwFilter2 @httpOperation(
     subgraph: "Laji-API"
     path: "/warehouse/filters/{args.filter}"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -8284,6 +8288,9 @@ type store_document @join__type(graph: LAJI_API)  {
   Additional information to the data in each section.
   """
   notes: String
+  """
+  ID for the observation in another system, e.g. Vihko/Notebook. Format System:identifier.
+  """
   observationID: String
   """
   Original catalogue number or other  original identifier of the specimen. E.g. H9000000
@@ -8309,6 +8316,9 @@ type store_document @join__type(graph: LAJI_API)  {
   Publication references or doi's that refer to this specimen
   """
   publication: [String]
+  """
+  Optical character recognition or AI generated data in its raw format, errors and all.
+  """
   rawOCRData: String
   """
   Relationship to another taxon OR specimen. Choose relationship type as prefix and give taxon name or specimen identifier thereafter, e.g. "parasite: Parasiticus specius" OR "host:http://tun.fi/JAA.123"
@@ -8411,7 +8421,13 @@ type store_gatheringEvent @join__type(graph: LAJI_API)  {
   cloudCoverEnd: End_cloud_cover!
   cloudCoverStart: Start_cloud_cover!
   completeList: store_completeList!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   gatheringFact: store_gatheringFact!
   geometry: store_geometry!
@@ -8464,6 +8480,7 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   documentation: String!
   invasiveControlOtherExpensesInEuros: NonNegativeInt!
   invasiveControlWorkHours: NonNegativeInt!
+  lineTransectNests: [store_lineTransectNest]!
   lineTransectSegmentCounted: Boolean!
   lineTransectSegmentMetersEnd: NonNegativeInt!
   lineTransectSegmentMetersStart: NonNegativeInt!
@@ -8556,6 +8573,22 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   wayOfTravel: Kulkutapa!
   wayOfTravelNotes: String!
   wind: Tuuli!
+}
+
+type store_lineTransectNest @join__type(graph: LAJI_API)  {
+  _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
+  id: String!
+  _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  autocompleteSelectedTaxonID: String!
+  lineTransectNestMeters: NonNegativeInt!
+  lineTransectRouteFieldType: Field_Area!
+  nestCount: NonNegativeInt!
+  nestSize: Nest_Size!
+  nestType: Nest_type!
+  """
+  Taxon name
+  """
+  taxon: String!
 }
 
 type store_geometry @join__type(graph: LAJI_API)  {
@@ -8681,7 +8714,13 @@ type store_gathering @join__type(graph: LAJI_API)  {
   County (piirikunta, kreivikunta etc.)
   """
   county: String!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   """
   Date just as it appears on the label or other original source, no interpretation, errors and all
@@ -8949,9 +8988,7 @@ type store_unit @join__type(graph: LAJI_API)  {
   mutant: String!
   nativeStatus: Native_status!
   nestCount: NonNegativeInt!
-  nestDistanceFromLineTransectStartMeters: NonNegativeInt!
   nestNotes: String!
-  nestSize: P_246_nt_246_n_kokoluokka!
   nestTreeDiameterInCentimeters: NonNegativeInt!
   nestType: Nest_type!
   """
@@ -9122,7 +9159,13 @@ type store_unitGathering @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   geometry: store_geometry!
   """
@@ -11096,12 +11139,12 @@ type NewsPagedDto @join__type(graph: LAJI_API)  {
 type LajiBackendNewsNode @join__type(graph: LAJI_API)  {
   external: Boolean!
   externalURL: String
+  tag: String
   id: String!
   content: String
   title: String
   author: String
   posted: String
-  tags: [String]
   featuredImage: FeaturedImage
   modified: String
 }
@@ -12045,12 +12088,21 @@ type WarehouseDwEnumerationLabel @join__type(graph: LAJI_API)  {
   label: String
 }
 
+type WarehouseDwFilters @join__type(graph: LAJI_API)  {
+  additionalProperties: [WarehouseDwFilter_entry] @dictionary(subgraph: "Laji-API") 
+}
+
+type WarehouseDwFilter_entry @join__type(graph: LAJI_API)  {
+  key: ID!
+  value: WarehouseDwFilter
+}
+
 """
 Map of filter name to filter definition
 """
 type WarehouseDwFilter @join__type(graph: LAJI_API)  {
   label: String
-  type: query_warehouse_filters_by_filter_type!
+  type: query_warehouse_filters_additionalProperties_type!
   resource: String!
   enumerations: [WarehouseDwFilterEnum]!
 }
@@ -12058,6 +12110,16 @@ type WarehouseDwFilter @join__type(graph: LAJI_API)  {
 type WarehouseDwFilterEnum @join__type(graph: LAJI_API)  {
   name: String!
   label: String
+}
+
+"""
+Map of filter name to filter definition
+"""
+type WarehouseDwFilter2 @join__type(graph: LAJI_API)  {
+  label: String
+  type: query_warehouse_filters_additionalProperties_type!
+  resource: String!
+  enumerations: [WarehouseDwFilterEnum]!
 }
 
 type WarehouseDwTeamMembers @join__type(graph: LAJI_API)  {
@@ -27412,6 +27474,29 @@ enum Tuuli @join__type(graph: LAJI_API)  {
   WBC_windEnum4 @enum(subgraph: "Laji-API", value: "\"WBC.windEnum4\"")  @join__enumValue(graph: LAJI_API) 
 }
 
+enum Field_Area @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lineTransectRouteFieldTypeInner @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeInner\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lineTransectRouteFieldTypeOuter @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeOuter\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Nest_Size @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestSizeEnum1 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum1\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestSizeEnum2 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum2\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestSizeEnum3 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum3\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Nest_type @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeTreeCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTreeCavity\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeTwig @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTwig\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeNestBox @enum(subgraph: "Laji-API", value: "\"MY.nestTypeNestBox\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeBuilding @enum(subgraph: "Laji-API", value: "\"MY.nestTypeBuilding\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeGroundCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeGroundCavity\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeOther @enum(subgraph: "Laji-API", value: "\"MY.nestTypeOther\"")  @join__enumValue(graph: LAJI_API) 
+}
+
 enum GeometryCollection_const @typescript(subgraph: "Laji-API", type: "\"GeometryCollection\"")  @example(subgraph: "Laji-API", value: "GeometryCollection")  @join__type(graph: LAJI_API)  {
   GeometryCollection @enum(subgraph: "Laji-API", value: "\"GeometryCollection\"")  @join__enumValue(graph: LAJI_API) 
 }
@@ -28310,23 +28395,6 @@ enum Native_status @join__type(graph: LAJI_API)  {
   MY_nonNative @enum(subgraph: "Laji-API", value: "\"MY.nonNative\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum P_246_nt_246_n_kokoluokka @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestSizeEnum1 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum1\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestSizeEnum2 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum2\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestSizeEnum3 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum3\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Nest_type @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeTreeCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTreeCavity\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeTwig @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTwig\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeNestBox @enum(subgraph: "Laji-API", value: "\"MY.nestTypeNestBox\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeBuilding @enum(subgraph: "Laji-API", value: "\"MY.nestTypeBuilding\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeGroundCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeGroundCavity\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeOther @enum(subgraph: "Laji-API", value: "\"MY.nestTypeOther\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 enum Observation_status @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_observationStatusIgnored @enum(subgraph: "Laji-API", value: "\"MY.observationStatusIgnored\"")  @join__enumValue(graph: LAJI_API) 
@@ -28714,12 +28782,6 @@ enum Observations_quality @join__type(graph: LAJI_API)  {
   MY_lineTransectObsTypeSeenBrood @enum(subgraph: "Laji-API", value: "\"MY.lineTransectObsTypeSeenBrood\"")  @join__enumValue(graph: LAJI_API) 
   MY_lineTransectObsTypeSeenNest @enum(subgraph: "Laji-API", value: "\"MY.lineTransectObsTypeSeenNest\"")  @join__enumValue(graph: LAJI_API) 
   MY_lineTransectObsTypeUnknown @enum(subgraph: "Laji-API", value: "\"MY.lineTransectObsTypeUnknown\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Field_Area @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lineTransectRouteFieldTypeInner @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeInner\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lineTransectRouteFieldTypeOuter @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeOuter\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 enum Droppings_count @join__type(graph: LAJI_API)  {
@@ -30519,7 +30581,7 @@ enum query_warehouse_query_unit_list_results_items_unit_interpretations_reliabil
   UNRELIABLE @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_filters_by_filter_type @join__type(graph: LAJI_API)  {
+enum query_warehouse_filters_additionalProperties_type @join__type(graph: LAJI_API)  {
   STRING @join__enumValue(graph: LAJI_API) 
   ENUMERATION @join__enumValue(graph: LAJI_API) 
   RESOURCE @join__enumValue(graph: LAJI_API) 
@@ -33327,6 +33389,9 @@ input store_document_Input @join__type(graph: LAJI_API)  {
   Additional information to the data in each section.
   """
   notes: String
+  """
+  ID for the observation in another system, e.g. Vihko/Notebook. Format System:identifier.
+  """
   observationID: String
   """
   Original catalogue number or other  original identifier of the specimen. E.g. H9000000
@@ -33352,6 +33417,9 @@ input store_document_Input @join__type(graph: LAJI_API)  {
   Publication references or doi's that refer to this specimen
   """
   publication: [String]
+  """
+  Optical character recognition or AI generated data in its raw format, errors and all.
+  """
   rawOCRData: String
   """
   Relationship to another taxon OR specimen. Choose relationship type as prefix and give taxon name or specimen identifier thereafter, e.g. "parasite: Parasiticus specius" OR "host:http://tun.fi/JAA.123"
@@ -33454,7 +33522,13 @@ input store_gatheringEvent_Input @join__type(graph: LAJI_API)  {
   cloudCoverEnd: End_cloud_cover!
   cloudCoverStart: Start_cloud_cover!
   completeList: store_completeList_Input!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   gatheringFact: store_gatheringFact_Input!
   geometry: store_geometry_Input!
@@ -33507,6 +33581,7 @@ input store_gatheringFact_Input @join__type(graph: LAJI_API)  {
   documentation: String!
   invasiveControlOtherExpensesInEuros: NonNegativeInt!
   invasiveControlWorkHours: NonNegativeInt!
+  lineTransectNests: [store_lineTransectNest_Input]!
   lineTransectSegmentCounted: Boolean!
   lineTransectSegmentMetersEnd: NonNegativeInt!
   lineTransectSegmentMetersStart: NonNegativeInt!
@@ -33599,6 +33674,22 @@ input store_gatheringFact_Input @join__type(graph: LAJI_API)  {
   wayOfTravel: Kulkutapa!
   wayOfTravelNotes: String!
   wind: Tuuli!
+}
+
+input store_lineTransectNest_Input @join__type(graph: LAJI_API)  {
+  _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
+  id: String!
+  _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  autocompleteSelectedTaxonID: String!
+  lineTransectNestMeters: NonNegativeInt!
+  lineTransectRouteFieldType: Field_Area!
+  nestCount: NonNegativeInt!
+  nestSize: Nest_Size!
+  nestType: Nest_type!
+  """
+  Taxon name
+  """
+  taxon: String!
 }
 
 input store_geometry_Input @join__type(graph: LAJI_API)  {
@@ -33775,7 +33866,13 @@ input store_gathering_Input @join__type(graph: LAJI_API)  {
   County (piirikunta, kreivikunta etc.)
   """
   county: String!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   """
   Date just as it appears on the label or other original source, no interpretation, errors and all
@@ -34043,9 +34140,7 @@ input store_unit_Input @join__type(graph: LAJI_API)  {
   mutant: String!
   nativeStatus: Native_status!
   nestCount: NonNegativeInt!
-  nestDistanceFromLineTransectStartMeters: NonNegativeInt!
   nestNotes: String!
-  nestSize: P_246_nt_246_n_kokoluokka!
   nestTreeDiameterInCentimeters: NonNegativeInt!
   nestType: Nest_type!
   """
@@ -34216,7 +34311,13 @@ input store_unitGathering_Input @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   geometry: store_geometry_Input!
   """
