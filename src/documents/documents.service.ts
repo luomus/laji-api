@@ -11,7 +11,6 @@ import { Person } from "src/persons/person.dto";
 import { NamedPlacesService } from "src/named-places/named-places.service";
 import { LocalizedException, isValidDate } from "src/utils";
 import { NamedPlace } from "src/named-places/named-places.dto";
-import { PrepopulatedDocumentService } from "src/named-places/prepopulated-document/prepopulated-document.service";
 import { QueryCacheOptions } from "src/store/store-cache";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
@@ -73,9 +72,6 @@ export class DocumentsService {
 
 		@Inject(forwardRef(() => NamedPlacesService))
 		private namedPlacesService: NamedPlacesService,
-
-		@Inject(forwardRef(() => PrepopulatedDocumentService))
-		private prepopulatedDocumentService: PrepopulatedDocumentService,
 
 		@Inject(forwardRef(() => DocumentValidatorService))
 		private documentValidatorService: DocumentValidatorService
@@ -329,7 +325,7 @@ export class DocumentsService {
 			isValidDate(docCounted) && !isValidDate(placeDate)
 			|| isValidDate(docCounted) && isValidDate(placeDate) && (docCounted as Date) >= (placeDate as Date)
 		) {
-			if (documentHasNewNamedPlaceNote(document, place)) {
+			if (document.gatheringEvent?.namedPlaceNotes) {
 				place.notes = document.gatheringEvent?.namedPlaceNotes;
 			}
 			try {
@@ -558,13 +554,6 @@ const getDateCounted = (document: Pick<Document, "gatheringEvent" | "gatherings"
 			return currentDate;
 		}
 	}, undefined);
-};
-
-const documentHasNewNamedPlaceNote = (document: Document, place: NamedPlace) => {
-	const notes = document.gatheringEvent?.namedPlaceNotes;
-	if (notes && notes !== place.notes) {
-		return notes;
-	}
 };
 
 const dateRangeClause = (dateRange: { from: string, to: string }) =>
