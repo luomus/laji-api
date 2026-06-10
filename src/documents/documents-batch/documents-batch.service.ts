@@ -68,7 +68,7 @@ export class DocumentsBatchService {
 			step: BatchJobStep.validate
 		}, { jobId, lifo: true, removeOnComplete: { age: S_ONE_DAY }, removeOnFail: true });
 
-		return exposeJobStatus(job as any, lang);
+		return exposeJobStatus(job, lang);
 	}
 
 	/** Creates the documents of a given job if it's processed and valid, sending them to store or warehouse. */
@@ -100,26 +100,6 @@ export class DocumentsBatchService {
 		if (jobStatus.errors.some(e => e !== null)) {
 			throw new HttpException("The job has validation errors. Fix the documents and create a new job", 422);
 		}
-
-		// job.data = { ...job.data, publicityRestrictions, dataOrigin };
-		// if (publicityRestrictions || dataOrigin) {
-		// 	const documents = await this.getJobDocuments(jobID, person);
-		// 	if (!documents) {
-		// 		throw new HttpException("The job is in invalid state. Start again.", 422);
-		// 	}
-		// 	documents.forEach(document => {
-		// 		if (isSecondaryDocumentDelete(document)) {
-		// 			return;
-		// 		}
-		// 		if (dataOrigin) {
-		// 			document.dataOrigin = [dataOrigin];
-		// 		}
-		// 		if (publicityRestrictions) {
-		// 			document.publicityRestrictions = publicityRestrictions;
-		// 		}
-		// 	});
-		// 	await this.storeJobDocuments(jobID, person, documents);
-		// }
 
 		await this.validationQueue.remove(job.id!);
 		const ONE_HOUR_S = 3600;
@@ -183,7 +163,7 @@ const exposeJobStatus = async (
 	const { data: { step, total } } = job;
 
 	// Apparently there's some race condition in bullmq that makes it possible for isCompleted() to return true but it's
-	// still missing return value, so we have do double check.
+	// still missing return value, so we have to double check.
 	const isCompleted = !!job.returnvalue && await job.isCompleted();
 
 	const exposedJob = serialize({

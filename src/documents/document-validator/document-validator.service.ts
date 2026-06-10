@@ -192,12 +192,15 @@ export class DocumentValidatorService {
 		}
 	}
 
-	async validateWithValidationStrategy<T = Document>(item: T, options: {
-		validator: ValidationStrategy,
-		field?: string,
-		informalTaxonGroup?: string[],
-		type?: ValidationType
-	}) {
+	async validateWithValidationStrategy<T = Document>(
+		item: T,
+		options: {
+			validator: ValidationStrategy,
+			field?: string,
+			informalTaxonGroup?: string[],
+			type?: ValidationType
+		}
+	) {
 		const  { validator, field, ...validatorOptions } = options;
 		await ((this as any)[`${validator}ValidatorService`] as DocumentValidator<T>)
 			.validate(item,
