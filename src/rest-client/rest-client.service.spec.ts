@@ -2,7 +2,7 @@ import { HttpService } from "@nestjs/axios";
 import { Test, TestingModule } from "@nestjs/testing";
 import { RestClientService, RestClientConfig } from "./rest-client.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
-import { of } from "rxjs";
+import { of, throwError } from "rxjs";
 import { JSONSerializable } from "src/typing.utils";
 import { AxiosResponse } from "axios";
 import { MS_1_D } from "src/utils";
@@ -392,6 +392,32 @@ describe("RestClientService", () => {
 			expect(result).toEqual(cached);
 			await new Promise(resolve => setImmediate(resolve));
 			expect(failingGet).toHaveBeenCalled();
+		});
+
+		it("flushes cache on 401 during SWR background refresh", async () => {
+			const flushSpy = jest.spyOn(restClientService, "flushCache");
+			jest.spyOn(httpService, "get")
+				.mockReturnValueOnce(mockAxiosOkResponse({ data: "cached" }));
+			await restClientService.get("path");
+			jest.spyOn(Date, "now").mockReturnValue(ttl + 1);
+			jest.spyOn(httpService, "get")
+				.mockReturnValue(throwError(() => ({ status: 401 })));
+			await restClientService.get("path");
+			await new Promise(res => setImmediate(res));
+			expect(flushSpy).toHaveBeenCalled();
+		});
+
+		it("flushes cache on 403 during SWR background refresh", async () => {
+			const flushSpy = jest.spyOn(restClientService, "flushCache");
+			jest.spyOn(httpService, "get")
+				.mockReturnValueOnce(mockAxiosOkResponse({ data: "cached" }));
+			await restClientService.get("path");
+			jest.spyOn(Date, "now").mockReturnValue(ttl + 1);
+			jest.spyOn(httpService, "get")
+				.mockReturnValue(throwError(() => ({ status: 403 })));
+			await restClientService.get("path");
+			await new Promise(res => setImmediate(res));
+			expect(flushSpy).toHaveBeenCalled();
 		});
 	});
 });
