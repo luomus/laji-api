@@ -26,6 +26,8 @@ export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & {
 	singleResourceEndpoint?: boolean
 	/** Cache TTL in ms */
 	cache?: number;
+	/** By default certain error status codes invalidate the SWR  */
+	errorShouldInvalidateSWR?: (e: any) => boolean
 };
 
 export type RestClientConfig<T> = RestClientOptions<T> & {
@@ -63,7 +65,7 @@ type SWRCacheEntry<S> = {
  * the `cache` option to each method (get, put, post, del). The client must give the option to bust the cache for a
  * path.
  *
- * Caching includes Redis cache and also in-flight request deduplication.
+ * Caching includes Redis cache with SWR (stale-while-revalidate) and in-flight request deduplication.
  */
 // Both caches (Redis and the in-flight request cache in app memory) use a structure where there's a map
 // between host + path (without query params), and it's values are a map between full uri (host, path, query params) and
@@ -191,7 +193,8 @@ export class RestClientService<T = unknown> {
 		return result;
 	}; }
 
-	private getWithStaleWhileRevalidate<S>(
+	/** SWR stands for for stale-while-revalidate */
+	private getWithSWR<S>(
 		path?: string,
 		config?: AxiosRequestConfig,
 		options?: RestClientOptions<S>
@@ -206,27 +209,35 @@ export class RestClientService<T = unknown> {
 		const hostAndPath = this.getHostAndPath(path);
 		const cacheForHostAndPath = (await this.cache!.get<Record<string, SWRCacheEntry<S>>>(hostAndPath))
 			|| {} as Record<string, SWRCacheEntry<S>>;
-		const staleWhileRevalidateEntry = url in cacheForHostAndPath
+		const swrEntry = url in cacheForHostAndPath
 			? cacheForHostAndPath[url]
 			: undefined;
-		if (!staleWhileRevalidateEntry) {
+		if (!swrEntry) {
 			return createRequest();
 		}
-		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
+		const isFresh = swrEntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh && !this.swrRefreshInProgress.has(url)) {
 			this.swrRefreshInProgress.add(url);
+			const errorShouldInvalidateSWR = options?.errorShouldInvalidateSWR || this.config.errorShouldInvalidateSWR;
 			void createRequest().catch(e => {
-				this.logger.error("SWR background refresh failed", e);
+				if (errorShouldInvalidateSWR
+					? errorShouldInvalidateSWR(e)
+					: e.status && [401, 403, 500, 501, 502, 503, 504].includes(e.status)
+				) {
+					void this.flushCache(path, options);
+				} else {
+					this.logger.error("SWR background refresh failed", e);
+				}
 			}).finally(() => {
 				this.swrRefreshInProgress.delete(url);
 			});
 		}
-		return staleWhileRevalidateEntry.data;
+		return swrEntry.data;
 	}; }
 
 	async get<S = T>(path?: string, config?: AxiosRequestConfig, options?: RestClientOptions<S>): Promise<S> {
 		return this.getWithInFlightDeduplication<S>(path, config)(
-			() => this.getWithStaleWhileRevalidate<S>(path, config, options)(
+			() => this.getWithSWR<S>(path, config, options)(
 				() => this.getAndCache<S>(path, config, options)
 			)
 		);

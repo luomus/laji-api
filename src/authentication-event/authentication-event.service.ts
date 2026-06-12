@@ -12,7 +12,10 @@ export class AuthenticationEventService {
 	) {}
 
 	async getInfo(personToken: string): Promise<PersonTokenInfo> {
-		const info = await this.lajiAuthClient.get(`token/${personToken}`, undefined, { cache: 10 * MS_1_SEC });
+		const info = await this.lajiAuthClient.get(`token/${personToken}`, undefined, {
+			cache: 10 * MS_1_SEC,
+			errorShouldInvalidateSWR: e => e.status && [400, 401, 403, 500, 501, 502, 503, 504].includes(e.status)
+		});
 		return {
 			personId: info.user.qname,
 			target: info.target,
