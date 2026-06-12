@@ -218,11 +218,13 @@ export class RestClientService<T = unknown> {
 		const isFresh = swrEntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh && !this.swrRefreshInProgress.has(url)) {
 			this.swrRefreshInProgress.add(url);
-			const errorShouldInvalidateSWR = options?.errorShouldInvalidateSWR || this.config.errorShouldInvalidateSWR;
 			void createRequest().catch(e => {
-				if (errorShouldInvalidateSWR
-					? errorShouldInvalidateSWR(e)
-					: e.status && [401, 403, 500, 501, 502, 503, 504].includes(e.status)
+				const errorShouldInvalidateSWR = options?.errorShouldInvalidateSWR
+					|| this.config.errorShouldInvalidateSWR;
+				if (
+					errorShouldInvalidateSWR
+						? errorShouldInvalidateSWR(e)
+						: e.status && [401, 403].includes(e.status)
 				) {
 					void this.flushCache(path, options);
 				} else {
