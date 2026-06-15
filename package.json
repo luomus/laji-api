@@ -28,6 +28,7 @@
     "@as-integrations/express5": "^1.1.2",
     "@graphql-hive/nestjs": "^2.0.72",
     "@graphql-mesh/compose-cli": "^1.5.32",
+    "@graphql-yoga/plugin-response-cache": "^3.23.2",
     "@luomus/laji-schema": "^2.0.270",
     "@luomus/laji-validate": "^0.0.127",
     "@nestjs-modules/mailer": "^2.0.2",

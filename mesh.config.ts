@@ -1,7 +1,7 @@
 import { defineConfig } from "@graphql-mesh/compose-cli";
 import { loadOpenAPISubgraph } from "@omnigraph/openapi";
 import "dotenv";
-
+ 
 const PORT = process.env.PORT || "3005";
 
 export const composeConfig = defineConfig({
@@ -13,8 +13,7 @@ export const composeConfig = defineConfig({
 					"Accept": "application/json",
 				},
 				ignoreErrorResponses: true,
-			}),
+			})
 		}
 	]
 });
-

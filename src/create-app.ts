@@ -17,6 +17,10 @@ import { fixRequestBody } from "http-proxy-middleware";
 import { createGatewayRuntime } from "@graphql-hive/gateway";
 import { fixRequestBodyAndAuthHeader } from "./proxy-to-old-api/fix-request-body-and-auth-header";
 import { IncomingMessage, Server, ServerResponse } from "http";
+import { useResponseCache } from "@graphql-yoga/plugin-response-cache";
+import { parse, visit } from "graphql";
+import * as fs from "fs";
+import * as path from "path";
 
 type App = NestExpressApplication<Server<typeof IncomingMessage, typeof ServerResponse>>;
 
@@ -155,6 +159,37 @@ const addGraphql = (app: App) => {
 		next();
 	});
 
+	const cache = app.get(RedisCacheService);
+
+	const schemaPath = path.join(__dirname, "../schema.graphql");
+
+	function extractFieldsWithPersonTokenArgFromSDL(): string[] {
+		const sdl = fs.readFileSync(schemaPath, "utf-8");
+		const document = parse(sdl);
+
+		const privateFields = [] as string[];
+
+		visit(document, {
+			FieldDefinition: (node) => {
+				const { arguments: args } = node;
+				if (!args?.length) {
+					return;
+				}
+
+				const hasPersonTokenArg = args.some(arg =>
+					arg.name.value === "Person_Token"
+				);
+
+				if (!hasPersonTokenArg) return;
+
+				privateFields.push(node.name.value);
+			}
+		});
+
+		return privateFields;
+	}
+	const FIELDS_WITH_PERSON_TOKEN_ARG = extractFieldsWithPersonTokenArgFromSDL();
+
 	app.use("/graphql", createGatewayRuntime({
 		supergraph: "./schema.graphql",
 		propagateHeaders: {
@@ -167,7 +202,58 @@ const addGraphql = (app: App) => {
 				};
 			},
 		},
-		inboundInflightRequestDeduplication: true
+		inboundInflightRequestDeduplication: true,
+		cache: {
+			set: async (key, value, { ttl } = {}) => {
+				void cache.set(key, value, typeof ttl === "number" ?  ttl * 1000 : undefined);
+			},
+			get: async (key) => {
+				return cache.get(key);
+			},
+			delete: async (key) => {
+				await cache.del(key);
+				return true;
+			},
+			getKeysByPrefix: (prefix) => {
+				return cache.getKeysByPrefix(prefix);
+			}
+		},
+		plugins: () => [
+			useResponseCache({
+				session: (request) => {
+					return JSON.stringify({
+						lang: request.headers.get("accept-language") ?? "en",
+						personToken: request.headers.get("person-token") ?? ""
+					});
+				},
+				buildResponseCacheKey: ({
+					documentString,
+					variableValues,
+					operationName,
+					sessionId
+				}) => {
+					const parsedSession = sessionId
+						? JSON.parse(sessionId)
+						: { lang: "en", personToken: "" };
+
+					const { lang, personToken } = parsedSession;
+
+					const isPrivate = personToken
+						&& FIELDS_WITH_PERSON_TOKEN_ARG.some(privateField => documentString.includes(privateField));
+
+					const scopeKey = isPrivate
+						? `${personToken}:${lang}`
+						: lang;
+
+					return JSON.stringify({
+						query: documentString,
+						vars: variableValues,
+						op: operationName,
+						scope: scopeKey
+					});
+				}
+			})
+		],
 	}));
 	return app;
 };
