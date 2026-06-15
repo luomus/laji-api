@@ -413,7 +413,10 @@ export class DocumentsService {
 				selfAsEditorOrCreator
 				|| (
 					!person.isImporter() && !permissions?.admins.includes(person.id)
-					&& (!permissions?.editors.includes(person.id) || !this.isCollectionViewableForAll(collectionID))
+					&& (
+						!permissions?.editors.includes(person.id)
+						|| !(await this.isCollectionViewableForAll(collectionID))
+					)
 				)
 			) {
 				storeQuery = and(storeQuery, editorOrCreatorClause(person, !!isTemplate));
