@@ -10,12 +10,12 @@ Check the [wiki](https://github.com/luomus/laji-api/wiki) for a more technically
 
 ### Stack
 
-[Nest](https://github.com/nestjs/nest)
+* [Nest](https://github.com/nestjs/nest)
 
 #### GraphQL
 
-[GraphQL Mesh (OpenAPI -> GraphQL schema generation)](https://the-guild.dev/graphql/mesh/v1)
-[GraphQL Gateway](https://the-guild.dev/graphql/hive/docs/gateway)
+* [GraphQL Mesh](https://the-guild.dev/graphql/mesh/v1) (OpenAPI -> GraphQL schema generation)
+* [GraphQL Gateway](https://the-guild.dev/graphql/hive/docs/gateway)
 
 ### Installation & running
 
