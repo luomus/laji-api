@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseInterceptors } from "@nestjs/common";
+import { Get, Query, UseInterceptors } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { GetTripReportUnitShorthandDto, GetWaterBirdPairCountUnitShorthandDto, LineTransectUnitShorthandResponseDto }
 	from "./shorthand.dto";
@@ -8,9 +8,10 @@ import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { CommonAutocompleteDto } from "src/autocomplete/autocomplete.dto";
 import { ShorthandService } from "./shorthand.service";
+import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 
 @ApiTags("Shorthands")
-@Controller("shorthand")
+@LajiApiController("shorthand")
 export class ShorthandController {
 
 	constructor(private shorthandService: ShorthandService) {}
