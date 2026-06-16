@@ -223,7 +223,8 @@ const addGraphql = (app: App) => {
 				session: (request) => {
 					return JSON.stringify({
 						lang: request.headers.get("accept-language") ?? "en",
-						personToken: request.headers.get("person-token") ?? ""
+						personToken: request.headers.get("person-token") ?? "",
+						authorization: request.headers.get("authorization") ?? "",
 					});
 				},
 				buildResponseCacheKey: ({
@@ -235,16 +236,13 @@ const addGraphql = (app: App) => {
 					const parsedSession = sessionId
 						? JSON.parse(sessionId)
 						: { lang: "en", personToken: "" };
-
-					const { lang, personToken } = parsedSession;
-
+					const { lang, personToken, authorization } = parsedSession;
+					const accessToken = authorization.replace("Bearer ", "").replace("bearer ", "");
 					const isPrivate = personToken
 						&& FIELDS_WITH_PERSON_TOKEN_ARG.some(privateField => documentString.includes(privateField));
-
 					const scopeKey = isPrivate
-						? `${personToken}:${lang}`
-						: lang;
-
+						? `${accessToken}:${lang}:${personToken}`
+						: `${accessToken}:${lang}`;
 					return JSON.stringify({
 						query: documentString,
 						vars: variableValues,
