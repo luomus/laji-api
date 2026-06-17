@@ -6,7 +6,7 @@ import { JSONPath } from "jsonpath-plus";
 import { JsonLdService } from "src/json-ld/json-ld.service";
 import { JsonLdDocument } from "jsonld";
 import { instanceToInstance } from "class-transformer";
-import { dictionarify, firstFromNonEmptyArr, lastFromNonEmptyArr, updateWithJSONPointer } from "src/utils";
+import { dictionarify, firstFromNonEmptyArr, lastFromNonEmptyArr, MS_1_D, updateWithJSONPointer } from "src/utils";
 import { LangPreference, getDefaultLangPreferences } from "./lang.utils";
 
 const JSON_LD_KEYWORDS = new Set(["@id", "@type", "@value", "@language", "@list", "@set", "@context"]);
@@ -76,7 +76,7 @@ export class LangService {
 		)(item);
 	}
 
-	@IntelligentMemoize()
+	@IntelligentMemoize({ maxAge: MS_1_D } )
 	async getMultiLangJSONPaths(jsonLdContext: string): Promise<string[]> {
 		return getMultiLangJSONPaths(await this.jsonLdService.getEmbeddedContext(jsonLdContext));
 	}
