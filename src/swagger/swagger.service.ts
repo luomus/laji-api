@@ -233,7 +233,7 @@ export class SwaggerService {
 	applyEntryToResponse(entry: SwaggerCustomizationEntry, document: OpenAPIObject) {
 		return async (schema: SchemaItem): Promise<SchemaItem> => {
 			if (isSwaggerRemoteRefEntry(entry)) {
-				schema = await this.replaceWithRemote(entry, schema, document);
+				schema = await this.replaceWithRemote(entry);
 			}
 			if (hasSwaggerSchemaDefinitionName(entry)) {
 				schema = replaceWithRefToCustomSwaggerSchemaDefinitionName(entry, schema);
@@ -245,24 +245,13 @@ export class SwaggerService {
 		};
 	}
 
-	async replaceWithRemote(
-		entry: WithNonNullableKeys<SwaggerRemoteEntry, "ref">,
-		schema: SchemaItem,
-		document: OpenAPIObject
-	) {
+	async replaceWithRemote(entry: WithNonNullableKeys<SwaggerRemoteEntry, "ref">) {
 		const { prefix } = await this.getRemoteSwaggerDoc(entry);
 		const refParts = entry.ref.split("/");
 		const firstRefParts = refParts;
 		const lastRefPart = firstRefParts.pop();
 		const prefixedRef = [...firstRefParts, prefix + lastRefPart].join("/");
-		const replacement = { "$ref": `#/components/schemas${prefixedRef}` };
-		if (entry.replacePointer) {
-			const schemaDef = getSchemaDefinition(document, schema as JSONSchema);
-			updateWithJSONPointer(schemaDef, entry.replacePointer, replacement);
-			return schemaDef;
-		} else {
-			return replacement;
-		}
+		return { "$ref": `#/components/schemas${prefixedRef}` };
 	}
 
 	private patchPersonToken(document: OpenAPIObject) {

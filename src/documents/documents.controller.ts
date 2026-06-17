@@ -46,7 +46,6 @@ export class DocumentsController {
 	@SwaggerRemote({
 		source: "store",
 		ref: "/document",
-		replacePointer: "/items",
 		applyToResponse: false,
 		customizeRequestBodySchema: schema => ({ type: "array", items: schema })
 	})

@@ -11,12 +11,7 @@ import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
 export type SwaggerRemoteEntry = SwaggerCustomizationCommon & {
 	/** The remote source */
 	source: "store" | "laji-backend",
-	/**
-	 * Replaces the given pointer in the response schema. If not defined, the whole response schema will be replaced.
-	 * Uses JSON pointer notation. Has lower precedence than `customizeResponseSchema`.
-	 */
-	replacePointer?: string;
-	/** The local json-ld context name that is given to the result */
+	/** The local JSON-LD context name that is given to the result. The JSON-LD is generated from the referred JSON Schema. */
 	localJsonLdContext?: string;
 	/** JSON pointer for the schema in the remote OpenAPI document that will be used as the response schema. The pointer
 	 * is relative to the remote document's component schemas (#/components/schemas) */

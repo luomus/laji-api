@@ -21,7 +21,7 @@ export class LangService {
 
 	constructor(private jsonLdService: JsonLdService) {}
 
-	async contextualTranslateWith<T >(
+	async contextualTranslateWith<T>(
 		jsonLdContext: string,
 		langPreferences: LangPreference[] = [{ lang: Lang.en }],
 		selectedFields?: string[]
