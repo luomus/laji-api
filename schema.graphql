@@ -1767,7 +1767,7 @@ type Query @extraSchemaDefinitionDirective(
     Limit the size of results
     """
     limit: Float = 10
-  ): [TripReportUnitShorthandResponseDto] @httpOperation(
+  ): ShorthandController_getTripReportUnitShorthandAutocomplete_200_response @httpOperation(
     subgraph: "Laji-API"
     path: "/shorthand/unit/trip-report"
     operationSpecificHeaders: [["accept", "application/json"]]
@@ -10970,20 +10970,9 @@ type query_AutocompleteController_getTaxa_results_items_informalGroups_items @jo
   name: String!
 }
 
-type TripReportUnitShorthandResponseDto @join__type(graph: LAJI_API)  {
-  key: String!
-  value: String!
-  isNonMatching: Boolean
-  matchType: String
-  unit: JSON!
-  interpretedFrom: query_ShorthandController_getTripReportUnitShorthandAutocomplete_items_interpretedFrom!
-}
-
-type query_ShorthandController_getTripReportUnitShorthandAutocomplete_items_interpretedFrom @join__type(graph: LAJI_API)  {
-  taxon: String!
-  count: String!
-  maleIndividualCount: String!
-  femaleIndividualCount: String!
+type ShorthandController_getTripReportUnitShorthandAutocomplete_200_response @join__type(graph: LAJI_API)  {
+  results: [[query_TaxaController_search_results_items_items]]
+  _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
 }
 
 type TripReportUnitListResultDto @join__type(graph: LAJI_API)  {
