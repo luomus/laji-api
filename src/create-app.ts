@@ -21,6 +21,7 @@ import { useResponseCache } from "@graphql-yoga/plugin-response-cache";
 import { parse, visit } from "graphql";
 import * as fs from "fs";
 import * as path from "path";
+import axiosRetry from "axios-retry";
 
 type App = NestExpressApplication<Server<typeof IncomingMessage, typeof ServerResponse>>;
 
@@ -28,6 +29,7 @@ export const createApp = (useLogger = true): Promise<App> => promisePipe(
 	create(useLogger),
 	configure,
 	addLogger(useLogger),
+	addAxiosRetry(useLogger),
 	addSwagger,
 	addGraphql,
 	addOldApiBwCompatibility,
@@ -398,3 +400,43 @@ const createErrorResponseSwaggerForStatus = (status: number) => ({
 		}
 	}
 });
+
+const addAxiosRetry = (useLogger: boolean) => (app: App): App => {
+	const httpService = app.get(HttpService);
+	axiosRetry(httpService.axiosRef, {
+		retries: 5,
+		retryDelay: (retryCount, error) => {
+			const retryAfter = error.response?.headers["retry-after"];
+
+			if (retryAfter) {
+				return parseInt(retryAfter, 10) * 1000;
+			}
+
+			return axiosRetry.exponentialDelay(retryCount);
+		},
+		shouldResetTimeout: true,
+		retryCondition: error => {
+			const status = error.response?.status;
+			return (
+				axiosRetry.isNetworkOrIdempotentRequestError(error)
+				|| status && (
+					status === 429
+					|| (status >= 500 && status < 600)
+				)
+			) || false;
+		},
+		onRetry: (retryCount, error, config) => {
+			if (!useLogger) {
+				return;
+			}
+			const logger = getLoggerFromAxiosConfig(config);
+			const query = new URLSearchParams(config?.params).toString();
+			logger.verbose(joinOnlyStrings(
+				`RETRY ${retryCount}`,
+				config.method?.toUpperCase(),
+				config.url + (query ? `?${query}` : "")
+			));
+		}
+	});
+	return app;
+};
