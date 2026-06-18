@@ -405,14 +405,10 @@ const addAxiosRetry = (useLogger: boolean) => (app: App): App => {
 	const httpService = app.get(HttpService);
 	axiosRetry(httpService.axiosRef, {
 		retries: 5,
-		retryDelay: (retryCount, error) => {
-			const retryAfter = error.response?.headers["retry-after"];
-
-			if (retryAfter) {
-				return parseInt(retryAfter, 10) * 1000;
-			}
-
-			return axiosRetry.exponentialDelay(retryCount);
+		retryDelay: (retryCount) => {
+			const baseDelay = axiosRetry.exponentialDelay(retryCount);
+			const jitter = Math.random() * 300;
+			return baseDelay + jitter;
 		},
 		shouldResetTimeout: true,
 		retryCondition: error => {
