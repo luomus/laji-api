@@ -41,7 +41,7 @@ export class DocumentsController {
 	/**
 	 * Starts a batch job that validates the documents. Use the returned job id to get the status of the job with GET
 	 * /documents/:jobID, or create the documents with POST /documents/batch/:jobID
-	 * */
+	 */
 	@Post("batch")
 	@SwaggerRemote({
 		source: "store",
@@ -62,7 +62,7 @@ export class DocumentsController {
 	/**
 	 * Get a batch job's status. Once ready, the response will include properties 'documents' and 'errors', where the
 	 * errors match the documents array indices, null meaning valid and an object.
-	 * */
+	 */
 	@Get("batch/:jobID")
 	@HttpCode(200)
 	async getBatchJobStatus(
@@ -73,9 +73,7 @@ export class DocumentsController {
 		return this.documentsBatchService.getStatus(jobID, person, lang);
 	}
 
-	/**
-	 * Completes a given batch job by sending them to the store/warehouse. The batch job must be already validated.
-	 * */
+	/** Completes a given batch job by sending them to the store/warehouse. The batch job must be already validated. */
 	@Post("batch/:jobID")
 	@HttpCode(200)
 	async completeBatchJob(
@@ -289,7 +287,7 @@ export class DocumentsController {
 		);
 	}
 
-	/** Update an existing document */
+	/** Delete a document */
 	@Delete(":id")
 	async delete(
 		@Param("id") id: string,

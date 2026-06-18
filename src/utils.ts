@@ -18,8 +18,6 @@ type Op<T, R> = {
 
 type Pipe<I, O> = (input: I) => O;
 
-/* eslint-enable max-len */
-
 /**
  * Creates a function that reduces given input with the given operators.
  *

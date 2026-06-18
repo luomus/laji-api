@@ -159,16 +159,11 @@ const addGraphql = (app: App) => {
 		next();
 	});
 
-	const cache = app.get(RedisCacheService);
-
-	const schemaPath = path.join(__dirname, "../schema.graphql");
-
-	function extractFieldsWithPersonTokenArgFromSDL(): string[] {
+	const extractFieldsWithPersonTokenArgFromSDL = () => {
+		const schemaPath = path.join(__dirname, "../schema.graphql");
 		const sdl = fs.readFileSync(schemaPath, "utf-8");
 		const document = parse(sdl);
-
 		const privateFields = [] as string[];
-
 		visit(document, {
 			FieldDefinition: (node) => {
 				const { arguments: args } = node;
@@ -180,15 +175,18 @@ const addGraphql = (app: App) => {
 					arg.name.value === "Person_Token"
 				);
 
-				if (!hasPersonTokenArg) return;
-
-				privateFields.push(node.name.value);
+				if (hasPersonTokenArg) {
+					privateFields.push(node.name.value);
+				}
 			}
 		});
 
 		return privateFields;
-	}
+	};
+
 	const FIELDS_WITH_PERSON_TOKEN_ARG = extractFieldsWithPersonTokenArgFromSDL();
+
+	const cache = app.get(RedisCacheService);
 
 	app.use("/graphql", createGatewayRuntime({
 		supergraph: "./schema.graphql",
