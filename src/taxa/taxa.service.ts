@@ -106,7 +106,7 @@ export class TaxaService {
 		const childrenQuery: Partial<AllQueryParams> = {
 			checklist: [taxon.nameAccordingTo || "MR.1"],
 			...query,
-			pageSize: 10000, // This has worked so far to get all taxa...
+			pageSize: 100000, // This has worked so far to get all taxa...
 			depth: true
 		};
 
@@ -138,7 +138,7 @@ export class TaxaService {
 			id: parentIds,
 			checklistVersion: ChecklistVersion.current,
 			sortOrder: "taxonomic",
-			pageSize: 10000,
+			pageSize: 100000,
 			...query
 		}, filters);
 		return arrayAdapter(parents, query);
