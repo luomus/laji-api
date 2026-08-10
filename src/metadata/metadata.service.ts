@@ -297,5 +297,25 @@ const MAGIC_PROPERTIES: Property[] = [
 		"isEmbeddable": true,
 		"multiLanguage": false,
 		"shortName": "permits"
+	},
+	{
+		"property": "PUU.events",
+		"label": {
+			sv: "Händelser",
+			en: "Events",
+			fi: "Tapahtumat"
+		},
+		"domain": [
+			"PUU.branch"
+		],
+		"range": "PUU.event",
+		"minOccurs": "0",
+		"maxOccurs": "unbounded",
+		"required": false,
+		"hasMany": true,
+		"sortOrder": -1,
+		"isEmbeddable": true,
+		"multiLanguage": false,
+		"shortName": "events"
 	}
 ];
