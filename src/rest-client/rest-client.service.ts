@@ -26,7 +26,7 @@ export type RestClientOptions<T> = Partial<HasMaybeSerializeInto<T>> & {
 	singleResourceEndpoint?: boolean
 	/** Cache TTL in ms */
 	cache?: number;
-	/** By default certain error status codes invalidate the SWR  */
+	/** By default certain error status codes invalidate the SWR (stale-while-revalidate cache) */
 	errorShouldInvalidateSWR?: (e: any) => boolean
 };
 
