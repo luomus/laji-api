@@ -204,7 +204,8 @@ export const asArray = <T>(maybeArr: T | T[]): T[] =>
 	Array.isArray(maybeArr) ? maybeArr : [maybeArr];
 
 /** Returns a function that applies the given predicate to the input, if it's not undefined. */
-export const doForDefined = <T, R>(predicate: (p: T) => R) => (maybe?: T) => maybe ? predicate(maybe) : undefined;
+export const doForDefined = <T, R>(predicate: (p: T) => R) => (maybe?: T) =>
+	maybe !== undefined ? predicate(maybe) : undefined;
 
 /** Creates a ISO date string without time ("YYYY-MM-DD") from a Date object  */
 export const dateToISODate = (date: Date): string => date.toISOString().split("T")[0] as string;
