@@ -9,7 +9,7 @@ schema
     
     @link(
   url: "https://the-guild.dev/graphql/mesh/spec/v1.0"
-  import: ["@enum", "@resolveRootField", "@typescript", "@example", "@resolveRoot", "@dictionary", "@httpOperation", "@transport", "@extraSchemaDefinitionDirective"]
+  import: ["@enum", "@resolveRootField", "@typescript", "@example", "@resolveRoot", "@dictionary", "@httpOperation", "@transport", "@source", "@extraSchemaDefinitionDirective"]
 )
   {
     query: Query
@@ -124,6 +124,8 @@ directive @transport(
   queryStringOptions: ObjMap
   queryParams: [[String]]
 ) repeatable on SCHEMA
+
+directive @source(name: String!, type: String, subgraph: String!)  repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 
 directive @extraSchemaDefinitionDirective(directives: _DirectiveExtensions)  repeatable on OBJECT
 
@@ -7759,7 +7761,7 @@ type FormsController_getListing_200_response @join__type(graph: LAJI_API)  {
 
 type FormListing @join__type(graph: LAJI_API)  {
   id: String!
-  category: Category!
+  category: String
   """
   Id for the collection to where observation useing this form are connected
   """
@@ -7769,7 +7771,7 @@ type FormListing @join__type(graph: LAJI_API)  {
   name: String!
   options: store_formOptions!
   shortDescription: String!
-  supportedLanguage: [query_FormsController_getListing_results_items_supportedLanguage_items]!
+  supportedLanguage: String
   title: String!
 }
 
@@ -7903,13 +7905,13 @@ type store_formOptions @join__type(graph: LAJI_API)  {
   prepopulateWithInformalTaxonGroups: [String]!
   prepopulateWithTaxonSets: String!
   prepopulatedDocument: store_document!
-  printType: Print_type!
+  printType: String
   """
   Display privacy policy link on form header.
   """
   privacyPolicy: Boolean!
-  restrictAccess: Restrict_access!
-  resultServiceType: Type_of_result_service!
+  restrictAccess: String
+  resultServiceType: String
   """
   Message shown when document save failed
   """
@@ -7959,7 +7961,7 @@ type store_formOptions @join__type(graph: LAJI_API)  {
   Uses schema comments as form help texts
   """
   useSchemaCommentsAsHelpTexts: Boolean!
-  viewerType: Document_viewer_type!
+  viewerType: String
   warnEditingOldDocument: Boolean!
   """
   Duration in ISO 8601 duration format. Defaults to P1W (one week)
@@ -8056,7 +8058,7 @@ type store_formNamedPlaceOptions @join__type(graph: LAJI_API)  {
   """
   Affects "MHL.filterByTags" feature
   """
-  filterByTagsWhitelist: [query_FormsController_getListing_results_items_options_namedPlaceOptions_filterByTagsWhitelist_items]!
+  filterByTagsWhitelist: String
   """
   When recording a document for a named place, the named place's data of these fields will be shown at the top of the page (defaults to ["alternativeIDs", "name", "municipality"]
   """
@@ -8141,7 +8143,7 @@ type store_formNamedPlaceOptions @join__type(graph: LAJI_API)  {
   """
   Affects "MHL.filterByTags" feature
   """
-  tagsWhiteList: [query_FormsController_getListing_results_items_options_namedPlaceOptions_tagsWhiteList_items]!
+  tagsWhiteList: String
   """
   Instead of populating observation form with prepopulatedDocument, it is populated with acceptedDocument. Admin can change the acceptedDocument from observation list
   """
@@ -8160,7 +8162,7 @@ type store_document @join__type(graph: LAJI_API)  {
   _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  secureLevel: Secure_level
+  secureLevel: String
   """
   Leave empty if no sample taken, or if the sample is recorded separately
   """
@@ -8220,7 +8222,7 @@ type store_document @join__type(graph: LAJI_API)  {
   Annuality/perenniality or other specialities about cultivation in our conditions.
   """
   cultivationInformation: String
-  dataOrigin: [query_FormsController_getListing_results_items_options_prepopulatedDocument_dataOrigin_items]
+  dataOrigin: String
   """
   Where the data about this specimen or observation is from, in addition to labels. Eg. reference to a publication, field notes or an expedition.
   """
@@ -8288,6 +8290,9 @@ type store_document @join__type(graph: LAJI_API)  {
   Additional information to the data in each section.
   """
   notes: String
+  """
+  ID for the observation in another system, e.g. Vihko/Notebook. Format System:identifier.
+  """
   observationID: String
   """
   Original catalogue number or other  original identifier of the specimen. E.g. H9000000
@@ -8300,7 +8305,7 @@ type store_document @join__type(graph: LAJI_API)  {
   """
   Main method of preservation. If parts of the specimen are preserved in different ways, you can choose several methods.
   """
-  preservation: [query_FormsController_getListing_results_items_options_prepopulatedDocument_preservation_items]
+  preservation: String
   """
   Location of the primary data if not Kotka.
   """
@@ -8313,6 +8318,9 @@ type store_document @join__type(graph: LAJI_API)  {
   Publication references or doi's that refer to this specimen
   """
   publication: [String]
+  """
+  Optical character recognition or AI generated data in its raw format, errors and all.
+  """
   rawOCRData: String
   """
   Relationship to another taxon OR specimen. Choose relationship type as prefix and give taxon name or specimen identifier thereafter, e.g. "parasite: Parasiticus specius" OR "host:http://tun.fi/JAA.123"
@@ -8332,7 +8340,7 @@ type store_document @join__type(graph: LAJI_API)  {
   separatedTo: [String]
   serialNumber: String
   sourceID: String
-  status: Status
+  status: String
   temp: Boolean
   templateDescription: String
   templateName: String
@@ -8351,7 +8359,7 @@ type store_document @join__type(graph: LAJI_API)  {
   """
   Information about the quality of the specimen data. Possible to select several.
   """
-  verificationStatus: [query_FormsController_getListing_results_items_options_prepopulatedDocument_verificationStatus_items]
+  verificationStatus: String
   """
   Identifier of the herbarium voucher specimen or information about it if the identifier is unknown.
   """
@@ -8365,7 +8373,7 @@ type store_document @join__type(graph: LAJI_API)  {
   Team or organisation that owns the record and can edit it.
   """
   owner: String
-  publicityRestrictions: Publicity_restrictions
+  publicityRestrictions: String
   scheduledForDeletion: Boolean
   gatherings: [store_gathering]!
 }
@@ -8403,7 +8411,7 @@ type store_gatheringEvent @join__type(graph: LAJI_API)  {
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
   acknowledgeNoUnitsInCensus: Boolean!
-  artificialLight: Artificial_light!
+  artificialLight: String
   breaksDuringCensusInMinutes: NonNegativeInt!
   censusCount: NonNegativeInt!
   censusHinderedByEnviromentalFactors: Boolean!
@@ -8411,11 +8419,17 @@ type store_gatheringEvent @join__type(graph: LAJI_API)  {
   censusHinderedByRain: Boolean!
   censusHinderedByWind: Boolean!
   censusPrematurelyAborted: Boolean!
-  cloudCover: Cloudiness!
-  cloudCoverEnd: End_cloud_cover!
-  cloudCoverStart: Start_cloud_cover!
+  cloudCover: String
+  cloudCoverEnd: String
+  cloudCoverStart: String
   completeList: store_completeList!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   gatheringFact: store_gatheringFact!
   geometry: store_geometry!
@@ -8429,14 +8443,14 @@ type store_gatheringEvent @join__type(graph: LAJI_API)  {
   Alkuperäislähteen käyttäjätunnus
   """
   legUserID: [String]!
-  machineAssistance: AI_used!
+  machineAssistance: String
   namedPlaceNotes: String!
   nextMonitoringYear: Int!
   """
   Additional information to the data in each section.
   """
   notes: String!
-  rainIntensity: Rain_intensity!
+  rainIntensity: String
   routeDirectionAdhered: Boolean!
   spottingScopeUsed: Boolean!
   startDistanceFromNECorner: String!
@@ -8454,7 +8468,7 @@ type store_completeList @join__type(graph: LAJI_API)  {
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
   completeListTaxonID: String!
-  completeListType: Species_list_completeness!
+  completeListType: String
 }
 
 type store_gatheringFact @join__type(graph: LAJI_API)  {
@@ -8462,30 +8476,31 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
   allObservedNestsRecorded: Boolean!
-  batCollector: I_placed_the_sound_recorder_to_the_terrain!
+  batCollector: String
   binocularsUsed: Boolean!
   censusAreaHectares: NonNegativeInt!
   documentation: String!
   invasiveControlOtherExpensesInEuros: NonNegativeInt!
   invasiveControlWorkHours: NonNegativeInt!
+  lineTransectNests: [store_lineTransectNest]!
   lineTransectSegmentCounted: Boolean!
   lineTransectSegmentMetersEnd: NonNegativeInt!
   lineTransectSegmentMetersStart: NonNegativeInt!
-  lolifeSiteClassification: Site_classification!
+  lolifeSiteClassification: String
   lolifeSiteClassificationComments: String!
   marineArea: String!
   marineMammalExpertise: String!
   observationTools: String!
   observedAreaHectares: NonNegativeInt!
-  pointCountHabitat: Biotooppi!
+  pointCountHabitat: String
   shorelineLengthMeters: NonNegativeInt!
   spottingScopeUsed: Boolean!
   sunniness: NonNegativeInt!
-  sykeButterFlyCensusWind: Windiness!
-  sykeButterFlyCensusWindEnd: End_windiness!
-  sykeButterFlyCensusWindStart: Start_windiness!
-  waterbirdCensusPeriod: Census_period!
-  waterbirdHabitat: Habitat!
+  sykeButterFlyCensusWind: String
+  sykeButterFlyCensusWindEnd: String
+  sykeButterFlyCensusWindStart: String
+  waterbirdCensusPeriod: String
+  waterbirdHabitat: String
   ykjSquareNumber: String!
   ACAFLAonAlder: NonNegativeInt!
   ACAFLAonBirch: NonNegativeInt!
@@ -8502,9 +8517,9 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   LOXIAonGround: NonNegativeInt!
   LOXIAonPine: NonNegativeInt!
   LOXIAonSpruce: NonNegativeInt!
-  abundanceBOMGAR: Tilhi!
-  abundancePINENU: Taviokuurna!
-  abundanceTURPIL: R_228_k_228_ttirastas!
+  abundanceBOMGAR: String
+  abundancePINENU: String
+  abundanceTURPIL: String
   birdFeederCount: NonNegativeInt!
   birdFeederCountBiotopeA: NonNegativeInt!
   birdFeederCountBiotopeB: NonNegativeInt!
@@ -8514,7 +8529,7 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   birdFeederCountBiotopeF: NonNegativeInt!
   birdFeederCountBiotopeG: NonNegativeInt!
   birdFeederCountBiotopeH: NonNegativeInt!
-  cloudAndRain: Pilvisyys_ja_sade!
+  cloudAndRain: String
   descriptionBiotopeF: String!
   feedingStationCount: NonNegativeInt!
   feedingStationCountBiotopeA: NonNegativeInt!
@@ -8525,11 +8540,11 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   feedingStationCountBiotopeF: NonNegativeInt!
   feedingStationCountBiotopeG: NonNegativeInt!
   feedingStationCountBiotopeH: NonNegativeInt!
-  iceCover: J_228__228_peite!
+  iceCover: String
   meanTemperature: Int!
   observerCount: NonNegativeInt!
   observerID: NonNegativeInt!
-  pineConesAtCensus: M_228_nnynk_228_pyj_228__laskenta_aikaan!
+  pineConesAtCensus: String
   routeID: NonNegativeInt!
   routeLength: NonNegativeInt!
   routeLengthBiotopeA: NonNegativeInt!
@@ -8549,57 +8564,73 @@ type store_gatheringFact @join__type(graph: LAJI_API)  {
   routeLengthChangeBiotopeF: Int!
   routeLengthChangeBiotopeG: Int!
   routeLengthChangeBiotopeH: Int!
-  snowAndIceOnTrees: Puissa_oleva_lumi_ja_j_228__228_karsta!
-  snowCover: Lumipeite!
-  sorbusBerriesAtCensus: Pihlajanmarjoja_laskenta_aikaan!
-  sorbusBerriesEarlyFall: Pihlajanmarjoja_alkusyksyll_228_!
-  spruceConesAtCensus: Kuusenk_228_pyj_228__laskenta_aikaan!
-  typeOfSnowCover: Maassa_olevan_lumen_laatu!
-  visibility: N_228_kyvyys!
-  waterbodies: Vesist_246_t!
-  wayOfTravel: Kulkutapa!
+  snowAndIceOnTrees: String
+  snowCover: String
+  sorbusBerriesAtCensus: String
+  sorbusBerriesEarlyFall: String
+  spruceConesAtCensus: String
+  typeOfSnowCover: String
+  visibility: String
+  waterbodies: String
+  wayOfTravel: String
   wayOfTravelNotes: String!
-  wind: Tuuli!
+  wind: String
+}
+
+type store_lineTransectNest @join__type(graph: LAJI_API)  {
+  _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
+  id: String!
+  _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  autocompleteSelectedTaxonID: String!
+  lineTransectNestMeters: NonNegativeInt!
+  lineTransectRouteFieldType: String
+  nestCount: NonNegativeInt!
+  nestSize: String
+  nestType: String
+  """
+  Taxon name
+  """
+  taxon: String!
 }
 
 type store_geometry @join__type(graph: LAJI_API)  {
-  type: GeometryCollection_const!
+  type: String
   geometries: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items]!
   bbox: [Float]
 }
 
 type query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items_oneOf_0 @join__type(graph: LAJI_API)  {
-  type: Point_const!
+  type: String
   coordinates: [Float]!
   bbox: [Float]
 }
 
 type query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items_oneOf_1 @join__type(graph: LAJI_API)  {
-  type: LineString_const!
+  type: String
   coordinates: [[Float]]!
   bbox: [Float]
 }
 
 type query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items_oneOf_2 @join__type(graph: LAJI_API)  {
-  type: Polygon_const!
+  type: String
   coordinates: [[[Float]]]!
   bbox: [Float]
 }
 
 type query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items_oneOf_3 @join__type(graph: LAJI_API)  {
-  type: MultiPoint_const!
+  type: String
   coordinates: [[Float]]!
   bbox: [Float]
 }
 
 type query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items_oneOf_4 @join__type(graph: LAJI_API)  {
-  type: MultiLineString_const!
+  type: String
   coordinates: [[[Float]]]!
   bbox: [Float]
 }
 
 type query_FormsController_getListing_results_items_options_prepopulatedDocument_gatheringEvent_geometry_anyOf_1_geometries_items_oneOf_5 @join__type(graph: LAJI_API)  {
-  type: MultiPolygon_const!
+  type: String
   coordinates: [[[[Float]]]]!
   bbox: [Float]
 }
@@ -8609,8 +8640,8 @@ type store_taxonCensus @join__type(graph: LAJI_API)  {
   id: String
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
   censusTaxonID: String
-  censusTaxonSetID: Censused_taxon_set
-  taxonCensusType: Completeness_of_census!
+  censusTaxonSetID: String
+  taxonCensusType: String
 }
 
 type store_gathering @join__type(graph: LAJI_API)  {
@@ -8646,7 +8677,7 @@ type store_gathering @join__type(graph: LAJI_API)  {
   """
   Bat habitat
   """
-  batHabitat: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_batHabitat_items]!
+  batHabitat: String
   binocularsUsed: Boolean!
   """
   Formal abbreviation. For Finnish eliömaakunnat, use Finnish abbreviation.
@@ -8670,8 +8701,8 @@ type store_gathering @join__type(graph: LAJI_API)  {
   Maximum error of coordinates in meters
   """
   coordinateRadius: String!
-  coordinateSource: Coord_source!
-  coordinateSystem: Coordinate_system!
+  coordinateSource: String
+  coordinateSystem: String
   coordinatesGridYKJ: String!
   """
   Coordinates, possible coordinate system and error radius word-to-word as they appear on the label or other original source, errors and all.
@@ -8685,7 +8716,13 @@ type store_gathering @join__type(graph: LAJI_API)  {
   County (piirikunta, kreivikunta etc.)
   """
   county: String!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   """
   Date just as it appears on the label or other original source, no interpretation, errors and all
@@ -8697,13 +8734,13 @@ type store_gathering @join__type(graph: LAJI_API)  {
   depth: String!
   dynamicProperties: String!
   eventDate: String!
-  forestVegetationZone: Forest_vegetation_zone!
+  forestVegetationZone: String
   gatheringFact: store_gatheringFact!
-  gatheringType: Gathering_event_type!
+  gatheringType: String
   geometry: store_geometry!
-  georeferenceSource: Georeferencing_source!
-  habitat: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_habitat_items]!
-  habitatAttributes: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_habitatAttributes_items]!
+  georeferenceSource: String
+  habitat: String
+  habitatAttributes: String
   """
   Formal habitat name or abbreviation. If several, separate with semicolons (E.g. 'OMT; OMaT').
   """
@@ -8720,9 +8757,9 @@ type store_gathering @join__type(graph: LAJI_API)  {
   invasiveControlAreaKnown: Boolean!
   invasiveControlDangerous: Boolean!
   invasiveControlDangerousDescription: String!
-  invasiveControlEffectiveness: Control_level!
+  invasiveControlEffectiveness: String
   invasiveControlEffectivenessNotes: String!
-  invasiveControlMethods: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_invasiveControlMethods_items]!
+  invasiveControlMethods: String
   invasiveControlMethodsDescription: String!
   invasiveControlOpen: Boolean!
   invasiveControlOpenDescription: String!
@@ -8769,7 +8806,7 @@ type store_gathering @join__type(graph: LAJI_API)  {
   Longitude. For western longitudes, use negative value.
   """
   longitude: String!
-  mothSamplingMethod: Moth_sampling_method!
+  mothSamplingMethod: String
   """
   Municipality, commune, town, city or civil parish
   """
@@ -8789,7 +8826,7 @@ type store_gathering @join__type(graph: LAJI_API)  {
   For garden accessions/seed bank, what proportion of the population sampled was giving seeds
   """
   percentageGivingSeeds: Int!
-  predominantTree: Predominant_tree!
+  predominantTree: String
   projectTitle: String!
   province: String!
   """
@@ -8800,7 +8837,7 @@ type store_gathering @join__type(graph: LAJI_API)  {
   For garden accessions/seed bank, estimated size of the area sampled, in square meters
   """
   samplingAreaSizeInSquareMeters: Float!
-  samplingMethod: Sampling_method!
+  samplingMethod: String
   samplingMethodNotes: String!
   section: NonNegativeInt!
   skipped: Boolean!
@@ -8818,7 +8855,7 @@ type store_gathering @join__type(graph: LAJI_API)  {
   wgs84Latitude: String!
   wgs84Longitude: String!
   images: [String]!
-  publicityRestrictions: Publicity_restrictions!
+  publicityRestrictions: String
   units: [store_unit]!
 }
 
@@ -8835,7 +8872,7 @@ type store_unit @join__type(graph: LAJI_API)  {
   """
   DNASampleLocation: String!
   abundanceString: String!
-  abundanceUnit: Abundance_unit!
+  abundanceUnit: String
   """
   Other identifiers this specimen has, in format 'type:identifier'. For example: 'mzhtypes:123' (old MAZ-type number)
   """
@@ -8852,12 +8889,12 @@ type store_unit @join__type(graph: LAJI_API)  {
   alive: Boolean!
   ankleInMillimeters: [String]!
   areaInSquareMeters: NonNegativeInt!
-  atlasCode: Breeding_index!
-  batBehavior: Bat_behavior!
+  atlasCode: String
+  batBehavior: String
   beakInMillimeters: [String]!
-  birdAge: Bird_age!
+  birdAge: String
   birdBehavior: [String]!
-  birdPlumage: Bird_plumage!
+  birdPlumage: String
   breeding: Boolean!
   broodSize: NonNegativeInt!
   """
@@ -8877,10 +8914,10 @@ type store_unit @join__type(graph: LAJI_API)  {
   Estimation of decay stage (lahoaste in Finnish) on the scale of 1 to 5 and/or description
   """
   decayStage: String!
-  distance: Distance!
-  earliestEpochOrLowestSeries: Earliest_epoch_or_lowest_series!
+  distance: String
+  earliestEpochOrLowestSeries: String
   femaleIndividualCount: NonNegativeInt!
-  fruitType: Fruit_type!
+  fruitType: String
   """
   Genotype of the microbial strain
   """
@@ -8898,12 +8935,12 @@ type store_unit @join__type(graph: LAJI_API)  {
   Microbial culture growth temperature
   """
   growthTemperature: String!
-  habitat: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_habitat_items]!
+  habitat: String
   hasIdentification: [String]!
   hasSubUnit: [String]!
   hostID: String!
   hostInformalNameString: String!
-  indirectObservationType: Tracks!
+  indirectObservationType: String
   individualCount: NonNegativeInt!
   """
   Description of the infestation status of the collected seeds, used for botanical garden accessions/seed bank.
@@ -8926,9 +8963,9 @@ type store_unit @join__type(graph: LAJI_API)  {
   juvenileIndividualCount: Int!
   keywords: [String]!
   larvaIndividualCount: NonNegativeInt!
-  latestEpochOrHighestSeries: Latest_epoch_or_highest_series!
+  latestEpochOrHighestSeries: String
   lengthInMillimeters: [String]!
-  lifeStage: Life_stage!
+  lifeStage: String
   """
   Free-text notes or addtional information about the life stage. If multiple values present, describe them here.
   """
@@ -8940,33 +8977,31 @@ type store_unit @join__type(graph: LAJI_API)  {
   macroscopy: String!
   maleIndividualCount: NonNegativeInt!
   measurement: store_measurement!
-  microbiologicalRiskGroup: Risk_group!
+  microbiologicalRiskGroup: String
   """
   Microscopic features and measurements, if not recorded separately into measurement fields.
   """
   microscopy: String!
-  movingDirection: Moving_direction!
+  movingDirection: String
   movingStatus: [String]!
   """
   Information on mutant microbial strain.
   """
   mutant: String!
-  nativeStatus: Native_status!
+  nativeStatus: String
   nestCount: NonNegativeInt!
-  nestDistanceFromLineTransectStartMeters: NonNegativeInt!
   nestNotes: String!
-  nestSize: P_246_nt_246_n_kokoluokka!
   nestTreeDiameterInCentimeters: NonNegativeInt!
-  nestType: Nest_type!
+  nestType: String
   """
   Additional information to the data in each section.
   """
   notes: String!
-  observationStatus: Observation_status!
+  observationStatus: String
   pairCount: NonNegativeInt!
   pairCountOpinion: NonNegativeInt!
-  plantLifeStage: Plant_life_stage!
-  plantStatusCode: Plant_status_code!
+  plantLifeStage: String
+  plantStatusCode: String
   """
   Abundance of the taxon in the field
   """
@@ -8978,59 +9013,59 @@ type store_unit @join__type(graph: LAJI_API)  {
   """
   Main method of preservation. If parts of the specimen are preserved in different ways, you can choose several methods.
   """
-  preservation: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_preservation_items]!
+  preservation: String
   """
   Can be used to highlight one unit as primary specimen/observation if there are many in one document. Only one unit per document can be marked as primary.
   """
   primarySpecimen: Boolean!
-  provenance: Provenance!
-  recordBasis: Record_type!
+  provenance: String
+  recordBasis: String
   """
   What parts of the record are / have been in storage.
   """
-  recordParts: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_recordParts_items]!
+  recordParts: String
   """
   Bird or bat ring number, code, colour code or such
   """
   ring: String!
-  samplingMethod: Sampling_method!
+  samplingMethod: String
   samplingMethodNotes: String!
-  seedMaturity: Seed_maturity!
-  seedMorphology: Seed_morphology!
+  seedMaturity: String
+  seedMorphology: String
   """
   DNA sequence associated with the occurrence, stored in FASTA format.
   """
   sequenceText: [String]!
-  sex: Sex!
+  sex: String
   """
   E.g. how sex was determined, by whom and when.
   """
   sexNotes: String!
   shortHandText: String!
-  smell: Smell!
+  smell: String
   smellNotes: String!
   stratigraphyVerbatim: String!
-  substrateClassification: Type_of_substrate!
-  substrateDecayStage: Woody_substrate_COMMA__decay_stage!
+  substrateClassification: String
+  substrateDecayStage: String
   substrateNotes: String!
   substrateSpecies: String!
   substrateSpeciesID: String!
   substrateSpeciesInformalNameString: String!
-  substrateTreeClassification: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_substrateTreeClassification_items]!
+  substrateTreeClassification: String
   tailInMillimeters: [String]!
-  taste: Taste!
+  taste: String
   tasteNotes: String!
-  taxonConfidence: Confidence_of_determination!
+  taxonConfidence: String
   twitched: Boolean!
   unitFact: store_unitFact!
   unitGathering: store_unitGathering!
   unitType: [String]!
   weightInGrams: [String]!
-  wild: query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_wild!
+  wild: String
   wingInMillimeters: [String]!
   audio: [String]!
   images: [String]!
-  publicityRestrictions: Publicity_restrictions!
+  publicityRestrictions: String
   identifications: [store_identification]!
   typeSpecimens: [store_typeSpecimen]!
   samples: [store_sample]!
@@ -9078,22 +9113,22 @@ type store_unitFact @join__type(graph: LAJI_API)  {
   birdMultiplier: Boolean!
   broodCount: NonNegativeInt!
   destroyedNestCount: NonNegativeInt!
-  detOnSite: Determination_on_site!
+  detOnSite: String
   distanceMeters: Int!
   eggCount: NonNegativeInt!
   femalesWithBroodsCount: NonNegativeInt!
-  glowWormMicrohabitat: Micro_habitat!
+  glowWormMicrohabitat: String
   groundNestCount: NonNegativeInt!
   individualCountFlock: NonNegativeInt!
   individualCountInner: NonNegativeInt!
   individualCountOuter: NonNegativeInt!
   juvenileIndividualCount: Int!
-  lineTransectObsType: Observations_quality!
-  lineTransectRouteFieldType: Field_Area!
-  lolifeDroppingsCount: Droppings_count!
-  lolifeDroppingsQuality: Papanoiden_laatu!
-  lolifeDroppingsType: Droppings_type!
-  lolifeNestTree: Tree_species!
+  lineTransectObsType: String
+  lineTransectRouteFieldType: String
+  lolifeDroppingsCount: String
+  lolifeDroppingsQuality: String
+  lolifeDroppingsType: String
+  lolifeNestTree: String
   observationDuration: String!
   observationHours: NonNegativeInt!
   pairCountInner: NonNegativeInt!
@@ -9107,11 +9142,11 @@ type store_unitFact @join__type(graph: LAJI_API)  {
   taxonConfidenceDescription: String!
   traits: String!
   treeNestCount: NonNegativeInt!
-  waterbirdFemale: Female_observed!
-  waterbirdJuvenileAgeClass: Juvenile_age_class!
+  waterbirdFemale: String
+  waterbirdJuvenileAgeClass: String
   waterbirdJuvenileCountAccurate: Boolean!
   waterbirdObserverOpinionSelectedCensus: Boolean!
-  waterbirdPairCountOpinionReasoning: Reasoning_for_own_interpretation!
+  waterbirdPairCountOpinionReasoning: String
   individualCountBiotopeA: NonNegativeInt!
   individualCountBiotopeB: NonNegativeInt!
   individualCountBiotopeC: NonNegativeInt!
@@ -9126,7 +9161,13 @@ type store_unitGathering @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   geometry: store_geometry!
   """
@@ -9159,7 +9200,7 @@ type store_identification @join__type(graph: LAJI_API)  {
   Date or year when the identification was done, preferably in format "d.m.Y" or "Y"
   """
   detDate: String!
-  detMethod: Det_method!
+  detMethod: String
   """
   Name of the identifier and date of identification in original format (e.g. from the label), errors and all
   """
@@ -9168,7 +9209,7 @@ type store_identification @join__type(graph: LAJI_API)  {
   Additional qualifier or specifier at genus level (e.g. aff., cf.)
   """
   genusQualifier: String!
-  identificationBasis: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_identifications_items_identificationBasis_items]!
+  identificationBasis: String
   """
   Additional information on the identification, basis or such
   """
@@ -9181,7 +9222,7 @@ type store_identification @join__type(graph: LAJI_API)  {
   Taxon name for the epithet below species level
   """
   infraEpithet: String!
-  infraRank: Infra_rank!
+  infraRank: String
   """
   Pathovars, serovars and other infrasubspecific subdivisions of microbes.
   """
@@ -9211,14 +9252,14 @@ type store_identification @join__type(graph: LAJI_API)  {
   ID for the taxon if has some other than an MX code
   """
   taxonID: String!
-  taxonRank: Taxon_rank!
+  taxonRank: String
   taxonSpecifier: String!
   taxonURI: String!
   """
   Taxon name in original format (e.g. from the label), errors and all
   """
   taxonVerbatim: String!
-  publicityRestrictions: Publicity_restrictions!
+  publicityRestrictions: String
   sortOrder: Int!
 }
 
@@ -9254,7 +9295,7 @@ type store_typeSpecimen @join__type(graph: LAJI_API)  {
   Name of the type species
   """
   typeSpecies: String!
-  typeStatus: Type_of_type!
+  typeStatus: String
   """
   Name of the type subspecies
   """
@@ -9263,7 +9304,7 @@ type store_typeSpecimen @join__type(graph: LAJI_API)  {
   Author of the type subspecies
   """
   typeSubspeciesAuthor: String!
-  typeVerification: Type_verification!
+  typeVerification: String
   """
   Name of the person who chose the type, preferably in the format "Lastname, firstname"
   """
@@ -9272,7 +9313,7 @@ type store_typeSpecimen @join__type(graph: LAJI_API)  {
   Date when the specimen was chosen as a type
   """
   typifDate: String!
-  publicityRestrictions: Publicity_restrictions!
+  publicityRestrictions: String
 }
 
 type store_sample @join__type(graph: LAJI_API)  {
@@ -9303,7 +9344,7 @@ type store_sample @join__type(graph: LAJI_API)  {
   Tag for the preparation/sample. For specimen level tags, use the tag field in the basic information section (document level).
   """
   datasetID: [String]
-  elutionMedium: DNA_elution_medium
+  elutionMedium: String
   """
   Diary-style information about what has been done to the preparation/sample
   """
@@ -9312,23 +9353,23 @@ type store_sample @join__type(graph: LAJI_API)  {
   Genbank ID for the preparation/sample. If no other preparation/sample information is entered, use the Genbank field on the document level
   """
   genbank: [String]
-  individualsInPreparation: Single_multiple_individuals_QUESTION_MARK_
-  material: Material
+  individualsInPreparation: String
+  material: String
   """
   Additional information about the preparation/sample
   """
   notes: String
-  preparationType: Preparation_sample_type!
+  preparationType: String
   preparations: [store_preparation]
   """
   Preservation methods and materials of the preparation/sample. It is possible to choose several
   """
-  preservation: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preservation_items]
+  preservation: String
   """
   Publication references or doi's that refer to this preparations/sample. For publications referring to the specimen, use publications field in the Other section (document level).
   """
   publication: [String]
-  quality: DNA_sample_quality
+  quality: String
   """
   Date of the latest quality check measurements
   """
@@ -9336,7 +9377,7 @@ type store_sample @join__type(graph: LAJI_API)  {
   """
   Method or instrument used for quality measurements
   """
-  qualityCheckMethod: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_qualityCheckMethod_items]
+  qualityCheckMethod: String
   """
   Additional information about the DNA sample quality
   """
@@ -9346,7 +9387,7 @@ type store_sample @join__type(graph: LAJI_API)  {
   """
   sampleLocation: String
   specimenID: String
-  status: Preparation_sample_status
+  status: String
   """
   Which parent or larger collection this is part of.
   """
@@ -9373,11 +9414,11 @@ type store_preparation @join__type(graph: LAJI_API)  {
   """
   Materials (chemicals, kits etc.) used in the preparation process. It is possible to choose several.
   """
-  preparationMaterials: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preparations_items_preparationMaterials_items]!
+  preparationMaterials: String
   """
   Processes used in the preparation. It is possible to choose several.
   """
-  preparationProcess: [query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preparations_items_preparationProcess_items]!
+  preparationProcess: String
   """
   Additional information about the preparation process.
   """
@@ -9411,7 +9452,7 @@ type Form @join__type(graph: LAJI_API)  {
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
   baseFormID: String!
-  category: Category!
+  category: String
   """
   Id for the collection to where observation useing this form are connected
   """
@@ -9425,7 +9466,7 @@ type Form @join__type(graph: LAJI_API)  {
   Use fields, uiSchema and translations from the form
   """
   fieldsFormID: String!
-  language: Form_language!
+  language: String
   logo: String!
   name: String!
   options: store_formOptions!
@@ -9435,7 +9476,7 @@ type Form @join__type(graph: LAJI_API)  {
   Shown at sidebar and & as browser title
   """
   shortTitle: String!
-  supportedLanguage: [query_FormsController_getOne_supportedLanguage_items]!
+  supportedLanguage: String
   title: String!
   translations: JSON!
   uiSchema: JSON!
@@ -9447,13 +9488,13 @@ type Form @join__type(graph: LAJI_API)  {
 }
 
 type JSONSchemaObject @join__type(graph: LAJI_API)  {
-  type: object_const!
+  type: String
   properties: JSON!
   default: JSON!
 }
 
 type JSONSchemaArray @join__type(graph: LAJI_API)  {
-  type: array_const!
+  type: String
   items: JSONSchema!
   uniqueItems: Boolean
   maxItems: Boolean
@@ -9463,7 +9504,7 @@ type JSONSchemaArray @join__type(graph: LAJI_API)  {
 }
 
 type JSONSchemaPrimitive @join__type(graph: LAJI_API)  {
-  type: query_FormsController_getOne_schema_oneOf_2_type!
+  type: String
   default: JSON!
   additionalProperties: JSON @resolveRoot(subgraph: "Laji-API") 
 }
@@ -9473,9 +9514,9 @@ type store_profile @join__type(graph: LAJI_API)  {
   id: String
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
   birdSongRecognitionSkillLevels: [store_birdSongRecognitionSkillLevel]
-  birdwatchingActivityLevel: User_SINGLE_QUOTE_s_activity_level_in_birdwatching
+  birdwatchingActivityLevel: String
   blocked: [String]
-  finnishBirdSongRecognitionSkillLevel: User_SINGLE_QUOTE_s_skill_level_in_Finnish_bird_song_recognition
+  finnishBirdSongRecognitionSkillLevel: String
   friendRequests: [String]
   friends: [String]
   image: String
@@ -9487,6 +9528,7 @@ type store_profile @join__type(graph: LAJI_API)  {
   taxonExpertiseNotes: String
   userID: String!
   xenoCantoApiKey: String
+  xenoCantoUserName: String
   profileKey: String
 }
 
@@ -9495,7 +9537,7 @@ type store_birdSongRecognitionSkillLevel @join__type(graph: LAJI_API)  {
   id: String
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
   birdSongRecognitionArea: String!
-  birdSongRecognitionSkillLevel: Skill_level!
+  birdSongRecognitionSkillLevel: String
 }
 
 type SensitivePerson @join__type(graph: LAJI_API)  {
@@ -9515,12 +9557,12 @@ type Person @join__type(graph: LAJI_API)  {
   preferredName: String
   lajiAuthLoginName: String
   fullName: String
-  role: [query_PersonsController_findPersonByToken_role_items]!
+  role: String
   group: String
   organisation: [String]
   organisationAdmin: [String]
   securePortalUserRoleExpires: String
-  roleAnnotation: MMAN_expert_const!
+  roleAnnotation: String
   address: String
   lintuvaaraLoginName: [String]
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
@@ -9563,7 +9605,7 @@ type store_notification @join__type(graph: LAJI_API)  {
   created: DateTime!
   friendRequest: String
   friendRequestAccepted: String
-  notificationReason: Notification_reason
+  notificationReason: String
   seen: Boolean
   toPerson: String!
 }
@@ -9575,23 +9617,23 @@ type store_annotation @join__type(graph: LAJI_API)  {
   addedTags: [String]
   annotationByPerson: String
   annotationBySystem: String
-  annotationClass: My_evaluation_of_the_observation
-  atlasCode: Overriding_Breeding_Index
-  byRole: Annotators_role
-  censusAnnotation: [query_NotificationsController_getPage_results_items_annotation_censusAnnotation_items]
+  annotationClass: String
+  atlasCode: String
+  byRole: String
+  censusAnnotation: String
   created: DateTime
   createdTimestamp: NonNegativeInt
   deletedTimestamp: NonNegativeInt
   identification: store_identification
-  invasiveControlEffectiveness: Annotation_type_for_invasive_control
-  lineTransectAnnotation: [query_NotificationsController_getPage_results_items_annotation_lineTransectAnnotation_items]
+  invasiveControlEffectiveness: String
+  lineTransectAnnotation: String
   notes: String
   occurrenceAtTimeOfAnnotation: store_annotationOccurrence
   opinion: String
   removedTags: [String]
   rootID: String!
   targetID: String
-  type: query_NotificationsController_getPage_results_items_annotation_type
+  type: String
   createdBySystem: String
   deleted: Boolean
   deletedByPerson: String
@@ -9697,7 +9739,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  secureLevel: Secure_level
+  secureLevel: String
   """
   Unofficial abbreviation (or acronym) for this collection
   """
@@ -9720,12 +9762,12 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   """
   collectionCode: String
   collectionName: String
-  collectionQuality: Collection_quality
+  collectionQuality: String
   """
   How many specimens, records or such does the collection contain? Fill in approximate number, describe more in notes if necessary.
   """
   collectionSize: String
-  collectionType: Type
+  collectionType: String
   concealmentBasis: String
   """
   Personal or general (e.g. group of people in the organisation) email address to reach the person(s) responsible.
@@ -9737,7 +9779,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   Diary-like notes about the data, with date/time. For example "2020-08-19: Changed country names Fönland to Finland", or "Specimens collected during 2019 are missing coordinates due to malfunctioning GPS"
   """
   dataNotes: String
-  dataQuality: Data_quality
+  dataQuality: String
   dataQualityDescription: String
   """
   Embargo period in years after which data is opened
@@ -9763,7 +9805,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   """
   gbifDoi: String
   geographicCoverage: String
-  hierarchyType: Hierarchical_type!
+  hierarchyType: String
   """
   Institution code for natural history specimen collection holding institution, such as H, MHZ or TUR
   """
@@ -9773,7 +9815,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   Name of the institution or organisation publishing the data.
   """
   intellectualOwner: String
-  intellectualRights: License_for_use!
+  intellectualRights: String
   """
   Is the data to be used only within Kotka?
   """
@@ -9788,7 +9830,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   language: String
   longName: String
   metadataCreator: String
-  metadataStatus: Status_of_this_metadata
+  metadataStatus: String
   methods: String
   """
   Additional information to the data in each section.
@@ -9804,7 +9846,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   """
   publicAccess: Boolean
   publicationDescription: String
-  publicationTerms: Publication_terms
+  publicationTerms: String
   publisherShortname: String
   shareToFEO: String
   """
@@ -9823,7 +9865,7 @@ type SensitiveCollection @join__type(graph: LAJI_API)  {
   Team or organisation that owns the record and can edit it.
   """
   owner: String
-  publicityRestrictions: Publicity_restrictions
+  publicityRestrictions: String
   hasChildren: Boolean
   longNameMultiLang: query_CollectionsController_getPage_results_items_longNameMultiLang
   descriptionMultiLang: query_CollectionsController_getPage_results_items_descriptionMultiLang
@@ -9867,7 +9909,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  secureLevel: Secure_level
+  secureLevel: String
   """
   Unofficial abbreviation (or acronym) for this collection
   """
@@ -9890,12 +9932,12 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   """
   collectionCode: String
   collectionName: String
-  collectionQuality: Collection_quality
+  collectionQuality: String
   """
   How many specimens, records or such does the collection contain? Fill in approximate number, describe more in notes if necessary.
   """
   collectionSize: String
-  collectionType: Type
+  collectionType: String
   concealmentBasis: String
   """
   Personal or general (e.g. group of people in the organisation) email address to reach the person(s) responsible.
@@ -9907,7 +9949,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   Diary-like notes about the data, with date/time. For example "2020-08-19: Changed country names Fönland to Finland", or "Specimens collected during 2019 are missing coordinates due to malfunctioning GPS"
   """
   dataNotes: String
-  dataQuality: Data_quality
+  dataQuality: String
   dataQualityDescription: String
   """
   Embargo period in years after which data is opened
@@ -9933,7 +9975,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   """
   gbifDoi: String
   geographicCoverage: String
-  hierarchyType: Hierarchical_type!
+  hierarchyType: String
   """
   Institution code for natural history specimen collection holding institution, such as H, MHZ or TUR
   """
@@ -9943,7 +9985,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   Name of the institution or organisation publishing the data.
   """
   intellectualOwner: String
-  intellectualRights: License_for_use!
+  intellectualRights: String
   """
   Is the data to be used only within Kotka?
   """
@@ -9958,7 +10000,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   language: String
   longName: String
   metadataCreator: String
-  metadataStatus: Status_of_this_metadata
+  metadataStatus: String
   methods: String
   """
   Additional information to the data in each section.
@@ -9974,7 +10016,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   """
   publicAccess: Boolean
   publicationDescription: String
-  publicationTerms: Publication_terms
+  publicationTerms: String
   publisherShortname: String
   shareToFEO: String
   """
@@ -9993,7 +10035,7 @@ type ExpandedSensitiveCollection @join__type(graph: LAJI_API)  {
   Team or organisation that owns the record and can edit it.
   """
   owner: String
-  publicityRestrictions: Publicity_restrictions
+  publicityRestrictions: String
   hasChildren: Boolean
   longNameMultiLang: query_CollectionsController_getTree_results_items_longNameMultiLang
   descriptionMultiLang: query_CollectionsController_getTree_results_items_descriptionMultiLang
@@ -10036,7 +10078,7 @@ type FormPermissionPersonDto @join__type(graph: LAJI_API)  {
 }
 
 type FormPermissionDto @join__type(graph: LAJI_API)  {
-  restrictAccess: query_FormPermissionsController_getPermissionsByCollectionID_restrictAccess
+  restrictAccess: String
   admins: [String]!
   editors: [String]!
   permissionRequests: [String]!
@@ -10046,7 +10088,7 @@ type FormPermissionDto @join__type(graph: LAJI_API)  {
 
 type BatchJobValidationStatusResponse @join__type(graph: LAJI_API)  {
   errors: [query_DocumentsController_getBatchJobStatus_errors_items]!
-  phase: query_DocumentsController_getBatchJobStatus_phase!
+  phase: String
   id: String!
   status: BatchJobValidationStatus!
 }
@@ -10099,7 +10141,7 @@ type store_namedPlace @join__type(graph: LAJI_API)  {
   id: String
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
   acceptedDocument: store_document
-  accessibility: Accessibility
+  accessibility: String
   active: store_dateRange
   alternativeIDs: [String]
   """
@@ -10127,14 +10169,14 @@ type store_namedPlace @join__type(graph: LAJI_API)  {
   """
   owners: [String]
   prepopulatedDocument: store_document
-  priority: Priority
+  priority: String
   privateNotes: String
   """
   Is the named place publicaly available. (Defaults to false)
   """
   public: Boolean
   reserve: store_reserve
-  tags: [query_NamedPlacesController_getPage_results_items_tags_items]
+  tags: String
   taxonIDs: [String]
   samplingMethodNotes: String
 }
@@ -10165,7 +10207,7 @@ type query_TaxaController_search_results_items_items @join__type(graph: LAJI_API
   Name that matched the search word
   """
   matchingName: String!
-  nameType: query_TaxaController_search_results_items_items_nameType!
+  nameType: String
   """
   Taxon identifier of the taxon that has the matching name; in the short Qname format, for example 'MX.123'
   """
@@ -10204,7 +10246,7 @@ type query_TaxaController_search_results_items_items @join__type(graph: LAJI_API
   Scientific name of the kingdom that the matching taxon belongs to
   """
   kingdomScientificName: String!
-  type: query_TaxaController_search_results_items_items_type!
+  type: String
 }
 
 type query_TaxaController_search_results_items_items_informalGroups_items @join__type(graph: LAJI_API)  {
@@ -10550,11 +10592,11 @@ type query_TaxaController_getPage_results_items_parent @join__type(graph: LAJI_A
 
 type LajiBackendEvaluation @join__type(graph: LAJI_API)  {
   evaluationYear: Int!
-  redListStatus: query_TaxaController_getPage_results_items_latestRedListEvaluation_redListStatus!
-  externalPopulationImpactOnRedListStatus: query_TaxaController_getPage_results_items_latestRedListEvaluation_externalPopulationImpactOnRedListStatus!
+  redListStatus: String
+  externalPopulationImpactOnRedListStatus: String
   criteriaForStatus: String!
-  possiblyRE: query_TaxaController_getPage_results_items_latestRedListEvaluation_possiblyRE!
-  reasonForStatusChange: [query_TaxaController_getPage_results_items_latestRedListEvaluation_reasonForStatusChange_items]!
+  possiblyRE: String
+  reasonForStatusChange: String
   lastSightingNotes: String!
   primaryHabitat: LajiBackendHabitatObject!
   secondaryHabitats: [LajiBackendHabitatObject]!
@@ -10645,7 +10687,7 @@ type store_area @join__type(graph: LAJI_API)  {
   _AT_context: String @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String @resolveRootField(subgraph: "Laji-API", field: "@type") 
-  areaType: Area_type!
+  areaType: String
   """
   Country code ISO alpha 2
   """
@@ -10696,7 +10738,7 @@ type ImagesPagedDto @join__type(graph: LAJI_API)  {
 }
 
 type Image @join__type(graph: LAJI_API)  {
-  intellectualRights: query_ImagesController_getPage_results_items_intellectualRights!
+  intellectualRights: String
   caption: String
   captureDateTime: String
   capturerVerbatim: [String]
@@ -10723,7 +10765,7 @@ type AudioPagedDto @join__type(graph: LAJI_API)  {
 }
 
 type Audio @join__type(graph: LAJI_API)  {
-  intellectualRights: query_AudioController_getPage_results_items_intellectualRights!
+  intellectualRights: String
   caption: String
   captureDateTime: String
   capturerVerbatim: [String]
@@ -10749,9 +10791,9 @@ type store_tag @join__type(graph: LAJI_API)  {
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
   description: String
   name: String!
-  requiredRolesAdd: [query_AnnotationsController_getTags_results_items_requiredRolesAdd_items]!
-  requiredRolesRemove: [query_AnnotationsController_getTags_results_items_requiredRolesRemove_items]!
-  type: query_AnnotationsController_getTags_results_items_type!
+  requiredRolesAdd: String
+  requiredRolesRemove: String
+  type: String
 }
 
 type AnnotationsController_getPage_200_response @join__type(graph: LAJI_API)  {
@@ -10918,7 +10960,7 @@ type TaxonAutocompleteResponse @join__type(graph: LAJI_API)  {
   Name that matched the search word
   """
   matchingName: String!
-  nameType: query_AutocompleteController_getTaxa_results_items_nameType!
+  nameType: String
   """
   Taxon identifier of the taxon that has the matching name; in the short Qname format, for example 'MX.123'
   """
@@ -10957,7 +10999,7 @@ type TaxonAutocompleteResponse @join__type(graph: LAJI_API)  {
   Scientific name of the kingdom that the matching taxon belongs to
   """
   kingdomScientificName: String!
-  type: query_AutocompleteController_getTaxa_results_items_type!
+  type: String
   key: String!
   value: String!
 }
@@ -11112,8 +11154,8 @@ type LajiBackendCMSNode @join__type(graph: LAJI_API)  {
 
 type WarehouseDwSingle_Document @join__type(graph: LAJI_API)  {
   documentId: String!
-  secureLevel: query_warehouse_query_document_secureLevel!
-  secureReasons: [query_warehouse_query_document_secureReasons_items]!
+  secureLevel: String
+  secureReasons: String
   partial: Boolean!
   collectionId: String!
   licenseId: String!
@@ -11144,11 +11186,11 @@ type WarehouseDwSingle_Document @join__type(graph: LAJI_API)  {
   referenceURL: String!
   secured: Boolean!
   siteDead: Boolean!
-  sourceTags: [query_warehouse_query_document_sourceTags_items]!
+  sourceTags: String
 }
 
 type WarehouseDwSingle_DocumentDWLinkings @join__type(graph: LAJI_API)  {
-  collectionQuality: query_warehouse_query_document_linkings_collectionQuality!
+  collectionQuality: String
   editors: [WarehouseDwSingle_Person]!
 }
 
@@ -11163,9 +11205,9 @@ type WarehouseDwSingle_DocumentQuality @join__type(graph: LAJI_API)  {
 }
 
 type WarehouseDwSingle_Quality @join__type(graph: LAJI_API)  {
-  issue: query_warehouse_query_document_quality_issue_issue!
+  issue: String
   message: String!
-  source: query_warehouse_query_document_quality_issue_source!
+  source: String
 }
 
 type WarehouseDwSingle_NamedPlaceEntity @join__type(graph: LAJI_API)  {
@@ -11189,7 +11231,7 @@ type WarehouseDwSingle_SingleCoordinates @join__type(graph: LAJI_API)  {
 }
 
 type WarehouseDwSingle_Annotation @join__type(graph: LAJI_API)  {
-  addedTags: [query_warehouse_query_document_annotations_items_addedTags_items]!
+  addedTags: String
   annotationByPerson: String!
   annotationByPersonName: String!
   annotationBySystem: String!
@@ -11205,7 +11247,7 @@ type WarehouseDwSingle_Annotation @join__type(graph: LAJI_API)  {
   identification: WarehouseDwSingle_Identification!
   notes: String!
   occurrenceAtTimeOfAnnotation: WarehouseDwSingle_OccurrenceAtTimeOfAnnotation!
-  removedTags: [query_warehouse_query_document_annotations_items_removedTags_items]!
+  removedTags: String
   valid: Boolean!
 }
 
@@ -11377,10 +11419,10 @@ type WarehouseDwSingle_GatheringInterpretations @join__type(graph: LAJI_API)  {
   finnishMunicipalities: [String]!
   finnishMunicipality: String!
   municipalityDisplayname: String!
-  sourceOfBiogeographicalProvince: query_warehouse_query_document_gatherings_items_interpretations_sourceOfBiogeographicalProvince!
-  sourceOfCoordinates: query_warehouse_query_document_gatherings_items_interpretations_sourceOfCoordinates!
-  sourceOfCountry: query_warehouse_query_document_gatherings_items_interpretations_sourceOfCountry!
-  sourceOfFinnishMunicipality: query_warehouse_query_document_gatherings_items_interpretations_sourceOfFinnishMunicipality!
+  sourceOfBiogeographicalProvince: String
+  sourceOfCoordinates: String
+  sourceOfCountry: String
+  sourceOfFinnishMunicipality: String
 }
 
 type WarehouseDwSingle_GatheringQuality @join__type(graph: LAJI_API)  {
@@ -11402,7 +11444,7 @@ type WarehouseDwSingle_MediaObject @join__type(graph: LAJI_API)  {
   highDetailModelURL: String!
   licenseId: String!
   lowDetailModelURL: String!
-  mediaType: query_warehouse_query_document_gatherings_items_media_items_mediaType!
+  mediaType: String
   mp3URL: String!
   squareThumbnailURL: String!
   thumbnailURL: String!
@@ -11421,17 +11463,17 @@ type WarehouseDwSingle_Unit @join__type(graph: LAJI_API)  {
   unitOrder: Int!
   taxonVerbatim: String!
   quality: WarehouseDwSingle_UnitQuality!
-  reportedTaxonConfidence: query_warehouse_query_document_gatherings_items_units_items_reportedTaxonConfidence!
+  reportedTaxonConfidence: String
   linkings: WarehouseDwSingle_UnitDWLinkings!
   abundanceString: String!
-  abundanceUnit: query_warehouse_query_document_gatherings_items_units_items_abundanceUnit!
+  abundanceUnit: String
   interpretations: WarehouseDwSingle_UnitInterpretations!
-  superRecordBasis: query_warehouse_query_document_gatherings_items_units_items_superRecordBasis!
-  recordBasis: query_warehouse_query_document_gatherings_items_units_items_recordBasis!
+  superRecordBasis: String
+  recordBasis: String
   typeSpecimen: Boolean!
   det: String!
-  sex: query_warehouse_query_document_gatherings_items_units_items_sex!
-  lifeStage: query_warehouse_query_document_gatherings_items_units_items_lifeStage!
+  sex: String
+  lifeStage: String
   wild: Boolean!
   alive: Boolean!
   local: Boolean!
@@ -11463,7 +11505,7 @@ type WarehouseDwSingle_Unit @join__type(graph: LAJI_API)  {
   sampleCount: Int!
   samples: [WarehouseDwSingle_Sample]!
   samplingMethod: String!
-  sourceTags: [query_warehouse_query_document_gatherings_items_units_items_sourceTags_items]!
+  sourceTags: String
   types: [WarehouseDwSingle_TypeSpecimen]!
   videoCount: Int!
 }
@@ -11482,16 +11524,16 @@ type WarehouseDwSingle_UnitInterpretations @join__type(graph: LAJI_API)  {
   annotatedTaxonId: String!
   collectionAndRecordQuality: String!
   det: String!
-  effectiveTags: [query_warehouse_query_document_gatherings_items_units_items_interpretations_effectiveTags_items]!
+  effectiveTags: String
   individualCount: Int!
-  invasiveControlEffectiveness: query_warehouse_query_document_gatherings_items_units_items_interpretations_invasiveControlEffectiveness!
+  invasiveControlEffectiveness: String
   invasiveControlled: Boolean!
   needsCheck: Boolean!
   needsIdentification: Boolean!
   pairCount: Int!
-  recordQuality: query_warehouse_query_document_gatherings_items_units_items_interpretations_recordQuality!
+  recordQuality: String
   recordQualityNumeric: Float!
-  reliability: query_warehouse_query_document_gatherings_items_units_items_interpretations_reliability!
+  reliability: String
 }
 
 type WarehouseDwSingle_IdentificationEvent @join__type(graph: LAJI_API)  {
@@ -11601,8 +11643,8 @@ type WarehouseDwQuery_JoinedRow @join__type(graph: LAJI_API)  {
 
 type WarehouseDwQuery_Document @join__type(graph: LAJI_API)  {
   documentId: String!
-  secureLevel: query_warehouse_query_unit_list_results_items_document_secureLevel!
-  secureReasons: [query_warehouse_query_unit_list_results_items_document_secureReasons_items]!
+  secureLevel: String
+  secureReasons: String
   partial: Boolean!
   collectionId: String!
   licenseId: String!
@@ -11632,11 +11674,11 @@ type WarehouseDwQuery_Document @join__type(graph: LAJI_API)  {
   referenceURL: String!
   secured: Boolean!
   siteDead: Boolean!
-  sourceTags: [query_warehouse_query_unit_list_results_items_document_sourceTags_items]!
+  sourceTags: String
 }
 
 type WarehouseDwQuery_DocumentDWLinkings @join__type(graph: LAJI_API)  {
-  collectionQuality: query_warehouse_query_unit_list_results_items_document_linkings_collectionQuality!
+  collectionQuality: String
   editors: [WarehouseDwQuery_Person]!
 }
 
@@ -11651,9 +11693,9 @@ type WarehouseDwQuery_DocumentQuality @join__type(graph: LAJI_API)  {
 }
 
 type WarehouseDwQuery_Quality @join__type(graph: LAJI_API)  {
-  issue: query_warehouse_query_unit_list_results_items_document_quality_issue_issue!
+  issue: String
   message: String!
-  source: query_warehouse_query_unit_list_results_items_document_quality_issue_source!
+  source: String
 }
 
 type WarehouseDwQuery_NamedPlaceEntity @join__type(graph: LAJI_API)  {
@@ -11677,7 +11719,7 @@ type WarehouseDwQuery_SingleCoordinates @join__type(graph: LAJI_API)  {
 }
 
 type WarehouseDwQuery_Annotation @join__type(graph: LAJI_API)  {
-  addedTags: [query_warehouse_query_unit_list_results_items_document_annotations_items_addedTags_items]!
+  addedTags: String
   annotationByPerson: String!
   annotationByPersonName: String!
   annotationBySystem: String!
@@ -11693,7 +11735,7 @@ type WarehouseDwQuery_Annotation @join__type(graph: LAJI_API)  {
   identification: WarehouseDwQuery_Identification!
   notes: String!
   occurrenceAtTimeOfAnnotation: WarehouseDwQuery_OccurrenceAtTimeOfAnnotation!
-  removedTags: [query_warehouse_query_unit_list_results_items_document_annotations_items_removedTags_items]!
+  removedTags: String
   valid: Boolean!
 }
 
@@ -11780,7 +11822,7 @@ type WarehouseDwQuery_MediaObject @join__type(graph: LAJI_API)  {
   highDetailModelURL: String!
   licenseId: String!
   lowDetailModelURL: String!
-  mediaType: query_warehouse_query_unit_list_results_items_document_media_items_mediaType!
+  mediaType: String
   mp3URL: String!
   squareThumbnailURL: String!
   thumbnailURL: String!
@@ -11882,10 +11924,10 @@ type WarehouseDwQuery_GatheringInterpretations @join__type(graph: LAJI_API)  {
   finnishMunicipalities: [String]!
   finnishMunicipality: String!
   municipalityDisplayname: String!
-  sourceOfBiogeographicalProvince: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfBiogeographicalProvince!
-  sourceOfCoordinates: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfCoordinates!
-  sourceOfCountry: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfCountry!
-  sourceOfFinnishMunicipality: query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfFinnishMunicipality!
+  sourceOfBiogeographicalProvince: String
+  sourceOfCoordinates: String
+  sourceOfCountry: String
+  sourceOfFinnishMunicipality: String
 }
 
 type WarehouseDwQuery_GatheringQuality @join__type(graph: LAJI_API)  {
@@ -11908,17 +11950,17 @@ type WarehouseDwQuery_Unit @join__type(graph: LAJI_API)  {
   unitOrder: Int!
   taxonVerbatim: String!
   quality: WarehouseDwQuery_UnitQuality!
-  reportedTaxonConfidence: query_warehouse_query_unit_list_results_items_unit_reportedTaxonConfidence!
+  reportedTaxonConfidence: String
   linkings: WarehouseDwQuery_UnitDWLinkings!
   abundanceString: String!
-  abundanceUnit: query_warehouse_query_unit_list_results_items_unit_abundanceUnit!
+  abundanceUnit: String
   interpretations: WarehouseDwQuery_UnitInterpretations!
-  superRecordBasis: query_warehouse_query_unit_list_results_items_unit_superRecordBasis!
-  recordBasis: query_warehouse_query_unit_list_results_items_unit_recordBasis!
+  superRecordBasis: String
+  recordBasis: String
   typeSpecimen: Boolean!
   det: String!
-  sex: query_warehouse_query_unit_list_results_items_unit_sex!
-  lifeStage: query_warehouse_query_unit_list_results_items_unit_lifeStage!
+  sex: String
+  lifeStage: String
   wild: Boolean!
   alive: Boolean!
   local: Boolean!
@@ -11950,7 +11992,7 @@ type WarehouseDwQuery_Unit @join__type(graph: LAJI_API)  {
   sampleCount: Int!
   samples: [WarehouseDwQuery_Sample]!
   samplingMethod: String!
-  sourceTags: [query_warehouse_query_unit_list_results_items_unit_sourceTags_items]!
+  sourceTags: String
   types: [WarehouseDwQuery_TypeSpecimen]!
   videoCount: Int!
 }
@@ -11969,16 +12011,16 @@ type WarehouseDwQuery_UnitInterpretations @join__type(graph: LAJI_API)  {
   annotatedTaxonId: String!
   collectionAndRecordQuality: String!
   det: String!
-  effectiveTags: [query_warehouse_query_unit_list_results_items_unit_interpretations_effectiveTags_items]!
+  effectiveTags: String
   individualCount: Int!
-  invasiveControlEffectiveness: query_warehouse_query_unit_list_results_items_unit_interpretations_invasiveControlEffectiveness!
+  invasiveControlEffectiveness: String
   invasiveControlled: Boolean!
   needsCheck: Boolean!
   needsIdentification: Boolean!
   pairCount: Int!
-  recordQuality: query_warehouse_query_unit_list_results_items_unit_interpretations_recordQuality!
+  recordQuality: String
   recordQualityNumeric: Float!
-  reliability: query_warehouse_query_unit_list_results_items_unit_interpretations_reliability!
+  reliability: String
 }
 
 type WarehouseDwQuery_IdentificationEvent @join__type(graph: LAJI_API)  {
@@ -12052,7 +12094,7 @@ Map of filter name to filter definition
 """
 type WarehouseDwFilter @join__type(graph: LAJI_API)  {
   label: String
-  type: query_warehouse_filters_additionalProperties_type!
+  type: String
   resource: String!
   enumerations: [WarehouseDwFilterEnum]!
 }
@@ -12067,7 +12109,7 @@ Map of filter name to filter definition
 """
 type WarehouseDwFilter2 @join__type(graph: LAJI_API)  {
   label: String
-  type: query_warehouse_filters_additionalProperties_type!
+  type: String
   resource: String!
   enumerations: [WarehouseDwFilterEnum]!
 }
@@ -12110,18 +12152,18 @@ type LajiBackendTraitSearchRow @join__type(graph: LAJI_API)  {
   geodeticDatum: String!
   trait: LajiBackendTraitSearchTrait!
   traitGroup: LajiBackendTraitSearchTraitGroup!
-  statisticalMethod: query_trait_search_results_items_statisticalMethod!
+  statisticalMethod: String
   value: String!
   valueNumeric: Float!
-  unit: query_trait_search_results_items_unit!
+  unit: String
   measurementAccuracy: Float!
   originalValue: String!
   originalValueNumeric: Float!
-  originalUnit: query_trait_search_results_items_originalUnit!
+  originalUnit: String
   originalMeasurementAccuracy: Float!
   subjectFinBIFTaxon: LajiBackendTraitTaxon!
   subjectGBIFTaxon: LajiBackendTraitTaxon!
-  objectTaxonLifeStage: query_trait_search_results_items_objectTaxonLifeStage!
+  objectTaxonLifeStage: String
   objectTaxonVerbatim: String!
   objectFinBIFTaxon: LajiBackendTraitTaxon!
   objectGBIFTaxon: LajiBackendTraitTaxon!
@@ -12129,7 +12171,7 @@ type LajiBackendTraitSearchRow @join__type(graph: LAJI_API)  {
   measurementRemarks: String!
   reference: String!
   dataset: LajiBackendTraitSearchDataset!
-  license: query_trait_search_results_items_license!
+  license: String
 }
 
 type LajiBackendTraitSearchSubject @join__type(graph: LAJI_API)  {
@@ -12137,8 +12179,8 @@ type LajiBackendTraitSearchSubject @join__type(graph: LAJI_API)  {
   Qname identifier
   """
   id: String!
-  type: query_trait_search_results_items_subject_type!
-  basisOfRecord: query_trait_search_results_items_subject_basisOfRecord!
+  type: String
+  basisOfRecord: String
   """
   Qname identifier
   """
@@ -12150,8 +12192,8 @@ type LajiBackendTraitSearchSubject @join__type(graph: LAJI_API)  {
   author: String!
   functionalGroupName: String!
   otherTaxonId: String!
-  sex: query_trait_search_results_items_subject_sex!
-  lifeStage: query_trait_search_results_items_subject_lifeStage!
+  sex: String
+  lifeStage: String
   ageYears: Float!
   individualCount: Int!
   dateBegin: Date!
@@ -12173,7 +12215,7 @@ type LajiBackendTraitSearchSubject @join__type(graph: LAJI_API)  {
   municipality: String!
   locality: String!
   locationIdentifiers: String!
-  habitat: query_trait_search_results_items_subject_habitat!
+  habitat: String
   occurrenceRemarks: String!
   measurementDeterminedBy: String!
   measurementDeterminedDate: Date!
@@ -12189,8 +12231,8 @@ type LajiBackendTraitSearchTrait @join__type(graph: LAJI_API)  {
   dataEntryName: String!
   name: String!
   description: String!
-  baseUnit: query_trait_search_results_items_trait_baseUnit!
-  range: query_trait_search_results_items_trait_range!
+  baseUnit: String
+  range: String
   reference: String!
   identifiers: [String]!
 }
@@ -12207,9 +12249,9 @@ type LajiBackendTraitTaxon @join__type(graph: LAJI_API)  {
   cursiveName: Boolean!
   author: String!
   higherTaxa: LajiBackendHigherTaxa!
-  iucnStatus: query_trait_search_results_items_subjectFinBIFTaxon_iucnStatus!
-  primaryHabitat: query_trait_search_results_items_subjectFinBIFTaxon_primaryHabitat!
-  habitatSpecifiers: [query_trait_search_results_items_subjectFinBIFTaxon_habitatSpecifiers_items]!
+  iucnStatus: String
+  primaryHabitat: String
+  habitatSpecifiers: String
   sensitive: Boolean!
 }
 
@@ -12263,8 +12305,8 @@ type LajiBackendSubject @join__type(graph: LAJI_API)  {
   Qname identifier
   """
   datasetId: String!
-  type: query_trait_rows_by_id_subject_type!
-  basisOfRecord: query_trait_rows_by_id_subject_basisOfRecord
+  type: String
+  basisOfRecord: String
   """
   Qname identifier
   """
@@ -12281,8 +12323,8 @@ type LajiBackendSubject @join__type(graph: LAJI_API)  {
   taxonId: String
   gbifTaxonId: Int
   otherTaxonId: String
-  sex: query_trait_rows_by_id_subject_sex
-  lifeStage: query_trait_rows_by_id_subject_lifeStage
+  sex: String
+  lifeStage: String
   ageYears: Float
   individualCount: Int
   dateBegin: Date
@@ -12304,7 +12346,7 @@ type LajiBackendSubject @join__type(graph: LAJI_API)  {
   municipality: String
   locality: String
   locationIdentifiers: String
-  habitat: query_trait_rows_by_id_subject_habitat
+  habitat: String
   occurrenceRemarks: String
   measurementDeterminedBy: String
   measurementDeterminedDate: Date
@@ -12324,10 +12366,10 @@ type LajiBackendTraitValue @join__type(graph: LAJI_API)  {
   """
   traitId: String!
   value: String!
-  unit: query_trait_rows_by_id_traits_items_unit
-  statisticalMethod: query_trait_rows_by_id_traits_items_statisticalMethod
+  unit: String
+  statisticalMethod: String
   measurementAccuracy: Float
-  objectTaxonLifeStage: query_trait_rows_by_id_traits_items_objectTaxonLifeStage
+  objectTaxonLifeStage: String
   warnings: Boolean
   measurementRemarks: String
   reference: String
@@ -12388,8 +12430,8 @@ type LajiBackendTrait @join__type(graph: LAJI_API)  {
   name: String!
   description: String!
   exampleValues: String
-  baseUnit: query_trait_traits_items_baseUnit
-  range: query_trait_traits_items_range!
+  baseUnit: String
+  range: String
   enumerations: [LajiBackendTraitEnumerationValue]
   reference: String
   identifiers: [String]
@@ -12411,7 +12453,7 @@ type LajiBackendUnitOfMeasurement @join__type(graph: LAJI_API)  {
   """
   id: String!
   unit: String!
-  base: query_trait_units_items_base!
+  base: String
   conversionFactor: Float!
   isBaseUnit: Boolean!
 }
@@ -12421,7 +12463,7 @@ type StatusResponse @join__type(graph: LAJI_API)  {
   Unique conversion identifier
   """
   id: String!
-  status: query_get_status_status__conversion_id__get_status!
+  status: String
   """
   Completion percentage (0-100)
   """
@@ -12761,7 +12803,7 @@ type Mutation @join__type(graph: LAJI_API)  {
     queryParamArgMap: "{\"skipValidations\":\"skipValidations\"}"
   )
   """
-  Update an existing document
+  Delete a document
   """
   DocumentsController_delete(
     """
@@ -14092,7 +14134,7 @@ type store_form @join__type(graph: LAJI_API)  {
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
   baseFormID: String!
-  category: Category!
+  category: String
   """
   Id for the collection to where observation useing this form are connected
   """
@@ -14107,7 +14149,7 @@ type store_form @join__type(graph: LAJI_API)  {
   Use fields, uiSchema and translations from the form
   """
   fieldsFormID: String!
-  language: Form_language!
+  language: String
   logo: String!
   name: String!
   options: store_formOptions!
@@ -14117,7 +14159,7 @@ type store_form @join__type(graph: LAJI_API)  {
   Shown at sidebar and & as browser title
   """
   shortTitle: String!
-  supportedLanguage: [mutation_FormsController_create_supportedLanguage_items]!
+  supportedLanguage: String
   title: String!
   translations: JSON!
   uiSchema: JSON!
@@ -26900,45 +26942,6 @@ enum Category @join__type(graph: LAJI_API)  {
   MHL_categoryBiomonCompleteLists @enum(subgraph: "Laji-API", value: "\"MHL.categoryBiomonCompleteLists\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_FormsController_getListing_results_items_supportedLanguage_items @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  en @join__enumValue(graph: LAJI_API) 
-  fi @join__enumValue(graph: LAJI_API) 
-  sv @join__enumValue(graph: LAJI_API) 
-}
-
-enum Print_type @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_printTypeLineTransect @enum(subgraph: "Laji-API", value: "\"MHL.printTypeLineTransect\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Users need to have permission to access the form
-"""
-enum Restrict_access @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_restrictAccessStrict @enum(subgraph: "Laji-API", value: "\"MHL.restrictAccessStrict\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_restrictAccessLoose @enum(subgraph: "Laji-API", value: "\"MHL.restrictAccessLoose\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Type_of_result_service @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeLineTransect @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeLineTransect\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeNafi @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeNafi\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeBirdPointCount @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeBirdPointCount\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeWinterBirdCount @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeWinterBirdCount\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeSykeInsectProjects @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeSykeInsectProjects\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeInvasiveControl @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeInvasiveControl\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeCompleteLists @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeCompleteLists\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_resultServiceTypeWaterBirdCount @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeWaterBirdCount\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Document_viewer_type @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_viewerTypeLineTransect @enum(subgraph: "Laji-API", value: "\"MHL.viewerTypeLineTransect\"")  @join__enumValue(graph: LAJI_API) 
-  MHL_viewerTypeBirdPointCount @enum(subgraph: "Laji-API", value: "\"MHL.viewerTypeBirdPointCount\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 enum query_FormsController_getListing_results_items_options_namedPlaceOptions_filterByTagsWhitelist_items @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MNP_tagAccessibilityEasy @enum(subgraph: "Laji-API", value: "\"MNP.tagAccessibilityEasy\"")  @join__enumValue(graph: LAJI_API) 
@@ -27004,94 +27007,6 @@ enum query_FormsController_getListing_results_items_options_prepopulatedDocument
   MY_dataOriginSpreadsheetFile @enum(subgraph: "Laji-API", value: "\"MY.dataOriginSpreadsheetFile\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_FormsController_getListing_results_items_options_prepopulatedDocument_preservation_items @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationPressed @enum(subgraph: "Laji-API", value: "\"MY.preservationPressed\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationDry @enum(subgraph: "Laji-API", value: "\"MY.preservationDry\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationCriticalPointDrying @enum(subgraph: "Laji-API", value: "\"MY.preservationCriticalPointDrying\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationPinned @enum(subgraph: "Laji-API", value: "\"MY.preservationPinned\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationGlued @enum(subgraph: "Laji-API", value: "\"MY.preservationGlued\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationLiquid @enum(subgraph: "Laji-API", value: "\"MY.preservationLiquid\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanol @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanolPure @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolPure\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanol70 @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol70\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanol80 @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol80\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanol80Pure @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol80Pure\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanol96 @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol96\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanolMinus20C @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolMinus20C\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanolDenatured @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolDenatured\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanolFormalin @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolFormalin\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationEthanolExFormalin @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolExFormalin\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationFormalin @enum(subgraph: "Laji-API", value: "\"MY.preservationFormalin\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationBouinSolution @enum(subgraph: "Laji-API", value: "\"MY.preservationBouinSolution\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationPampelsFluid @enum(subgraph: "Laji-API", value: "\"MY.preservationPampelsFluid\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationGlycerol @enum(subgraph: "Laji-API", value: "\"MY.preservationGlycerol\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationParaffin @enum(subgraph: "Laji-API", value: "\"MY.preservationParaffin\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationMercuricChloride @enum(subgraph: "Laji-API", value: "\"MY.preservationMercuricChloride\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationCryopreserved @enum(subgraph: "Laji-API", value: "\"MY.preservationCryopreserved\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationFrozen @enum(subgraph: "Laji-API", value: "\"MY.preservationFrozen\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationFrozenMinus80C @enum(subgraph: "Laji-API", value: "\"MY.preservationFrozenMinus80C\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationFreezeDried @enum(subgraph: "Laji-API", value: "\"MY.preservationFreezeDried\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationGoldPlated @enum(subgraph: "Laji-API", value: "\"MY.preservationGoldPlated\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationActiveCulture @enum(subgraph: "Laji-API", value: "\"MY.preservationActiveCulture\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationLiving @enum(subgraph: "Laji-API", value: "\"MY.preservationLiving\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationSlide @enum(subgraph: "Laji-API", value: "\"MY.preservationSlide\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationSlideCanadaBalsam @enum(subgraph: "Laji-API", value: "\"MY.preservationSlideCanadaBalsam\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationSlideEuparal @enum(subgraph: "Laji-API", value: "\"MY.preservationSlideEuparal\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationSlidePolyviol @enum(subgraph: "Laji-API", value: "\"MY.preservationSlidePolyviol\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationStuffed @enum(subgraph: "Laji-API", value: "\"MY.preservationStuffed\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationCast @enum(subgraph: "Laji-API", value: "\"MY.preservationCast\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationPlastinated @enum(subgraph: "Laji-API", value: "\"MY.preservationPlastinated\"")  @join__enumValue(graph: LAJI_API) 
-  MY_preservationFrozenMinus80CAndEthanolMinus20C @enum(
-    subgraph: "Laji-API"
-    value: "\"MY.preservationFrozenMinus80CAndEthanolMinus20C\""
-  ) @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Empty value means same as "ok" - that there is not anything special about the status of the specimen.
-"""
-enum Status @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusOk @enum(subgraph: "Laji-API", value: "\"MY.statusOk\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusMissing @enum(subgraph: "Laji-API", value: "\"MY.statusMissing\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusUnrecoverable @enum(subgraph: "Laji-API", value: "\"MY.statusUnrecoverable\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusLost @enum(subgraph: "Laji-API", value: "\"MY.statusLost\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusDonated @enum(subgraph: "Laji-API", value: "\"MY.statusDonated\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusDeposited @enum(subgraph: "Laji-API", value: "\"MY.statusDeposited\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusDeaccessioned @enum(subgraph: "Laji-API", value: "\"MY.statusDeaccessioned\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusDiscarded @enum(subgraph: "Laji-API", value: "\"MY.statusDiscarded\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusSpent @enum(subgraph: "Laji-API", value: "\"MY.statusSpent\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusDestroyed @enum(subgraph: "Laji-API", value: "\"MY.statusDestroyed\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusUndefined @enum(subgraph: "Laji-API", value: "\"MY.statusUndefined\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusAxenic @enum(subgraph: "Laji-API", value: "\"MY.statusAxenic\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusNonAxenic @enum(subgraph: "Laji-API", value: "\"MY.statusNonAxenic\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusNotAvailable @enum(subgraph: "Laji-API", value: "\"MY.statusNotAvailable\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusDead @enum(subgraph: "Laji-API", value: "\"MY.statusDead\"")  @join__enumValue(graph: LAJI_API) 
-  MY_statusNoVoucherRetained @enum(subgraph: "Laji-API", value: "\"MY.statusNoVoucherRetained\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_FormsController_getListing_results_items_options_prepopulatedDocument_verificationStatus_items @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusOk @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusOk\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusVerify @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusVerify\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusNeedsCompletion @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusNeedsCompletion\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusGeoreference @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusGeoreference\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusDet @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusDet\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusCheckID @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusCheckID\"")  @join__enumValue(graph: LAJI_API) 
-  MY_verificationStatusVerifyCoordinates @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusVerifyCoordinates\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-PUBLIC: all data can be published; PROTECTED: exact locality is hidden (100*100km square); PRIVATE: most of the data is hidden. Empty value means same as public.
-"""
-enum Publicity_restrictions @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_publicityRestrictionsPublic @enum(subgraph: "Laji-API", value: "\"MZ.publicityRestrictionsPublic\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_publicityRestrictionsProtected @enum(subgraph: "Laji-API", value: "\"MZ.publicityRestrictionsProtected\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_publicityRestrictionsPrivate @enum(subgraph: "Laji-API", value: "\"MZ.publicityRestrictionsPrivate\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 enum Artificial_light @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_artificialLightEnum1 @enum(subgraph: "Laji-API", value: "\"MY.artificialLightEnum1\"")  @join__enumValue(graph: LAJI_API) 
@@ -27143,23 +27058,6 @@ enum Start_cloud_cover @join__type(graph: LAJI_API)  {
   MY_cloudCoverOktaEnum8 @enum(subgraph: "Laji-API", value: "\"MY.cloudCoverOktaEnum8\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum AI_used @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_machineAssistanceUnknown @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceUnknown\"")  @join__enumValue(graph: LAJI_API) 
-  MY_machineAssistanceNotUsed @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceNotUsed\"")  @join__enumValue(graph: LAJI_API) 
-  MY_machineAssistanceUsed @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceUsed\"")  @join__enumValue(graph: LAJI_API) 
-  MY_machineAssistanceMachineOnly @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceMachineOnly\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Rain_intensity @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_rainIntensityEnumNoRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumNoRain\"")  @join__enumValue(graph: LAJI_API) 
-  MY_rainIntensityEnumLightRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumLightRain\"")  @join__enumValue(graph: LAJI_API) 
-  MY_rainIntensityEnumModerateRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumModerateRain\"")  @join__enumValue(graph: LAJI_API) 
-  MY_rainIntensityEnumHeavyRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumHeavyRain\"")  @join__enumValue(graph: LAJI_API) 
-  MY_rainIntensityEnumTorrentialRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumTorrentialRain\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 enum Species_list_completeness @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_completeListTypeCompleteWithBreedingStatus @enum(
@@ -27175,6 +27073,29 @@ enum I_placed_the_sound_recorder_to_the_terrain @join__type(graph: LAJI_API)  {
   MY_batCollectorAlone @enum(subgraph: "Laji-API", value: "\"MY.batCollectorAlone\"")  @join__enumValue(graph: LAJI_API) 
   MY_batCollectorWithProjectGroupMember @enum(subgraph: "Laji-API", value: "\"MY.batCollectorWithProjectGroupMember\"")  @join__enumValue(graph: LAJI_API) 
   MY_batCollectorSomeoneElse @enum(subgraph: "Laji-API", value: "\"MY.batCollectorSomeoneElse\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Field_Area @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lineTransectRouteFieldTypeInner @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeInner\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lineTransectRouteFieldTypeOuter @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeOuter\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Nest_Size @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestSizeEnum1 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum1\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestSizeEnum2 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum2\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestSizeEnum3 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum3\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Nest_type @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeTreeCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTreeCavity\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeTwig @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTwig\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeNestBox @enum(subgraph: "Laji-API", value: "\"MY.nestTypeNestBox\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeBuilding @enum(subgraph: "Laji-API", value: "\"MY.nestTypeBuilding\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeGroundCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeGroundCavity\"")  @join__enumValue(graph: LAJI_API) 
+  MY_nestTypeOther @enum(subgraph: "Laji-API", value: "\"MY.nestTypeOther\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 enum Site_classification @join__type(graph: LAJI_API)  {
@@ -27452,6 +27373,23 @@ enum MultiPolygon_const @typescript(subgraph: "Laji-API", type: "\"MultiPolygon\
   MultiPolygon @enum(subgraph: "Laji-API", value: "\"MultiPolygon\"")  @join__enumValue(graph: LAJI_API) 
 }
 
+enum AI_used @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_machineAssistanceUnknown @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceUnknown\"")  @join__enumValue(graph: LAJI_API) 
+  MY_machineAssistanceNotUsed @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceNotUsed\"")  @join__enumValue(graph: LAJI_API) 
+  MY_machineAssistanceUsed @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceUsed\"")  @join__enumValue(graph: LAJI_API) 
+  MY_machineAssistanceMachineOnly @enum(subgraph: "Laji-API", value: "\"MY.machineAssistanceMachineOnly\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Rain_intensity @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_rainIntensityEnumNoRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumNoRain\"")  @join__enumValue(graph: LAJI_API) 
+  MY_rainIntensityEnumLightRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumLightRain\"")  @join__enumValue(graph: LAJI_API) 
+  MY_rainIntensityEnumModerateRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumModerateRain\"")  @join__enumValue(graph: LAJI_API) 
+  MY_rainIntensityEnumHeavyRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumHeavyRain\"")  @join__enumValue(graph: LAJI_API) 
+  MY_rainIntensityEnumTorrentialRain @enum(subgraph: "Laji-API", value: "\"MY.rainIntensityEnumTorrentialRain\"")  @join__enumValue(graph: LAJI_API) 
+}
+
 enum Censused_taxon_set @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MX_taxonSetSykeButterflyCensusPapilionoidea @enum(
@@ -27505,6 +27443,94 @@ enum Completeness_of_census @join__type(graph: LAJI_API)  {
   MY_taxonCensusTypeCounted @enum(subgraph: "Laji-API", value: "\"MY.taxonCensusTypeCounted\"")  @join__enumValue(graph: LAJI_API) 
   MY_taxonCensusTypeEstimated @enum(subgraph: "Laji-API", value: "\"MY.taxonCensusTypeEstimated\"")  @join__enumValue(graph: LAJI_API) 
   MY_taxonCensusTypeNotCounted @enum(subgraph: "Laji-API", value: "\"MY.taxonCensusTypeNotCounted\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_FormsController_getListing_results_items_options_prepopulatedDocument_preservation_items @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationPressed @enum(subgraph: "Laji-API", value: "\"MY.preservationPressed\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationDry @enum(subgraph: "Laji-API", value: "\"MY.preservationDry\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationCriticalPointDrying @enum(subgraph: "Laji-API", value: "\"MY.preservationCriticalPointDrying\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationPinned @enum(subgraph: "Laji-API", value: "\"MY.preservationPinned\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationGlued @enum(subgraph: "Laji-API", value: "\"MY.preservationGlued\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationLiquid @enum(subgraph: "Laji-API", value: "\"MY.preservationLiquid\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanol @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanolPure @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolPure\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanol70 @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol70\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanol80 @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol80\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanol80Pure @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol80Pure\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanol96 @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanol96\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanolMinus20C @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolMinus20C\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanolDenatured @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolDenatured\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanolFormalin @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolFormalin\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationEthanolExFormalin @enum(subgraph: "Laji-API", value: "\"MY.preservationEthanolExFormalin\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationFormalin @enum(subgraph: "Laji-API", value: "\"MY.preservationFormalin\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationBouinSolution @enum(subgraph: "Laji-API", value: "\"MY.preservationBouinSolution\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationPampelsFluid @enum(subgraph: "Laji-API", value: "\"MY.preservationPampelsFluid\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationGlycerol @enum(subgraph: "Laji-API", value: "\"MY.preservationGlycerol\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationParaffin @enum(subgraph: "Laji-API", value: "\"MY.preservationParaffin\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationMercuricChloride @enum(subgraph: "Laji-API", value: "\"MY.preservationMercuricChloride\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationCryopreserved @enum(subgraph: "Laji-API", value: "\"MY.preservationCryopreserved\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationFrozen @enum(subgraph: "Laji-API", value: "\"MY.preservationFrozen\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationFrozenMinus80C @enum(subgraph: "Laji-API", value: "\"MY.preservationFrozenMinus80C\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationFreezeDried @enum(subgraph: "Laji-API", value: "\"MY.preservationFreezeDried\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationGoldPlated @enum(subgraph: "Laji-API", value: "\"MY.preservationGoldPlated\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationActiveCulture @enum(subgraph: "Laji-API", value: "\"MY.preservationActiveCulture\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationLiving @enum(subgraph: "Laji-API", value: "\"MY.preservationLiving\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationSlide @enum(subgraph: "Laji-API", value: "\"MY.preservationSlide\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationSlideCanadaBalsam @enum(subgraph: "Laji-API", value: "\"MY.preservationSlideCanadaBalsam\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationSlideEuparal @enum(subgraph: "Laji-API", value: "\"MY.preservationSlideEuparal\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationSlidePolyviol @enum(subgraph: "Laji-API", value: "\"MY.preservationSlidePolyviol\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationStuffed @enum(subgraph: "Laji-API", value: "\"MY.preservationStuffed\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationCast @enum(subgraph: "Laji-API", value: "\"MY.preservationCast\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationPlastinated @enum(subgraph: "Laji-API", value: "\"MY.preservationPlastinated\"")  @join__enumValue(graph: LAJI_API) 
+  MY_preservationFrozenMinus80CAndEthanolMinus20C @enum(
+    subgraph: "Laji-API"
+    value: "\"MY.preservationFrozenMinus80CAndEthanolMinus20C\""
+  ) @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+Empty value means same as "ok" - that there is not anything special about the status of the specimen.
+"""
+enum Status @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusOk @enum(subgraph: "Laji-API", value: "\"MY.statusOk\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusMissing @enum(subgraph: "Laji-API", value: "\"MY.statusMissing\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusUnrecoverable @enum(subgraph: "Laji-API", value: "\"MY.statusUnrecoverable\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusLost @enum(subgraph: "Laji-API", value: "\"MY.statusLost\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusDonated @enum(subgraph: "Laji-API", value: "\"MY.statusDonated\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusDeposited @enum(subgraph: "Laji-API", value: "\"MY.statusDeposited\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusDeaccessioned @enum(subgraph: "Laji-API", value: "\"MY.statusDeaccessioned\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusDiscarded @enum(subgraph: "Laji-API", value: "\"MY.statusDiscarded\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusSpent @enum(subgraph: "Laji-API", value: "\"MY.statusSpent\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusDestroyed @enum(subgraph: "Laji-API", value: "\"MY.statusDestroyed\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusUndefined @enum(subgraph: "Laji-API", value: "\"MY.statusUndefined\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusAxenic @enum(subgraph: "Laji-API", value: "\"MY.statusAxenic\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusNonAxenic @enum(subgraph: "Laji-API", value: "\"MY.statusNonAxenic\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusNotAvailable @enum(subgraph: "Laji-API", value: "\"MY.statusNotAvailable\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusDead @enum(subgraph: "Laji-API", value: "\"MY.statusDead\"")  @join__enumValue(graph: LAJI_API) 
+  MY_statusNoVoucherRetained @enum(subgraph: "Laji-API", value: "\"MY.statusNoVoucherRetained\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_FormsController_getListing_results_items_options_prepopulatedDocument_verificationStatus_items @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusOk @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusOk\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusVerify @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusVerify\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusNeedsCompletion @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusNeedsCompletion\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusGeoreference @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusGeoreference\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusDet @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusDet\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusCheckID @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusCheckID\"")  @join__enumValue(graph: LAJI_API) 
+  MY_verificationStatusVerifyCoordinates @enum(subgraph: "Laji-API", value: "\"MY.verificationStatusVerifyCoordinates\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+PUBLIC: all data can be published; PROTECTED: exact locality is hidden (100*100km square); PRIVATE: most of the data is hidden. Empty value means same as public.
+"""
+enum Publicity_restrictions @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_publicityRestrictionsPublic @enum(subgraph: "Laji-API", value: "\"MZ.publicityRestrictionsPublic\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_publicityRestrictionsProtected @enum(subgraph: "Laji-API", value: "\"MZ.publicityRestrictionsProtected\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_publicityRestrictionsPrivate @enum(subgraph: "Laji-API", value: "\"MZ.publicityRestrictionsPrivate\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_batHabitat_items @join__type(graph: LAJI_API)  {
@@ -28322,23 +28348,6 @@ enum Native_status @join__type(graph: LAJI_API)  {
   MY_nonNative @enum(subgraph: "Laji-API", value: "\"MY.nonNative\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum P_246_nt_246_n_kokoluokka @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestSizeEnum1 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum1\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestSizeEnum2 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum2\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestSizeEnum3 @enum(subgraph: "Laji-API", value: "\"MY.nestSizeEnum3\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Nest_type @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeTreeCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTreeCavity\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeTwig @enum(subgraph: "Laji-API", value: "\"MY.nestTypeTwig\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeNestBox @enum(subgraph: "Laji-API", value: "\"MY.nestTypeNestBox\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeBuilding @enum(subgraph: "Laji-API", value: "\"MY.nestTypeBuilding\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeGroundCavity @enum(subgraph: "Laji-API", value: "\"MY.nestTypeGroundCavity\"")  @join__enumValue(graph: LAJI_API) 
-  MY_nestTypeOther @enum(subgraph: "Laji-API", value: "\"MY.nestTypeOther\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 enum Observation_status @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_observationStatusIgnored @enum(subgraph: "Laji-API", value: "\"MY.observationStatusIgnored\"")  @join__enumValue(graph: LAJI_API) 
@@ -28685,13 +28694,6 @@ enum Confidence_of_determination @join__type(graph: LAJI_API)  {
   MY_taxonConfidenceSubspeciesUnsure @enum(subgraph: "Laji-API", value: "\"MY.taxonConfidenceSubspeciesUnsure\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_wild @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_wildWild @enum(subgraph: "Laji-API", value: "\"MY.wildWild\"")  @join__enumValue(graph: LAJI_API) 
-  MY_wildUnknown @enum(subgraph: "Laji-API", value: "\"MY.wildUnknown\"")  @join__enumValue(graph: LAJI_API) 
-  MY_wildNonWild @enum(subgraph: "Laji-API", value: "\"MY.wildNonWild\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 """
 Tehtiinkö lajin määritys havaintotilanteessa vai myöhemmin esimerkiksi internetin tai muiden kanssa keskustelun perusteella?
 """
@@ -28726,12 +28728,6 @@ enum Observations_quality @join__type(graph: LAJI_API)  {
   MY_lineTransectObsTypeSeenBrood @enum(subgraph: "Laji-API", value: "\"MY.lineTransectObsTypeSeenBrood\"")  @join__enumValue(graph: LAJI_API) 
   MY_lineTransectObsTypeSeenNest @enum(subgraph: "Laji-API", value: "\"MY.lineTransectObsTypeSeenNest\"")  @join__enumValue(graph: LAJI_API) 
   MY_lineTransectObsTypeUnknown @enum(subgraph: "Laji-API", value: "\"MY.lineTransectObsTypeUnknown\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Field_Area @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lineTransectRouteFieldTypeInner @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeInner\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lineTransectRouteFieldTypeOuter @enum(subgraph: "Laji-API", value: "\"MY.lineTransectRouteFieldTypeOuter\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 enum Droppings_count @join__type(graph: LAJI_API)  {
@@ -28797,6 +28793,13 @@ enum Reasoning_for_own_interpretation @join__type(graph: LAJI_API)  {
     subgraph: "Laji-API"
     value: "\"MY.waterbirdPairCountOpinionReasoningEnumOther\""
   ) @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_wild @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MY_wildWild @enum(subgraph: "Laji-API", value: "\"MY.wildWild\"")  @join__enumValue(graph: LAJI_API) 
+  MY_wildUnknown @enum(subgraph: "Laji-API", value: "\"MY.wildUnknown\"")  @join__enumValue(graph: LAJI_API) 
+  MY_wildNonWild @enum(subgraph: "Laji-API", value: "\"MY.wildNonWild\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 enum Det_method @join__type(graph: LAJI_API)  {
@@ -29034,6 +29037,46 @@ enum Preparation_sample_type @join__type(graph: LAJI_API)  {
   MF_preparationTypeOther @enum(subgraph: "Laji-API", value: "\"MF.preparationTypeOther\"")  @join__enumValue(graph: LAJI_API) 
 }
 
+enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preparations_items_preparationMaterials_items @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsAcetone @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsAcetone\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsAmmonia @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsAmmonia\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsBasyntan @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsBasyntan\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsBorax @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsBorax\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsEulan @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsEulan\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsHydrogenPeroxide @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsHydrogenPeroxide\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsMethyleneChloride @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsMethyleneChloride\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsNovaltan @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsNovaltan\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsPapaine @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPapaine\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsPlaster @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPlaster\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsPolyurethane @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPolyurethane\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsPretanix @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPretanix\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsPurifiedGasoline @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPurifiedGasoline\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsWoodWool @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsWoodWool\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsCTAB @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsCTAB\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsEZNAForensicKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsEZNAForensicKit\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsDNEasyBloodAndTissueKit @enum(
+    subgraph: "Laji-API"
+    value: "\"MF.preparationMaterialsDNEasyBloodAndTissueKit\""
+  ) @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsDNEasyPlantKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsDNEasyPlantKit\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsNucleospinTissueKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsNucleospinTissueKit\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsNucleospinPlantTwo @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsNucleospinPlantTwo\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsSaltExtraction @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsSaltExtraction\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsDNeasyPlantMiniKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsDNeasyPlantMiniKit\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationMaterialsMagAttractHMWDNAKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsMagAttractHMWDNAKit\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preparations_items_preparationProcess_items @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationProcessTanning @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessTanning\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationProcessEnzymaticMaceration @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessEnzymaticMaceration\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationProcessDegreasing @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessDegreasing\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationProcessBeetleCleaning @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessBeetleCleaning\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationProcessPEG @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessPEG\"")  @join__enumValue(graph: LAJI_API) 
+  MF_preparationProcessFreezeDrying @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessFreezeDrying\"")  @join__enumValue(graph: LAJI_API) 
+}
+
 enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preservation_items @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MY_preservationPressed @enum(subgraph: "Laji-API", value: "\"MY.preservationPressed\"")  @join__enumValue(graph: LAJI_API) 
@@ -29117,44 +29160,44 @@ enum Preparation_sample_status @join__type(graph: LAJI_API)  {
   MY_statusNoVoucherRetained @enum(subgraph: "Laji-API", value: "\"MY.statusNoVoucherRetained\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preparations_items_preparationMaterials_items @join__type(graph: LAJI_API)  {
+enum Print_type @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsAcetone @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsAcetone\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsAmmonia @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsAmmonia\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsBasyntan @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsBasyntan\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsBorax @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsBorax\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsEulan @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsEulan\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsHydrogenPeroxide @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsHydrogenPeroxide\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsMethyleneChloride @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsMethyleneChloride\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsNovaltan @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsNovaltan\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsPapaine @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPapaine\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsPlaster @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPlaster\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsPolyurethane @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPolyurethane\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsPretanix @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPretanix\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsPurifiedGasoline @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsPurifiedGasoline\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsWoodWool @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsWoodWool\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsCTAB @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsCTAB\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsEZNAForensicKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsEZNAForensicKit\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsDNEasyBloodAndTissueKit @enum(
-    subgraph: "Laji-API"
-    value: "\"MF.preparationMaterialsDNEasyBloodAndTissueKit\""
-  ) @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsDNEasyPlantKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsDNEasyPlantKit\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsNucleospinTissueKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsNucleospinTissueKit\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsNucleospinPlantTwo @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsNucleospinPlantTwo\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsSaltExtraction @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsSaltExtraction\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsDNeasyPlantMiniKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsDNeasyPlantMiniKit\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationMaterialsMagAttractHMWDNAKit @enum(subgraph: "Laji-API", value: "\"MF.preparationMaterialsMagAttractHMWDNAKit\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_printTypeLineTransect @enum(subgraph: "Laji-API", value: "\"MHL.printTypeLineTransect\"")  @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_FormsController_getListing_results_items_options_prepopulatedDocument_gatherings_items_units_items_samples_items_preparations_items_preparationProcess_items @join__type(graph: LAJI_API)  {
+"""
+Users need to have permission to access the form
+"""
+enum Restrict_access @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationProcessTanning @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessTanning\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationProcessEnzymaticMaceration @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessEnzymaticMaceration\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationProcessDegreasing @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessDegreasing\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationProcessBeetleCleaning @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessBeetleCleaning\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationProcessPEG @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessPEG\"")  @join__enumValue(graph: LAJI_API) 
-  MF_preparationProcessFreezeDrying @enum(subgraph: "Laji-API", value: "\"MF.preparationProcessFreezeDrying\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_restrictAccessStrict @enum(subgraph: "Laji-API", value: "\"MHL.restrictAccessStrict\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_restrictAccessLoose @enum(subgraph: "Laji-API", value: "\"MHL.restrictAccessLoose\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Type_of_result_service @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeLineTransect @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeLineTransect\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeNafi @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeNafi\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeBirdPointCount @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeBirdPointCount\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeWinterBirdCount @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeWinterBirdCount\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeSykeInsectProjects @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeSykeInsectProjects\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeInvasiveControl @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeInvasiveControl\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeCompleteLists @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeCompleteLists\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeWaterBirdCount @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeWaterBirdCount\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_resultServiceTypeArchipelagoBirdCensus @enum(subgraph: "Laji-API", value: "\"MHL.resultServiceTypeArchipelagoBirdCensus\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Document_viewer_type @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_viewerTypeLineTransect @enum(subgraph: "Laji-API", value: "\"MHL.viewerTypeLineTransect\"")  @join__enumValue(graph: LAJI_API) 
+  MHL_viewerTypeBirdPointCount @enum(subgraph: "Laji-API", value: "\"MHL.viewerTypeBirdPointCount\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_FormsController_getListing_results_items_supportedLanguage_items @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  en @join__enumValue(graph: LAJI_API) 
+  fi @join__enumValue(graph: LAJI_API) 
+  sv @join__enumValue(graph: LAJI_API) 
 }
 
 enum Form_language @join__type(graph: LAJI_API)  {
@@ -29187,6 +29230,13 @@ enum query_FormsController_getOne_schema_oneOf_2_type @join__type(graph: LAJI_AP
   NULL @enum(subgraph: "Laji-API", value: "\"null\"")  @join__enumValue(graph: LAJI_API) 
 }
 
+enum Skill_level @join__type(graph: LAJI_API)  {
+  MA_birdSongRecognitionSkillLevelEnum1 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum1\"")  @join__enumValue(graph: LAJI_API) 
+  MA_birdSongRecognitionSkillLevelEnum2 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum2\"")  @join__enumValue(graph: LAJI_API) 
+  MA_birdSongRecognitionSkillLevelEnum3 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum3\"")  @join__enumValue(graph: LAJI_API) 
+  MA_birdSongRecognitionSkillLevelEnum4 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum4\"")  @join__enumValue(graph: LAJI_API) 
+}
+
 enum User_SINGLE_QUOTE_s_activity_level_in_birdwatching @join__type(graph: LAJI_API)  {
   _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
   MA_birdwatchingActivityLevelEnum1 @enum(subgraph: "Laji-API", value: "\"MA.birdwatchingActivityLevelEnum1\"")  @join__enumValue(graph: LAJI_API) 
@@ -29215,13 +29265,6 @@ enum User_SINGLE_QUOTE_s_skill_level_in_Finnish_bird_song_recognition @join__typ
   ) @join__enumValue(graph: LAJI_API) 
 }
 
-enum Skill_level @join__type(graph: LAJI_API)  {
-  MA_birdSongRecognitionSkillLevelEnum1 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum1\"")  @join__enumValue(graph: LAJI_API) 
-  MA_birdSongRecognitionSkillLevelEnum2 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum2\"")  @join__enumValue(graph: LAJI_API) 
-  MA_birdSongRecognitionSkillLevelEnum3 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum3\"")  @join__enumValue(graph: LAJI_API) 
-  MA_birdSongRecognitionSkillLevelEnum4 @enum(subgraph: "Laji-API", value: "\"MA.birdSongRecognitionSkillLevelEnum4\"")  @join__enumValue(graph: LAJI_API) 
-}
-
 enum query_PersonsController_findPersonByToken_role_items @join__type(graph: LAJI_API)  {
   MA_admin @enum(subgraph: "Laji-API", value: "\"MA.admin\"")  @join__enumValue(graph: LAJI_API) 
   _IMPORT_ @join__enumValue(graph: LAJI_API) 
@@ -29229,15 +29272,6 @@ enum query_PersonsController_findPersonByToken_role_items @join__type(graph: LAJ
 
 enum MMAN_expert_const @typescript(subgraph: "Laji-API", type: "\"MMAN.expert\"")  @example(subgraph: "Laji-API", value: "MMAN.expert")  @join__type(graph: LAJI_API)  {
   MMAN_expert @enum(subgraph: "Laji-API", value: "\"MMAN.expert\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-enum Notification_reason @join__type(graph: LAJI_API)  {
-  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
-  MHN_notificationReasonOwnDocumentAnnotated @enum(subgraph: "Laji-API", value: "\"MHN.notificationReasonOwnDocumentAnnotated\"")  @join__enumValue(graph: LAJI_API) 
-  MHN_notificationReasonAnnotatedDocumentAnnotated @enum(
-    subgraph: "Laji-API"
-    value: "\"MHN.notificationReasonAnnotatedDocumentAnnotated\""
-  ) @join__enumValue(graph: LAJI_API) 
 }
 
 enum My_evaluation_of_the_observation @join__type(graph: LAJI_API)  {
@@ -29313,6 +29347,15 @@ enum query_NotificationsController_getPage_results_items_annotation_type @join__
   MAN_typeInvasiveControlEffectiveness @enum(subgraph: "Laji-API", value: "\"MAN.typeInvasiveControlEffectiveness\"")  @join__enumValue(graph: LAJI_API) 
   MAN_typeUnidentifiable @enum(subgraph: "Laji-API", value: "\"MAN.typeUnidentifiable\"")  @join__enumValue(graph: LAJI_API) 
   MAN_typeAdmin @enum(subgraph: "Laji-API", value: "\"MAN.typeAdmin\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+enum Notification_reason @join__type(graph: LAJI_API)  {
+  _ @enum(subgraph: "Laji-API", value: "\"\"")  @join__enumValue(graph: LAJI_API) 
+  MHN_notificationReasonOwnDocumentAnnotated @enum(subgraph: "Laji-API", value: "\"MHN.notificationReasonOwnDocumentAnnotated\"")  @join__enumValue(graph: LAJI_API) 
+  MHN_notificationReasonAnnotatedDocumentAnnotated @enum(
+    subgraph: "Laji-API"
+    value: "\"MHN.notificationReasonAnnotatedDocumentAnnotated\""
+  ) @join__enumValue(graph: LAJI_API) 
 }
 
 """
@@ -29693,42 +29736,6 @@ enum query_warehouse_query_document_secureReasons_items @join__type(graph: LAJI_
   USER_HIDDEN_TIME @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_document_sourceTags_items @join__type(graph: LAJI_API)  {
-  ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
-  ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
-  ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_ERRONEOUS @join__enumValue(graph: LAJI_API) 
-  COMMUNITY_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
-  AUTO_VALIDATIONS_PASS @join__enumValue(graph: LAJI_API) 
-  CHECKED_CANNOT_VERIFY @join__enumValue(graph: LAJI_API) 
-  CHANGED_OWNER_MANUAL @join__enumValue(graph: LAJI_API) 
-  CHANGED_DW_AUTO @join__enumValue(graph: LAJI_API) 
-  CHECK @join__enumValue(graph: LAJI_API) 
-  CHECK_COORDINATES @join__enumValue(graph: LAJI_API) 
-  CHECK_DATETIME @join__enumValue(graph: LAJI_API) 
-  CHECK_LOCATION @join__enumValue(graph: LAJI_API) 
-  CHECK_OBSERVER @join__enumValue(graph: LAJI_API) 
-  CHECK_TAXON @join__enumValue(graph: LAJI_API) 
-  CHECK_DUPLICATE @join__enumValue(graph: LAJI_API) 
-  CHECK_WILDNESS @join__enumValue(graph: LAJI_API) 
-  CHECK_NEEDS_INFO @join__enumValue(graph: LAJI_API) 
-  CHECK_SPAM @join__enumValue(graph: LAJI_API) 
-  CHECK_BREEDING_INDEX @join__enumValue(graph: LAJI_API) 
-  AUTO_DISTRIBUTION_CHECK @join__enumValue(graph: LAJI_API) 
-  AUTO_PERIOD_CHECK @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_INNER_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_OTHER_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_VERIFIED @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  INVASIVE_FULL @join__enumValue(graph: LAJI_API) 
-  INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
-  INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
-  INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
-}
-
 enum query_warehouse_query_document_linkings_collectionQuality @join__type(graph: LAJI_API)  {
   PROFESSIONAL @join__enumValue(graph: LAJI_API) 
   HOBBYIST @join__enumValue(graph: LAJI_API) 
@@ -29908,6 +29915,63 @@ enum query_warehouse_query_document_gatherings_items_units_items_abundanceUnit @
   RELATIVE_DENSITY @join__enumValue(graph: LAJI_API) 
 }
 
+enum query_warehouse_query_document_gatherings_items_units_items_interpretations_effectiveTags_items @join__type(graph: LAJI_API)  {
+  ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
+  ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
+  ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_ERRONEOUS @join__enumValue(graph: LAJI_API) 
+  COMMUNITY_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
+  AUTO_VALIDATIONS_PASS @join__enumValue(graph: LAJI_API) 
+  CHECKED_CANNOT_VERIFY @join__enumValue(graph: LAJI_API) 
+  CHANGED_OWNER_MANUAL @join__enumValue(graph: LAJI_API) 
+  CHANGED_DW_AUTO @join__enumValue(graph: LAJI_API) 
+  CHECK @join__enumValue(graph: LAJI_API) 
+  CHECK_COORDINATES @join__enumValue(graph: LAJI_API) 
+  CHECK_DATETIME @join__enumValue(graph: LAJI_API) 
+  CHECK_LOCATION @join__enumValue(graph: LAJI_API) 
+  CHECK_OBSERVER @join__enumValue(graph: LAJI_API) 
+  CHECK_TAXON @join__enumValue(graph: LAJI_API) 
+  CHECK_DUPLICATE @join__enumValue(graph: LAJI_API) 
+  CHECK_WILDNESS @join__enumValue(graph: LAJI_API) 
+  CHECK_NEEDS_INFO @join__enumValue(graph: LAJI_API) 
+  CHECK_SPAM @join__enumValue(graph: LAJI_API) 
+  CHECK_BREEDING_INDEX @join__enumValue(graph: LAJI_API) 
+  AUTO_DISTRIBUTION_CHECK @join__enumValue(graph: LAJI_API) 
+  AUTO_PERIOD_CHECK @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_INNER_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_OTHER_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_VERIFIED @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  INVASIVE_FULL @join__enumValue(graph: LAJI_API) 
+  INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
+  INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
+  INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_document_gatherings_items_units_items_interpretations_invasiveControlEffectiveness @join__type(graph: LAJI_API)  {
+  FULL @join__enumValue(graph: LAJI_API) 
+  PARTIAL @join__enumValue(graph: LAJI_API) 
+  NO_EFFECT @join__enumValue(graph: LAJI_API) 
+  NOT_FOUND @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_document_gatherings_items_units_items_interpretations_recordQuality @join__type(graph: LAJI_API)  {
+  EXPERT_VERIFIED @join__enumValue(graph: LAJI_API) 
+  COMMUNITY_VERIFIED @join__enumValue(graph: LAJI_API) 
+  NEUTRAL @join__enumValue(graph: LAJI_API) 
+  UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  ERRONEOUS @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_document_gatherings_items_units_items_interpretations_reliability @join__type(graph: LAJI_API)  {
+  RELIABLE @join__enumValue(graph: LAJI_API) 
+  UNDEFINED @join__enumValue(graph: LAJI_API) 
+  UNRELIABLE @join__enumValue(graph: LAJI_API) 
+}
+
 enum query_warehouse_query_document_gatherings_items_units_items_superRecordBasis @join__type(graph: LAJI_API)  {
   PRESERVED_SPECIMEN @join__enumValue(graph: LAJI_API) 
   LIVING_SPECIMEN @join__enumValue(graph: LAJI_API) 
@@ -30041,7 +30105,7 @@ enum query_warehouse_query_document_gatherings_items_units_items_sourceTags_item
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_document_gatherings_items_units_items_interpretations_effectiveTags_items @join__type(graph: LAJI_API)  {
+enum query_warehouse_query_document_sourceTags_items @join__type(graph: LAJI_API)  {
   ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
   ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
@@ -30075,27 +30139,6 @@ enum query_warehouse_query_document_gatherings_items_units_items_interpretations
   INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
   INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_document_gatherings_items_units_items_interpretations_invasiveControlEffectiveness @join__type(graph: LAJI_API)  {
-  FULL @join__enumValue(graph: LAJI_API) 
-  PARTIAL @join__enumValue(graph: LAJI_API) 
-  NO_EFFECT @join__enumValue(graph: LAJI_API) 
-  NOT_FOUND @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_document_gatherings_items_units_items_interpretations_recordQuality @join__type(graph: LAJI_API)  {
-  EXPERT_VERIFIED @join__enumValue(graph: LAJI_API) 
-  COMMUNITY_VERIFIED @join__enumValue(graph: LAJI_API) 
-  NEUTRAL @join__enumValue(graph: LAJI_API) 
-  UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  ERRONEOUS @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_document_gatherings_items_units_items_interpretations_reliability @join__type(graph: LAJI_API)  {
-  RELIABLE @join__enumValue(graph: LAJI_API) 
-  UNDEFINED @join__enumValue(graph: LAJI_API) 
-  UNRELIABLE @join__enumValue(graph: LAJI_API) 
 }
 
 enum query_warehouse_query_unit_list_results_items_document_secureLevel @join__type(graph: LAJI_API)  {
@@ -30124,42 +30167,6 @@ enum query_warehouse_query_unit_list_results_items_document_secureReasons_items 
   USER_PERSON_NAMES_HIDDEN @join__enumValue(graph: LAJI_API) 
   USER_HIDDEN_LOCATION @join__enumValue(graph: LAJI_API) 
   USER_HIDDEN_TIME @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_unit_list_results_items_document_sourceTags_items @join__type(graph: LAJI_API)  {
-  ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
-  ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
-  ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_ERRONEOUS @join__enumValue(graph: LAJI_API) 
-  COMMUNITY_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
-  AUTO_VALIDATIONS_PASS @join__enumValue(graph: LAJI_API) 
-  CHECKED_CANNOT_VERIFY @join__enumValue(graph: LAJI_API) 
-  CHANGED_OWNER_MANUAL @join__enumValue(graph: LAJI_API) 
-  CHANGED_DW_AUTO @join__enumValue(graph: LAJI_API) 
-  CHECK @join__enumValue(graph: LAJI_API) 
-  CHECK_COORDINATES @join__enumValue(graph: LAJI_API) 
-  CHECK_DATETIME @join__enumValue(graph: LAJI_API) 
-  CHECK_LOCATION @join__enumValue(graph: LAJI_API) 
-  CHECK_OBSERVER @join__enumValue(graph: LAJI_API) 
-  CHECK_TAXON @join__enumValue(graph: LAJI_API) 
-  CHECK_DUPLICATE @join__enumValue(graph: LAJI_API) 
-  CHECK_WILDNESS @join__enumValue(graph: LAJI_API) 
-  CHECK_NEEDS_INFO @join__enumValue(graph: LAJI_API) 
-  CHECK_SPAM @join__enumValue(graph: LAJI_API) 
-  CHECK_BREEDING_INDEX @join__enumValue(graph: LAJI_API) 
-  AUTO_DISTRIBUTION_CHECK @join__enumValue(graph: LAJI_API) 
-  AUTO_PERIOD_CHECK @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_INNER_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_OTHER_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_VERIFIED @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  INVASIVE_FULL @join__enumValue(graph: LAJI_API) 
-  INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
-  INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
-  INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
 enum query_warehouse_query_unit_list_results_items_document_linkings_collectionQuality @join__type(graph: LAJI_API)  {
@@ -30278,6 +30285,42 @@ enum query_warehouse_query_unit_list_results_items_document_media_items_mediaTyp
   MODEL @join__enumValue(graph: LAJI_API) 
 }
 
+enum query_warehouse_query_unit_list_results_items_document_sourceTags_items @join__type(graph: LAJI_API)  {
+  ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
+  ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
+  ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_ERRONEOUS @join__enumValue(graph: LAJI_API) 
+  COMMUNITY_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
+  AUTO_VALIDATIONS_PASS @join__enumValue(graph: LAJI_API) 
+  CHECKED_CANNOT_VERIFY @join__enumValue(graph: LAJI_API) 
+  CHANGED_OWNER_MANUAL @join__enumValue(graph: LAJI_API) 
+  CHANGED_DW_AUTO @join__enumValue(graph: LAJI_API) 
+  CHECK @join__enumValue(graph: LAJI_API) 
+  CHECK_COORDINATES @join__enumValue(graph: LAJI_API) 
+  CHECK_DATETIME @join__enumValue(graph: LAJI_API) 
+  CHECK_LOCATION @join__enumValue(graph: LAJI_API) 
+  CHECK_OBSERVER @join__enumValue(graph: LAJI_API) 
+  CHECK_TAXON @join__enumValue(graph: LAJI_API) 
+  CHECK_DUPLICATE @join__enumValue(graph: LAJI_API) 
+  CHECK_WILDNESS @join__enumValue(graph: LAJI_API) 
+  CHECK_NEEDS_INFO @join__enumValue(graph: LAJI_API) 
+  CHECK_SPAM @join__enumValue(graph: LAJI_API) 
+  CHECK_BREEDING_INDEX @join__enumValue(graph: LAJI_API) 
+  AUTO_DISTRIBUTION_CHECK @join__enumValue(graph: LAJI_API) 
+  AUTO_PERIOD_CHECK @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_INNER_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_OTHER_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_VERIFIED @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  INVASIVE_FULL @join__enumValue(graph: LAJI_API) 
+  INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
+  INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
+  INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
+}
+
 enum query_warehouse_query_unit_list_results_items_gathering_interpretations_sourceOfBiogeographicalProvince @join__type(graph: LAJI_API)  {
   COORDINATES @join__enumValue(graph: LAJI_API) 
   COORDINATE_CENTERPOINT @join__enumValue(graph: LAJI_API) 
@@ -30339,6 +30382,63 @@ enum query_warehouse_query_unit_list_results_items_unit_abundanceUnit @join__typ
   SQUARE_DM @join__enumValue(graph: LAJI_API) 
   SQUARE_M @join__enumValue(graph: LAJI_API) 
   RELATIVE_DENSITY @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_effectiveTags_items @join__type(graph: LAJI_API)  {
+  ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
+  ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
+  ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  EXPERT_TAG_ERRONEOUS @join__enumValue(graph: LAJI_API) 
+  COMMUNITY_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
+  AUTO_VALIDATIONS_PASS @join__enumValue(graph: LAJI_API) 
+  CHECKED_CANNOT_VERIFY @join__enumValue(graph: LAJI_API) 
+  CHANGED_OWNER_MANUAL @join__enumValue(graph: LAJI_API) 
+  CHANGED_DW_AUTO @join__enumValue(graph: LAJI_API) 
+  CHECK @join__enumValue(graph: LAJI_API) 
+  CHECK_COORDINATES @join__enumValue(graph: LAJI_API) 
+  CHECK_DATETIME @join__enumValue(graph: LAJI_API) 
+  CHECK_LOCATION @join__enumValue(graph: LAJI_API) 
+  CHECK_OBSERVER @join__enumValue(graph: LAJI_API) 
+  CHECK_TAXON @join__enumValue(graph: LAJI_API) 
+  CHECK_DUPLICATE @join__enumValue(graph: LAJI_API) 
+  CHECK_WILDNESS @join__enumValue(graph: LAJI_API) 
+  CHECK_NEEDS_INFO @join__enumValue(graph: LAJI_API) 
+  CHECK_SPAM @join__enumValue(graph: LAJI_API) 
+  CHECK_BREEDING_INDEX @join__enumValue(graph: LAJI_API) 
+  AUTO_DISTRIBUTION_CHECK @join__enumValue(graph: LAJI_API) 
+  AUTO_PERIOD_CHECK @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_INNER_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_CENSUS_OTHER_ERROR @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_VERIFIED @join__enumValue(graph: LAJI_API) 
+  FORMADMIN_UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  INVASIVE_FULL @join__enumValue(graph: LAJI_API) 
+  INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
+  INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
+  INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_invasiveControlEffectiveness @join__type(graph: LAJI_API)  {
+  FULL @join__enumValue(graph: LAJI_API) 
+  PARTIAL @join__enumValue(graph: LAJI_API) 
+  NO_EFFECT @join__enumValue(graph: LAJI_API) 
+  NOT_FOUND @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_recordQuality @join__type(graph: LAJI_API)  {
+  EXPERT_VERIFIED @join__enumValue(graph: LAJI_API) 
+  COMMUNITY_VERIFIED @join__enumValue(graph: LAJI_API) 
+  NEUTRAL @join__enumValue(graph: LAJI_API) 
+  UNCERTAIN @join__enumValue(graph: LAJI_API) 
+  ERRONEOUS @join__enumValue(graph: LAJI_API) 
+}
+
+enum query_warehouse_query_unit_list_results_items_unit_interpretations_reliability @join__type(graph: LAJI_API)  {
+  RELIABLE @join__enumValue(graph: LAJI_API) 
+  UNDEFINED @join__enumValue(graph: LAJI_API) 
+  UNRELIABLE @join__enumValue(graph: LAJI_API) 
 }
 
 enum query_warehouse_query_unit_list_results_items_unit_superRecordBasis @join__type(graph: LAJI_API)  {
@@ -30474,211 +30574,10 @@ enum query_warehouse_query_unit_list_results_items_unit_sourceTags_items @join__
   INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
 }
 
-enum query_warehouse_query_unit_list_results_items_unit_interpretations_effectiveTags_items @join__type(graph: LAJI_API)  {
-  ADMIN_MARKED_SPAM @join__enumValue(graph: LAJI_API) 
-  ADMIN_MARKED_COARSE @join__enumValue(graph: LAJI_API) 
-  ADMIN_MARKED_NON_WILD @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  EXPERT_TAG_ERRONEOUS @join__enumValue(graph: LAJI_API) 
-  COMMUNITY_TAG_VERIFIED @join__enumValue(graph: LAJI_API) 
-  AUTO_VALIDATIONS_PASS @join__enumValue(graph: LAJI_API) 
-  CHECKED_CANNOT_VERIFY @join__enumValue(graph: LAJI_API) 
-  CHANGED_OWNER_MANUAL @join__enumValue(graph: LAJI_API) 
-  CHANGED_DW_AUTO @join__enumValue(graph: LAJI_API) 
-  CHECK @join__enumValue(graph: LAJI_API) 
-  CHECK_COORDINATES @join__enumValue(graph: LAJI_API) 
-  CHECK_DATETIME @join__enumValue(graph: LAJI_API) 
-  CHECK_LOCATION @join__enumValue(graph: LAJI_API) 
-  CHECK_OBSERVER @join__enumValue(graph: LAJI_API) 
-  CHECK_TAXON @join__enumValue(graph: LAJI_API) 
-  CHECK_DUPLICATE @join__enumValue(graph: LAJI_API) 
-  CHECK_WILDNESS @join__enumValue(graph: LAJI_API) 
-  CHECK_NEEDS_INFO @join__enumValue(graph: LAJI_API) 
-  CHECK_SPAM @join__enumValue(graph: LAJI_API) 
-  CHECK_BREEDING_INDEX @join__enumValue(graph: LAJI_API) 
-  AUTO_DISTRIBUTION_CHECK @join__enumValue(graph: LAJI_API) 
-  AUTO_PERIOD_CHECK @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_INNER_COUNT_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_CENSUS_OTHER_ERROR @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_VERIFIED @join__enumValue(graph: LAJI_API) 
-  FORMADMIN_UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  INVASIVE_FULL @join__enumValue(graph: LAJI_API) 
-  INVASIVE_PARTIAL @join__enumValue(graph: LAJI_API) 
-  INVASIVE_NO_EFFECT @join__enumValue(graph: LAJI_API) 
-  INVASIVE_NOT_FOUND @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_unit_list_results_items_unit_interpretations_invasiveControlEffectiveness @join__type(graph: LAJI_API)  {
-  FULL @join__enumValue(graph: LAJI_API) 
-  PARTIAL @join__enumValue(graph: LAJI_API) 
-  NO_EFFECT @join__enumValue(graph: LAJI_API) 
-  NOT_FOUND @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_unit_list_results_items_unit_interpretations_recordQuality @join__type(graph: LAJI_API)  {
-  EXPERT_VERIFIED @join__enumValue(graph: LAJI_API) 
-  COMMUNITY_VERIFIED @join__enumValue(graph: LAJI_API) 
-  NEUTRAL @join__enumValue(graph: LAJI_API) 
-  UNCERTAIN @join__enumValue(graph: LAJI_API) 
-  ERRONEOUS @join__enumValue(graph: LAJI_API) 
-}
-
-enum query_warehouse_query_unit_list_results_items_unit_interpretations_reliability @join__type(graph: LAJI_API)  {
-  RELIABLE @join__enumValue(graph: LAJI_API) 
-  UNDEFINED @join__enumValue(graph: LAJI_API) 
-  UNRELIABLE @join__enumValue(graph: LAJI_API) 
-}
-
 enum query_warehouse_filters_additionalProperties_type @join__type(graph: LAJI_API)  {
   STRING @join__enumValue(graph: LAJI_API) 
   ENUMERATION @join__enumValue(graph: LAJI_API) 
   RESOURCE @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Qname identifier
-"""
-enum query_trait_search_results_items_statisticalMethod @join__type(graph: LAJI_API)  {
-  TDF_statisticalMethodMin @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMin\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_statisticalMethodMax @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMax\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_statisticalMethodAvg @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodAvg\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_statisticalMethodMedian @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMedian\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_statisticalMethodSD @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodSD\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_statisticalMethodMode @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMode\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Qname identifier
-"""
-enum query_trait_search_results_items_unit @join__type(graph: LAJI_API)  {
-  TDF_umNM @enum(subgraph: "Laji-API", value: "\"TDF.umNM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umUM @enum(subgraph: "Laji-API", value: "\"TDF.umUM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMM @enum(subgraph: "Laji-API", value: "\"TDF.umMM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM @enum(subgraph: "Laji-API", value: "\"TDF.umCM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umM @enum(subgraph: "Laji-API", value: "\"TDF.umM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umKM @enum(subgraph: "Laji-API", value: "\"TDF.umKM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umG @enum(subgraph: "Laji-API", value: "\"TDF.umG\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umKG @enum(subgraph: "Laji-API", value: "\"TDF.umKG\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umA @enum(subgraph: "Laji-API", value: "\"TDF.umA\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umS @enum(subgraph: "Laji-API", value: "\"TDF.umS\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umML @enum(subgraph: "Laji-API", value: "\"TDF.umML\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umL @enum(subgraph: "Laji-API", value: "\"TDF.umL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umUMOL @enum(subgraph: "Laji-API", value: "\"TDF.umUMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umHZ @enum(subgraph: "Laji-API", value: "\"TDF.umHZ\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umP @enum(subgraph: "Laji-API", value: "\"TDF.umP\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umPPT @enum(subgraph: "Laji-API", value: "\"TDF.umPPT\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umPPM @enum(subgraph: "Laji-API", value: "\"TDF.umPPM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umC @enum(subgraph: "Laji-API", value: "\"TDF.umC\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMM2 @enum(subgraph: "Laji-API", value: "\"TDF.umMM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM2 @enum(subgraph: "Laji-API", value: "\"TDF.umCM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umM2 @enum(subgraph: "Laji-API", value: "\"TDF.umM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umARE @enum(subgraph: "Laji-API", value: "\"TDF.umARE\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umHA @enum(subgraph: "Laji-API", value: "\"TDF.umHA\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umKM2 @enum(subgraph: "Laji-API", value: "\"TDF.umKM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMM3 @enum(subgraph: "Laji-API", value: "\"TDF.umMM3\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM3 @enum(subgraph: "Laji-API", value: "\"TDF.umCM3\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umM3 @enum(subgraph: "Laji-API", value: "\"TDF.umM3\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umGMOL @enum(subgraph: "Laji-API", value: "\"TDF.umGMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMOLL @enum(subgraph: "Laji-API", value: "\"TDF.umMOLL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM2H @enum(subgraph: "Laji-API", value: "\"TDF.umCM2H\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Qname identifier
-"""
-enum query_trait_search_results_items_originalUnit @join__type(graph: LAJI_API)  {
-  TDF_umNM @enum(subgraph: "Laji-API", value: "\"TDF.umNM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umUM @enum(subgraph: "Laji-API", value: "\"TDF.umUM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMM @enum(subgraph: "Laji-API", value: "\"TDF.umMM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM @enum(subgraph: "Laji-API", value: "\"TDF.umCM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umM @enum(subgraph: "Laji-API", value: "\"TDF.umM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umKM @enum(subgraph: "Laji-API", value: "\"TDF.umKM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umG @enum(subgraph: "Laji-API", value: "\"TDF.umG\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umKG @enum(subgraph: "Laji-API", value: "\"TDF.umKG\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umA @enum(subgraph: "Laji-API", value: "\"TDF.umA\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umS @enum(subgraph: "Laji-API", value: "\"TDF.umS\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umML @enum(subgraph: "Laji-API", value: "\"TDF.umML\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umL @enum(subgraph: "Laji-API", value: "\"TDF.umL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umUMOL @enum(subgraph: "Laji-API", value: "\"TDF.umUMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umHZ @enum(subgraph: "Laji-API", value: "\"TDF.umHZ\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umP @enum(subgraph: "Laji-API", value: "\"TDF.umP\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umPPT @enum(subgraph: "Laji-API", value: "\"TDF.umPPT\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umPPM @enum(subgraph: "Laji-API", value: "\"TDF.umPPM\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umC @enum(subgraph: "Laji-API", value: "\"TDF.umC\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMM2 @enum(subgraph: "Laji-API", value: "\"TDF.umMM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM2 @enum(subgraph: "Laji-API", value: "\"TDF.umCM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umM2 @enum(subgraph: "Laji-API", value: "\"TDF.umM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umARE @enum(subgraph: "Laji-API", value: "\"TDF.umARE\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umHA @enum(subgraph: "Laji-API", value: "\"TDF.umHA\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umKM2 @enum(subgraph: "Laji-API", value: "\"TDF.umKM2\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMM3 @enum(subgraph: "Laji-API", value: "\"TDF.umMM3\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM3 @enum(subgraph: "Laji-API", value: "\"TDF.umCM3\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umM3 @enum(subgraph: "Laji-API", value: "\"TDF.umM3\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umGMOL @enum(subgraph: "Laji-API", value: "\"TDF.umGMOL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umMOLL @enum(subgraph: "Laji-API", value: "\"TDF.umMOLL\"")  @join__enumValue(graph: LAJI_API) 
-  TDF_umCM2H @enum(subgraph: "Laji-API", value: "\"TDF.umCM2H\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Qname identifier
-"""
-enum query_trait_search_results_items_objectTaxonLifeStage @join__type(graph: LAJI_API)  {
-  MY_lifeStageAdult @enum(subgraph: "Laji-API", value: "\"MY.lifeStageAdult\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageNymph @enum(subgraph: "Laji-API", value: "\"MY.lifeStageNymph\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageLarva @enum(subgraph: "Laji-API", value: "\"MY.lifeStageLarva\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageEgg @enum(subgraph: "Laji-API", value: "\"MY.lifeStageEgg\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStagePupa @enum(subgraph: "Laji-API", value: "\"MY.lifeStagePupa\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageJuvenile @enum(subgraph: "Laji-API", value: "\"MY.lifeStageJuvenile\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageSubimago @enum(subgraph: "Laji-API", value: "\"MY.lifeStageSubimago\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageImmature @enum(subgraph: "Laji-API", value: "\"MY.lifeStageImmature\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageFertile @enum(subgraph: "Laji-API", value: "\"MY.lifeStageFertile\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageSterile @enum(subgraph: "Laji-API", value: "\"MY.lifeStageSterile\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageTadpole @enum(subgraph: "Laji-API", value: "\"MY.lifeStageTadpole\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageEmbryo @enum(subgraph: "Laji-API", value: "\"MY.lifeStageEmbryo\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageSubadult @enum(subgraph: "Laji-API", value: "\"MY.lifeStageSubadult\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageMature @enum(subgraph: "Laji-API", value: "\"MY.lifeStageMature\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStagePullus @enum(subgraph: "Laji-API", value: "\"MY.lifeStagePullus\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageHatchedEgg @enum(subgraph: "Laji-API", value: "\"MY.lifeStageHatchedEgg\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageHatchedPupa @enum(subgraph: "Laji-API", value: "\"MY.lifeStageHatchedPupa\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageGall @enum(subgraph: "Laji-API", value: "\"MY.lifeStageGall\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageMarks @enum(subgraph: "Laji-API", value: "\"MY.lifeStageMarks\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageTriungulin @enum(subgraph: "Laji-API", value: "\"MY.lifeStageTriungulin\"")  @join__enumValue(graph: LAJI_API) 
-  MY_lifeStageExuvia @enum(subgraph: "Laji-API", value: "\"MY.lifeStageExuvia\"")  @join__enumValue(graph: LAJI_API) 
-}
-
-"""
-Qname identifier
-"""
-enum query_trait_search_results_items_license @join__type(graph: LAJI_API)  {
-  MZ_intellectualRightsCC_BY_SA_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_SA_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-SA-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC0_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC0-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsODBL_1_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsODBL-1.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsPD @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsPD\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsARR @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsARR\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-2.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_SA_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_SA_2_0_DE @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.0-DE\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-2.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_SA_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-SA-2.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_ND_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-ND-2.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_SA_2_5 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.5\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_SA_2_5_SE @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.5-SE\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_3_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-3.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_SA_3_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-3.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_SA_3_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-SA-3.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_ND_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-ND-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MZ_intellectualRightsCC_BY_NC_ND_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-ND-4.0\"")  @join__enumValue(graph: LAJI_API) 
-  MY_intellectualRightsCC_BY @enum(subgraph: "Laji-API", value: "\"MY.intellectualRightsCC-BY\"")  @join__enumValue(graph: LAJI_API) 
-  MY_intellectualRightsCC0 @enum(subgraph: "Laji-API", value: "\"MY.intellectualRightsCC0\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 """
@@ -30990,6 +30889,94 @@ enum query_trait_search_results_items_trait_range @join__type(graph: LAJI_API)  
 """
 Qname identifier
 """
+enum query_trait_search_results_items_statisticalMethod @join__type(graph: LAJI_API)  {
+  TDF_statisticalMethodMin @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMin\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_statisticalMethodMax @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMax\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_statisticalMethodAvg @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodAvg\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_statisticalMethodMedian @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMedian\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_statisticalMethodSD @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodSD\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_statisticalMethodMode @enum(subgraph: "Laji-API", value: "\"TDF.statisticalMethodMode\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+Qname identifier
+"""
+enum query_trait_search_results_items_unit @join__type(graph: LAJI_API)  {
+  TDF_umNM @enum(subgraph: "Laji-API", value: "\"TDF.umNM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umUM @enum(subgraph: "Laji-API", value: "\"TDF.umUM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMM @enum(subgraph: "Laji-API", value: "\"TDF.umMM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM @enum(subgraph: "Laji-API", value: "\"TDF.umCM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umM @enum(subgraph: "Laji-API", value: "\"TDF.umM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umKM @enum(subgraph: "Laji-API", value: "\"TDF.umKM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umG @enum(subgraph: "Laji-API", value: "\"TDF.umG\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umKG @enum(subgraph: "Laji-API", value: "\"TDF.umKG\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umA @enum(subgraph: "Laji-API", value: "\"TDF.umA\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umS @enum(subgraph: "Laji-API", value: "\"TDF.umS\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umML @enum(subgraph: "Laji-API", value: "\"TDF.umML\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umL @enum(subgraph: "Laji-API", value: "\"TDF.umL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umUMOL @enum(subgraph: "Laji-API", value: "\"TDF.umUMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umHZ @enum(subgraph: "Laji-API", value: "\"TDF.umHZ\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umP @enum(subgraph: "Laji-API", value: "\"TDF.umP\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umPPT @enum(subgraph: "Laji-API", value: "\"TDF.umPPT\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umPPM @enum(subgraph: "Laji-API", value: "\"TDF.umPPM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umC @enum(subgraph: "Laji-API", value: "\"TDF.umC\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMM2 @enum(subgraph: "Laji-API", value: "\"TDF.umMM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM2 @enum(subgraph: "Laji-API", value: "\"TDF.umCM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umM2 @enum(subgraph: "Laji-API", value: "\"TDF.umM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umARE @enum(subgraph: "Laji-API", value: "\"TDF.umARE\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umHA @enum(subgraph: "Laji-API", value: "\"TDF.umHA\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umKM2 @enum(subgraph: "Laji-API", value: "\"TDF.umKM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMM3 @enum(subgraph: "Laji-API", value: "\"TDF.umMM3\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM3 @enum(subgraph: "Laji-API", value: "\"TDF.umCM3\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umM3 @enum(subgraph: "Laji-API", value: "\"TDF.umM3\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umGMOL @enum(subgraph: "Laji-API", value: "\"TDF.umGMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMOLL @enum(subgraph: "Laji-API", value: "\"TDF.umMOLL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM2H @enum(subgraph: "Laji-API", value: "\"TDF.umCM2H\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+Qname identifier
+"""
+enum query_trait_search_results_items_originalUnit @join__type(graph: LAJI_API)  {
+  TDF_umNM @enum(subgraph: "Laji-API", value: "\"TDF.umNM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umUM @enum(subgraph: "Laji-API", value: "\"TDF.umUM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMM @enum(subgraph: "Laji-API", value: "\"TDF.umMM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM @enum(subgraph: "Laji-API", value: "\"TDF.umCM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umM @enum(subgraph: "Laji-API", value: "\"TDF.umM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umKM @enum(subgraph: "Laji-API", value: "\"TDF.umKM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umG @enum(subgraph: "Laji-API", value: "\"TDF.umG\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umKG @enum(subgraph: "Laji-API", value: "\"TDF.umKG\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umA @enum(subgraph: "Laji-API", value: "\"TDF.umA\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umS @enum(subgraph: "Laji-API", value: "\"TDF.umS\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umML @enum(subgraph: "Laji-API", value: "\"TDF.umML\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umL @enum(subgraph: "Laji-API", value: "\"TDF.umL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMMOL @enum(subgraph: "Laji-API", value: "\"TDF.umMMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umUMOL @enum(subgraph: "Laji-API", value: "\"TDF.umUMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umHZ @enum(subgraph: "Laji-API", value: "\"TDF.umHZ\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umP @enum(subgraph: "Laji-API", value: "\"TDF.umP\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umPPT @enum(subgraph: "Laji-API", value: "\"TDF.umPPT\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umPPM @enum(subgraph: "Laji-API", value: "\"TDF.umPPM\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umC @enum(subgraph: "Laji-API", value: "\"TDF.umC\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMM2 @enum(subgraph: "Laji-API", value: "\"TDF.umMM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM2 @enum(subgraph: "Laji-API", value: "\"TDF.umCM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umM2 @enum(subgraph: "Laji-API", value: "\"TDF.umM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umARE @enum(subgraph: "Laji-API", value: "\"TDF.umARE\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umHA @enum(subgraph: "Laji-API", value: "\"TDF.umHA\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umKM2 @enum(subgraph: "Laji-API", value: "\"TDF.umKM2\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMM3 @enum(subgraph: "Laji-API", value: "\"TDF.umMM3\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM3 @enum(subgraph: "Laji-API", value: "\"TDF.umCM3\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umM3 @enum(subgraph: "Laji-API", value: "\"TDF.umM3\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umGMOL @enum(subgraph: "Laji-API", value: "\"TDF.umGMOL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umMOLL @enum(subgraph: "Laji-API", value: "\"TDF.umMOLL\"")  @join__enumValue(graph: LAJI_API) 
+  TDF_umCM2H @enum(subgraph: "Laji-API", value: "\"TDF.umCM2H\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+Qname identifier
+"""
 enum query_trait_search_results_items_subjectFinBIFTaxon_iucnStatus @join__type(graph: LAJI_API)  {
   MX_iucnEX @enum(subgraph: "Laji-API", value: "\"MX.iucnEX\"")  @join__enumValue(graph: LAJI_API) 
   MX_iucnEW @enum(subgraph: "Laji-API", value: "\"MX.iucnEW\"")  @join__enumValue(graph: LAJI_API) 
@@ -31017,6 +31004,7 @@ enum query_trait_search_results_items_subjectFinBIFTaxon_primaryHabitat @join__t
   MKV_habitatMlk @enum(subgraph: "Laji-API", value: "\"MKV.habitatMlk\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatMt @enum(subgraph: "Laji-API", value: "\"MKV.habitatMt\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatMtl @enum(subgraph: "Laji-API", value: "\"MKV.habitatMtl\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatMtm @enum(subgraph: "Laji-API", value: "\"MKV.habitatMtm\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatS @enum(subgraph: "Laji-API", value: "\"MKV.habitatS\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSl @enum(subgraph: "Laji-API", value: "\"MKV.habitatSl\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSla @enum(subgraph: "Laji-API", value: "\"MKV.habitatSla\"")  @join__enumValue(graph: LAJI_API) 
@@ -31034,9 +31022,9 @@ enum query_trait_search_results_items_subjectFinBIFTaxon_primaryHabitat @join__t
   MKV_habitatV @enum(subgraph: "Laji-API", value: "\"MKV.habitatV\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatVi @enum(subgraph: "Laji-API", value: "\"MKV.habitatVi\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatVik @enum(subgraph: "Laji-API", value: "\"MKV.habitatVik\"")  @join__enumValue(graph: LAJI_API) 
-  MKV_habitatVim @enum(subgraph: "Laji-API", value: "\"MKV.habitatVim\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatVis @enum(subgraph: "Laji-API", value: "\"MKV.habitatVis\"")  @join__enumValue(graph: LAJI_API) 
-  MKV_habitatVih @enum(subgraph: "Laji-API", value: "\"MKV.habitatVih\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatVim @enum(subgraph: "Laji-API", value: "\"MKV.habitatVim\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatVia @enum(subgraph: "Laji-API", value: "\"MKV.habitatVia\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatVie @enum(subgraph: "Laji-API", value: "\"MKV.habitatVie\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatVip @enum(subgraph: "Laji-API", value: "\"MKV.habitatVip\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatVs @enum(subgraph: "Laji-API", value: "\"MKV.habitatVs\"")  @join__enumValue(graph: LAJI_API) 
@@ -31094,27 +31082,85 @@ enum query_trait_search_results_items_subjectFinBIFTaxon_primaryHabitat @join__t
   MKV_habitatI @enum(subgraph: "Laji-API", value: "\"MKV.habitatI\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIn @enum(subgraph: "Laji-API", value: "\"MKV.habitatIn\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIt @enum(subgraph: "Laji-API", value: "\"MKV.habitatIt\"")  @join__enumValue(graph: LAJI_API) 
-  MKV_habitatIh @enum(subgraph: "Laji-API", value: "\"MKV.habitatIh\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIk @enum(subgraph: "Laji-API", value: "\"MKV.habitatIk\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatIh @enum(subgraph: "Laji-API", value: "\"MKV.habitatIh\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIo @enum(subgraph: "Laji-API", value: "\"MKV.habitatIo\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIv @enum(subgraph: "Laji-API", value: "\"MKV.habitatIv\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIp @enum(subgraph: "Laji-API", value: "\"MKV.habitatIp\"")  @join__enumValue(graph: LAJI_API) 
-  MKV_habitatIu @enum(subgraph: "Laji-API", value: "\"MKV.habitatIu\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatIj @enum(subgraph: "Laji-API", value: "\"MKV.habitatIj\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatIr @enum(subgraph: "Laji-API", value: "\"MKV.habitatIr\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatU @enum(subgraph: "Laji-API", value: "\"MKV.habitatU\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 enum query_trait_search_results_items_subjectFinBIFTaxon_habitatSpecifiers_items @join__type(graph: LAJI_API)  {
   MKV_habitatSpecificTypeV @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeV\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatSpecificTypeLU @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeLU\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeH @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeH\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeP @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeP\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeJ @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeJ\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypePAK @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypePAK\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeVAK @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeVAK\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatSpecificTypeCA @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeCA\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeRA @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeRA\"")  @join__enumValue(graph: LAJI_API) 
+  MKV_habitatSpecificTypeLK @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeLK\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeKA @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeKA\"")  @join__enumValue(graph: LAJI_API) 
   MKV_habitatSpecificTypeKE @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeKE\"")  @join__enumValue(graph: LAJI_API) 
-  MKV_habitatSpecificTypeCA @enum(subgraph: "Laji-API", value: "\"MKV.habitatSpecificTypeCA\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+Qname identifier
+"""
+enum query_trait_search_results_items_objectTaxonLifeStage @join__type(graph: LAJI_API)  {
+  MY_lifeStageAdult @enum(subgraph: "Laji-API", value: "\"MY.lifeStageAdult\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageNymph @enum(subgraph: "Laji-API", value: "\"MY.lifeStageNymph\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageLarva @enum(subgraph: "Laji-API", value: "\"MY.lifeStageLarva\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageEgg @enum(subgraph: "Laji-API", value: "\"MY.lifeStageEgg\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStagePupa @enum(subgraph: "Laji-API", value: "\"MY.lifeStagePupa\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageJuvenile @enum(subgraph: "Laji-API", value: "\"MY.lifeStageJuvenile\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageSubimago @enum(subgraph: "Laji-API", value: "\"MY.lifeStageSubimago\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageImmature @enum(subgraph: "Laji-API", value: "\"MY.lifeStageImmature\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageFertile @enum(subgraph: "Laji-API", value: "\"MY.lifeStageFertile\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageSterile @enum(subgraph: "Laji-API", value: "\"MY.lifeStageSterile\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageTadpole @enum(subgraph: "Laji-API", value: "\"MY.lifeStageTadpole\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageEmbryo @enum(subgraph: "Laji-API", value: "\"MY.lifeStageEmbryo\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageSubadult @enum(subgraph: "Laji-API", value: "\"MY.lifeStageSubadult\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageMature @enum(subgraph: "Laji-API", value: "\"MY.lifeStageMature\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStagePullus @enum(subgraph: "Laji-API", value: "\"MY.lifeStagePullus\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageHatchedEgg @enum(subgraph: "Laji-API", value: "\"MY.lifeStageHatchedEgg\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageHatchedPupa @enum(subgraph: "Laji-API", value: "\"MY.lifeStageHatchedPupa\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageGall @enum(subgraph: "Laji-API", value: "\"MY.lifeStageGall\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageMarks @enum(subgraph: "Laji-API", value: "\"MY.lifeStageMarks\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageTriungulin @enum(subgraph: "Laji-API", value: "\"MY.lifeStageTriungulin\"")  @join__enumValue(graph: LAJI_API) 
+  MY_lifeStageExuvia @enum(subgraph: "Laji-API", value: "\"MY.lifeStageExuvia\"")  @join__enumValue(graph: LAJI_API) 
+}
+
+"""
+Qname identifier
+"""
+enum query_trait_search_results_items_license @join__type(graph: LAJI_API)  {
+  MZ_intellectualRightsCC_BY_SA_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_SA_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-SA-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC0_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC0-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsODBL_1_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsODBL-1.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsPD @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsPD\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsARR @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsARR\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-2.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_SA_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_SA_2_0_DE @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.0-DE\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-2.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_SA_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-SA-2.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_ND_2_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-ND-2.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_SA_2_5 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.5\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_SA_2_5_SE @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-2.5-SE\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_3_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-3.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_SA_3_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-SA-3.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_SA_3_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-SA-3.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_ND_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-ND-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MZ_intellectualRightsCC_BY_NC_ND_4_0 @enum(subgraph: "Laji-API", value: "\"MZ.intellectualRightsCC-BY-NC-ND-4.0\"")  @join__enumValue(graph: LAJI_API) 
+  MY_intellectualRightsCC_BY @enum(subgraph: "Laji-API", value: "\"MY.intellectualRightsCC-BY\"")  @join__enumValue(graph: LAJI_API) 
+  MY_intellectualRightsCC0 @enum(subgraph: "Laji-API", value: "\"MY.intellectualRightsCC0\"")  @join__enumValue(graph: LAJI_API) 
 }
 
 """
@@ -33339,6 +33385,9 @@ input store_document_Input @join__type(graph: LAJI_API)  {
   Additional information to the data in each section.
   """
   notes: String
+  """
+  ID for the observation in another system, e.g. Vihko/Notebook. Format System:identifier.
+  """
   observationID: String
   """
   Original catalogue number or other  original identifier of the specimen. E.g. H9000000
@@ -33364,6 +33413,9 @@ input store_document_Input @join__type(graph: LAJI_API)  {
   Publication references or doi's that refer to this specimen
   """
   publication: [String]
+  """
+  Optical character recognition or AI generated data in its raw format, errors and all.
+  """
   rawOCRData: String
   """
   Relationship to another taxon OR specimen. Choose relationship type as prefix and give taxon name or specimen identifier thereafter, e.g. "parasite: Parasiticus specius" OR "host:http://tun.fi/JAA.123"
@@ -33466,7 +33518,13 @@ input store_gatheringEvent_Input @join__type(graph: LAJI_API)  {
   cloudCoverEnd: End_cloud_cover!
   cloudCoverStart: Start_cloud_cover!
   completeList: store_completeList_Input!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   gatheringFact: store_gatheringFact_Input!
   geometry: store_geometry_Input!
@@ -33519,6 +33577,7 @@ input store_gatheringFact_Input @join__type(graph: LAJI_API)  {
   documentation: String!
   invasiveControlOtherExpensesInEuros: NonNegativeInt!
   invasiveControlWorkHours: NonNegativeInt!
+  lineTransectNests: [store_lineTransectNest_Input]!
   lineTransectSegmentCounted: Boolean!
   lineTransectSegmentMetersEnd: NonNegativeInt!
   lineTransectSegmentMetersStart: NonNegativeInt!
@@ -33611,6 +33670,22 @@ input store_gatheringFact_Input @join__type(graph: LAJI_API)  {
   wayOfTravel: Kulkutapa!
   wayOfTravelNotes: String!
   wind: Tuuli!
+}
+
+input store_lineTransectNest_Input @join__type(graph: LAJI_API)  {
+  _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
+  id: String!
+  _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  autocompleteSelectedTaxonID: String!
+  lineTransectNestMeters: NonNegativeInt!
+  lineTransectRouteFieldType: Field_Area!
+  nestCount: NonNegativeInt!
+  nestSize: Nest_Size!
+  nestType: Nest_type!
+  """
+  Taxon name
+  """
+  taxon: String!
 }
 
 input store_geometry_Input @join__type(graph: LAJI_API)  {
@@ -33787,7 +33862,13 @@ input store_gathering_Input @join__type(graph: LAJI_API)  {
   County (piirikunta, kreivikunta etc.)
   """
   county: String!
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   """
   Date just as it appears on the label or other original source, no interpretation, errors and all
@@ -34055,9 +34136,7 @@ input store_unit_Input @join__type(graph: LAJI_API)  {
   mutant: String!
   nativeStatus: Native_status!
   nestCount: NonNegativeInt!
-  nestDistanceFromLineTransectStartMeters: NonNegativeInt!
   nestNotes: String!
-  nestSize: P_246_nt_246_n_kokoluokka!
   nestTreeDiameterInCentimeters: NonNegativeInt!
   nestType: Nest_type!
   """
@@ -34228,7 +34307,13 @@ input store_unitGathering_Input @join__type(graph: LAJI_API)  {
   _AT_context: String! @resolveRootField(subgraph: "Laji-API", field: "@context") 
   id: String!
   _AT_type: String! @resolveRootField(subgraph: "Laji-API", field: "@type") 
+  """
+  Collection date as exact date or start date for a time period.
+  """
   dateBegin: String!
+  """
+  End date for a collection time period, if exact date is not know.
+  """
   dateEnd: String!
   geometry: store_geometry_Input!
   """
@@ -34527,6 +34612,7 @@ input store_profile_Input @join__type(graph: LAJI_API)  {
   taxonExpertiseNotes: String
   userID: String!
   xenoCantoApiKey: String
+  xenoCantoUserName: String
   profileKey: String
 }
 
