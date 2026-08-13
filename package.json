@@ -26,6 +26,7 @@
   "dependencies": {
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
+    "@envelop/response-cache-redis": "^4.3.1",
     "@graphql-hive/nestjs": "^2.0.72",
     "@graphql-mesh/compose-cli": "^1.5.32",
     "@graphql-yoga/plugin-response-cache": "^3.23.2",

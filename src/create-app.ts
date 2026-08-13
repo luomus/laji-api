@@ -22,6 +22,9 @@ import { parse, visit } from "graphql";
 import * as fs from "fs";
 import * as path from "path";
 import axiosRetry from "axios-retry";
+import { Redis } from 'ioredis'
+import { createRedisCache } from "@envelop/response-cache-redis";
+
 
 type App = NestExpressApplication<Server<typeof IncomingMessage, typeof ServerResponse>>;
 
@@ -205,7 +208,7 @@ const addGraphql = (app: App) => {
 		inboundInflightRequestDeduplication: true,
 		cache: {
 			set: async (key, value, { ttl } = {}) => {
-				void cache.set(key, value, typeof ttl === "number" ?  ttl * 1000 : undefined);
+				void cache.set(key, value, typeof ttl === "number" ? ttl * 1000 : undefined);
 			},
 			get: async (key) => {
 				return cache.get(key);
@@ -220,6 +223,10 @@ const addGraphql = (app: App) => {
 		},
 		plugins: () => [
 			useResponseCache({
+				ttl: 60_000,
+				cache: createRedisCache({
+					redis: new Redis(`redis://${configService.get("REDIS_URL") || "localhost:6379"}`)
+				}),
 				session: (request) => {
 					return JSON.stringify({
 						lang: request.headers.get("accept-language") ?? "en",
@@ -238,9 +245,9 @@ const addGraphql = (app: App) => {
 						: { lang: "en", personToken: "" };
 					const { lang, personToken, authorization } = parsedSession;
 					const accessToken = authorization.replace("Bearer ", "").replace("bearer ", "");
-					const isPrivate = personToken
+					const isPersonal = personToken
 						&& FIELDS_WITH_PERSON_TOKEN_ARG.some(privateField => documentString.includes(privateField));
-					const scopeKey = isPrivate
+					const scopeKey = isPersonal
 						? `${accessToken}:${lang}:${personToken}`
 						: `${accessToken}:${lang}`;
 					return JSON.stringify({
