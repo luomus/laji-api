@@ -33,7 +33,7 @@ export class Person extends HasJsonLdContext implements Omit<_Person, "role" | "
 	}
 }
 
-export const decoratePerson = (person: Person): Person => {
+export const decoratePerson = (person: Person) => {
 	if (person.fullName === undefined) {
 		person.fullName = `${(person.inheritedName || "")} ${(person.preferredName || "")}`;
 	}

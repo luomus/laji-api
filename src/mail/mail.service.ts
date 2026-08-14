@@ -1,11 +1,9 @@
 import { ISendMailOptions, MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
-import { Person, decoratePerson } from "src/persons/person.dto";
+import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
-import { CompleteMultiLang, Lang, MultiLangAsString } from "src/common.dto";
+import { CompleteMultiLang } from "src/common.dto";
 import { NamedPlace } from "src/named-places/named-places.dto";
-import { FeedbackDto, InformationSystem } from "src/feedback/feedback.dto";
-import { LangService } from "src/lang/lang.service";
 type FormPermissionMailContext = { formTitle: CompleteMultiLang };
 
 type HasEmailAddress = { emailAddress: string };
@@ -16,8 +14,7 @@ const ERROR_EMAIL = "grp-a97800-errors@helsinki.fi";
 export class MailService {
 	constructor(
 		private mailerService: MailerService,
-		private configService: ConfigService,
-		private langService: LangService
+		private configService: ConfigService
 	) {}
 
 	private send(options: ISendMailOptions) {
@@ -97,42 +94,4 @@ export class MailService {
 			}
 		});
 	}
-
-	async sendFeedback(feedback: FeedbackDto, system: InformationSystem, person?: Person) {
-		// Efecte doesn't support HTML so we can't use a template. The template must be there though, so we use this noop
-		// template. The 'text' argument is in effect here really instead.
-		const message = getFeedbacMessage(
-			feedback,
-			await this.langService.translate(system, [{ lang: Lang.fi }]) as MultiLangAsString<InformationSystem>,
-			person ? decoratePerson(person) : undefined
-		);
-		return this.send({
-			to: "lajitietokeskus@helsinki.fi",
-			from: person?.emailAddress,
-			subject: feedback.subject,
-			template: "./noop",
-			text: message
-		});
-	}
 }
-
-const getFeedbacMessage = (feedback: FeedbackDto, system: MultiLangAsString<InformationSystem>, person?: Person) => {
-	let message = `
-
-${ feedback.message }
-=====================`;
-	if (person) {
-		message += `
-
-${ person.fullName } (${person.id})
-
-`;
-	}
-	message += `
-${ feedback.meta }
-
-${ system.name } ${ system.URI } (${ system.id })
-`;
-
-	return message;
-};
