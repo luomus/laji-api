@@ -32,9 +32,11 @@ export class QueryWithPagingAndIdIn extends IntersectionType(QueryWithPagingDto)
 	@CommaSeparatedStrings() idIn?: string[];
 }
 
-
 export class HasSelectedFields {
-	/** Select fields to include in the result. Multiple values are separated by a comma (,) */
+	/**
+	 * Select fields to include in the result. Multiple values are separated by a comma (,). Allows any value in the
+	 * schema. If the response is a page-like object (has "results"), it allows any field in the results' schema
+	 * */
 	@CommaSeparatedStrings() selectedFields?: string[];
 }
 
