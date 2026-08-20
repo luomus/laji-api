@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { compact, NodeObject, documentLoader } from "jsonld";
@@ -48,9 +48,6 @@ const baseQuery = { format: "rdf/xml", limit: 999999999 };
 // mechanism because we need the stale data. Instead, we timestamp the cached data and do a TTL comparison ourself.
 @Injectable()
 export class TriplestoreService {
-
-	private readonly logger = new Logger(TriplestoreService.name);
-
 	constructor(
 		@Inject(TRIPLESTORE_CLIENT) private triplestoreClient: RestClientService<JSONSerializable>,
 		private metadataService: MetadataService,
@@ -66,7 +63,7 @@ export class TriplestoreService {
 	async get<T>(resource: string, options?: TriplestoreQueryOptions, type?: string): Promise<T> {
 		const { cache } = options || {};
 		const cacheKey = getPathAndQuery(resource, undefined, type);
-		return this.withSWR(cacheKey, cache, () => this.rdfToJsonLd<T>(
+		return this.withStaleWhileRevalidate(cacheKey, cache, () => this.rdfToJsonLd<T>(
 			this.triplestoreClient.get(resource, { params: { ...baseQuery, ...(type ? { type } : { }) } }),
 			cacheKey,
 			options
@@ -78,7 +75,7 @@ export class TriplestoreService {
 		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
 		const { cache } = options || {};
-		return this.withSWR(getPathAndQuery("search", query), cache, async () =>
+		return this.withStaleWhileRevalidate(getPathAndQuery("search", query), cache, async () =>
 			asArray(await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
 				this.triplestoreClient.get("search", { params: query }),
 				getPathAndQuery("search", query),
@@ -94,8 +91,7 @@ export class TriplestoreService {
 		return (await this.triplestoreClient.get<{ count: number }>("search/count", { params: query }, options)).count;
 	}
 
-	/** SWR stands for for stale-while-revalidate */
-	private async withSWR<S>(
+	private async withStaleWhileRevalidate<S>(
 		cacheKey: string,
 		cacheTTL: TriplestoreQueryOptions["cache"],
 		createAndCacheRequest: () => Promise<S>
@@ -110,12 +106,7 @@ export class TriplestoreService {
 
 		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh) {
-			void createAndCacheRequest().catch(e => {
-				if (e?.details?.cause?.details?.cause?.name === "TimeoutError") {
-					this.logger.error("Triplestore SWR background refresh failed. Returning stale", e);
-					return staleWhileRevalidateEntry.data;
-				}
-			});
+			void createAndCacheRequest();
 		}
 		return staleWhileRevalidateEntry.data;
 	}
