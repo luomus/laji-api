@@ -1,14 +1,14 @@
 import { HttpException, Inject, Injectable, Logger } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
-import { compact, NodeObject } from "jsonld";
+import { compact, NodeObject, documentLoader } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
-import { asArray, nthFromNonEmptyArr, promisePipe } from "src/utils";
+import { asArray, MS_30_MIN, nthFromNonEmptyArr, promisePipe } from "src/utils";
 import { ClassProperties, MetadataService } from "src/metadata/metadata.service";
 import { HasJsonLdContext, MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
-import { TRIPLESTORE_CLIENT } from "src/provider-tokens";
+import { GLOBAL_CLIENT, TRIPLESTORE_CLIENT } from "src/provider-tokens";
 import { Property } from "src/metadata/metadata.dto";
 
 const BASE_URL = "http://tun.fi/";
@@ -54,9 +54,12 @@ export class TriplestoreService {
 	constructor(
 		@Inject(TRIPLESTORE_CLIENT) private triplestoreClient: RestClientService<JSONSerializable>,
 		private metadataService: MetadataService,
-		private cache: RedisCacheService
+		private cache: RedisCacheService,
+		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<any>,
 	) {
 		this.formatJsonLd = this.formatJsonLd.bind(this);
+		this.compactJsonLd = this.compactJsonLd.bind(this);
+		this.JSONLDDocumentLoaderWithCache = this.JSONLDDocumentLoaderWithCache.bind(this);
 	}
 
 	/** Get a resource from triplestore */
@@ -149,7 +152,7 @@ export class TriplestoreService {
 	private formatJsonLd(jsonld: any, properties: ClassProperties) {
 		return promisePipe(
 			stripBadProps,
-			compactJsonLd,
+			this.compactJsonLd,
 			resolveResources,
 			adhereToSchemaWith(properties),
 			dropPrefixes,
@@ -164,6 +167,24 @@ export class TriplestoreService {
 			{ data: item, timestamp: Date.now() }
 		);
 		return item;
+	}
+
+	async JSONLDDocumentLoaderWithCache(url: string) {
+		return this.globalClient.get(
+			url,
+			{ headers: { Accept: "application/ld+json" } },
+			{
+				cache: MS_30_MIN,
+				transformer: (result: any) => ({
+					contextUrl: null, documentUrl: url, document: result
+				})
+			});
+	}
+
+	compactJsonLd(jsonld: JSONObjectSerializable) {
+		return compact(
+			jsonld, (jsonld as any)["@type"], { documentLoader: this.JSONLDDocumentLoaderWithCache }
+		) as unknown as Promise<JSONSerializable>;
 	}
 }
 
@@ -192,9 +213,6 @@ const stripBadProps = (jsonld: JSONObjectSerializable) => {
 		return iteratedJsonLd;
 	});
 };
-
-const compactJsonLd = (jsonld: JSONObjectSerializable) =>
-	compact(jsonld, (jsonld as any)["@type"]) as unknown as Promise<JSONSerializable>;
 
 const traverseJsonLd = (
 	data: JSONObjectSerializable,

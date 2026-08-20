@@ -22,7 +22,7 @@ export const TriplestoreRestClient: FactoryProvider<RestClientService<never>> = 
 	imports: [forwardRef(() => MetadataModule)],
 	providers: [
 		TriplestoreRestClient,
-		TriplestoreService
+		TriplestoreService,
 	],
 	exports: [TriplestoreService]
 })
