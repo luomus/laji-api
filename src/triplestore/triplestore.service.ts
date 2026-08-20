@@ -63,7 +63,7 @@ export class TriplestoreService {
 	async get<T>(resource: string, options?: TriplestoreQueryOptions, type?: string): Promise<T> {
 		const { cache } = options || {};
 		const cacheKey = getPathAndQuery(resource, undefined, type);
-		return this.withStaleWhileRevalidate(cacheKey, cache, () => this.rdfToJsonLd<T>(
+		return this.withSWR(cacheKey, cache, () => this.rdfToJsonLd<T>(
 			this.triplestoreClient.get(resource, { params: { ...baseQuery, ...(type ? { type } : { }) } }),
 			cacheKey,
 			options
@@ -75,7 +75,7 @@ export class TriplestoreService {
 		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
 		const { cache } = options || {};
-		return this.withStaleWhileRevalidate(getPathAndQuery("search", query), cache, async () =>
+		return this.withSWR(getPathAndQuery("search", query), cache, async () =>
 			asArray(await this.rdfToJsonLd<MaybeArray<RemoteContextual<T>>>(
 				this.triplestoreClient.get("search", { params: query }),
 				getPathAndQuery("search", query),
@@ -91,7 +91,7 @@ export class TriplestoreService {
 		return (await this.triplestoreClient.get<{ count: number }>("search/count", { params: query }, options)).count;
 	}
 
-	private async withStaleWhileRevalidate<S>(
+	private async withSWR<S>(
 		cacheKey: string,
 		cacheTTL: TriplestoreQueryOptions["cache"],
 		createAndCacheRequest: () => Promise<S>
@@ -99,16 +99,16 @@ export class TriplestoreService {
 		if (!cacheTTL) {
 			return createAndCacheRequest();
 		}
-		const staleWhileRevalidateEntry = await this.cache.get<SWRCacheEntry<S>>(cacheKey);
-		if (!staleWhileRevalidateEntry) {
+		const SWREntry = await this.cache.get<SWRCacheEntry<S>>(cacheKey);
+		if (!SWREntry) {
 			return createAndCacheRequest();
 		}
 
-		const isFresh = staleWhileRevalidateEntry.timestamp + cacheTTL > Date.now();
+		const isFresh = SWREntry.timestamp + cacheTTL > Date.now();
 		if (!isFresh) {
 			void createAndCacheRequest();
 		}
-		return staleWhileRevalidateEntry.data;
+		return SWREntry.data;
 	}
 
 
