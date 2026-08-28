@@ -63,14 +63,3 @@ export class PreTranslatedDetailsValidationException extends ValidationException
 }
 
 export const isValidationExceptionBase = (e: any): e is ValidationExceptionBase => !!e?.details;
-
-export const JSONPointerToOldApiJSONPath = (pointer: string) => {
-	const splits = pointer.split("/");
-	splits.shift();
-	return splits.reduce((path, item) => {
-		if (!isNaN(+item)) {
-			return path + `[${item}]`;
-		}
-		return path + `.${item}`;
-	}, "");
-};
