@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { MS_30_MIN, lastFromNonEmptyArr, omitFromArray, parseJSONPointer, parseURIFragmentIdentifierRepresentation,
+import { MS_30_MIN, lastFromNonEmptyArr, omitFromArray, parseJSONPointer, parseURIFragmentIdentifier,
 	promisePipe, updateWithJSONPointer, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
@@ -383,7 +383,7 @@ export class SwaggerService {
 					return;
 				}
 				gathered[prefix + ref] = true;
-				const referredRemoteSchema: JSONSchema = parseURIFragmentIdentifierRepresentation(remoteDocument, ref);
+				const referredRemoteSchema: JSONSchema = parseURIFragmentIdentifier(remoteDocument, ref);
 				if (!referredRemoteSchema) {
 					return;
 				}
@@ -425,7 +425,7 @@ function getJsonSchema(targetConstructor: Type<unknown>) {
 
 const getSchemaDefinition = (document: OpenAPIObject, schema: JSONSchema): Exclude<JSONSchema, JSONSchemaRef> =>
 	isJSONSchemaRef(schema)
-		? parseURIFragmentIdentifierRepresentation(document, schema.$ref)
+		? parseURIFragmentIdentifier(document, schema.$ref)
 		: schema;
 
 const hasSwaggerSchemaDefinitionName = (entry: unknown): entry is { swaggerSchemaDefinitionName: string } =>
@@ -578,7 +578,7 @@ const requiredByDefault = (document: OpenAPIObject) => {
 
 const schemaRequiredByDefault = (schema: JSONSchema, document: OpenAPIObject, handledRefs: string[]) => {
 	if (isJSONSchemaRef(schema) && !handledRefs.includes(schema.$ref)) {
-		const referredSchema = parseURIFragmentIdentifierRepresentation<JSONSchema>(document, schema.$ref);
+		const referredSchema = parseURIFragmentIdentifier<JSONSchema>(document, schema.$ref);
 		handledRefs.push(schema.$ref);
 		schemaRequiredByDefault(referredSchema, document, handledRefs);
 	} else if (isJSONSchemaObject(schema)) {

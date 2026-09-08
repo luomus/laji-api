@@ -1,4 +1,4 @@
-import { dotNotationToJSONPointer, parseJSONPointer, parseURIFragmentIdentifierRepresentation, updateWithJSONPointer }
+import { dotNotationToJSONPointer, parseJSONPointer, parseURIFragmentIdentifier, updateWithJSONPointer }
 	from "./utils";
 
 describe("utils", () => {
@@ -173,42 +173,42 @@ describe("utils", () => {
 		});
 	});
 
-	describe("parseURIFragmentIdentifierRepresentation()", () => {
+	describe("parseURIFragmentIdentifier()", () => {
 
 		it("parses empty as whole obj", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#")).toBe(obj);
+			expect(parseURIFragmentIdentifier(obj, "#")).toBe(obj);
 		});
 
 		it("parses depth of one", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#/foo")).toStrictEqual(["bar", "baz"]);
+			expect(parseURIFragmentIdentifier(obj, "#/foo")).toStrictEqual(["bar", "baz"]);
 		});
 
 		it("parses depth of two", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#/foo/0")).toBe("bar");
+			expect(parseURIFragmentIdentifier(obj, "#/foo/0")).toBe("bar");
 		});
 
 		it("parses #/ as empty string property", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#/")).toBe(0);
+			expect(parseURIFragmentIdentifier(obj, "#/")).toBe(0);
 		});
 
 		it("parses '#/ ' to one empty space char", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#/ ")).toBe(7);
+			expect(parseURIFragmentIdentifier(obj, "#/ ")).toBe(7);
 		});
 
 		it("is validated", () => {
-			expect(() => parseURIFragmentIdentifierRepresentation(obj, "#not/valid/pointer")).toThrowError();
+			expect(() => parseURIFragmentIdentifier(obj, "#not/valid/pointer")).toThrowError();
 		});
 
 		it("is validated for hash missing", () => {
-			expect(() => parseURIFragmentIdentifierRepresentation(obj, "not/valid/pointer")).toThrowError();
+			expect(() => parseURIFragmentIdentifier(obj, "not/valid/pointer")).toThrowError();
 		});
 
 		it("safely option returns undefined for nonexistent property", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#/not", { safely: true })).toBe(undefined);
+			expect(parseURIFragmentIdentifier(obj, "#/not", { safely: true })).toBe(undefined);
 		});
 
 		it("safely option returns undefined for nonexistent property deeply", () => {
-			expect(parseURIFragmentIdentifierRepresentation(obj, "#/not/existent", { safely: true })).toBe(undefined);
+			expect(parseURIFragmentIdentifier(obj, "#/not/existent", { safely: true })).toBe(undefined);
 		});
 	});
 

@@ -2,7 +2,7 @@ import { Lang } from "src/common.dto";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { JSONSchema, TypedJSONSchema, isJSONSchemaArray, isJSONSchemaObject, isJSONSchemaRef }
 	from "src/json-schema.utils";
-import { parseURIFragmentIdentifierRepresentation } from "src/utils";
+import { parseURIFragmentIdentifier } from "src/utils";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { HttpException } from "@nestjs/common";
 import { instanceToInstance } from "class-transformer";
@@ -60,7 +60,7 @@ export const jsonSchemaToEmbeddedJsonLdContext = (
 			throw new Error("Can't parse refs if there's no OpenAPI document to parse from");
 		}
 		return jsonSchemaToEmbeddedJsonLdContext(
-			parseURIFragmentIdentifierRepresentation(jsonSchemaBase, schema.$ref),
+			parseURIFragmentIdentifier(jsonSchemaBase, schema.$ref),
 			jsonSchemaBase
 		);
 	} else if (isJSONSchemaObject(schema)) {

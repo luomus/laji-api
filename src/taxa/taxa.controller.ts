@@ -11,14 +11,14 @@ import { Serializer } from "src/serialization/serializer.interceptor";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
-import { parseURIFragmentIdentifierRepresentation } from "src/utils";
+import { parseURIFragmentIdentifier } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
 import { LANGS } from "src/common.dto";
 import { AddIntellectualRights } from "./intellectual-rights.interceptor";
 import { AddContextToPageLikeResult } from "src/interceptors/add-context-to-page-like-result.interceptor";
 
 const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
-	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
 	[
 		"vernacularName",
 		"alternativeVernacularName",

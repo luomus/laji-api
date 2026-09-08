@@ -140,7 +140,7 @@ export const parseJSONPointer = <T = unknown>(
 	return splits.reduce((pointedObj, token, i) => {
 		token = parseJSONPointerToken(token);
 		if (resolveRefs && pointedObj && !(token in pointedObj) && isJSONSchemaRef(pointedObj)) {
-			pointedObj = parseURIFragmentIdentifierRepresentation(obj, pointedObj.$ref);
+			pointedObj = parseURIFragmentIdentifier(obj, pointedObj.$ref);
 		}
 		if ((create || safely) && (!pointedObj || !(token in pointedObj))) {
 			if (create) {
@@ -174,10 +174,7 @@ export const updateWithJSONPointer = (
 		lastContainer &&
 		isJSONSchemaRef(lastContainer)
 	) {
-		lastContainer = parseURIFragmentIdentifierRepresentation(
-			obj,
-			lastContainer.$ref
-		);
+		lastContainer = parseURIFragmentIdentifier(obj, lastContainer.$ref);
 	}
 	if (options?.safely && !lastContainer) {
 		return;
@@ -191,7 +188,8 @@ const validateURIFragmentIdentifierRepresentation = (pointer: string) => {
 	}
 };
 
-export const parseURIFragmentIdentifierRepresentation = <T = unknown>(
+/** As per https://datatracker.ietf.org/doc/html/rfc6901#section-6 */
+export const parseURIFragmentIdentifier = <T = unknown>(
 	obj: object,
 	pointer: string,
 	options?: ParseJSONPointerOptions

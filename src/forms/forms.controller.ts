@@ -12,11 +12,11 @@ import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/re
 import { RequestLang } from "src/decorators/request-lang.decorator";
 import { FormParticipantsService } from "./form-participants/form-participants.service";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
-import { asTuple, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
+import { asTuple, parseURIFragmentIdentifier, pipe } from "src/utils";
 import { pick } from "src/typing.utils";
 
 const inSchemaFormat = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
-	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
 	schema.properties!.schema = {
 		$ref: "#/components/schemas/JSONSchema"
 	};
@@ -73,7 +73,7 @@ const inSchemaFormat = (schemaRef: ReferenceObject, document: OpenAPIObject) => 
 };
 
 const pickFormListingKeys = ([schemaRef, document]: [ReferenceObject, OpenAPIObject]) => {
-	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schemaRef.$ref);
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
 	schema.properties = pick(schema.properties!, ...FORM_LISTING_KEYS);
 	return schemaRef;
 };
@@ -93,7 +93,7 @@ export class FormsController {
 		return this.formParticipantsService.getParticipants(id, person);
 	}
 
-	/** Get a page of forms */
+	/** Get all forms */
 	@Get()
 	@SwaggerRemote({
 		source: "store",

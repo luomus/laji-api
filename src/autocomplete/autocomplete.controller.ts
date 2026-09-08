@@ -11,11 +11,11 @@ import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/re
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
-import { asTuple, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
+import { asTuple, parseURIFragmentIdentifier, pipe } from "src/utils";
 import { Limit } from "src/interceptors/limit.interceptor";
 
 const swaggerResponseWithKeyAndValue = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
-	const schema: JSONSchemaObject = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
+	const schema: JSONSchemaObject = parseURIFragmentIdentifier(document, refSchema.$ref);
 	schema.properties!.key = { type: "string" };
 	schema.properties!.value = { type: "string" };
 	return refSchema;

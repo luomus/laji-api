@@ -12,7 +12,7 @@ import { applyLangToJsonLdContext } from "src/json-ld/json-ld.utils";
 import { pipe } from "rxjs";
 import { idAlwaysPresent } from "src/collections/collections.controller";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
-import { firstFromNonEmptyArr, asTuple, parseURIFragmentIdentifierRepresentation } from "src/utils";
+import { firstFromNonEmptyArr, asTuple, parseURIFragmentIdentifier } from "src/utils";
 import { LangPreference } from "src/lang/lang.utils";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 import { OpenAPIObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
@@ -24,7 +24,7 @@ const fromStoreWithJSONLdContextFixed: SwaggerRemoteEntry = {
 };
 
 const expandHasIucnSubGroup = ([schema, document]: [JSONSchemaRef, OpenAPIObject]) => {
-	const referredSchema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, schema.$ref);
+	const referredSchema: SchemaObject = parseURIFragmentIdentifier(document, schema.$ref);
 
 	(referredSchema as JSONSchemaObject).properties!.hasIucnSubGroup = {
 		$ref: "#/components/schemas/IucnRedListTaxonGroupExpanded"

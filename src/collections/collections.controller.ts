@@ -11,7 +11,7 @@ import { Serializer } from "src/serialization/serializer.interceptor";
 import { LANGS, QueryWithPagingAndIdInAndSelectedFields, QueryWithPagingDto } from "src/common.dto";
 import { omit } from "src/typing.utils";
 import { JSONSchemaObject, JSONSchemaRef } from "src/json-schema.utils";
-import { asTuple, firstFromNonEmptyArr, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
+import { asTuple, firstFromNonEmptyArr, parseURIFragmentIdentifier, pipe } from "src/utils";
 import { asPagedResponse } from "src/swagger/swagger.service";
 import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
@@ -20,7 +20,7 @@ import { LangPreference } from "src/lang/lang.utils";
 import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 
 export const idAlwaysPresent = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
-	const referredSchema = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref) as JSONSchemaObject;
+	const referredSchema = parseURIFragmentIdentifier(document, refSchema.$ref) as JSONSchemaObject;
 	if (!referredSchema.required) {
 		referredSchema.required = [];
 	}
@@ -30,14 +30,14 @@ export const idAlwaysPresent = ([refSchema, document]: [JSONSchemaRef, OpenAPIOb
 
 const sensitiveProps = ["collectionLocation", "dataLocation", "inMustikka", "editor", "creator"];
 const filterSensitiveProps = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
-	const referredSchema = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref) as JSONSchemaObject;
+	const referredSchema = parseURIFragmentIdentifier(document, refSchema.$ref) as JSONSchemaObject;
 	referredSchema.properties = omit(referredSchema.properties!, ...sensitiveProps);
 	referredSchema.properties.hasChildren = { type: "boolean" };
 	return [refSchema, document];
 };
 
 const addMultiLangs = ([refSchema, document]: [JSONSchemaRef, OpenAPIObject]) => {
-	const schema: SchemaObject = parseURIFragmentIdentifierRepresentation(document, refSchema.$ref);
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, refSchema.$ref);
 	[
 		"longName",
 		"description",

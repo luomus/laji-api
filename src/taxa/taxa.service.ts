@@ -6,7 +6,7 @@ import {
 } from "./taxa.dto";
 import { TAXA_CLIENT } from "src/provider-tokens";
 import { MaybeArray } from "src/typing.utils";
-import { asArray, parseURIFragmentIdentifierRepresentation, pipe } from "src/utils";
+import { asArray, parseURIFragmentIdentifier, pipe } from "src/utils";
 import { paginateAlreadyPaginated } from "src/pagination.utils";
 import { TaxaFilters, buildElasticQuery } from "./taxa-elastic-query";
 import { OpenAPIObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
@@ -181,7 +181,7 @@ export const getFiltersSchema = (remoteDoc: OpenAPIObject) => {
 const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: OpenAPIObject): JSONSchemaObject => {
 	const collectProperties = (schema: JSONSchema, path: string[]): { path: string[], schema: JSONSchema }[] => {
 		if (isJSONSchemaRef(schema)) {
-			schema = parseURIFragmentIdentifierRepresentation(swagger, schema.$ref);
+			schema = parseURIFragmentIdentifier(swagger, schema.$ref);
 			return collectProperties(schema, path);
 		} else if (isJSONSchemaObject(schema)) {
 			return Object.keys(schema.properties || {}).reduce((collected, property) => {
