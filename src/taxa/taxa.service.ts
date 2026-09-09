@@ -61,11 +61,10 @@ export class TaxaService {
 		if (query.selectedFields) {
 			query.selectedFields = getSelectedFields(query.selectedFields);
 		}
-		console.log(JSON.stringify(buildElasticQuery(query, filters, await this.getFiltersSchema(), taxon), undefined, 2));
-		const res = this.elasticService.search<TaxonElastic>(`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa`,
+		const res = this.elasticService.search<TaxonElastic>(
+			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa`,
 			buildElasticQuery(query, filters, await this.getFiltersSchema(), taxon)
 		);
-		console.log(JSON.stringify(res, undefined, 2));
 		return res;
 	}
 

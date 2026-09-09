@@ -22,7 +22,7 @@ import { parse, visit } from "graphql";
 import * as fs from "fs";
 import * as path from "path";
 import axiosRetry from "axios-retry";
-import { Redis } from 'ioredis'
+import { Redis } from "ioredis";
 import { createRedisCache } from "@envelop/response-cache-redis";
 
 type App = NestExpressApplication<Server<typeof IncomingMessage, typeof ServerResponse>>;

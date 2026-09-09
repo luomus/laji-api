@@ -1,7 +1,7 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
-import { compact, NodeObject, documentLoader } from "jsonld";
+import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
 import { asArray, MS_30_MIN, nthFromNonEmptyArr, promisePipe } from "src/utils";
