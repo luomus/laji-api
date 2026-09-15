@@ -173,18 +173,21 @@ const applyFiltersToElasticQuery = (filters: TaxaFilters = {}, filtersSchema: JS
 
 const withSimpleFiltersFromQuery = (
 	query: Partial<AllQueryParams>,
-	filters?: TaxaFilters
+	filters: TaxaFilters = {}
 ) => {
 	if (query.includeHidden === false)  {
-		filters = { ...(filters || {}), hiddenTaxon: false, darkTaxa: false };
+		filters = { ...filters, hiddenTaxon: false };
+	}
+	if (!("darkTaxa" in filters)) {
+		filters = { ...filters, darkTaxa: false };
 	}
 	(["invasiveSpecies", "informalTaxonGroups", "finnish", "id"] as (keyof SimpleFilters)[]).forEach(filter => {
 		if (filter in query) {
-			filters = { ...(filters || {}), [filter]: query[filter]! };
+			filters = { ...filters, [filter]: query[filter]! };
 		}
 	});
 	if (query.checklist)  {
-		filters = { ...(filters || {}), nameAccordingTo: query.checklist };
+		filters = { ...filters, nameAccordingTo: query.checklist };
 	}
 	return filters;
 };
