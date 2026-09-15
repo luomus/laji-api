@@ -176,7 +176,7 @@ const withSimpleFiltersFromQuery = (
 	filters?: TaxaFilters
 ) => {
 	if (query.includeHidden === false)  {
-		filters = { ...(filters || {}), hiddenTaxon: false };
+		filters = { ...(filters || {}), hiddenTaxon: false, darkTaxa: false };
 	}
 	(["invasiveSpecies", "informalTaxonGroups", "finnish", "id"] as (keyof SimpleFilters)[]).forEach(filter => {
 		if (filter in query) {

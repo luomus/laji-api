@@ -110,8 +110,8 @@ const addSwagger = async (app: App) => {
 		patchedDocument = await app.get(SwaggerService).patchMutably(document);
 	} catch (e) {
 		logger.error("Patching swagger failed!", e.stack);
-
 	}
+
 	setInterval(async () => {
 		try {
 			patchedDocument = await app.get(SwaggerService).patchMutably(document);
