@@ -178,9 +178,6 @@ const withSimpleFiltersFromQuery = (
 	if (query.includeHidden === false)  {
 		filters = { ...filters, hiddenTaxon: false };
 	}
-	if (!("darkTaxa" in filters)) {
-		filters = { ...filters, darkTaxa: false };
-	}
 	(["invasiveSpecies", "informalTaxonGroups", "finnish", "id"] as (keyof SimpleFilters)[]).forEach(filter => {
 		if (filter in query) {
 			filters = { ...filters, [filter]: query[filter]! };
