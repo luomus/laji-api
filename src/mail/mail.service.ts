@@ -96,7 +96,6 @@ export class MailService {
 	}
 
 	sendOpenFormSubmission(emailAddress: string, context: { documentID: string }) {
-		console.log("SENDING TO", emailAddress, context.documentID);
 		return this.send({
 			to: emailAddress,
 			subject: "Luontohavaintosi on vastaanotettu",
