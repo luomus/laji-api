@@ -21,6 +21,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { DocumentsBatchValidationWorker } from "./documents-batch/documents-batch-validation.worker";
 import { DocumentsBatchSendWorker } from "./documents-batch/documents-batch-send.worker";
 import { ApiUsersModule } from "src/api-users/api-users.module";
+import { MailModule } from "src/mail/mail.module";
 
 export const documentsStoreConfig: StoreConfig<DocumentQuery> = {
 	resource: "document",
@@ -70,7 +71,8 @@ const StoreResourceService: FactoryProvider<StoreService<DocumentQuery>> = {
 				port: 6379,
 			},
 		}),
-		ApiUsersModule
+		ApiUsersModule,
+		MailModule
 	],
 	exports: [DocumentsService],
 	controllers: [DocumentsController]

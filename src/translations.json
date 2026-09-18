@@ -122,7 +122,7 @@
 	"NAMED_PLACE_CANT_DELETE_PUBLIC_WITH_DOCUMENTS": {
 		"en": "Can't delete a public place that has documents",
 		"sv": "Kan inte ta bort en public plats som har dokument",
-		"fi": "Ei voi poistaa julkista paikkaa, jolla on dokumentteja"
+		"fi": "Ei voi poistaa julkista paikkaa, jolla on havaintoerä"
 	},
 	"NAMED_PLACE_RESERVED_ALREADY": {
 		"en": "The place is already reserved",

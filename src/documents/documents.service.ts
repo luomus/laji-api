@@ -9,13 +9,14 @@ import { FormsService } from "src/forms/forms.service";
 import { CollectionsService } from "src/collections/collections.service";
 import { Person } from "src/persons/person.dto";
 import { NamedPlacesService } from "src/named-places/named-places.service";
-import { LocalizedException, isValidDate } from "src/utils";
+import { LocalizedException, firstFromNonEmptyArr, isValidDate } from "src/utils";
 import { NamedPlace } from "src/named-places/named-places.dto";
 import { QueryCacheOptions } from "src/store/store-cache";
 import { DocumentValidatorService } from "./document-validator/document-validator.service";
 import { ValidationException } from "./document-validator/document-validator.utils";
 import { ApiUserEntity } from "src/api-users/api-user.entity";
 import { Lang } from "src/common.dto";
+import { MailService } from "src/mail/mail.service";
 
 /** Allowed query keys of the external API of the document service */
 export const allowedQueryKeysForExternalAPI = [
@@ -69,6 +70,7 @@ export class DocumentsService {
 		private formPermissionsService: FormPermissionsService,
 		private formsService: FormsService,
 		private collectionsService: CollectionsService,
+		private mailService: MailService,
 
 		@Inject(forwardRef(() => NamedPlacesService))
 		private namedPlacesService: NamedPlacesService,
@@ -151,7 +153,7 @@ export class DocumentsService {
 		}
 		await this.validate(document, person, skipValidations, lang);
 		const created = await this.store.create(document) as Document & { id: string };
-		await this.namedPlaceSideEffects(created, person);
+		await this.sideEffects(created, person);
 		return created;
 	}
 
@@ -192,7 +194,7 @@ export class DocumentsService {
 
 		await this.validate(document, person, skipValidations, lang);
 		const updated = await this.store.update(document as Document & { id: string });
-		await this.namedPlaceSideEffects(updated, person);
+		await this.sideEffects(updated, person);
 		return updated;
 	}
 
@@ -299,15 +301,45 @@ export class DocumentsService {
 		await this.documentValidatorService.validate(document, person, undefined, lang);
 	}
 
+	private async sideEffects(document: Document & { id: string }, person?: Person) {
+		void this.openFormSideEffects(document, person);
+		await this.namedPlaceSideEffects(document, person);
+	}
+
+	private async openFormSideEffects(document: Document & { id: string }, person?: Person) {
+		const { formID, contacts } = document;
+		if (!contacts) {
+			return;
+		}
+		const { emailAddress } = firstFromNonEmptyArr(contacts);
+		if (
+			person
+			|| !emailAddress
+			|| !formID
+			|| document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
+		) {
+			return;
+		}
+
+		const form = await this.formsService.get(formID);
+		if (!form.options?.openForm) {
+			return;
+		}
+
+		void this.mailService.sendOpenFormSubmission(emailAddress, { documentID: document.id });
+	}
+
 	async namedPlaceSideEffects(document: Document & { id: string }, person?: Person) {
-		if (document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
-			|| !document.formID
+		const { formID } = document;
+		if (
+			document.publicityRestrictions !== "MZ.publicityRestrictionsPublic"
+			|| !formID
 			|| !document.namedPlaceID
 		) {
 			return;
 		}
 
-		const form = await this.formsService.get(document.formID);
+		const form = await this.formsService.get(formID);
 		if (!form.options?.useNamedPlaces) {
 			return;
 		}

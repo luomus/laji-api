@@ -15,69 +15,6 @@ import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/di
 import { asTuple, parseURIFragmentIdentifier, pipe } from "src/utils";
 import { pick } from "src/typing.utils";
 
-const inSchemaFormat = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
-	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
-	schema.properties!.schema = {
-		$ref: "#/components/schemas/JSONSchema"
-	};
-	schema.properties!.excludeFromCopy = { type: "array", items: { type: "string" } };
-	schema.properties!.validators = { type: "object", additionalProperties: true };
-	schema.properties!.warnings = { type: "object", additionalProperties: true };
-	schema.properties!.uiSchemaContext = { type: "object", additionalProperties: true };
-	delete schema.properties!.fields;
-
-	document.components!.schemas = {
-		...document.components?.schemas,
-		JSONSchema: {
-			oneOf: [
-				{ $ref: "#/components/schemas/JSONSchemaObject" },
-				{ $ref: "#/components/schemas/JSONSchemaArray" },
-				{ $ref: "#/components/schemas/JSONSchemaPrimitive" }
-			]
-		},
-		JSONSchemaObject: {
-			type: "object",
-			properties: {
-				type: { enum: [ "object" ] },
-				properties: { type: "object", additionalProperties: { "$ref": "#/components/schemas/JSONSchema" } },
-				default: { type: "object" }
-			}
-		},
-		JSONSchemaArray: {
-			type: "object",
-			properties: {
-				type: { enum: ["array"] },
-				items: {
-					$ref: "#/components/schemas/JSONSchema"
-				},
-				uniqueItems: { type: "boolean" },
-				maxItems: { type: "boolean" },
-				minItems: { type: "boolean" },
-				default: { type: "array" },
-			},
-			required: ["type", "items"],
-			additionalProperties: true
-		},
-		JSONSchemaPrimitive: {
-			type: "object",
-			properties: {
-				type: {
-					enum: ["string", "number", "integer", "boolean", "null"]
-				},
-				default: {}
-			},
-			additionalProperties: true
-		}
-	};
-	return schemaRef;
-};
-
-const pickFormListingKeys = ([schemaRef, document]: [ReferenceObject, OpenAPIObject]) => {
-	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
-	schema.properties = pick(schema.properties!, ...FORM_LISTING_KEYS);
-	return schemaRef;
-};
-
 @ApiTags("Forms")
 @LajiApiController("forms")
 export class FormsController {
@@ -156,3 +93,67 @@ export class FormsController {
 		return this.formsService.transform(form, lang);
 	}
 }
+
+
+function inSchemaFormat(schemaRef: ReferenceObject, document: OpenAPIObject) {
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
+	schema.properties!.schema = {
+		$ref: "#/components/schemas/JSONSchema"
+	};
+	schema.properties!.excludeFromCopy = { type: "array", items: { type: "string" } };
+	schema.properties!.validators = { type: "object", additionalProperties: true };
+	schema.properties!.warnings = { type: "object", additionalProperties: true };
+	schema.properties!.uiSchemaContext = { type: "object", additionalProperties: true };
+	delete schema.properties!.fields;
+
+	document.components!.schemas = {
+		...document.components?.schemas,
+		JSONSchema: {
+			oneOf: [
+				{ $ref: "#/components/schemas/JSONSchemaObject" },
+				{ $ref: "#/components/schemas/JSONSchemaArray" },
+				{ $ref: "#/components/schemas/JSONSchemaPrimitive" }
+			]
+		},
+		JSONSchemaObject: {
+			type: "object",
+			properties: {
+				type: { enum: [ "object" ] },
+				properties: { type: "object", additionalProperties: { "$ref": "#/components/schemas/JSONSchema" } },
+				default: { type: "object" }
+			}
+		},
+		JSONSchemaArray: {
+			type: "object",
+			properties: {
+				type: { enum: ["array"] },
+				items: {
+					$ref: "#/components/schemas/JSONSchema"
+				},
+				uniqueItems: { type: "boolean" },
+				maxItems: { type: "boolean" },
+				minItems: { type: "boolean" },
+				default: { type: "array" },
+			},
+			required: ["type", "items"],
+			additionalProperties: true
+		},
+		JSONSchemaPrimitive: {
+			type: "object",
+			properties: {
+				type: {
+					enum: ["string", "number", "integer", "boolean", "null"]
+				},
+				default: {}
+			},
+			additionalProperties: true
+		}
+	};
+	return schemaRef;
+};
+
+function pickFormListingKeys([schemaRef, document]: [ReferenceObject, OpenAPIObject]) {
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
+	schema.properties = pick(schema.properties!, ...FORM_LISTING_KEYS);
+	return schemaRef;
+};

@@ -17,30 +17,6 @@ import { LANGS } from "src/common.dto";
 import { AddIntellectualRights } from "./intellectual-rights.interceptor";
 import { AddContextToPageLikeResult } from "src/interceptors/add-context-to-page-like-result.interceptor";
 
-const addVernacularNameTranslations = (schemaRef: ReferenceObject, document: OpenAPIObject) => {
-	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
-	[
-		"vernacularName",
-		"alternativeVernacularName",
-		"colloquialVernacularName",
-		"obsoleteVernacularName",
-		"tradeName"
-	].forEach(property => {
-		const origProperty = schema.properties![property] as SchemaObject;
-		schema.properties![`${property}MultiLang`] = {
-			type: "object",
-			properties: LANGS.reduce(
-				(properties, lang) => ({ ...properties, [lang]: origProperty }),
-				{}),
-			_patchMultiLang: false
-		} as any;
-	});
-	return schemaRef;
-};
-
-const addFiltersSchema = (schema: never, document: never, remoteDoc: OpenAPIObject) =>
-	getFiltersSchema(remoteDoc);
-
 /* eslint-disable max-len */
 const BODY_DESCRIPTION = `
 The request body is a JSON object where each property represents a filter.
@@ -351,4 +327,29 @@ export class TaxaController {
 	getTaxonMedia(@Param("id") id: string, @Query() query: TaxaBaseQuery) {
 		return this.taxaService.getTaxonMedia(id, query);
 	}
+}
+
+function addVernacularNameTranslations(schemaRef: ReferenceObject, document: OpenAPIObject) {
+	const schema: SchemaObject = parseURIFragmentIdentifier(document, schemaRef.$ref);
+	[
+		"vernacularName",
+		"alternativeVernacularName",
+		"colloquialVernacularName",
+		"obsoleteVernacularName",
+		"tradeName"
+	].forEach(property => {
+		const origProperty = schema.properties![property] as SchemaObject;
+		schema.properties![`${property}MultiLang`] = {
+			type: "object",
+			properties: LANGS.reduce(
+				(properties, lang) => ({ ...properties, [lang]: origProperty }),
+				{}),
+			_patchMultiLang: false
+		} as any;
+	});
+	return schemaRef;
+};
+
+function addFiltersSchema(schema: never, document: never, remoteDoc: OpenAPIObject) {
+	return getFiltersSchema(remoteDoc);
 }
