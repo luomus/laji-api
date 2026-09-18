@@ -10,6 +10,7 @@ import { Person } from "src/persons/person.dto";
 import { StoreService } from "src/store/store.service";
 import { documentsStoreConfig } from "./documents.module";
 import { Lang } from "src/common.dto";
+import { MailService } from "src/mail/mail.service";
 
 const mockPerson = (person: Partial<Person>) => ({ ...person, isImporter: () => false }) as Person;
 
@@ -60,6 +61,7 @@ describe("DocumentsService caching", () => {
 			}
 		};
 	};
+	const mockMailService = { };
 	const mockStoreService = new StoreService(mockHttpService as any, createMockCache() as any, documentsStoreConfig);
 	let formPermissionsService: FormPermissionsService;
 
@@ -74,6 +76,7 @@ describe("DocumentsService caching", () => {
 				{ provide: NamedPlacesService, useValue: mockNamedPlacesService },
 				{ provide: PrepopulatedDocumentService, useValue: mockPrepopulatedDocumentService },
 				{ provide: DocumentValidatorService, useValue: mockDocumentValidatorService },
+				{ provide: MailService, useValue: mockMailService },
 			],
 		}).compile();
 
