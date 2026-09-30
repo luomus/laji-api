@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch, HttpException } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import { Request, Response } from "express";
 import { JSONObjectSerializable } from "src/typing.utils";
-import { ExternalException } from "src/utils";
+import { asArray, ExternalException, joinOnlyStringsWith } from "src/utils";
 
 /** Normalizes the error format for all errors */
 @Catch()
@@ -31,9 +31,10 @@ export class ErrorNormalizerFilter<T extends Error> extends BaseExceptionFilter<
 				errorCode: (exception as any).errorCode,
 			};
 		} else if (exception instanceof HttpException) {
+			const responseMessage = (exception.getResponse?.() as any)?.message;
 			json = {
 				errorCode: "GENERIC",
-				message: exception.message
+				message: joinOnlyStringsWith(",")(...asArray(responseMessage)) || exception.message
 			};
 		} else {
 			json = { errorCode: "GENERIC", message: exception.message };
