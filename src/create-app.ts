@@ -68,7 +68,6 @@ const addLogger = (useLogger: boolean) => (app: App) => {
 		app.useLogger(logLevels as LogLevel[]);
 		logOutgoingRequests(app.get(HttpService));
 	}
-	new Logger().warn("Old API must be running at localhost:3003\n");
 	return app;
 };
 
