@@ -1,5 +1,5 @@
 import { Exclude } from "class-transformer";
-import { IsString } from "class-validator";
+import { IsEmail, IsString } from "class-validator";
 import {
 	Entity,
 	PrimaryGeneratedColumn,
@@ -20,6 +20,7 @@ export class ApiUserEntity {
   accessToken: string;
 
 	@IsString()
+	@IsEmail()
   @Column()
   email: string;
 
