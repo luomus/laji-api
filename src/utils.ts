@@ -19,9 +19,9 @@ type Op<T, R> = {
 type Pipe<I, O> = (input: I) => O;
 
 /**
- * Creates a function that reduces given input with the given operators.
+ * Creates a function that reduces given input with the given operations. Similar to RXJS' `pipe`, but for plain values.
  *
- * @param {...operations} operators which return the accumulated result which is passed to the next operation.
+ * @param {...operations} operations which return the accumulated result which is passed to the next operation.
  *
  * @returns function that is run for the operators for an input.
  */
@@ -49,10 +49,10 @@ type PromiseOp<T, R>  = {
 }
 
 /**
- * RXJS' `pipe` for plain promises.
- * Creates a function that reduces given input with the given operators.
  *
- * @param {...operations} operators which return the accumulated result which is passed to the next operation.
+ * Creates a function that reduces given input with the given operations. Similar to RXJS' `pipe`, but for plain promises.
+ *
+ * @param {...operations} operations which return the accumulated result which is passed to the next operation.
  * * @returns function that is run for the operators for an input.
  */
 /* eslint-disable max-len */
@@ -282,13 +282,14 @@ export class ExternalException extends HttpException {
 export const asTuple = <T, P>(first: T, second: P) =>
 	[first, second] as [T, P];
 
-export const omitFromArray = <T>(array: T[], toRemove: T): T[] => {
-	const idx = array.indexOf(toRemove);
-	if (idx === -1) {
-		return array;
-	}
-	return [
-		...array.slice(0, idx),
-		...array.slice(idx + 1),
-	];
-};
+export const omitFromArray = <T>(array: T[], ...toRemove: T[]): T[] =>
+	toRemove.reduce((omittedArray, toRemoveItem) => {
+		const idx = array.indexOf(toRemoveItem);
+		if (idx === -1) {
+			return omittedArray;
+		}
+		return [
+			...omittedArray.slice(0, idx),
+			...omittedArray.slice(idx + 1),
+		];
+	}, array);

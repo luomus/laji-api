@@ -1,8 +1,7 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { jsonSchemaToEmbeddedJsonLdContext } from "src/json-ld/json-ld.utils";
 import { SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { SwaggerService } from "src/swagger/swagger.service";
-import * as jsonld from "jsonld";
 import { JSONObjectSerializable } from "src/typing.utils";
 import { LANGS, Lang } from "src/common.dto";
 import { ConfigService } from "@nestjs/config";
@@ -12,12 +11,19 @@ import { SwaggerTypesMapper } from "@nestjs/swagger/dist/services/swagger-types-
 import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { JSONSchema } from "src/json-schema.utils";
 import { localJsonLdContextToClass } from "src/decorators/local-json-ld-context.decorator";
+import { GLOBAL_CLIENT } from "src/provider-tokens";
+import { RestClientService } from "src/rest-client/rest-client.service";
+import { MS_30_MIN } from "src/utils";
 
 export const localJsonLdContextToRemoteSwaggerEntry: Record<string, SwaggerRemoteEntry> = {};
 
 @Injectable()
 export class JsonLdService {
-	constructor(private swaggerService: SwaggerService, private config: ConfigService) {}
+	constructor(
+		private swaggerService: SwaggerService,
+		private config: ConfigService,
+		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService,
+	) {}
 
 	private async getEmbeddedContextForLocalName(name: string, lang?: Lang) {
 		const embeddedContext = await this.getEmbeddedContextFromRemoteSwagger(name, lang)
@@ -74,8 +80,10 @@ export class JsonLdService {
 		if (context.startsWith(selfHost)) {
 			return (await this.getEmbeddedContextForLocalContext(context))["@context"];
 		}
-		return (await jsonld.documentLoader(context)).document["@context"] as JSONObjectSerializable;
+		return (await this.globalClient.get<{ "@context": JSONObjectSerializable }>(
+			context,
+			{ headers: { accept: "application/ld+json, application/json" } },
+			{ cache: MS_30_MIN }
+		))["@context"];
 	}
-
 }
-

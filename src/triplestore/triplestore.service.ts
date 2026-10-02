@@ -1,12 +1,11 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
-import { compact, NodeObject } from "jsonld";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
-import { asArray, MS_30_MIN, nthFromNonEmptyArr, promisePipe } from "src/utils";
+import { asArray, lastFromNonEmptyArr, MS_30_MIN, omitFromArray, pipe } from "src/utils";
 import { ClassProperties, MetadataService } from "src/metadata/metadata.service";
-import { HasJsonLdContext, MultiLang } from "src/common.dto";
+import { MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { GLOBAL_CLIENT, TRIPLESTORE_CLIENT } from "src/provider-tokens";
 import { Property } from "src/metadata/metadata.dto";
@@ -14,6 +13,12 @@ import { Property } from "src/metadata/metadata.dto";
 const BASE_URL = "http://tun.fi/";
 
 const NON_SCHEMATIC_KEYS = ["@context", "@type", "@id"];
+const SKIP_KEYS = ["@type", "rdfs:comment",  "rdfs:label"];
+
+type JSONLDNode = {
+	"@type": string;
+	"@graph": MaybeArray<JSONLDNode>;
+}
 
 type ResourceIdentifierObj = { "@id": string };
 const isResourceIdentifier = (data: any): data is ResourceIdentifierObj =>
@@ -54,8 +59,6 @@ export class TriplestoreService {
 		private cache: RedisCacheService,
 		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<any>,
 	) {
-		this.formatJsonLd = this.formatJsonLd.bind(this);
-		this.compactJsonLd = this.compactJsonLd.bind(this);
 		this.JSONLDDocumentLoaderWithCache = this.JSONLDDocumentLoaderWithCache.bind(this);
 	}
 
@@ -70,7 +73,7 @@ export class TriplestoreService {
 		));
 	}
 
-	/** * Find multple resources from triplestore */
+	/** Find multiple resources from triplestore */
 	async find<T extends MaybeContextual>(query: TriplestoreSearchQuery = {}, options?: TriplestoreQueryOptions)
 		: Promise<RemoteContextual<T>[]> {
 		query = { ...baseQuery, ...query };
@@ -130,26 +133,14 @@ export class TriplestoreService {
 		const properties = await this.metadataService.getPropertiesForJsonLdContext(
 			MetadataService.parseClassNameFromJsonLdContext(jsonldContext)
 		);
-		const formatted = (isArrayResult
-			? await Promise.all((jsonld["@graph"] as any).map((i: any) =>
-				this.formatJsonLd(i, properties))
+		const formatted =  await (isArrayResult
+			? Promise.all((jsonld["@graph"] as any).map((i: any) =>
+				compactJsonLdAndAdhereToSchema(i, properties))
 			)
-			: await this.formatJsonLd(jsonld, properties)
-		) as T;
+			: compactJsonLdAndAdhereToSchema(jsonld, properties)
+		);
 
 		return this.cacheResult(formatted, cacheKey, options) as T;
-	}
-
-	private formatJsonLd(jsonld: any, properties: ClassProperties) {
-		return promisePipe(
-			stripBadProps,
-			this.compactJsonLd,
-			resolveResources,
-			adhereToSchemaWith(properties),
-			dropPrefixes,
-			rmIdAndType,
-			useSchemaLajiFiJsonldContext
-		)(jsonld);
 	}
 
 	private async cacheResult<T>(item: T, cacheKey: string, options?: TriplestoreQueryOptions): Promise<T> {
@@ -171,19 +162,13 @@ export class TriplestoreService {
 				})
 			});
 	}
-
-	compactJsonLd(jsonld: JSONObjectSerializable) {
-		return compact(
-			jsonld, (jsonld as any)["@type"], { documentLoader: this.JSONLDDocumentLoaderWithCache }
-		) as unknown as Promise<JSONSerializable>;
-	}
 }
 
 const getPathAndQuery = (resource: string, query?: TriplestoreSearchQuery, type?: string) => {
 	return resource + type + JSON.stringify(query || {});
 };
 
-const triplestoreToJsonLd = (rdf: JSONSerializable): NodeObject => {
+const triplestoreToJsonLd = (rdf: JSONSerializable): JSONLDNode => {
 	const rdfStore = graph();
 	parse(rdf as any, rdfStore, BASE_URL, "application/rdf+xml");
 	const jsonld = serialize(null, rdfStore, BASE_URL, "application/ld+json");
@@ -193,16 +178,89 @@ const triplestoreToJsonLd = (rdf: JSONSerializable): NodeObject => {
 	return JSON.parse(jsonld);
 };
 
-const stripBadProps = (jsonld: JSONObjectSerializable) => {
-	return traverseJsonLd(jsonld, iteratedJsonLd => {
-		if (!Array.isArray(iteratedJsonLd) && iteratedJsonLd["rdfs:label"]) {
-			delete iteratedJsonLd["rdfs:label"];
+/**
+ * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
+ * This function resolves those resources into values like "MOS.500".
+ */
+const resolveResources = (jsonLd: JSONSerializable) => {
+	if (isResourceIdentifier(jsonLd)) {
+		return jsonLd["@id"].replace(BASE_URL, "");
+	}
+};
+
+const maxOccurs = (property: Property) => (jsonLd: JSONSerializable) => {
+	if (property?.maxOccurs === "unbounded" && jsonLd && !Array.isArray(jsonLd)) {
+		return [jsonLd];
+	}
+	return jsonLd;
+};
+
+const resolveLangResources = (property: Property) => (jsonLd: JSONSerializable) => {
+	if (jsonLd && property.multiLanguage) {
+		if (typeof jsonLd === "string") {
+			return { en: jsonLd };
 		}
-		if (!Array.isArray(iteratedJsonLd) && iteratedJsonLd["rdfs:comment"]) {
-			delete iteratedJsonLd["rdfs:comment"];
+		return asArray(jsonLd).reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => {
+			return {
+				...langObj,
+				[resource["@language"]]: resource["@value"]
+			};
+		}, {});
+	};
+	return jsonLd;
+};
+
+const typeFromRange = (property: Property) => (jsonLd: JSONSerializable) => {
+	const { range } = property;
+	if (range === "xsd:boolean") {
+		if (jsonLd === "true") {
+			return true;
 		}
-		return iteratedJsonLd;
-	});
+		if (jsonLd === "false") {
+			return false;
+		}
+	}
+	return jsonLd;
+};
+
+const dropURI = (key: string) => key.replace(BASE_URL, "");
+
+const unprefix = (k: string) => lastFromNonEmptyArr(k.split("."));
+
+const rmId = (jsonLd: JSONObjectSerializable) => {
+	const { "@id": id, ...d } = jsonLd;
+	if (typeof id === "string") {
+		d.id = id.replace(BASE_URL, "");
+	}
+	return d as JSONObjectSerializable;
+};
+
+const compactJsonLdAndAdhereToSchema = (jsonLd: JSONObjectSerializable, properties: ClassProperties) => {
+	jsonLd["@context"] = `http://schema.laji.fi/context/${dropQnamePrefix(dropURI(jsonLd["@type"] as string))}.jsonld`;
+
+	return rmId(
+		traverseJsonLd(omitFromArray(Object.keys(jsonLd), ...SKIP_KEYS)
+			.reduce<JSONObjectSerializable>((d, k) => {
+				const property = properties[dropURI(k)];
+				const value: JSONSerializable = jsonLd[k]!;
+				if (!property) {
+					if (NON_SCHEMATIC_KEYS.includes(k)) {
+						d[k] = value;
+					}
+					return d;
+				}
+
+				const transformedValue = pipe(
+					maxOccurs(property),
+					resolveLangResources(property),
+					typeFromRange(property)
+				)(value);
+
+				d[unprefix(dropURI(k))] = transformedValue;
+				return d;
+			}, {} as JSONObjectSerializable),
+		resolveResources)
+	);
 };
 
 const traverseJsonLd = (
@@ -238,99 +296,6 @@ const traverseJsonLd = (
 	};
 
 	return traverse(data) as JSONObjectSerializable;
-};
-
-/**
- * JsonLd resources are in the input like { "@id": "http://tun.fi/MOS.500" }.
- * This function resolves those resources into values like "MOS.500".
- */
-const resolveResources = (data: JSONObjectSerializable): JSONObjectSerializable => {
-	return traverseJsonLd(data, (value: JSONObjectSerializable | JSONSerializable[]) => {
-		if (isResourceIdentifier(value)) {
-			return value["@id"].replace(BASE_URL, "");
-		}
-	});
-};
-
-/** RDF doesn't know about our properties' schema info. This function makes the output adhere to the schema. */
-const adhereToSchemaWith = (properties: ClassProperties) => async (data: JSONObjectSerializable) => {
-	function maxOccurs(value: JSONSerializable, property: Property) {
-		if (property?.maxOccurs === "unbounded" && value && !Array.isArray(value)) {
-			return [value];
-		}
-	}
-
-	function resolveLangResources(value: JSONSerializable, property: Property) {
-		if (value && property.multiLanguage) {
-			if (typeof value === "string") {
-				return { en: value };
-			}
-			return asArray(value).reduce<MultiLang>((langObj: MultiLang, resource: MultiLangResource) => {
-				return {
-					...langObj,
-					[resource["@language"]]: resource["@value"]
-				};
-			}, {});
-		};
-	}
-
-	function typeFromRange(value: JSONSerializable, property: Property) {
-		const { range } = property;
-		if (range === "xsd:boolean") {
-			if (value === "true") {
-				return true;
-			}
-			if (value === "false") {
-				return false;
-			}
-		}
-	}
-
-	const transformations: ((value: JSONSerializable, property: Property) => JSONSerializable | undefined)[] =
-		[maxOccurs, resolveLangResources, typeFromRange];
-
-	return ([...Object.keys(data), ...NON_SCHEMATIC_KEYS] as string[]).reduce<JSONObjectSerializable>((d, k) => {
-		const property = properties[k];
-		let value: JSONSerializable = data[k]!;
-		if (!property) {
-			if (NON_SCHEMATIC_KEYS.includes(k)) {
-				d[k] = value;
-			}
-			return d;
-		}
-		for (const transform of transformations) {
-			const transformed = transform(value, property);
-			if (transformed !== undefined) {
-				value = transformed;
-			}
-		}
-
-		d[k] = value;
-		return d;
-	}, {} as JSONObjectSerializable);
-};
-
-const dropPrefixes = (data: JSONObjectSerializable) => {
-	const unprefix = (k: string) => k.split(".").pop() as string;
-
-	return (Object.keys(data) as string[]).reduce<JSONObjectSerializable>((d, k) => {
-		d[unprefix(k)] = data[k]!;
-		return d;
-	}, {});
-};
-
-const rmIdAndType = (data: JSONObjectSerializable) => {
-	const { "@type": type, "@id": id, ...d } = data;
-	if (typeof id === "string") {
-		d.id = id.replace(BASE_URL, "");
-	}
-	return d;
-};
-
-const useSchemaLajiFiJsonldContext = (data: HasJsonLdContext) => {
-	const qname = nthFromNonEmptyArr(1)(data["@context"].split("http://tun.fi"));
-	data["@context"] =  `http://schema.laji.fi/context/${dropQnamePrefix(qname)}.jsonld`;
-	return data;
 };
 
 const dropQnamePrefix = (qname: string) => qname.replace(/^[^.]+\./, "");

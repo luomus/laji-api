@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { HasJsonLdContext, Lang, LANGS, MultiLang, MultiLangAsString } from "src/common.dto";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
-import { isJSONObjectSerializable, isObject, JSONObjectSerializable, KeyOf, omit } from "src/typing.utils";
+import { isJSONObjectSerializable, isObject, JSONObjectSerializable, omit } from "src/typing.utils";
 import { JSONPath } from "jsonpath-plus";
 import { JsonLdService } from "src/json-ld/json-ld.service";
-import { JsonLdDocument } from "jsonld";
 import { instanceToInstance } from "class-transformer";
 import { dictionarify, firstFromNonEmptyArr, lastFromNonEmptyArr, MS_1_D, updateWithJSONPointer } from "src/utils";
 import { LangPreference, getDefaultLangPreferences } from "./lang.utils";
@@ -181,7 +180,7 @@ const getMultiLangJSONPaths = (jsonLdContext: JSONObjectSerializable): string[] 
 		}
 		return [];
 	};
-	return (Object.keys(jsonLdContext) as (KeyOf<JsonLdDocument>)[]).reduce((jsonPaths, key) => {
+	return (Object.keys(jsonLdContext)).reduce((jsonPaths, key) => {
 		const value = jsonLdContext[key];
 		if (!isJSONObjectSerializable(value)) {
 			return jsonPaths;
