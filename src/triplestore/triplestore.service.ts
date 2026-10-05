@@ -227,18 +227,19 @@ const dropURI = (key: string) => key.replace(BASE_URL, "");
 
 const unprefix = (k: string) => lastFromNonEmptyArr(k.split("."));
 
-const dropUriFromId = (jsonLd: JSONObjectSerializable) => {
+const normalizeId = (jsonLd: JSONObjectSerializable) => {
 	const { "@id": id } = jsonLd;
-	if (typeof id !== "string") {
-		return jsonLd;
+	if (typeof id === "string") {
+		jsonLd.id = dropURI(id);
+		delete jsonLd["@id"];
 	}
-	return { ...jsonLd, "@id": dropURI(id) };
+	return jsonLd;
 };
 
 const compactJsonLdAndAdhereToSchema = (jsonLd: JSONObjectSerializable, properties: ClassProperties) => {
 	jsonLd["@context"] = `http://schema.laji.fi/context/${dropQnamePrefix(dropURI(jsonLd["@type"] as string))}.jsonld`;
 
-	return dropUriFromId(
+	return normalizeId(
 		traverseJsonLd(omitFromArrayOnce(Object.keys(jsonLd), ...SKIP_KEYS)
 			.reduce<JSONObjectSerializable>((d, k) => {
 				const property = properties[dropURI(k)];
