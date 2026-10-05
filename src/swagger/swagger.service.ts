@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, RequestMethod, Type } from "@nestjs/common";
 import { OpenAPIObject } from "@nestjs/swagger";
 import { RestClientService } from "src/rest-client/rest-client.service";
-import { MS_30_MIN, lastFromNonEmptyArr, omitFromArray, parseJSONPointer, parseURIFragmentIdentifier,
+import { MS_30_MIN, lastFromNonEmptyArr, omitFromArrayOnce, parseJSONPointer, parseURIFragmentIdentifier,
 	promisePipe, updateWithJSONPointer, whitelistKeys } from "src/utils";
 import { OperationObject, ParameterObject, ReferenceObject, SchemaObject }
 	from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
@@ -495,7 +495,7 @@ const patchMultiLangs = (document: OpenAPIObject) => {
 		const parentSchemaPointer = splitted.join("/");
 		const parentSchema = parseJSONPointer<JSONSchemaObject>(document, parentSchemaPointer);
 		if (parentSchema.required) {
-			parentSchema.required = omitFromArray(parentSchema.required, property);
+			parentSchema.required = omitFromArrayOnce(parentSchema.required, property);
 		}
 	});
 	return document;

@@ -20,7 +20,7 @@ type DomainsToClassProperties = { [domain: string]: ClassProperties };
 export class MetadataService {
 	constructor(
 		@Inject(TRIPLESTORE_CLIENT) private triplestoreRestClient: RestClientService<unknown>,
-		// (It's used by @RedisMemoize())
+		// Not unused even though the linter says so. It's used by @RedisMemoize().
 		// eslint-disable-next-line no-unused-vars
 		private cache: RedisCacheService,
 		private langService: LangService

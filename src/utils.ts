@@ -282,9 +282,9 @@ export class ExternalException extends HttpException {
 export const asTuple = <T, P>(first: T, second: P) =>
 	[first, second] as [T, P];
 
-export const omitFromArray = <T>(array: T[], ...toRemove: T[]): T[] =>
+export const omitFromArrayOnce = <T>(array: T[], ...toRemove: T[]): T[] =>
 	toRemove.reduce((omittedArray, toRemoveItem) => {
-		const idx = array.indexOf(toRemoveItem);
+		const idx = omittedArray.indexOf(toRemoveItem);
 		if (idx === -1) {
 			return omittedArray;
 		}

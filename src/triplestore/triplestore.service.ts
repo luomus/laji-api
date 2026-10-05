@@ -3,7 +3,7 @@ import { RestClientService } from "src/rest-client/rest-client.service";
 import { parse, serialize, graph } from "rdflib";
 import { isObject, JSONSerializable, JSONObjectSerializable, MaybePromise, RemoteContextual, MaybeContextual,
 	MaybeArray } from "../typing.utils";
-import { asArray, lastFromNonEmptyArr, MS_30_MIN, omitFromArray, pipe } from "src/utils";
+import { asArray, lastFromNonEmptyArr, MS_30_MIN, omitFromArrayOnce, pipe } from "src/utils";
 import { ClassProperties, MetadataService } from "src/metadata/metadata.service";
 import { MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
@@ -227,22 +227,22 @@ const dropURI = (key: string) => key.replace(BASE_URL, "");
 
 const unprefix = (k: string) => lastFromNonEmptyArr(k.split("."));
 
-const rmId = (jsonLd: JSONObjectSerializable) => {
-	const { "@id": id, ...d } = jsonLd;
-	if (typeof id === "string") {
-		d.id = id.replace(BASE_URL, "");
+const dropUriFromId = (jsonLd: JSONObjectSerializable) => {
+	const { "@id": id } = jsonLd;
+	if (typeof id !== "string") {
+		return jsonLd;
 	}
-	return d as JSONObjectSerializable;
+	return { ...jsonLd, "@id": dropURI(id) };
 };
 
 const compactJsonLdAndAdhereToSchema = (jsonLd: JSONObjectSerializable, properties: ClassProperties) => {
 	jsonLd["@context"] = `http://schema.laji.fi/context/${dropQnamePrefix(dropURI(jsonLd["@type"] as string))}.jsonld`;
 
-	return rmId(
-		traverseJsonLd(omitFromArray(Object.keys(jsonLd), ...SKIP_KEYS)
+	return dropUriFromId(
+		traverseJsonLd(omitFromArrayOnce(Object.keys(jsonLd), ...SKIP_KEYS)
 			.reduce<JSONObjectSerializable>((d, k) => {
 				const property = properties[dropURI(k)];
-				const value: JSONSerializable = jsonLd[k]!;
+				const value = jsonLd[k]!;
 				if (!property) {
 					if (NON_SCHEMATIC_KEYS.includes(k)) {
 						d[k] = value;
