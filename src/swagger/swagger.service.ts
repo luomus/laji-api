@@ -514,7 +514,6 @@ const collectMultiLangRefs = (
 		return Object.keys(resolvedSchema.properties).reduce((multiLangs, propertyName) => {
 			const propertySchema = resolvedSchema.properties![propertyName]!;
 			if (isJSONSchemaRef(propertySchema)) {
-				// return multiLangs;
 				if (traversedRefs[propertySchema.$ref]) {
 					return multiLangs;
 				}

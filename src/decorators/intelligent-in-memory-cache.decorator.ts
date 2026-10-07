@@ -31,12 +31,14 @@ export const IntelligentInMemoryCache = () => (target: any) => {
 	const originalOnApplicationBootstrap = target.prototype.onApplicationBootstrap;
 	target.prototype.onApplicationBootstrap = async function() {
 		const start = Date.now();
-		try {
-			await this.warmup();
-		} catch (e) {
-			logger.fatal(`Warming up service ${target.prototype.constructor.name} failed!`, e);
-		}
-		logger.log(`Warming up in background completed [${Date.now() - start}ms]`);
+		void (async () => {
+			try {
+				await this.warmup();
+			} catch (e) {
+				logger.fatal(`Warming up service ${target.prototype.constructor.name} failed!`, e);
+			}
+			logger.log(`Warming up in background completed [${Date.now() - start}ms]`);
+		})();
 		originalOnApplicationBootstrap?.call(this);
 	};
 };
