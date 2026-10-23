@@ -26,14 +26,16 @@ const TriplestoreReadonlyService: FactoryProvider<TriplestoreService> = {
 		triplestoreReadonlyClient: RestClientService<never>,
 		metadataService: MetadataService,
 		cache: RedisCacheService,
-		globalClient: RestClientService<never>
+		globalClient: RestClientService<never>,
+		config: ConfigService
 	) =>
-		new TriplestoreService(triplestoreReadonlyClient, metadataService, cache, globalClient),
+		new TriplestoreService(triplestoreReadonlyClient, metadataService, cache, globalClient, config),
 	inject: [
 		{ token: TRIPLESTORE_CLIENT, optional: false },
 		MetadataService,
 		RedisCacheService,
 		{ token: GLOBAL_CLIENT, optional: false },
+		ConfigService
 	],
 };
 

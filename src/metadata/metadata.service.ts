@@ -12,6 +12,8 @@ import { addLocalJsonLdContext } from "src/json-ld/json-ld.utils";
 import { LangPreference } from "src/lang/lang.utils";
 import { clearMemoization } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { Interval } from "@nestjs/schedule";
+import { ConfigService } from "@nestjs/config";
+import { JSONSchema, JSONSchemaObject } from "src/json-schema.utils";
 
 export type ClassProperties = { [ propertyName: string ]: Property };
 type DomainsToClassProperties = { [domain: string]: ClassProperties };
@@ -23,7 +25,8 @@ export class MetadataService {
 		// Not unused even though the linter says so. It's used by @RedisMemoize().
 		// eslint-disable-next-line no-unused-vars
 		private cache: RedisCacheService,
-		private langService: LangService
+		private langService: LangService,
+		private config: ConfigService
 	) {}
 
 	@Interval(MS_30_MIN)
@@ -158,7 +161,7 @@ export class MetadataService {
 
 	/** Get a property lookup table for a domain. */
 	async getPropertiesForJsonLdContext(jsonLdContext: string) {
-		const className = MetadataService.parseClassNameFromJsonLdContext(jsonLdContext);
+		const className = this.parseClassNameFromJsonLdContext(jsonLdContext);
 		const properties = (await this.getDomainToProperties())[className];
 		if (!properties) {
 			throw new Error(`Unknown JSON-LD context "${jsonLdContext}"`);
@@ -166,16 +169,49 @@ export class MetadataService {
 		return properties;
 	}
 
-	static parseClassNameFromJsonLdContext(jsonLdContext: string) {
+	parseClassNameFromJsonLdContext(jsonLdContext: string) {
 		if (jsonLdContext.startsWith("http://tun.fi")) {
 			return jsonLdContext.replace("http://tun.fi/", "");
 		}
-		if (jsonLdContext.startsWith("http://schema.laji.fi")) {
-			return jsonLdContext.replace("http://schema.laji.fi/context/", "").replace(".jsonld", "");
+		const selfHost = this.config.get<string>("SELF_HOST");
+		if (jsonLdContext.startsWith(`${selfHost}/context/triplestore-`)) {
+			return jsonLdContext.replace(`${selfHost}/context/triplestore-`, "");
 		}
 		return jsonLdContext;
 	}
+
+	async getJSONSchemaForClass(className: string) {
+		const classProperties = await this.getClassProperties(className);
+		return propertiesToJSONSchema(classProperties);
+	}
 }
+
+const propertiesToJSONSchema = (properties: Property[]): JSONSchemaObject => {
+	return {
+		type: "object",
+		properties: properties.reduce((jsonSchema, property) => {
+			jsonSchema[property.shortName] = getPropertyJSONSchema(property);
+			return jsonSchema;
+		}, {} as NonNullable<JSONSchemaObject["properties"]>)
+	};
+};
+
+const getPropertyJSONSchema = (property: Property): JSONSchema => {
+	const { range } = property;
+	if (property.multiLanguage) {
+		return { $ref: "#/components/schemas/MultiLangDto" };
+	}
+	if (range === "xsd:string") {
+		return { type: "string" };
+	}
+	if (range === "xsd:boolean") {
+		return { type: "boolean" };
+	}
+	if (["xsd:integer", "xsd:nonNegativeInteger", "xsd:positiveInteger"].includes(range)) {
+		return { type: "integer" };
+	}
+	return { type: "string" };
+};
 
 const MAGIC_PROPERTIES: Property[] = [
 	{

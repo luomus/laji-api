@@ -9,6 +9,7 @@ import { MultiLang } from "src/common.dto";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { GLOBAL_CLIENT, TRIPLESTORE_CLIENT } from "src/provider-tokens";
 import { Property } from "src/metadata/metadata.dto";
+import { ConfigService } from "@nestjs/config";
 
 const BASE_URL = "http://tun.fi/";
 
@@ -58,6 +59,7 @@ export class TriplestoreService {
 		private metadataService: MetadataService,
 		private cache: RedisCacheService,
 		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService<any>,
+		private config: ConfigService
 	) {
 		this.JSONLDDocumentLoaderWithCache = this.JSONLDDocumentLoaderWithCache.bind(this);
 	}
@@ -131,13 +133,13 @@ export class TriplestoreService {
 			? (jsonld["@graph"] as any)[0]["@type"]
 			: jsonld["@type"];
 		const properties = await this.metadataService.getPropertiesForJsonLdContext(
-			MetadataService.parseClassNameFromJsonLdContext(jsonldContext)
+			this.metadataService.parseClassNameFromJsonLdContext(jsonldContext)
 		);
 		const formatted =  await (isArrayResult
 			? Promise.all((jsonld["@graph"] as any).map((i: any) =>
-				compactJsonLdAndAdhereToSchema(i, properties))
+				this.compactJsonLdAndAdhereToSchema(i, properties))
 			)
-			: compactJsonLdAndAdhereToSchema(jsonld, properties)
+			: this.compactJsonLdAndAdhereToSchema(jsonld, properties)
 		);
 
 		return this.cacheResult(formatted, cacheKey, options) as T;
@@ -162,6 +164,35 @@ export class TriplestoreService {
 				})
 			});
 	}
+
+	compactJsonLdAndAdhereToSchema(jsonLd: JSONObjectSerializable, properties: ClassProperties) {
+		const selfHost = this.config.get<string>("SELF_HOST");
+		jsonLd["@context"] = `${selfHost}/context/triplestore-${dropURI(jsonLd["@type"] as string)}`;
+
+		return normalizeId(
+			traverseJsonLd(omitFromArrayOnce(Object.keys(jsonLd), ...SKIP_KEYS)
+				.reduce<JSONObjectSerializable>((d, k) => {
+					const property = properties[dropURI(k)];
+					const value = jsonLd[k]!;
+					if (!property) {
+						if (NON_SCHEMATIC_KEYS.includes(k)) {
+							d[k] = value;
+						}
+						return d;
+					}
+
+					const transformedValue = pipe(
+						maxOccurs(property),
+						resolveLangResources(property),
+						typeFromRange(property)
+					)(value);
+
+					d[unprefix(dropURI(k))] = transformedValue;
+					return d;
+				}, {} as JSONObjectSerializable),
+			resolveResources)
+		);
+	};
 }
 
 const getPathAndQuery = (resource: string, query?: TriplestoreSearchQuery, type?: string) => {
@@ -236,34 +267,6 @@ const normalizeId = (jsonLd: JSONObjectSerializable) => {
 	return jsonLd;
 };
 
-const compactJsonLdAndAdhereToSchema = (jsonLd: JSONObjectSerializable, properties: ClassProperties) => {
-	jsonLd["@context"] = `http://schema.laji.fi/context/${dropQnamePrefix(dropURI(jsonLd["@type"] as string))}.jsonld`;
-
-	return normalizeId(
-		traverseJsonLd(omitFromArrayOnce(Object.keys(jsonLd), ...SKIP_KEYS)
-			.reduce<JSONObjectSerializable>((d, k) => {
-				const property = properties[dropURI(k)];
-				const value = jsonLd[k]!;
-				if (!property) {
-					if (NON_SCHEMATIC_KEYS.includes(k)) {
-						d[k] = value;
-					}
-					return d;
-				}
-
-				const transformedValue = pipe(
-					maxOccurs(property),
-					resolveLangResources(property),
-					typeFromRange(property)
-				)(value);
-
-				d[unprefix(dropURI(k))] = transformedValue;
-				return d;
-			}, {} as JSONObjectSerializable),
-		resolveResources)
-	);
-};
-
 const traverseJsonLd = (
 	data: JSONObjectSerializable,
 	op: (jsonLd: JSONObjectSerializable | JSONSerializable[]
@@ -298,5 +301,3 @@ const traverseJsonLd = (
 
 	return traverse(data) as JSONObjectSerializable;
 };
-
-const dropQnamePrefix = (qname: string) => qname.replace(/^[^.]+\./, "");

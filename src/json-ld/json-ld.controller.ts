@@ -3,16 +3,21 @@ import { BypassAccessTokenAuth } from "src/decorators/bypass-access-token-auth.d
 import { JsonLdService } from "./json-ld.service";
 import { LajiApiController } from "src/decorators/laji-api-controller.decorator";
 import { ApiTags } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
 
 @ApiTags("JSON-LD context")
 @LajiApiController("context")
 export class JsonLdController {
-	constructor(private contextService: JsonLdService) {}
+	constructor(
+		private contextService: JsonLdService,
+		private config: ConfigService
+	) {}
 
 	/** JSON-LD context */
 	@Get(":context")
 	@BypassAccessTokenAuth()
 	async getContext(@Param("context") context: string) {
-		return this.contextService.getEmbeddedContextForLocalContext(context);
+		const selfHost = this.config.get<string>("SELF_HOST");
+		return this.contextService.getEmbeddedContextForLocalContext(`${selfHost}/context/${context}`);
 	}
 }

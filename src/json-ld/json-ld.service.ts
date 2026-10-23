@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, Inject, Injectable } from "@nestjs/common";
 import { jsonSchemaToEmbeddedJsonLdContext } from "src/json-ld/json-ld.utils";
 import { SwaggerRemoteEntry } from "src/swagger/swagger-remote.decorator";
 import { SwaggerService } from "src/swagger/swagger.service";
@@ -14,6 +14,7 @@ import { localJsonLdContextToClass } from "src/decorators/local-json-ld-context.
 import { GLOBAL_CLIENT } from "src/provider-tokens";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { MS_30_MIN } from "src/utils";
+import { MetadataService } from "src/metadata/metadata.service";
 
 export const localJsonLdContextToRemoteSwaggerEntry: Record<string, SwaggerRemoteEntry> = {};
 
@@ -23,6 +24,7 @@ export class JsonLdService {
 		private swaggerService: SwaggerService,
 		private config: ConfigService,
 		@Inject(GLOBAL_CLIENT) private globalClient: RestClientService,
+		 @Inject(forwardRef(() => MetadataService)) private metadataService: MetadataService
 	) {}
 
 	private async getEmbeddedContextForLocalName(name: string, lang?: Lang) {
@@ -65,13 +67,23 @@ export class JsonLdService {
 		) };
 	}
 
-	getEmbeddedContextForLocalContext(context: string) {
+	private async getEmbeddedContextFromTriplestore(name: string, lang?: Lang) {
+		const schema = await this.metadataService.getJSONSchemaForClass(name.replace("triplestore-", ""));
+		return { "@context": jsonSchemaToEmbeddedJsonLdContext(schema, this.swaggerService.getRawDocument(), lang) };
+	}
+
+	async getEmbeddedContextForLocalContext(context: string) {
 		const selfHost = this.config.get<string>("SELF_HOST");
+		let name = context.replace(`${selfHost}/context/`, "");
 		const lang = LANGS.find(lang => context.endsWith(`-${lang}`));
 		if (lang) {
-			context = context.replace(`-${lang}`, "");
+			name = name.replace(`-${lang}`, "");
 		}
-		const name = context.replace(`${selfHost}/context/`, "");
+		if (name.startsWith("triplestore-")) {
+			return (
+				await this.getEmbeddedContextFromTriplestore(name, lang)
+			);
+		};
 		return this.getEmbeddedContextForLocalName(name, lang);
 	}
 

@@ -77,7 +77,8 @@ export class LangService {
 
 	@IntelligentMemoize({ maxAge: MS_1_D } )
 	async getMultiLangJSONPaths(jsonLdContext: string): Promise<string[]> {
-		return getMultiLangJSONPaths(await this.jsonLdService.getEmbeddedContext(jsonLdContext));
+		const embeddedContext = await this.jsonLdService.getEmbeddedContext(jsonLdContext);
+		return getMultiLangJSONPaths(embeddedContext);
 	}
 }
 

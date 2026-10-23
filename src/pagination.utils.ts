@@ -67,7 +67,7 @@ export const addContextToPageLikeResult = <T extends Partial<HasJsonLdContext>, 
 	return {
 		...hasResults,
 		results,
-		"@context": jsonLdContext || "http://schema.laji.fi/context/generic.jsonld"
+		"@context": jsonLdContext || "https://api.laji.fi/context/generic"
 	};
 };
 

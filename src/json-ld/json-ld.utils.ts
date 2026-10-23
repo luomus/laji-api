@@ -29,14 +29,11 @@ const getJsonLdContextForLang = (jsonLdContext?: string, lang?: Lang) => {
 	if (!jsonLdContext) {
 		return jsonLdContext;
 	}
-	if (lang && lang !== Lang.multi && jsonLdContext.startsWith("http://schema.laji.fi")) {
-		return jsonLdContext.replace(/\.jsonld$/, `-${lang}.jsonld`);
-	}
 	const { SELF_HOST } = process.env;
 	if (typeof SELF_HOST !== "string") {
 		throw new HttpException("`SELF_HOST` env variable not found", 500);
 	}
-	if (jsonLdContext.startsWith(SELF_HOST)) {
+	if (lang !== Lang.multi && jsonLdContext.startsWith(SELF_HOST)) {
 		return `${jsonLdContext}-${lang || "en"}`;
 	}
 	return jsonLdContext;

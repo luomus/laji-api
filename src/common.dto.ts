@@ -2,6 +2,7 @@ import { Type } from "class-transformer";
 import { IsInt, IsOptional, IsString, isObject } from "class-validator";
 import { CommaSeparatedStrings } from "src/serialization/serialization.utils";
 import { ApiPropertyOptional, IntersectionType } from "@nestjs/swagger";
+import { LocalJsonLdContext } from "./decorators/local-json-ld-context.decorator";
 
 export enum Lang {
 	fi = "fi",
@@ -68,3 +69,7 @@ export type MultiLangAsString<T> = {
 	? MultiLangAsString<T[K]>
 	: T[K];
 };
+
+@LocalJsonLdContext("generic")
+class Generic {
+}
