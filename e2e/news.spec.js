@@ -3,7 +3,7 @@ const helpers = require("./helpers");
 const { apiRequest } = helpers;
 const { accessToken } = config;
 
-describe("/publications", function() {
+describe("/news", function() {
 
 	it("returns 401 when no access token specified", async function() {
 		const res = await apiRequest(this.server).get("/news");
@@ -34,7 +34,7 @@ describe("/publications", function() {
 
 	it("GET /news/:id returns news item", async function() {
 		const res = await apiRequest(this.server, { accessToken })
-			.get("/news/luomus.fi-43270");
+			.get("/news/9448");
 
 		res.should.have.status(200);
 		res.body.should.have.property("title").that.is.a("string");
