@@ -46,7 +46,7 @@ describe("/person", function() {
 			.get("/person");
 		res.should.have.status(200);
 		res.body.should.eql({
-			"@context": "http://schema.laji.fi/context/person.jsonld",
+			"@context": `${process.env.SELF_HOST}/context/triplestore-MA.person`,
 			"id": person.id,
 			"fullName": "Viltsu Testaaja",
 			"emailAddress": person.emailAddress,

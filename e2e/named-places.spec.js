@@ -92,12 +92,10 @@ describe("/named-place", function() {
 			]
 		},
 		"@type": "MNP.namedPlace",
-		"@context": "http://schema.laji.fi/context/namedPlace.jsonld"
 	};
 
 	const namedPlacePrivate = {
 		"id": "MNP.28410",
-		"@context": "http://schema.laji.fi/context/namedPlace.jsonld",
 		"@type": "MNP.namedPlace",
 		"editors": [
 			"MA.314",
@@ -167,8 +165,7 @@ describe("/named-place", function() {
 		"owners": [
 			"MA.837"
 		],
-		"@type": "MNP.namedPlace",
-		"@context": "http://schema.laji.fi/context/namedPlace.jsonld"
+		"@type": "MNP.namedPlace"
 	};
 
 

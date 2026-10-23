@@ -886,8 +886,7 @@ describe("/documents", function() {
 			"publicityRestrictions": "MZ.publicityRestrictionsPublic",
 			"dateEdited": "2018-12-17T10:15:14+02:00",
 			"dateCreated": "2018-12-04T14:31:37+02:00",
-			"@type": "MY.document",
-			"@context": "http://schema.laji.fi/context/document.jsonld"
+			"@type": "MY.document"
 		};
 		const res = await apiRequest(this.server, { accessToken, personToken })
 			.put(`${basePath}/${documentOthersFeatureDocumentsViewableForAllId}`)

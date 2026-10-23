@@ -3,13 +3,6 @@ const helpers = require("../helpers");
 const { apiRequest, url } = helpers;
 const { accessToken, personToken } = config;
 
-/* jshint ignore:start */
-/*
-Test named place:
-{"id":"MNP.22073","collectionID":"HR.5763","name":"Testi paikka 1","geometry":{"type":"Polygon","coordinates":[[[24.291606924209,60.203870097533],[24.28418820835,60.293522644867],[24.464823407836,60.297094164583],[24.471750074574,60.207428735989],[24.291606924209,60.203870097533]]],"coordinateVerbatim":"668:335"},"public":true,"owners":["MA.97"],"@type":"MNP.namedPlace","@context":"http://schema.laji.fi/context/namedPlace.jsonld","prepopulatedDocument":{"id":null,"creator":"MA.97","gatheringEvent":{"leg":["MA.97"],"dateBegin":"2017-11-01","dateEnd":"2017-11-06"},"formID":"MHL.7","namedPlaceID":"MNP.22073","gatherings":[{"geometry":{"type":"GeometryCollection","geometries":[{"type":"Polygon","coordinates":[[[24.291606924209,60.203870097533],[24.28418820835,60.293522644867],[24.464823407836,60.297094164583],[24.471750074574,60.207428735989],[24.291606924209,60.203870097533]]],"coordinateVerbatim":"668:335"}]},"units":[{"recordBasis":"MY.recordBasisHumanObservation","unitType":[],"taxonConfidence":"MY.taxonConfidenceSure","unitGathering":[]}]}],"publicityRestrictions":"MZ.publicityRestrictionsPublic","sourceID":"KE.389","collectionID":"HR.5763","editor":"MA.97","dateEdited":"2017-11-06T09:40:35+02:00","dateCreated":"2017-11-06T09:40:35+02:00"}}
-*/
-/* jshint ignore:end */
-
 describe("/documents/validate", function() {
 	const basePath = "/documents/validate";
 	const testForm = "MHL.7";
