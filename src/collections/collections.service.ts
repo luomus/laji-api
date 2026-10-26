@@ -214,11 +214,12 @@ export class CollectionsService {
 			{ params: { limit: 1000 } },
 			{ cache: MS_10_MIN }
 		);
+		const selfHost = this.config.get<string>("SELF_HOST");
 		return gbifCollections.results.map(collection => {
 			const contact = collection.contacts && collection.contacts[0] || {} as GbifContact;
 			return {
 				id: "gbif-dataset:" + collection.key,
-				"@context": "https://api.laji.fi/context/triplestore-MY.collection",
+				"@context": `${selfHost}/context/triplestore-MY.collection`,
 				collectionType: "MY.collectionTypeMixed",
 				collectionName: { en: collection.title },
 				longName: { en: collection.title },

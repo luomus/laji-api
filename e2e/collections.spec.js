@@ -71,4 +71,15 @@ describe("/collections", function() {
 		}).should.have.lengthOf(1);
 		res.body.should.have.any.keys("@context");
 	});
+
+	it("returns tree", async function() {
+		const res = await apiRequest(this.server, { accessToken })
+			.get(url(`${basePath}/tree`, { pageSize: 400 }));
+		res.should.have.status(200);
+		const collectionWithChildren = res.body.results.find((collection) => {
+			return collection.children.length > 1;
+		});
+		collectionWithChildren.children[0].should.include.keys("id");
+		collectionWithChildren.children[0].should.not.have.keys(...excludedKeys);
+	});
 });
