@@ -16,3 +16,8 @@ export const swaggerResponseAsResultsArray = (schema: SchemaItem) => ({
 	type: "object",
 	properties: { results: { type: "array", items: schema }, "@context": { type: "string" } }
 });
+
+export const swaggerArrayResponseAsResultsArray = (schema: SchemaItem) => ({
+	type: "object",
+	properties: { results: schema, "@context": { type: "string" } }
+});

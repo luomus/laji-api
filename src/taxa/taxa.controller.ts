@@ -9,13 +9,14 @@ import { TaxaService, getFiltersSchema } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
-import { ResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
+import { ResultsArray, swaggerArrayResponseAsResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifier } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
 import { LANGS } from "src/common.dto";
 import { AddIntellectualRights } from "./intellectual-rights.interceptor";
 import { AddContextToPageLikeResult } from "src/interceptors/add-context-to-page-like-result.interceptor";
+import { SelectedFields } from "src/interceptors/selected-fields.interceptor";
 
 /* eslint-disable max-len */
 const BODY_DESCRIPTION = `
@@ -57,10 +58,10 @@ export class TaxaController {
 	@SwaggerRemote({
 		source: "laji-backend",
 		ref: "/TaxonSearchResponse",
-		customizeResponseSchema: swaggerResponseAsResultsArray,
+		customizeResponseSchema: swaggerArrayResponseAsResultsArray,
 		localJsonLdContext: "taxon-search"
 	})
-	@UseInterceptors(Translator, ResultsArray)
+	@UseInterceptors(Translator, SelectedFields, ResultsArray)
 	search(@Query() query: TaxaSearchDto) {
 		return this.taxaService.search(query);
 	}
