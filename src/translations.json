@@ -2,7 +2,7 @@
 	"PERSON_TOKEN_IS_REQUIRED": {
 		"en": "You did something that requires logging in. Please log in.",
 		"sv": "Du gjorde något som kräver inloggning. Vänligen logga in.",
-		"fi": "Teit jotain joka vaatii sisäänkirjautumisen. Kirjaudu sisään ensin"
+		"fi": "Teit jotain joka vaatii sisäänkirjautumisen. Kirjaudu sisään ensin."
 	},
 	"PERSON_TOKEN_IS_INVALID": {
 		"en": "Your login is not valid. Please log out and log in again.",
