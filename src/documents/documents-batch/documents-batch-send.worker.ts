@@ -35,9 +35,14 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 	}
 
 	async process(job: Job<SendJobPayload>) {
+		this.logger.log(`SEND START job=${job.id} pid=${process.pid}`);
 		const { personID, publicityRestrictions, dataOrigin } = job.data;
+
 		const documents = await this.getJobDocuments(job.id!, personID);
+		await this.cache.del(getDocumentsCacheKey(job.id!, personID));
+
 		if (!documents || !documents.length) {
+			this.logger.log(`NO DOCUS FOUND FOR job=${job.id} pid=${process.pid}`);
 			throw new HttpException("The job is in invalid state. Start again.", 422);
 		}
 		assignExtrasMutably(documents, publicityRestrictions, dataOrigin);
@@ -70,40 +75,13 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 
 	private async sendToStore(job: Job, documents: Populated<Document>[]) {
 		const { personID, total } = job.data;
+		let sentDocuments: Populated<Document>[];
 		try {
-			const sentDocuments = await this.documentsService.store.post<
+			sentDocuments = await this.documentsService.store.post<
 				Populated<Document>[],
 				Populated<Document>[]
-		>(undefined, documents as Populated<Document>[]);
-			const docsWithNamedPlace = sentDocuments.filter(document => document.namedPlaceID);
-
-			let progress = documents.length - docsWithNamedPlace.length;
-			await job.updateProgress(progress);
-
-			const person = await this.personsService.get(personID);
-
-			for (const docWithNamedPlace of docsWithNamedPlace) {
-				try {
-					await this.documentsService.namedPlaceSideEffects(
-						docWithNamedPlace as Populated<Document> & { id: string },
-						person
-					);
-				} catch (e) {
-					this.logger.error(`Named place side effect failed for ${docWithNamedPlace.id}`);
-				} finally {
-					progress++;
-					if (progress % 10 === 0) {
-						await job.updateProgress(progress);
-					}
-				}
-			}
-			await job.updateProgress(progress);
-			await this.flushDocumentsCache(sentDocuments, docsWithNamedPlace);
-			return [];
+			>(undefined, documents as Populated<Document>[]);
 		} catch (e) {
-			await job.updateProgress(total);
-			await this.cache.del(getDocumentsCacheKey(job.id!, personID));
-
 			if (
 				e.response?.data
 				&& Array.isArray(e.response.data.error)
@@ -123,11 +101,45 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 				);
 			}
 		} finally {
-			await this.cache.del(getDocumentsCacheKey(job.id!, personID));
+			await job.updateProgress(total);
+		}
+		await this.flushDocumentsCache(sentDocuments);
+		void this.namedPlaceSideEffects(sentDocuments, personID);
+		return [];
+	}
+
+	private async namedPlaceSideEffects(documents: Populated<Document>[], personID: string) {
+		const docsWithNamedPlace = documents.filter(document => document.namedPlaceID);
+
+		const person = await this.personsService.get(personID);
+
+		for (const docWithNamedPlace of docsWithNamedPlace) {
+			try {
+				await this.documentsService.namedPlaceSideEffects(
+					docWithNamedPlace as Populated<Document> & { id: string },
+					person
+				);
+			} catch (e) {
+				this.logger.error(`Named place side effect failed for ${docWithNamedPlace.id}`);
+			}
+		}
+		await this.flushDocumentsCacheForNamedPlaceDocs(docsWithNamedPlace);
+	}
+
+	private async flushDocumentsCacheForNamedPlaceDocs(docsWithNamedPlace: Document[]) {
+		const namedPlaceIDs = docsWithNamedPlace.reduce((namedPlaceIDs, d) => {
+			if (d.namedPlaceID) {
+				namedPlaceIDs.add(d.namedPlaceID);
+			}
+			return namedPlaceIDs;
+		}, new Set<string>());
+
+		for (const namedPlaceID of namedPlaceIDs.values()) {
+			await this.documentsService.store.flushCache({ namedPlaceID, gatherings: [{ }] });
 		}
 	}
 
-	private async flushDocumentsCache(documents: Populated<Document>[], docsWithNamedPlace: Document[]) {
+	private async flushDocumentsCache(documents: Populated<Document>[]) {
 		const creators = documents.reduce((creators, d) => {
 			if (d.creator) {
 				creators.add(d.creator);
@@ -139,17 +151,6 @@ export class DocumentsBatchSendWorker extends WorkerHost {
 
 		for (const creator of creators.values()) {
 			await this.documentsService.store.flushCache({ collectionID, creator });
-		}
-
-		const namedPlaceIDs = docsWithNamedPlace.reduce((namedPlaceIDs, d) => {
-			if (d.namedPlaceID) {
-				namedPlaceIDs.add(d.namedPlaceID);
-			}
-			return creators;
-		}, new Set<string>());
-
-		for (const namedPlaceID of namedPlaceIDs.values()) {
-			await this.documentsService.store.flushCache({ namedPlaceID, gatherings: [{ }] });
 		}
 	}
 

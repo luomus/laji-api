@@ -87,8 +87,6 @@ export class DocumentsBatchValidationWorker extends WorkerHost {
 		person: Person,
 		lang: Lang
 	) {
-		const formIDs = new Set();
-
 		try {
 			if (!isSecondaryDocumentDelete(document) && !document.dataOrigin) {
 				document.dataOrigin = [DataOrigin.dataOriginSpreadsheetFile];
@@ -96,11 +94,6 @@ export class DocumentsBatchValidationWorker extends WorkerHost {
 
 			if (!isSecondaryDocumentDelete(document)) {
 				populateCreatorAndEditorMutably(document, person);
-			}
-
-			formIDs.add(document.formID);
-			if (formIDs.size > 1) {
-				throw new ValidationException({ "": ["DOCUMENT_VALIDATION_BATCH_SAME_FORM_ID"] });
 			}
 
 			if (!isSecondaryDocumentDelete(document) && !isSecondaryDocument(document)) {
