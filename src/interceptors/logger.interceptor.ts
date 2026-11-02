@@ -29,7 +29,7 @@ export const stringifyRequest = (request: TimeStampedRequest, timestamp = true) 
 	const userId = request.person?.id;
 	const { apiUser } = request;
 	return joinOnlyStrings(
-		`${request.method} ${request.url}`,
+		`${request.method} ${request.originalUrl}`,
 		timestamp && `[${Date.now() - request.lajiApiTimeStamp}ms]`,
 		userId && `[${userId}]`,
 		apiUser?.systemID && `[${apiUser.systemID}]`
