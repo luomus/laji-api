@@ -416,16 +416,6 @@ const addAxiosRetry = (useLogger: boolean) => (app: App): App => {
 			return baseDelay + jitter;
 		},
 		shouldResetTimeout: true,
-		retryCondition: error => {
-			const status = error.response?.status;
-			return (
-				axiosRetry.isNetworkOrIdempotentRequestError(error)
-				|| status && (
-					status === 429
-					|| (status >= 500 && status < 600)
-				)
-			) || false;
-		},
 		onRetry: (retryCount, error, config) => {
 			if (!useLogger) {
 				return;
