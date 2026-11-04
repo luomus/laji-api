@@ -142,7 +142,7 @@ export class FormPermissionsService {
 			: FormPermissionEntityType.editor;
 		const existing = await this.findExistingEntity(collectionID, personID);
 		if (existing) {
-			await this.store.update({ ...existing, type: permissionType });
+			await this.store.update(existing.id, { ...existing, type: permissionType });
 		} else {
 			await this.store.create({
 				collectionID,

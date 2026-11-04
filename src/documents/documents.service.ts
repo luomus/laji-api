@@ -193,7 +193,7 @@ export class DocumentsService {
 		}
 
 		await this.validate(document, person, skipValidations, lang);
-		const updated = await this.store.update(document as Document & { id: string });
+		const updated = await this.store.update(id, document);
 		await this.sideEffects(updated, person);
 		return updated;
 	}
@@ -362,6 +362,7 @@ export class DocumentsService {
 			}
 			try {
 				await this.namedPlacesService.store.update(
+					place.id,
 					{ ...place, prepopulatedDocument: document }
 				);
 			} catch (e) {

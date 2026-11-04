@@ -43,7 +43,7 @@ export class ProfileService {
 			}
 		});
 
-		return this.store.update(nextProfile);
+		return this.store.update(nextProfile.id, nextProfile);
 	}
 
 	async addFriendRequest(person: Person, friend: Person) {
@@ -54,7 +54,7 @@ export class ProfileService {
 			throw new LocalizedException("ALREADY_FRIEND", 422);
 		}
 
-		const updated = await this.store.update({
+		const updated = await this.store.update(friendProfile.id, {
 			...friendProfile, friendRequests: [...friendRequests, person.id]
 		});
 		void this.notificationsService.add({ toPerson: friendID, friendRequest: person.id });
@@ -70,8 +70,8 @@ export class ProfileService {
 			throw new LocalizedException("NO_FRIEND_REQUEST_FOUND", 422);
 		}
 
-		await this.store.update(addFriend(friendProfile, person));
-		const updated = await this.store.update(addFriend(profile, friend));
+		await this.store.update(friendProfile.id, addFriend(friendProfile, person));
+		const updated = await this.store.update(profile.id, addFriend(profile, friend));
 		void this.notificationsService.add({ toPerson: friend.id, friendRequestAccepted: person.id });
 		return updated;
 
@@ -89,9 +89,9 @@ export class ProfileService {
 		const friendProfile = await this.findByPersonID(friendID);
 
 		if (friendProfile) {
-			await this.store.update(removeFriend(friendProfile, person.id, false));
+			await this.store.update(friendProfile.id, removeFriend(friendProfile, person.id, false));
 		}
-		return this.store.update(removeFriend(profile, friendID, block));
+		return this.store.update(profile.id, removeFriend(profile, friendID, block));
 
 		function removeFriend(profile: Profile, removePersonID: string, block: boolean) {
 			const removeFriendFilter = (f: string) => f !== removePersonID;

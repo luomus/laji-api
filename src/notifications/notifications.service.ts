@@ -51,7 +51,7 @@ export class NotificationsService {
 		if (!equals(omit(existing, "seen", "@context"), omit(notification, "seen", "@context"))) {
 			throw new ErrorCodeException("NOTIFICATION_CAN_ONLY_UPDATE_SEEN", 422);
 		}
-		return this.store.update(notification);
+		return this.store.update(id, notification);
 	}
 
 	async delete(id: string, person: Person) {

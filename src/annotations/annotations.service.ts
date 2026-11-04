@@ -145,7 +145,7 @@ export class AnnotationsService {
 		annotation.deleted = true;
 		annotation.deletedByPerson = person.id;
 		annotation.deletedDateTime = new Date().toISOString();
-		const updated = await this.store.update(annotation);
+		const updated = await this.store.update(id, annotation);
 		const document = await this.warehouseService.get(annotation.rootID);
 		for (const editor of (document.editorUserIds || []).filter(id => id.startsWith("MA."))) {
 			void this.notificationsService.getByAnnotationIDAndPersonID(annotation.id, editor);

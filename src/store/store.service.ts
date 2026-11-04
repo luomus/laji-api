@@ -192,11 +192,11 @@ export class StoreService<Resource extends { id?: string }, ResourceQuery extend
 		}
 	}
 
-	async update<Existing extends Resource & { id: string }>(item: Existing) {
-		let result: Existing;
+	async update(id: string, item: Resource) {
+		let result: Resource & { id: string };
 		try {
-			result = await this.client.put<Existing, Existing>(
-				`${this.config.resource}/${item.id}`,
+			result = await this.client.put<Resource & { id: string }>(
+				`${this.config.resource}/${id}`,
 				item,
 				undefined,
 				this.restClientOptions(this.config)

@@ -156,7 +156,7 @@ export class NamedPlacesService {
 		}
 
 		place = await this.prepopulatedDocumentService.getAugmented(place);
-		return this.store.update(place);
+		return this.store.update(id, place);
 	}
 
 	async delete(id: string, person: Person) {
@@ -222,7 +222,7 @@ export class NamedPlacesService {
 			: person;
 		place.reserve = { reserver: forPerson.id, until: dateToISODate(untilDate) };
 
-		const updated = await this.store.update(place);
+		const updated = await this.store.update(id, place);
 		void this.mailService.sendNamedPlaceReserved(person, { place, until: dateToISODate(untilDate) });
 		return updated;
 	}
@@ -235,7 +235,7 @@ export class NamedPlacesService {
 			throw new LocalizedException("NAMED_PLACE_RESERVATION_CANT_REMOVE_OTHERS_IF_NOT_ADMIN", 403);
 		}
 		delete place.reserve;
-		return this.store.update(place);
+		return this.store.update(id, place);
 	}
 
 	private async checkWriteAccess(place: NamedPlace, person?: Person): Promise<void> {
