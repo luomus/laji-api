@@ -102,8 +102,10 @@ const mapSortOrder = ({ sortOrder }: GetTaxaPageDto) => {
 	if (!sortOrder) {
 		return undefined;
 	}
-	const [sortField, order = "asc"] = sortOrder.split(" ") as [string, ...string[]];
+	// eslint-disable-next-line prefer-const
+	let [sortField, order = "asc"] = sortOrder.split(" ") as [string, ...string[]];
 	const mappedSortField: string = (sortOrders as any)[sortField] || sortField;
+	order = order.toLowerCase();
 	if (order !== "asc" && order !== "desc") {
 		throw new HttpException("Bad sort direction in 'sortOrder'. Should be one of 'asc' | 'desc'", 422);
 	}
