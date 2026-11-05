@@ -61,11 +61,9 @@ export class TaxaService {
 		if (query.selectedFields) {
 			query.selectedFields = getSelectedFields(query.selectedFields);
 		}
-		const res = this.elasticService.search<TaxonElastic>(
-			`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}/taxa`,
+		return this.elasticService.search<TaxonElastic>(`taxon_${CHECKLIST_VERSION_MAP[query.checklistVersion!]}`,
 			buildElasticQuery(query, filters, await this.getFiltersSchema(), taxon)
 		);
-		return res;
 	}
 
 	async getPage(query: GetTaxaPageDto, filters: TaxaFilters = {}) {
@@ -221,7 +219,7 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 const pageAdapter = ({ hits }: ElasticResponse<TaxonElastic>, query: GetTaxaPageDto) =>
 	paginateAlreadyPaginated({
 		results: hits.hits.map(({ _source }) =>  mapTaxon(_source, query)),
-		total: hits.total,
+		total: hits.total.value,
 		pageSize: query.pageSize!,
 		currentPage: query.page!
 	}, false);

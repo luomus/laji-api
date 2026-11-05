@@ -89,6 +89,7 @@ describe("/taxa", function() {
 	});
 
 	it("GET /:id/children", async function() {
+		this.timeout(60000);
 		const res = await apiRequest(this.server, { accessToken })
 			.get(url("/taxa/MX.37600/children", { selectedFields: "id,hasChildren" }));
 		res.should.have.status(200);

@@ -16,7 +16,7 @@ export class ElasticService {
 }
 
 export type ElasticResponse<T> = {
-	hits: { total: number,  hits: { _source: T, _type: string; }[] };
+	hits: { total: { value: number }, hits: { _source: T, _type: string; }[] };
 	aggregations: JSONObjectSerializable;
 };
 
@@ -35,6 +35,7 @@ export type ElasticQuery = {
 		ids?: { values: string[] }
 	};
 	_source?: { excludes: string[] } | string[];
+	track_total_hits?: boolean
 };
 
 export type ElasticQueryBoolNode =

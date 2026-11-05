@@ -27,7 +27,8 @@ export const buildElasticQuery = (
 		applyFiltersToElasticQuery(withSimpleFiltersFromQuery(query, filters), filtersSchema!)
 	)({
 		_source: { excludes: ["multimedia", "descriptions", "redListEvaluations", "latestRedListEvaluation"] },
-		query: { }
+		query: { },
+		track_total_hits: true
 	});
 };
 
@@ -208,4 +209,3 @@ const addToBooleanQueryFilterMustNot = (param: string, arg: string[], elasticQ: 
 	} as ElasticQueryBoolNode } });
 	return elasticQ;
 };
-
