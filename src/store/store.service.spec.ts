@@ -85,13 +85,13 @@ describe("StoreService", () => {
 
 			it("update() busts cache for get() by id", async () => {
 				const result = await store.get("foo");
-				await store.update({ primary: "bar", id: "foo" });
+				await store.update("foo", { primary: "bar", id: "foo" });
 				expect(await store.get("primary")).not.toBe(result);
 			});
 
 			it("update() doesn't bust cache for get() by other id", async () => {
 				const result = await store.get("primary");
-				await store.update({ primary: "bar", id: "bar" });
+				await store.update("bar", { primary: "bar", id: "bar" });
 				expect(await store.get("primary")).toBe(result);
 			});
 
@@ -165,7 +165,7 @@ describe("StoreService", () => {
 					const other = await store.getPage({ primary: "bar" }, 1, 21);
 					const anotherOne = await store.getPage({ primary: "bar" }, 1, 20, "id");
 
-					await store.update({ id: "foo", primary: "bar" });
+					await store.update("foo", { id: "foo", primary: "bar" });
 					expect(await store.getPage({ primary: "bar" }, 1, 20)).not.toBe(result);
 					expect(await store.getPage({ primary: "bar" }, 1, 21)).not.toBe(other);
 					expect(await store.getPage({ primary: "bar" }, 1, 20, "id")).not.toBe(anotherOne);
@@ -176,7 +176,7 @@ describe("StoreService", () => {
 					const other = await store.getPage({ primary: "bar" }, 1, 21);
 					const anotherOne = await store.getPage({ primary: "bar" }, 1, 20, "id");
 
-					await store.update({ id: "foo", primary: "bar" });
+					await store.update("foo", { id: "foo", primary: "bar" });
 					expect(await store.getPage({ primary: "bar" }, 1, 20)).not.toBe(result);
 					expect(await store.getPage({ primary: "bar" }, 1, 21)).not.toBe(other);
 					expect(await store.getPage({ primary: "bar" }, 1, 20, "id")).not.toBe(anotherOne);
@@ -569,13 +569,13 @@ describe("StoreService", () => {
 
 				it("update() into the query space busts cache", async () => {
 					const result = await store.findOne({ primary: "bar" });
-					await store.update({ id: "foo", primary: "bar" });
+					await store.update("foo", { id: "foo", primary: "bar" });
 					expect(await store.findOne({ primary: "bar" })).not.toBe(result);
 				});
 
 				it("update() outside the query space doesn't bust cache", async () => {
 					const result = await store.findOne({ primary: "bar" });
-					await store.update({ id: "foo", primary: "barbar" });
+					await store.update("foo", { id: "foo", primary: "barbar" });
 					expect(await store.findOne({ primary: "bar" })).toBe(result);
 				});
 
@@ -625,7 +625,7 @@ describe("StoreService", () => {
 
 				it("update() into the query space busts cache", async () => {
 					const result = await store.getAll({ primary: "bar" });
-					await store.update({ id: "foo", primary: "bar" });
+					await store.update("foo", { id: "foo", primary: "bar" });
 					expect(await store.getAll({ primary: "bar" })).not.toBe(result);
 				});
 
