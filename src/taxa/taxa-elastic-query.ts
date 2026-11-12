@@ -160,10 +160,19 @@ const applyFiltersToElasticQuery = (filters: TaxaFilters = {}, filtersSchema: JS
 			if (typeof arg === "string") {
 				arg = [arg];
 			}
-			if (Array.isArray(arg) && arg.every(a => typeof a === "string")) {
+			if (
+				Array.isArray(arg)
+				&& ["string", "boolean"].some(allowedType => arg.every(a => typeof a === allowedType))
+			) {
 				const inclusions: string[] = [];
 				const exclusions: string[] = [];
-				arg.forEach(subArg => (subArg[0] === "!" ? exclusions : inclusions).push(subArg.replace(/^!/, "")));
+				arg.forEach(subArg => {
+					if (typeof subArg === "boolean") {
+						inclusions.push(subArg);
+					} else {
+						(subArg[0] === "!" ? exclusions : inclusions).push(subArg.replace(/^!/, ""));
+					}
+				});
 				inclusions.length && addToBooleanQueryFilter(param, inclusions, elasticQuery);
 				exclusions.length && addToBooleanQueryFilterMustNot(param, exclusions, elasticQuery);
 				continue;
@@ -184,7 +193,6 @@ const withSimpleFiltersFromQuery = (
 	if (!("darkTaxon" in filters)) {
 		filters = { ...filters, darkTaxon: false };
 	}
-	console.log(filters["darkTaxon"]);
 	(["invasiveSpecies", "informalTaxonGroups", "finnish", "id"] as (keyof SimpleFilters)[]).forEach(filter => {
 		if (filter in query) {
 			filters = { ...filters, [filter]: query[filter]! };
