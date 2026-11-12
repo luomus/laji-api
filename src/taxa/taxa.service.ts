@@ -192,16 +192,26 @@ const jsonSchemaIntoFiltersJsonSchema = (schema: JSONSchemaObject, swagger: Open
 		} else if ((schema as TypedJSONSchema).type === "string") {
 			return [{
 				path,
-				schema: { oneOf: [
-					schema,
-					{
-						type: "array",
-						items: schema
-					}
-				] }
+				schema: {
+					oneOf: [
+						schema,
+						{
+							type: "array",
+							items: schema
+						}
+					]
+				}
 			}];
 		} else if ((schema as TypedJSONSchema).type === "boolean") {
-			return [{ path, schema: { type: "boolean" } }];
+			return [{ path,
+				schema: {
+					oneOf: [
+						{ type: "boolean" },
+						{ type: "array", items: { type: "boolean" }
+						}
+					]
+				}
+			}];
 		}
 		return [];
 	};

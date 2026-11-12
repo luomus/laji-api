@@ -9,7 +9,8 @@ import { TaxaService, getFiltersSchema } from "./taxa.service";
 import { Translator } from "src/interceptors/translator.interceptor";
 import { Serializer } from "src/serialization/serializer.interceptor";
 import { SwaggerRemote } from "src/swagger/swagger-remote.decorator";
-import { ResultsArray, swaggerArrayResponseAsResultsArray, swaggerResponseAsResultsArray } from "src/interceptors/results-array.interceptor";
+import { ResultsArray, swaggerArrayResponseAsResultsArray, swaggerResponseAsResultsArray }
+	from "src/interceptors/results-array.interceptor";
 import { OpenAPIObject, ReferenceObject, SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import { parseURIFragmentIdentifier } from "src/utils";
 import { TaxaFilters } from "./taxa-elastic-query";
