@@ -238,13 +238,14 @@ export class CollectionsService {
 const collectionIsHidden = (
 	collection: TriplestoreCollection,
 	idToCollection: Record<string, TriplestoreCollection>
-) : boolean =>
-	collection.metadataStatus === MetadataStatus.Hidden
+) : boolean =>{
+	return collection.metadataStatus === MetadataStatus.Hidden
 		|| (
 			(collection.isPartOf && idToCollection[(collection.isPartOf as string)])
 				? collectionIsHidden(idToCollection[(collection.isPartOf as string)]!, idToCollection)
 				: false
 		);
+};
 
 /** If the property is undefined, attempt to recursively get it from parent collections */
 const getInheritedProperty = <K extends keyof TriplestoreCollection>(

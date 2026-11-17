@@ -11,7 +11,7 @@ import { ApiUsersService } from "src/api-users/api-users.service";
 import { PersonsService } from "src/persons/persons.service";
 import { RedisCacheService } from "src/redis-cache/redis-cache.service";
 import { Document } from "@luomus/laji-schema";
-import { ValidationException, isValidationExceptionBase, PreTranslatedDetailsValidationException }
+import { isValidationExceptionBase, PreTranslatedDetailsValidationException }
 	from "../document-validator/document-validator.utils";
 import { DocumentsService, populateCreatorAndEditorMutably } from "../documents.service";
 import { SecondaryDocumentsService } from "../secondary-documents.service";

@@ -69,7 +69,3 @@ export type MultiLangAsString<T> = {
 	? MultiLangAsString<T[K]>
 	: T[K];
 };
-
-@LocalJsonLdContext("generic")
-class Generic {
-}
