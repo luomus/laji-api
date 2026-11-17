@@ -5,7 +5,7 @@ import { text } from "body-parser";
 
 @Injectable()
 export class HtmlTextMiddleware implements NestMiddleware {
-  private readonly parser = text({ type: "*/*", limit: "10mb" });
+  private readonly parser = text({ type: "*/*", limit: "50mb" });
 
   use(req: any, res: any, next: (err?: any) => void) {
   	this.parser(req, res, next);
