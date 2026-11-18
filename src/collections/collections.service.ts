@@ -2,10 +2,10 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { LANGS, MultiLang } from "src/common.dto";
 import { RestClientService } from "src/rest-client/rest-client.service";
 import { TriplestoreService } from "src/triplestore/triplestore.service";
-import { Collection, GbifCollectionResult, GbifContact, MetadataStatus, TriplestoreCollection }
+import { Collection, GbifCollectionResult, GbifContact, MetabarCodingCollection, MetadataStatus, TriplestoreCollection }
 	from "./collection.dto";
 import { Interval } from "@nestjs/schedule";
-import { MS_10_MIN, joinOnlyStrings, promisePipe } from "src/utils";
+import { MS_10_MIN, firstFromNonEmptyArr, joinOnlyStrings, promisePipe } from "src/utils";
 import { IntelligentInMemoryCache } from "src/decorators/intelligent-in-memory-cache.decorator";
 import { IntelligentMemoize } from "src/decorators/intelligent-memoize.decorator";
 import { GLOBAL_CLIENT } from "src/provider-tokens";
@@ -16,6 +16,7 @@ import { LangService } from "src/lang/lang.service";
 import { serializeInto } from "src/serialization/serialization.utils";
 
 const GBIF_DATASET_PARENT = "HR.3777";
+const METABARCODING_DATASET_PARENT = "HR.7800";
 
 class CollectionNotFoundError extends HttpException {
 	constructor(id: string) {
@@ -130,7 +131,11 @@ export class CollectionsService {
 
 	@IntelligentMemoize()
 	private async getAll(): Promise<Collection[]> {
-		return (await this.getTriplestoreCollections()).concat(await this.getGbifCollections()).map(addMultiLangs);
+		return [
+			...(await this.getTriplestoreCollections()),
+			...(await this.getGbifCollections()),
+			...(await this.getMetabarcodinCollections())
+		].map(addMultiLangs);
 	}
 
 	@IntelligentMemoize({ primitive: true })
@@ -201,7 +206,7 @@ export class CollectionsService {
 
 			(collection as Collection).longName = getLongName(collection, idToCollection);
 			(collection as Collection).hasChildren = !!collectionIdToChildIds[collection.id]
-				|| collection.id === GBIF_DATASET_PARENT;
+				|| [GBIF_DATASET_PARENT, METABARCODING_DATASET_PARENT].includes(collection.id);
 
 			collections.push(collection as Collection);
 			return collections;
@@ -226,12 +231,39 @@ export class CollectionsService {
 				description: { en: collection.description },
 				personResponsible: contact.lastName ? contact.lastName + ", " + contact.firstName : contact.firstName,
 				contactEmail: Array.isArray(contact.email) && contact.email.length > 0
-					? contact.email[0]
+					? firstFromNonEmptyArr(contact.email)
 					: "info@laji.fi",
 				intellectualRights: "MY.intellectualRightsCC-BY",
 				isPartOf: GBIF_DATASET_PARENT
 			};
 		});
+	}
+
+	private async getMetabarcodinCollections(): Promise<Collection[]> {
+		const metabarcodingCollections = await this.globalClient.get<MetabarCodingCollection[]>(
+			"https://metabarcoding.laji.fi/service/datasets",
+			undefined,
+			{ cache: MS_10_MIN }
+		);
+		const selfHost = this.config.get<string>("SELF_HOST");
+		return metabarcodingCollections.reduce((collections, collection) => {
+			if (collection.deleted) {
+				return collections;
+			}
+			collections.push({
+				id: collection.dataset_id,
+				"@context": `${selfHost}/context/triplestore-MY.collection`,
+				collectionType: "MY.collectionTypeMixed",
+				collectionName: { en: collection.title } ,
+				longName: { en: collection.title } ,
+				description: { en: collection.dataset_description },
+				personResponsible: collection.dataset_author,
+				contactEmail: collection.dataset_author,
+				intellectualRights: "MY.intellectualRightsCC-BY",
+				isPartOf: METABARCODING_DATASET_PARENT
+			});
+			return collections;
+		}, [] as Collection[]);
 	}
 }
 

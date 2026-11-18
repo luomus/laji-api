@@ -52,6 +52,8 @@ export class TriplestoreCollection extends HasJsonLdContext {
 	inMustikka?: boolean;
 	editor?: string;
 	creator?: string;
+	contactEmail: string;
+	personResponsible: string;
 }
 
 // The listed props are omitted because we need to override their type (into "T", and some of them always string).
@@ -76,7 +78,7 @@ export class Collection extends OmitType(TriplestoreCollection, [
 
 	hasChildren?: boolean;
 
-	// If these are updated, remember to fix the Swagger also (look for `sensitiveProps` in collections controller).
+	// If excluded props change, remember to fix the Swagger also (look for `sensitiveProps` in collections controller).
 	@Exclude() collectionLocation?: MultiLang;
 	@Exclude() dataLocation?: MultiLang;
 	@Exclude() inMustikka?: boolean;
@@ -101,6 +103,15 @@ export type GbifCollection = {
 	license: string;
 	contacts: GbifContact[];
 }
+
 export type GbifCollectionResult = {
 	results: GbifCollection[]
+}
+
+export type MetabarCodingCollection = {
+	dataset_id: string;
+	title: string;
+	dataset_author: string;
+	dataset_description: string;
+	deleted: string | null;
 }
