@@ -6,6 +6,8 @@ import { PopulatedSecondaryDocumentOperation, SecondaryDocument, SecondaryDocume
 import { Person } from "src/persons/person.dto";
 import { ConfigService } from "@nestjs/config";
 import { Lang } from "src/common.dto";
+import { FormPermissionsService } from "src/form-permissions/form-permissions.service";
+import { LocalizedException } from "src/utils";
 
 @Injectable()
 export class SecondaryDocumentsService {
@@ -13,7 +15,8 @@ export class SecondaryDocumentsService {
 	constructor(
 		private warehouseService: WarehouseService,
 		@Inject(forwardRef(() => DocumentsService)) private documentsService: DocumentsService,
-		private config: ConfigService
+		private config: ConfigService,
+		private formPermissionsService: FormPermissionsService
 	) {}
 
 	async create(createOrDelete: SecondaryDocumentDelete, person: Person, lang: Lang)
@@ -57,6 +60,12 @@ export class SecondaryDocumentsService {
 		}
 		if (isSecondaryDocument(createOrDelete)) {
 			await this.documentsService.validate(createOrDelete, person, undefined, lang);
+		} else if (isSecondaryDocumentDelete(createOrDelete)) {
+			const hasEditRights =
+				await this.formPermissionsService.hasEditRightsOf(createOrDelete.collectionID, person);
+			if (!hasEditRights) {
+				throw new LocalizedException("SECONDARY_DOCUMENT_NO_PERMISSION_TO_FORM", 403);
+			}
 		}
 	}
 

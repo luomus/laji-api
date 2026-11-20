@@ -257,6 +257,18 @@ describe("/documents", function() {
 		res.should.have.status(201);
 	});
 
+	it("doesn't allow deleting secondary copy if not creator", async function () {
+		const document = {
+			delete: true,
+			id: "T.123",
+			formID: formWithSecondaryCopyFeatureId
+		};
+		const res = await apiRequest(this.server, { accessToken, personToken: friend.personToken })
+			.post(basePath)
+			.send(document);
+		res.should.have.status(403);
+	});
+
 	it("allows deleting secondary copy", async function () {
 		const document = {
 			delete: true,
