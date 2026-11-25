@@ -28,6 +28,8 @@ export class Property {
 export class Alt {
 	id: string;
 	value: MultiLangDto;
+	administrativeStatusDescription?: MultiLangDto;
+	administrativeStatusLink?: MultiLangDto;
 }
 
 @LocalJsonLdContext("metadata-alt-listing")
