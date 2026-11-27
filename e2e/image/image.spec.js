@@ -56,13 +56,6 @@ describe("/image", function() {
 		});
 	});
 
-	it("returns 400 when no person token specified for post request", async function() {
-		const res = await apiRequest(this.server, { accessToken })
-			.post(`${basePath}/${imageOthers}`)
-			.send({ intellectualRights: "MZ.intellectualRightsCC-BY-SA-4.0" });
-		res.should.have.status(400);
-	});
-
 	it("returns 400 when no person token specified for put request", async function() {
 		const res = await apiRequest(this.server, { accessToken })
 			.put(`${basePath}/${imageOthers}`)

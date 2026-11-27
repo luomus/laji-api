@@ -88,12 +88,12 @@ export class AbstractMediaService<T extends MediaType> {
 		return result[urlKey] as string;
 	}
 
-	async uploadMetadata(tempId: string, media: Media<T>, person: Person): Promise<Media<T>> {
+	async uploadMetadata(tempId: string, media: Media<T>, person?: Person): Promise<Media<T>> {
 		if (!media.intellectualRights) {
 			throw new HttpException("Intellectual rights is required", 422);
 		}
 
-		const metadata = this.newMetadata(media, person, tempId);
+		const metadata = this.newMetadata(media, tempId, person);
 		const data = await this.mediaClient.post<MetaUploadResponse[]>(
 			`api/${this.abstracted.apiPath}`, metadata
 		);
@@ -135,7 +135,7 @@ export class AbstractMediaService<T extends MediaType> {
 		await this.mediaClient.delete(`api/${this.abstracted.apiPath}/${id}`);
 	}
 
-	private newMetadata(media: Media<T>, person: Person, tempId: string): MetaUploadData[] {
+	private newMetadata(media: Media<T>, tempId: string, person?: Person): MetaUploadData[] {
 		const meta = this.mediaToMeta(media, person);
 		return [{
 			meta: meta,
@@ -143,11 +143,11 @@ export class AbstractMediaService<T extends MediaType> {
 		}];
 	}
 
-	private mediaToMeta(media: Media<T>, person: Person, current: Partial<Media<T>> = {}): PartialMeta {
+	private mediaToMeta(media: Media<T>, person?: Person, current: Partial<Media<T>> = {}): PartialMeta {
 		const uploadedBy = current.uploadedBy
-			|| person.isImporter()
+			|| person?.isImporter()
 			? media.uploadedBy
-			: person.id;
+			: person?.id;
 		return {
 			capturers: media.capturerVerbatim || [],
 			rightsOwner: media.intellectualOwner || "",

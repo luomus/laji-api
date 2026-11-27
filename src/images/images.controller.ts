@@ -39,7 +39,6 @@ export class ImagesController {
 	})
 	@ApiOkResponse({ type: FileUploadResponse })
 	async upload(
-		@RequestPerson() __: Person, // Checks that the person token is valid.
 		@Req() req: Request,
 		@Res() res: Response,
 		@Next() next: NextFunction
@@ -123,8 +122,8 @@ export class ImagesController {
 	@UseInterceptors(Serializer(Image))
 	uploadMetadata(
 		@Param("tempId") tempId: string,
-		@RequestPerson() person: Person,
-		@Body() image: Image
+		@Body() image: Image,
+		@RequestPerson({ required: false }) person?: Person
 	): Promise<Image> {
 		return this.abstractMediaService.uploadMetadata(tempId, image, person);
 	}

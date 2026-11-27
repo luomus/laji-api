@@ -41,7 +41,6 @@ export class AudioController {
 		type: FileUploadResponse
 	})
 	async upload(
-		@RequestPerson() _: Person, // Checks that the person token is valid.
 		@Req() req: Request,
 		@Res() res: Response,
 		@Next() next: NextFunction
@@ -135,8 +134,8 @@ export class AudioController {
 	@UseInterceptors(Serializer(Audio))
 	async uploadMetadata(
 		@Param("tempId") tempId: string,
-		@RequestPerson() person: Person,
-		@Body() audio: Audio
+		@Body() audio: Audio,
+		@RequestPerson({ required: false }) person?: Person
 	): Promise<Audio> {
 		return this.abstractMediaService.uploadMetadata(tempId, audio, person);
 	}
